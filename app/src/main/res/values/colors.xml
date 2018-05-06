@@ -33,8 +33,9 @@
 
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#67dfe8</color>
     <color name="colorInitializingBorder">#00695c</color>
+    <color name="mdtp_button_color">@color/colorAccent</color>
 
     <color name="cardColorBackground">#121212</color>
     <color name="cardObjectiveText">#779ECB</color>
