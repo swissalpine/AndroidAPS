@@ -6,7 +6,4 @@
         </shape>
     </item>
 
-    <item android:drawable="@drawable/nslogo_background" />
-
-
 </layer-list>
