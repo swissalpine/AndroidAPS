@@ -3,6 +3,7 @@ package info.nightscout.androidaps.plugins.PumpCombo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import com.squareup.otto.Subscribe;
 
 import org.apache.commons.lang3.StringUtils;
 
+import info.nightscout.androidaps.TDDStatsActivity;
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.PumpState;
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.Bolus;
 import info.nightscout.androidaps.MainApp;
@@ -47,7 +49,9 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
     private Button refreshButton;
     private TextView bolusCount;
     private TextView tbrCount;
+    // persönliche Änderung
     private SingleClickButton fill;
+    private SingleClickButton tddStats;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -71,6 +75,10 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
         fill = (SingleClickButton) view.findViewById(R.id.actions_fill);
         fill.setOnClickListener(this);
         fill.setVisibility(View.GONE);
+
+        tddStats = view.findViewById(R.id.actions_tddstats);
+        tddStats.setOnClickListener(this);
+        tddStats.setVisibility(View.GONE);
 
         updateGUI();
         return view;
@@ -99,6 +107,9 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
             case R.id.actions_fill:
                 FillDialog fillDialog = new FillDialog();
                 fillDialog.show(manager, "FillDialog");
+                break;
+            case R.id.actions_tddstats:
+                startActivity(new Intent(getContext(), TDDStatsActivity.class));
                 break;
         }
     }
@@ -246,6 +257,7 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
                 tbrCount.setText(String.valueOf(SP.getLong(ComboPlugin.COMBO_TBRS_SET, 0L)));
 
                 fill.setVisibility(View.VISIBLE);
+                tddStats.setVisibility(View.VISIBLE);
             }
         });
     }

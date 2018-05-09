@@ -495,11 +495,24 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.5"
                 android:layout_marginRight="-3dp"
-                android:layout_marginLeft="0dp"
+                android:layout_marginLeft="2dp"
                 android:drawableTop="@drawable/icon_actions_refill"
                 android:paddingLeft="0dp"
                 android:paddingRight="0dp"
                 android:text="@string/combo_refresh" />
+
+            <info.nightscout.utils.SingleClickButton
+                android:id="@+id/actions_tddstats"
+                style="@style/ButtonSmallFontStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="-3dp"
+                android:layout_marginLeft="-3dp"
+                android:layout_weight="0.5"
+                android:drawableTop="@drawable/icon_danarstats"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
+                android:text="TDD" />
 
             <info.nightscout.utils.SingleClickButton
                 android:id="@+id/actions_fill"
