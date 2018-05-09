@@ -105,12 +105,19 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     NumberPicker editCorr;
     NumberPicker editCarbTime;
 
+    private Integer maxCarbs;
+
     LinearLayout notesLayout;
     EditText notesEdit;
 
     Integer calculatedCarbs = 0;
     Double calculatedTotalInsulin = 0d;
     JSONObject boluscalcJSON;
+
+    // persönliche Anpassung
+    private static final int FAV1_DEFAULT = 5;
+    private static final int FAV2_DEFAULT = 10;
+    private static final int FAV3_DEFAULT = 20;
 
     Context context;
 
@@ -240,6 +247,8 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         profileSpinner = (Spinner) view.findViewById(R.id.treatments_wizard_profile);
         profileSpinner.setOnItemSelectedListener(this);
 
+        maxCarbs = MainApp.getConstraintChecker().getMaxCarbsAllowed().value();
+
         editCarbTime = (NumberPicker) view.findViewById(R.id.treatments_wizard_carbtimeinput);
         editCorr = (NumberPicker) view.findViewById(R.id.treatments_wizard_correctioninput);
         editCarbs = (NumberPicker) view.findViewById(R.id.treatments_wizard_carbsinput);
@@ -257,9 +266,26 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         editCarbTime.setParams(0d, -60d, 60d, 5d, new DecimalFormat("0"), false);
         initDialog();
 
+        //persönliche Anpassung
+        Button fav1Button = view.findViewById(R.id.newcarbs_plus1);
+        fav1Button.setOnClickListener(this);
+        fav1Button.setText(toSignedString(SP.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT)));
+
+        Button fav2Button = view.findViewById(R.id.newcarbs_plus2);
+        fav2Button.setOnClickListener(this);
+        fav2Button.setText(toSignedString(SP.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT)));
+
+        Button fav3Button = view.findViewById(R.id.newcarbs_plus3);
+        fav3Button.setOnClickListener(this);
+        fav3Button.setText(toSignedString(SP.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)));
+
         setCancelable(true);
         getDialog().setCanceledOnTouchOutside(false);
         return view;
+    }
+
+    private String toSignedString(int value) {
+        return value > 0 ? "+" + value : String.valueOf(value);
     }
 
     @Override
@@ -402,6 +428,21 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
                 break;
             case R.id.cancel:
                 dismiss();
+                break;
+            case R.id.newcarbs_plus1:
+                editCarbs.setValue(Math.max(0, editCarbs.getValue()
+                        + SP.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT)));
+                calculateInsulin();
+                break;
+            case R.id.newcarbs_plus2:
+                editCarbs.setValue(Math.max(0, editCarbs.getValue()
+                        + SP.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT)));
+                calculateInsulin();
+                break;
+            case R.id.newcarbs_plus3:
+                editCarbs.setValue(Math.max(0, editCarbs.getValue()
+                        + SP.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)));
+                calculateInsulin();
                 break;
         }
     }
