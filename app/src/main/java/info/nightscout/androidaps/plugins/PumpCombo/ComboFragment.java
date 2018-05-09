@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,11 @@ import info.nightscout.androidaps.queue.Callback;
 import info.nightscout.androidaps.queue.events.EventQueueChanged;
 import info.nightscout.utils.DateUtil;
 import info.nightscout.utils.SP;
+import info.nightscout.utils.SingleClickButton;
+
+import info.nightscout.androidaps.plugins.Actions.dialogs.FillDialog;
+
+import static info.nightscout.androidaps.R2.string.pump;
 
 public class ComboFragment extends SubscriberFragment implements View.OnClickListener {
     private TextView stateView;
@@ -41,6 +47,7 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
     private Button refreshButton;
     private TextView bolusCount;
     private TextView tbrCount;
+    private SingleClickButton fill;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -61,6 +68,10 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
         refreshButton = view.findViewById(R.id.combo_refresh_button);
         refreshButton.setOnClickListener(this);
 
+        fill = (SingleClickButton) view.findViewById(R.id.actions_fill);
+        fill.setOnClickListener(this);
+        fill.setVisibility(View.GONE);
+
         updateGUI();
         return view;
     }
@@ -74,6 +85,7 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
 
     @Override
     public void onClick(View view) {
+        FragmentManager manager = getFragmentManager();
         switch (view.getId()) {
             case R.id.combo_refresh_button:
                 refreshButton.setEnabled(false);
@@ -83,6 +95,10 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
                         runOnUiThread(() -> refreshButton.setEnabled(true));
                     }
                 });
+                break;
+            case R.id.actions_fill:
+                FillDialog fillDialog = new FillDialog();
+                fillDialog.show(manager, "FillDialog");
                 break;
         }
     }
@@ -228,6 +244,8 @@ public class ComboFragment extends SubscriberFragment implements View.OnClickLis
                 // stats
                 bolusCount.setText(String.valueOf(SP.getLong(ComboPlugin.COMBO_BOLUSES_DELIVERED, 0L)));
                 tbrCount.setText(String.valueOf(SP.getLong(ComboPlugin.COMBO_TBRS_SET, 0L)));
+
+                fill.setVisibility(View.VISIBLE);
             }
         });
     }
