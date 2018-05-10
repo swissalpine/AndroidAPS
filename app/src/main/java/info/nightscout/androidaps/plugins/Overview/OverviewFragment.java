@@ -570,8 +570,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.careportal_profileswitch))) {
             NewNSTreatmentDialog newDialog = new NewNSTreatmentDialog();
-            final OptionsToShow profileswitch = CareportalFragment.PROFILESWITCHDIRECT;
-            profileswitch.executeProfileSwitch = true;
+            final OptionsToShow profileswitch = CareportalFragment.PROFILESWITCH; //PROFILESWITCHDIRECT;
+            profileswitch.executeProfileSwitch = false; // true;
             newDialog.setOptions(profileswitch, R.string.careportal_profileswitch);
             newDialog.show(getFragmentManager(), "NewNSTreatmentDialog");
         } else if (item.getTitle().equals(MainApp.gs(R.string.danar_viewprofile))) {
