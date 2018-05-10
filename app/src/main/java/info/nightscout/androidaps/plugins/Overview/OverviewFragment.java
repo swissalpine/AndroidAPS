@@ -1315,7 +1315,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (cage != null) {
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SITECHANGE);
             if (careportalEvent != null) {
-                cage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, cageWarn, cageUrgent));
+                cage.setTextColor(determineTextColor(careportalEvent, cageWarn, cageUrgent));
                 cage.setText("CAN"); //: " + careportalEvent.age());
             } else {
                 cage.setText("n/a");
@@ -1325,7 +1325,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (iage != null) {
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.INSULINCHANGE);
             if (careportalEvent != null) {
-                iage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, iageWarn, iageUrgent));
+                iage.setTextColor(determineTextColor(careportalEvent, iageWarn, iageUrgent));
                 iage.setText("INS"); //: + careportalEvent.age());
             } else {
                 iage.setText("n/a");
@@ -1335,7 +1335,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (sage != null) {
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SENSORCHANGE);
             if (careportalEvent != null) {
-                sage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, sageWarn, sageUrgent));
+                sage.setTextColor(determineTextColor(careportalEvent, sageWarn, sageUrgent));
                 sage.setText("SEN"); // + careportalEvent.age());
             } else {
                 sage.setText("n/a");
@@ -1345,7 +1345,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (pbage != null) {
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.PUMPBATTERYCHANGE);
             if (careportalEvent != null) {
-                pbage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, pbageWarn, pbageUrgent));
+                pbage.setTextColor(determineTextColor(careportalEvent, pbageWarn, pbageUrgent));
                 pbage.setText("BAT"); //careportalEvent.age());
             } else {
                 pbage.setText("n/a");
@@ -1520,7 +1520,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         } else if (careportalEvent.isOlderThan(warnThreshold)) {
             return MainApp.gc(R.color.high);
         } else {
-            return Color.WHITE;
+            return MainApp.gc(R.color.overviewGray); // MainApp.gc(R.color.colorLightGray);
         }
     }
 

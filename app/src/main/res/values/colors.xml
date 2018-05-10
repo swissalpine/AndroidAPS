@@ -72,4 +72,6 @@
     <color name="deviationred">#72FF0000</color>
     <color name="deviationblack">#72000000</color>
 
+    <color name="overviewGray">#808080</color>
+
 </resources>
