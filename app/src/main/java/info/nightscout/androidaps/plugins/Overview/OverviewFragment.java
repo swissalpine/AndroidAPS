@@ -107,6 +107,8 @@ import info.nightscout.androidaps.plugins.Overview.events.EventSetWakeLock;
 import info.nightscout.androidaps.plugins.Overview.graphData.GraphData;
 import info.nightscout.androidaps.plugins.Overview.notifications.NotificationRecyclerViewAdapter;
 import info.nightscout.androidaps.plugins.Overview.notifications.NotificationStore;
+import info.nightscout.androidaps.plugins.PumpCombo.ComboPlugin;
+import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.PumpState;
 import info.nightscout.androidaps.plugins.Source.SourceDexcomG5Plugin;
 import info.nightscout.androidaps.plugins.Source.SourceXdripPlugin;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
@@ -248,10 +250,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             apsModeView = (TextView) view.findViewById(R.id.overview_apsmode);
             tempTargetView = (TextView) view.findViewById(R.id.overview_temptarget);
 
-            iage = (TextView) view.findViewById(R.id.careportal_insulinage);
-            cage = (TextView) view.findViewById(R.id.careportal_canulaage);
-            sage = (TextView) view.findViewById(R.id.careportal_sensorage);
-            pbage = (TextView) view.findViewById(R.id.careportal_pbage);
+            iage = (TextView) view.findViewById(R.id.overview_insulinage);
+            cage = (TextView) view.findViewById(R.id.overview_canulaage);
+            sage = (TextView) view.findViewById(R.id.overview_sensorage);
+            pbage = (TextView) view.findViewById(R.id.overview_pbage);
 
             bgGraph = (GraphView) view.findViewById(R.id.overview_bggraph);
             iobGraph = (GraphView) view.findViewById(R.id.overview_iobgraph);
@@ -1301,19 +1303,20 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         CareportalEvent careportalEvent;
         NSSettingsStatus nsSettings = new NSSettingsStatus().getInstance();
 
-        double cageUrgent = nsSettings.getExtendedWarnValue("cage", "urgent", 72);
-        double cageWarn = nsSettings.getExtendedWarnValue("cage", "warn", 48);
-        double iageUrgent = nsSettings.getExtendedWarnValue("iage", "urgent", 96);
-        double iageWarn = nsSettings.getExtendedWarnValue("iage", "warn", 72);
+        double iageUrgent = nsSettings.getExtendedWarnValue("iage", "urgent", 120);
+        double iageWarn = nsSettings.getExtendedWarnValue("iage", "warn", 96);
+        double cageUrgent = nsSettings.getExtendedWarnValue("cage", "urgent", 48);
+        double cageWarn = nsSettings.getExtendedWarnValue("cage", "warn", 24);
         double sageUrgent = nsSettings.getExtendedWarnValue("sage", "urgent", 166);
-        double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 164);
-
+        double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 504);
+        double pbageUrgent = nsSettings.getExtendedWarnValue("pgage", "urgent", 360);
+        double pbageWarn = nsSettings.getExtendedWarnValue("pgage", "warn", 240);
 
         if (cage != null) {
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SITECHANGE);
             if (careportalEvent != null) {
                 cage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, cageWarn, cageUrgent));
-                cage.setText("CAGE"); //: " + careportalEvent.age());
+                cage.setText("CAN"); //: " + careportalEvent.age());
             } else {
                 cage.setText("n/a");
             }
@@ -1323,7 +1326,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.INSULINCHANGE);
             if (careportalEvent != null) {
                 iage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, iageWarn, iageUrgent));
-                iage.setText("IAGE"); //: + careportalEvent.age());
+                iage.setText("INS"); //: + careportalEvent.age());
             } else {
                 iage.setText("n/a");
             }
@@ -1333,9 +1336,19 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SENSORCHANGE);
             if (careportalEvent != null) {
                 sage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, sageWarn, sageUrgent));
-                sage.setText("SAGE"); // + careportalEvent.age());
+                sage.setText("SEN"); // + careportalEvent.age());
             } else {
                 sage.setText("n/a");
+            }
+        }
+
+        if (pbage != null) {
+            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.PUMPBATTERYCHANGE);
+            if (careportalEvent != null) {
+                pbage.setTextColor(CareportalFragment.determineTextColor(careportalEvent, pbageWarn, pbageUrgent));
+                pbage.setText("BAT"); //careportalEvent.age());
+            } else {
+                pbage.setText("n/a");
             }
         }
 
