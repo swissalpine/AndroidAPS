@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.SystemClock;
+import android.preference.Preference;
+import android.preference.PreferenceScreen;
 import android.support.annotation.Nullable;
 import android.support.annotation.PluralsRes;
 import android.support.v4.content.LocalBroadcastManager;

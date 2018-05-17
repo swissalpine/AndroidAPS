@@ -1176,4 +1176,13 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <string name="combopump_settings">Accu-Chek Combo settings</string>
+    <string name="key_combo_btwatchdog" translatable="false">combo_bt_watchdog</string>
+    <string name="combo_bt_watchdog_title">BT watchdog</string>
+    <string name="combo_bt_watchdog_description">Disable and re-enable BT if connect to pump times out. Only enable this if you receive messages about failed boluses multiple times a day or the pump can not be reached for longer periods. This works around issues with certain phones and may or may not help.</string>
+    <string name="key_combo_btwatchdog_notify">key_combo_btwatchdog_notify</string>
+    <string name="combo_bt_watchdog_notify_title">Notify when toggling BT</string>
+    <string name="combo_bt_watchdog_successful">Connect still failing after BT restart</string>
+    <string name="combo_bt_watchdog_failed">Connect successful after BT restart</string>
+    <string name="combo_bt_watchdog_triggered">Combo BT watchdog triggered</string>
 </resources>
