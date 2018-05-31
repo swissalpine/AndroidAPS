@@ -1310,10 +1310,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         double iageWarn = nsSettings.getExtendedWarnValue("iage", "warn", 96);
         double cageUrgent = nsSettings.getExtendedWarnValue("cage", "urgent", 48);
         double cageWarn = nsSettings.getExtendedWarnValue("cage", "warn", 24);
-        double sageUrgent = nsSettings.getExtendedWarnValue("sage", "urgent", 336);
-        double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 504);
-        double pbageUrgent = nsSettings.getExtendedWarnValue("pgage", "urgent", 504);
-        double pbageWarn = nsSettings.getExtendedWarnValue("pgage", "warn", 674);
+        double sageUrgent = nsSettings.getExtendedWarnValue("sage", "urgent", 504);
+        double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 336);
+        double pbageUrgent = nsSettings.getExtendedWarnValue("pgage", "urgent", 672);
+        double pbageWarn = nsSettings.getExtendedWarnValue("pgage", "warn", 504);
 
         if (cage != null) {
             careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SITECHANGE);
