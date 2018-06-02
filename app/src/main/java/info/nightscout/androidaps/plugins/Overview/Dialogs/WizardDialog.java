@@ -114,9 +114,8 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
 
     Context context;
 
-    //one shot guards
+    // one shot guard
     private boolean accepted;
-    private boolean okClicked;
 
     public WizardDialog() {
         super();
@@ -295,12 +294,6 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     public synchronized void onClick(View view) {
         switch (view.getId()) {
             case R.id.ok:
-                if (okClicked) {
-                    log.debug("guarding: ok already clicked");
-                    dismiss();
-                    return;
-                }
-                okClicked = true;
                 final Profile profile = MainApp.getConfigBuilder().getProfile();
 
                 if (profile != null && (calculatedTotalInsulin > 0d || calculatedCarbs > 0d)) {
@@ -333,7 +326,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
                     final AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     builder.setTitle(MainApp.gs(R.string.confirmation));
                     builder.setMessage(Html.fromHtml(confirmMessage));
-                    builder.setPositiveButton(MainApp.gs(R.string.ok), new DialogInterface.OnClickListener() {
+                    builder.setPositiveButton(MainApp.gs(R.string.accept), new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             synchronized (builder) {
                                 if (accepted) {
@@ -393,11 +386,13 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
                                     FabricPrivacy.getInstance().logCustom(new CustomEvent("Wizard"));
                                 }
                             }
+                            dismiss();
                         }
                     });
-                    builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
-                    builder.show();
-                    dismiss();
+                    builder.setNegativeButton(MainApp.gs(R.string.edit), null);
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.setCanceledOnTouchOutside(false);
+                    alertDialog.show();
                 }
                 break;
             case R.id.cancel:

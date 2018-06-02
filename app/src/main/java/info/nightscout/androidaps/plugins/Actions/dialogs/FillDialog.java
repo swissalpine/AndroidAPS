@@ -197,7 +197,7 @@ public class FillDialog extends DialogFragment implements OnClickListener {
             builder.setTitle(MainApp.gs(R.string.confirmation));
             if (insulinAfterConstraints > 0 || pumpSiteChangeCheckbox.isChecked() || insulinCartridgeChangeCheckbox.isChecked()) {
                 builder.setMessage(Html.fromHtml(Joiner.on("<br/>").join(confirmMessage)));
-                builder.setPositiveButton(MainApp.gs(R.string.primefill), (dialog, id) -> {
+                builder.setPositiveButton(MainApp.gs(R.string.accept), (dialog, id) -> {
                     if (finalInsulinAfterConstraints > 0) {
                         DetailedBolusInfo detailedBolusInfo = new DetailedBolusInfo();
                         detailedBolusInfo.insulin = finalInsulinAfterConstraints;
@@ -224,13 +224,16 @@ public class FillDialog extends DialogFragment implements OnClickListener {
                         NSUpload.uploadEvent(CareportalEvent.SITECHANGE, now(), notes);
                     if (insulinCartridgeChangeCheckbox.isChecked())
                         NSUpload.uploadEvent(CareportalEvent.INSULINCHANGE, now() + 1000, notes);
+                    dismiss();
                 });
             } else {
                 builder.setMessage(MainApp.gs(R.string.no_action_selected));
             }
-            builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
-            builder.show();
-            dismiss();
+            // TODO add one-shot guard
+            builder.setNegativeButton(MainApp.gs(R.string.edit), null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
         } catch (RuntimeException e) {
             log.error("Unhandled exception", e);
         }

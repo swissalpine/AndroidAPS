@@ -69,9 +69,8 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
 
     private EditText notesEdit;
 
-    //one shot guards
+    // one shot guard
     private boolean accepted;
-    private boolean okClicked;
 
     public NewInsulinDialog() {
         HandlerThread mHandlerThread = new HandlerThread(NewInsulinDialog.class.getSimpleName());
@@ -184,13 +183,6 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
     }
 
     private void submit() {
-        if (okClicked) {
-            log.debug("guarding: ok already clicked");
-            dismiss();
-            return;
-        }
-        okClicked = true;
-
         try {
             Profile currentProfile = MainApp.getConfigBuilder().getProfile();
             if (currentProfile == null)
@@ -242,7 +234,7 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
             builder.setTitle(MainApp.gs(R.string.confirmation));
             if (finalInsulinAfterConstraints > 0 || startEatingSoonTTCheckbox.isChecked()) {
                 builder.setMessage(Html.fromHtml(Joiner.on("<br/>").join(actions)));
-                builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
+                builder.setPositiveButton(MainApp.gs(R.string.accept), (dialog, id) -> {
                     synchronized (builder) {
                         if (accepted) {
                             log.debug("guarding: already accepted");
@@ -289,14 +281,16 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
                                 FabricPrivacy.getInstance().logCustom(new CustomEvent("Bolus"));
                             }
                         }
+                        dismiss();
                     }
                 });
             } else {
                 builder.setMessage(MainApp.gs(R.string.no_action_selected));
             }
-            builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
-            builder.show();
-            dismiss();
+            builder.setNegativeButton(MainApp.gs(R.string.edit), null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
         } catch (Exception e) {
             log.error("Unhandled exception", e);
         }
