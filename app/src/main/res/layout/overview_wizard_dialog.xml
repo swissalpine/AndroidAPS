@@ -229,7 +229,8 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="10dp"
                 android:checked="false"
-                android:text="Super\nbolus" />
+                android:text="Super\nbolus"
+                android:textSize="12sp" />
 
         </LinearLayout>
 
