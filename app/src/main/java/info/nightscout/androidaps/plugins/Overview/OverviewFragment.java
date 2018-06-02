@@ -1037,8 +1037,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         final LoopPlugin.LastRun finalLastRun = LoopPlugin.lastRun;
         if (Config.APS && pump.getPumpDescription().isTempBasalCapable) {
             apsModeView.setVisibility(View.VISIBLE);
-            apsModeView.setBackgroundColor(MainApp.gc(R.color.loopenabled));
-            apsModeView.setTextColor(Color.BLACK);
+            apsModeView.setBackgroundColor(Color.GRAY); //MainApp.gc(R.color.loopenabled));
+            apsModeView.setTextColor(Color.WHITE); // BLACK
             final LoopPlugin loopPlugin = LoopPlugin.getPlugin();
             if (loopPlugin.isEnabled(PluginType.LOOP) && loopPlugin.isSuperBolus()) {
                 apsModeView.setBackgroundColor(MainApp.gc(R.color.looppumpsuspended));
@@ -1071,16 +1071,24 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             apsModeView.setVisibility(View.GONE);
         }
 
+        if (profile.getPercentage() != 100 ||  profile.getTimeshift() != 0) {
+            activeProfileView.setBackgroundColor(Color.WHITE);
+            activeProfileView.setTextColor(Color.BLACK);
+        } else {
+            activeProfileView.setBackgroundColor(Color.GRAY);
+            activeProfileView.setTextColor(Color.WHITE);
+        }
+
         // temp target
         TempTarget tempTarget = TreatmentsPlugin.getPlugin().getTempTargetFromHistory();
         if (tempTarget != null) {
             tempTargetView.setTextColor(Color.BLACK);
-            tempTargetView.setBackgroundColor(MainApp.gc(R.color.tempTargetBackground));
+            tempTargetView.setBackgroundColor(Color.WHITE); //MainApp.gc(R.color.tempTargetBackground));
             tempTargetView.setVisibility(View.VISIBLE);
             tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()));
         } else {
             tempTargetView.setTextColor(Color.WHITE);
-            tempTargetView.setBackgroundColor(MainApp.gc(R.color.tempTargetDisabledBackground));
+            tempTargetView.setBackgroundColor(Color.GRAY); //MainApp.gc(R.color.tempTargetDisabledBackground));
             tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units));
             tempTargetView.setVisibility(View.VISIBLE);
         }
@@ -1187,7 +1195,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         }
 
         activeProfileView.setText(MainApp.getConfigBuilder().getProfileName());
-        activeProfileView.setBackgroundColor(Color.GRAY);
+//        activeProfileView.setBackgroundColor(Color.GRAY);
 
         tempTargetView.setOnLongClickListener(view -> {
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
