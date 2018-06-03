@@ -68,7 +68,6 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
 
     //one shot guards
     private boolean accepted;
-    private boolean okClicked;
 
     public NewCarbsDialog() {
         HandlerThread mHandlerThread = new HandlerThread(NewCarbsDialog.class.getSimpleName());
@@ -269,12 +268,6 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
     }
 
     private void submit() {
-        if (okClicked) {
-            log.debug("guarding: ok already clicked");
-            dismiss();
-            return;
-        }
-        okClicked = true;
         try {
             final Profile currentProfile = MainApp.getConfigBuilder().getProfile();
             if (currentProfile == null) {
@@ -292,7 +285,6 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
 
             int eatingSoonTTDuration = helper.determineEatingSoonTTDuration();
             double eatingSoonTT = helper.determineEatingSoonTT(units);
-
             int hypoTTDuration = helper.determineHypoTTDuration();
             double hypoTT = helper.determineHypoTT(units);
 
@@ -352,7 +344,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
             if (carbsAfterConstraints > 0 || startActivityTTCheckbox.isChecked()
                     || startEatingSoonTTCheckbox.isChecked() || startHypoTTCheckbox.isChecked()) {
                 builder.setMessage(Html.fromHtml(Joiner.on("<br/>").join(actions)));
-                builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
+                builder.setPositiveButton(MainApp.gs(R.string.accept), (dialog, id) -> {
                     synchronized (builder) {
                         if (accepted) {
                             log.debug("guarding: already accepted");
@@ -396,14 +388,16 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                 CarbsGenerator.generateCarbs(carbsAfterConstraints, time, duration, notes);
                             }
                         }
+                        dismiss();
                     }
                 });
             } else {
                 builder.setMessage(MainApp.gs(R.string.no_action_selected));
             }
-            builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
-            builder.show();
-            dismiss();
+            builder.setNegativeButton(MainApp.gs(R.string.edit), null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
         } catch (Exception e) {
             log.error("Unhandled exception", e);
         }

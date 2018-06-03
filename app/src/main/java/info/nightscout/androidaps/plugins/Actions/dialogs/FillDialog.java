@@ -61,10 +61,6 @@ public class FillDialog extends DialogFragment implements OnClickListener {
 
     private EditText notesEdit;
 
-    //one shot guards
-    private boolean accepted;
-    private boolean okClicked;
-
     final private TextWatcher textWatcher = new TextWatcher() {
         @Override
         public void afterTextChanged(Editable s) {
@@ -167,14 +163,7 @@ public class FillDialog extends DialogFragment implements OnClickListener {
 
     }
 
-    private synchronized void confirmAndDeliver() {
-        if (okClicked) {
-            log.debug("guarding: ok already clicked");
-            dismiss();
-            return;
-        }
-        okClicked = true;
-
+    private void confirmAndDeliver() {
         try {
             Double insulin = SafeParse.stringToDouble(editInsulin.getText());
 
@@ -208,48 +197,43 @@ public class FillDialog extends DialogFragment implements OnClickListener {
             builder.setTitle(MainApp.gs(R.string.confirmation));
             if (insulinAfterConstraints > 0 || pumpSiteChangeCheckbox.isChecked() || insulinCartridgeChangeCheckbox.isChecked()) {
                 builder.setMessage(Html.fromHtml(Joiner.on("<br/>").join(confirmMessage)));
-                builder.setPositiveButton(MainApp.gs(R.string.primefill), (dialog, id) -> {
-                    synchronized (builder) {
-                        if (accepted) {
-                            log.debug("guarding: already accepted");
-                            return;
-                        }
-                        accepted = true;
-
-                        if (finalInsulinAfterConstraints > 0) {
-                            DetailedBolusInfo detailedBolusInfo = new DetailedBolusInfo();
-                            detailedBolusInfo.insulin = finalInsulinAfterConstraints;
-                            detailedBolusInfo.context = context;
-                            detailedBolusInfo.source = Source.USER;
-                            detailedBolusInfo.isValid = false; // do not count it in IOB (for pump history)
-                            detailedBolusInfo.notes = notes;
-                            ConfigBuilderPlugin.getCommandQueue().bolus(detailedBolusInfo, new Callback() {
-                                @Override
-                                public void run() {
-                                    if (!result.success) {
-                                        Intent i = new Intent(MainApp.instance(), ErrorHelperActivity.class);
-                                        i.putExtra("soundid", R.raw.boluserror);
-                                        i.putExtra("status", result.comment);
-                                        i.putExtra("title", MainApp.gs(R.string.treatmentdeliveryerror));
-                                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        MainApp.instance().startActivity(i);
-                                    }
+                builder.setPositiveButton(MainApp.gs(R.string.accept), (dialog, id) -> {
+                    if (finalInsulinAfterConstraints > 0) {
+                        DetailedBolusInfo detailedBolusInfo = new DetailedBolusInfo();
+                        detailedBolusInfo.insulin = finalInsulinAfterConstraints;
+                        detailedBolusInfo.context = context;
+                        detailedBolusInfo.source = Source.USER;
+                        detailedBolusInfo.isValid = false; // do not count it in IOB (for pump history)
+                        detailedBolusInfo.notes = notes;
+                        ConfigBuilderPlugin.getCommandQueue().bolus(detailedBolusInfo, new Callback() {
+                            @Override
+                            public void run() {
+                                if (!result.success) {
+                                    Intent i = new Intent(MainApp.instance(), ErrorHelperActivity.class);
+                                    i.putExtra("soundid", R.raw.boluserror);
+                                    i.putExtra("status", result.comment);
+                                    i.putExtra("title", MainApp.gs(R.string.treatmentdeliveryerror));
+                                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    MainApp.instance().startActivity(i);
                                 }
-                            });
-                            FabricPrivacy.getInstance().logCustom(new CustomEvent("Fill"));
-                        }
-                        if (pumpSiteChangeCheckbox.isChecked())
-                            NSUpload.uploadEvent(CareportalEvent.SITECHANGE, now(), notes);
-                        if (insulinCartridgeChangeCheckbox.isChecked())
-                            NSUpload.uploadEvent(CareportalEvent.INSULINCHANGE, now() + 1000, notes);
+                            }
+                        });
+                        FabricPrivacy.getInstance().logCustom(new CustomEvent("Fill"));
                     }
+                    if (pumpSiteChangeCheckbox.isChecked())
+                        NSUpload.uploadEvent(CareportalEvent.SITECHANGE, now(), notes);
+                    if (insulinCartridgeChangeCheckbox.isChecked())
+                        NSUpload.uploadEvent(CareportalEvent.INSULINCHANGE, now() + 1000, notes);
+                    dismiss();
                 });
             } else {
                 builder.setMessage(MainApp.gs(R.string.no_action_selected));
             }
-            builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
-            builder.show();
-            dismiss();
+            // TODO add one-shot guard
+            builder.setNegativeButton(MainApp.gs(R.string.edit), null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.setCanceledOnTouchOutside(false);
+            alertDialog.show();
         } catch (RuntimeException e) {
             log.error("Unhandled exception", e);
         }

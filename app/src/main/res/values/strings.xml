@@ -1088,4 +1088,6 @@
     <string name="request">Request</string>
     <string name="insulinsourcesetup">Configure Insulin plugin</string>
     <string name="exit">Exit</string>
+    <string name="accept">Accept</string>
+    <string name="edit">Edit</string>
 </resources>
