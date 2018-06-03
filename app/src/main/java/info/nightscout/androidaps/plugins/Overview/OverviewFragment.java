@@ -1194,7 +1194,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             activeProfileView.setBackgroundColor(MainApp.gc(R.color.tempProfileBackground));
             activeProfileView.setTextColor(Color.BLACK);
         } else {
-            activeProfileView.setBackgroundColor(Color.GRAY);
+            activeProfileView.setBackgroundColor(MainApp.gc(R.color.backgroundButton));
             activeProfileView.setTextColor(Color.WHITE);
         }
 

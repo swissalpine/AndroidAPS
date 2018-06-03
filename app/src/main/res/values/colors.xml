@@ -31,10 +31,11 @@
     <color name="warning">#ff1a1a</color>
 
     <color name="defaultbackground">#424242</color>
+    <color name="backgroundButton">#5a595b</color>
 
     <color name="tempTargetBackground">#FFFF00</color>
     <color name="tempTargetConfirmation">#FFFF00</color>
-    <color name="tempTargetDisabledBackground">#808080</color>
+    <color name="tempTargetDisabledBackground">#5a595b</color>
 
     <color name="tempProfileBackground">#FFFF00</color>
 
@@ -64,7 +65,7 @@
     <color name="colorScheduled">#de7550</color>
     <color name="colorActive">#25912e</color>
 
-    <color name="loopenabled">#808080</color>
+    <color name="loopenabled">#5a595b</color>
     <color name="loopdisabled">#ffff00</color>
     <color name="looppumpsuspended">#ff0000</color>
 
