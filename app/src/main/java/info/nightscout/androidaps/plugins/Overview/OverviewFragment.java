@@ -1041,7 +1041,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (Config.APS && pump.getPumpDescription().isTempBasalCapable) {
             apsModeView.setVisibility(View.VISIBLE);
             apsModeView.setBackgroundColor(MainApp.gc(R.color.loopenabled));
-            apsModeView.setTextColor(Color.BLACK);
+            apsModeView.setTextColor(Color.WHITE);
             final LoopPlugin loopPlugin = LoopPlugin.getPlugin();
             if (loopPlugin.isEnabled(PluginType.LOOP) && loopPlugin.isSuperBolus()) {
                 apsModeView.setBackgroundColor(MainApp.gc(R.color.looppumpsuspended));
@@ -1190,7 +1190,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         }
 
         activeProfileView.setText(MainApp.getConfigBuilder().getProfileName());
-        activeProfileView.setBackgroundColor(Color.GRAY);
+        if (profile.getPercentage() != 100 ||  profile.getTimeshift() != 0) {
+            activeProfileView.setBackgroundColor(MainApp.gc(R.color.tempProfileBackground));
+            activeProfileView.setTextColor(Color.BLACK);
+        } else {
+            activeProfileView.setBackgroundColor(Color.GRAY);
+            activeProfileView.setTextColor(Color.WHITE);
+        }
+
+
 
         tempTargetView.setOnLongClickListener(view -> {
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);

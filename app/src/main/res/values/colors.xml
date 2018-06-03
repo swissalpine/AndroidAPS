@@ -32,10 +32,11 @@
 
     <color name="defaultbackground">#424242</color>
 
-    <color name="tempTargetBackground">#77dd77</color>
-    <color name="tempTargetConfirmation">#77dd77</color>
-    <color name="tempTargetDisabledBackground">#303F9F</color>
+    <color name="tempTargetBackground">#FFFF00</color>
+    <color name="tempTargetConfirmation">#FFFF00</color>
+    <color name="tempTargetDisabledBackground">#808080</color>
 
+    <color name="tempProfileBackground">#FFFF00</color>
 
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
@@ -63,9 +64,9 @@
     <color name="colorScheduled">#de7550</color>
     <color name="colorActive">#25912e</color>
 
-    <color name="loopenabled">#47c8ff</color>
-    <color name="loopdisabled">#FFDD7792</color>
-    <color name="looppumpsuspended">#ff0400</color>
+    <color name="loopenabled">#808080</color>
+    <color name="loopdisabled">#ffff00</color>
+    <color name="looppumpsuspended">#ff0000</color>
 
     <color name="notificationAnnouncement">#FF8C00</color>
     <color name="notificationUrgent">#ff0400</color>
