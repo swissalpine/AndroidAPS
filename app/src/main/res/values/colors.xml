@@ -2,6 +2,9 @@
 <resources>
     <color name="prediction">#ff00ff</color>
     <color name="basal">#00ffff</color>
+
+    <!-- IOB, bolus, COB, carbs, UAM and ZT are synchronised with NS,
+         see lib/plugins/openaps.js, function getForecastPoints in NS -->
     <color name="iob">#1e88e5</color>
     <color name="bolus">#1ea3e5</color>
     <color name="cob">#FB8C00</color>
@@ -36,10 +39,9 @@
 
     <color name="tempProfileBackground">#FFFF00</color>
 
-    <color name="colorPrimary">#212121</color>
-    <color name="colorPrimaryDark">#000000</color>
-    <color name="colorAccent">#40bbaa</color>
-    <color name="mdtp_accent_color">#40bbaa</color>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#67dfe8</color>
     <color name="colorInitializingBorder">#00695c</color>
     <color name="mdtp_button_color">@color/colorAccent</color>
 

@@ -799,4 +799,6 @@
     <string formatted="false" name="objectivenotfinished">Zielsetzung %d nicht abgeschlossen</string>
     <string name="do_not_bolus_record_only">Bolus nur erfassen</string>
     <string name="bolusrecordedonly">Bolus wird nur erfasst</string>
+    <string name="accept">Annehmen</string>
+    <string name="edit">Bearbeiten</string>
 </resources>
