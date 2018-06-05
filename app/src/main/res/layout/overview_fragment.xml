@@ -68,9 +68,9 @@
                         android:layout_gravity="right"
                         android:layout_weight="1"
                         android:gravity="center_vertical|center_horizontal"
-                        android:text="TempTarget"
                         android:paddingBottom="3dp"
                         android:paddingTop="3dp"
+                        android:text="TempTarget"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:textColor="@color/mdtp_white" />
 
