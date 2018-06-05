@@ -2,35 +2,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="2dp"
     tools:context=".plugins.ConstraintsObjectives.ObjectivesFragment">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:id="@+id/objectives_fake_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/objectives_fake_layout"
+            android:orientation="horizontal"
             android:visibility="gone">
 
             <CheckBox
+                android:id="@+id/objectives_fake"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Enable fake time and progress"
-                android:id="@+id/objectives_fake" />
+                android:text="Enable fake time and progress" />
 
             <TextView
+                android:id="@+id/objectives_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reset"
-                android:id="@+id/objectives_reset"
-                android:textColor="#fef900"
-                android:gravity="right"
+                android:layout_marginRight="10dp"
                 android:layout_weight="0.5"
-                android:layout_marginRight="10dp" />
+                android:gravity="right"
+                android:text="Reset"
+                android:textColor="#fef900" />
         </LinearLayout>
 
         <android.support.v7.widget.RecyclerView
