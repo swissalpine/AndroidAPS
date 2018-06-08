@@ -1086,7 +1086,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()));
         } else {
             tempTargetView.setTextColor(Color.WHITE);
-            tempTargetView.setBackgroundColor(MainApp.gc(R.color.tempTargetDisabledBackground));
+            tempTargetView.setBackgroundColor(MainApp.gc(R.color.tempTargetInactiveBackground));
             tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units));
             tempTargetView.setVisibility(View.VISIBLE);
         }

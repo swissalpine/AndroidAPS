@@ -35,13 +35,15 @@
 
     <color name="tempTargetBackground">#FFFF00</color>
     <color name="tempTargetConfirmation">#FFFF00</color>
-    <color name="tempTargetDisabledBackground">#5a595b</color>
+    <color name="tempTargetDisabledBackground">#303F9F</color>
+    <color name="tempTargetInactiveBackground">#5a595b</color>
 
     <color name="tempProfileBackground">#FFFF00</color>
 
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#212121</color>
+    <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#67dfe8</color>
+    <color name="mdtp_accent_color">#67dfe8</color>
     <color name="colorInitializingBorder">#00695c</color>
     <color name="mdtp_button_color">@color/colorAccent</color>
 
