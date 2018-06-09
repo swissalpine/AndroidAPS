@@ -121,8 +121,9 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
 
     Context context;
 
-    // one shot guard
+    //one shot guards
     private boolean accepted;
+    private boolean okClicked;
 
     public WizardDialog() {
         super();
@@ -320,6 +321,12 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     public synchronized void onClick(View view) {
         switch (view.getId()) {
             case R.id.ok:
+                if (okClicked) {
+                    log.debug("guarding: ok already clicked");
+                    dismiss();
+                    return;
+                }
+                okClicked = true;
                 final Profile profile = MainApp.getConfigBuilder().getProfile();
 
                 if (profile != null && (calculatedTotalInsulin > 0d || calculatedCarbs > 0d)) {
