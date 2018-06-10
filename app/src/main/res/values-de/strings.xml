@@ -275,7 +275,7 @@
     <string name="button1">Button 1</string>
     <string name="button2">Button 2</string>
     <string name="button3">Button 3</string>
-    <string name="configbuilder">Konfigurations-Generator</string>
+    <string name="configbuilder">Konfiguration</string>
     <string name="minago">vor %d Min.</string>
     <string name="actions_shortname">AKT</string>
     <string name="wear_shortname">WEAR</string>
@@ -799,6 +799,6 @@
     <string formatted="false" name="objectivenotfinished">Zielsetzung %d nicht abgeschlossen</string>
     <string name="do_not_bolus_record_only">Bolus nur erfassen</string>
     <string name="bolusrecordedonly">Bolus wird nur erfasst</string>
-    <string name="accept">Annehmen</string>
+    <string name="accept">OK</string>
     <string name="edit">Bearbeiten</string>
 </resources>
