@@ -154,6 +154,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
     TextView iage;
     TextView cage;
+    TextView reservoir;
     TextView sage;
     TextView pbage;
 
@@ -252,6 +253,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
             iage = (TextView) view.findViewById(R.id.overview_insulinage);
             cage = (TextView) view.findViewById(R.id.overview_canulaage);
+            reservoir = (TextView) view.findViewById(R.id.overview_reservoirlevel);
             sage = (TextView) view.findViewById(R.id.overview_sensorage);
             pbage = (TextView) view.findViewById(R.id.overview_pbage);
 
@@ -1344,6 +1346,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             } else {
                 iage.setText("n/a");
             }
+        }
+
+        if (reservoir != null) {
+            if (pump.isInitialized() && pump.getReservoirLevel() < 50) {
+                reservoir.setTextColor(MainApp.gc(R.color.low));
+            } else {
+                reservoir.setTextColor(MainApp.gc(R.color.overviewGray));
+            }
+            reservoir.setText("RES");
         }
 
         if (sage != null) {
