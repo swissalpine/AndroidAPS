@@ -428,6 +428,18 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
         return pump.reservoirLevel;
     }
 
+    @Override
+    public int getBatteryLevel() {
+        switch (pump.state.batteryState) {
+            case PumpState.EMPTY:
+                return 5;
+            case PumpState.LOW:
+                return 25;
+            default:
+                return 100;
+        }
+    }
+
     private static BolusProgressReporter bolusProgressReporter = (state, percent, delivered) -> {
         EventOverviewBolusProgress event = EventOverviewBolusProgress.getInstance();
         switch (state) {
@@ -1362,7 +1374,7 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
     private boolean validBasalRateProfileSelectedOnPump = true;
 
     @Override
-    public Constraint<Boolean> isLoopInvocationAllowed(Constraint<Boolean> value) {
+    public Constraint<Boolean> isLoopInvokationAllowed(Constraint<Boolean> value) {
         if (!validBasalRateProfileSelectedOnPump)
             value.set(false, MainApp.gs(R.string.novalidbasalrate), this);
         return value;

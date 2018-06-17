@@ -69,9 +69,9 @@
                         android:layout_gravity="right"
                         android:layout_weight="1"
                         android:gravity="center_vertical|center_horizontal"
+                        android:text="TempTarget"
                         android:paddingBottom="3dp"
                         android:paddingTop="3dp"
-                        android:text="TempTarget"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:textColor="@color/mdtp_white" />
 
@@ -184,8 +184,8 @@
 
                 </LinearLayout>
 
-
                 <LinearLayout
+                    android:id="@+id/overview_statuslights"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
@@ -195,7 +195,9 @@
                         android:id="@+id/overview_canulaage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="0dp"
+                        android:paddingHorizontal="5dp"
+                        android:layout_marginHorizontal="3dp"
+                        android:gravity="center"
                         android:text=""
                         android:textSize="14sp" />
 
@@ -203,7 +205,9 @@
                         android:id="@+id/overview_insulinage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="10dp"
+                        android:paddingHorizontal="5dp"
+                        android:layout_marginHorizontal="3dp"
+                        android:gravity="center"
                         android:text=""
                         android:textSize="14sp" />
 
@@ -211,7 +215,9 @@
                         android:id="@+id/overview_reservoirlevel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="10dp"
+                        android:paddingHorizontal="5dp"
+                        android:layout_marginHorizontal="3dp"
+                        android:gravity="center"
                         android:text=""
                         android:textSize="14sp" />
 
@@ -219,20 +225,32 @@
                         android:id="@+id/overview_sensorage"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="10dp"
+                        android:paddingHorizontal="5dp"
+                        android:layout_marginHorizontal="3dp"
+                        android:gravity="center"
                         android:text=""
                         android:textSize="14sp" />
 
                     <TextView
-                        android:id="@+id/overview_pbage"
+                        android:id="@+id/overview_batterylevel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:paddingLeft="10dp"
+                        android:paddingHorizontal="5dp"
+                        android:layout_marginHorizontal="3dp"
+                        android:gravity="center"
                         android:text=""
                         android:textSize="14sp" />
 
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/overview_extendedbolus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:textAlignment="center"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/mdtp_white" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

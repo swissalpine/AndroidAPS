@@ -198,7 +198,10 @@ public class VirtualPumpPlugin extends PluginBase implements PumpInterface {
     }
 
     @Override
-    public double getReservoirLevel() { return -1; }
+    public double getReservoirLevel() { return reservoirInUnits; }
+
+    @Override
+    public int getBatteryLevel() { return batteryPercent; }
 
     @Override
     public PumpEnactResult deliverTreatment(DetailedBolusInfo detailedBolusInfo) {

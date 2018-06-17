@@ -358,7 +358,12 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
     }
 
     @Override
-    public double getReservoirLevel() { return pump.reservoirRemainingUnits; }
+    public double getReservoirLevel() {
+        return pump.reservoirRemainingUnits;
+    }
+
+    @Override
+    public int getBatteryLevel() { return pump.batteryRemaining; }
 
     @Override
     public synchronized PumpEnactResult deliverTreatment(DetailedBolusInfo detailedBolusInfo) {

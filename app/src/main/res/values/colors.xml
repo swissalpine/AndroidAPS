@@ -31,14 +31,11 @@
     <color name="warning">#ff1a1a</color>
 
     <color name="defaultbackground">#424242</color>
-    <color name="backgroundButton">#5a595b</color>
 
-    <color name="tempTargetBackground">#FFFF00</color>
-    <color name="tempTargetConfirmation">#FFFF00</color>
+    <color name="tempTargetBackground">#77dd77</color>
+    <color name="tempTargetConfirmation">#77dd77</color>
     <color name="tempTargetDisabledBackground">#303F9F</color>
-    <color name="tempTargetInactiveBackground">#5a595b</color>
 
-    <color name="tempProfileBackground">#FFFF00</color>
 
     <color name="colorPrimary">#212121</color>
     <color name="colorPrimaryDark">#000000</color>
@@ -66,10 +63,6 @@
     <color name="colorScheduled">#de7550</color>
     <color name="colorActive">#25912e</color>
 
-    <color name="loopenabled">#5a595b</color>
-    <color name="loopdisabled">#ffff00</color>
-    <color name="looppumpsuspended">#ff0000</color>
-
     <color name="notificationAnnouncement">#FF8C00</color>
     <color name="notificationUrgent">#ff0400</color>
     <color name="notificationNormal">#ff5e55</color>
@@ -82,7 +75,12 @@
     <color name="deviationred">#72FF0000</color>
     <color name="deviationblack">#72000000</color>
 
-    <color name="overviewGray">#5a595b</color>
+    <color name="ribbonDefault">#5a595b</color>
+    <color name="ribbonWarning">#f4d700</color>
+    <color name="ribbonCritical">#ff0400</color>
+    <color name="ribbonTextDefault">#FFFFFF</color>
+    <color name="ribbonTextWarning">#303030</color>
+    <color name="ribbonTextCritical">#FFFFFF</color>
 
     <color name="ic_launcher_background">#424242</color>
 </resources>

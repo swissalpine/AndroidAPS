@@ -3,6 +3,7 @@ package info.nightscout.androidaps.plugins.Overview;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.arch.core.util.Function;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -107,8 +108,6 @@ import info.nightscout.androidaps.plugins.Overview.events.EventSetWakeLock;
 import info.nightscout.androidaps.plugins.Overview.graphData.GraphData;
 import info.nightscout.androidaps.plugins.Overview.notifications.NotificationRecyclerViewAdapter;
 import info.nightscout.androidaps.plugins.Overview.notifications.NotificationStore;
-import info.nightscout.androidaps.plugins.PumpCombo.ComboPlugin;
-import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.PumpState;
 import info.nightscout.androidaps.plugins.Source.SourceDexcomG5Plugin;
 import info.nightscout.androidaps.plugins.Source.SourceXdripPlugin;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
@@ -154,9 +153,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
     TextView iage;
     TextView cage;
-    TextView reservoir;
     TextView sage;
     TextView pbage;
+
+    TextView iageView;
+    TextView cageView;
+    TextView reservoirView;
+    TextView sageView;
+    TextView batteryView;
+    LinearLayout statuslightsLayout;
 
     RecyclerView notificationsView;
     LinearLayoutManager llm;
@@ -251,11 +256,17 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             apsModeView = (TextView) view.findViewById(R.id.overview_apsmode);
             tempTargetView = (TextView) view.findViewById(R.id.overview_temptarget);
 
-            iage = (TextView) view.findViewById(R.id.overview_insulinage);
-            cage = (TextView) view.findViewById(R.id.overview_canulaage);
-            reservoir = (TextView) view.findViewById(R.id.overview_reservoirlevel);
-            sage = (TextView) view.findViewById(R.id.overview_sensorage);
-            pbage = (TextView) view.findViewById(R.id.overview_pbage);
+            iage = (TextView) view.findViewById(R.id.careportal_insulinage);
+            cage = (TextView) view.findViewById(R.id.careportal_canulaage);
+            sage = (TextView) view.findViewById(R.id.careportal_sensorage);
+            pbage = (TextView) view.findViewById(R.id.careportal_pbage);
+
+            iageView = (TextView) view.findViewById(R.id.overview_insulinage);
+            cageView = (TextView) view.findViewById(R.id.overview_canulaage);
+            reservoirView = (TextView) view.findViewById(R.id.overview_reservoirlevel);
+            sageView = (TextView) view.findViewById(R.id.overview_sensorage);
+            batteryView = (TextView) view.findViewById(R.id.overview_batterylevel);
+            statuslightsLayout = (LinearLayout) view.findViewById(R.id.overview_statuslights);
 
             bgGraph = (GraphView) view.findViewById(R.id.overview_bggraph);
             iobGraph = (GraphView) view.findViewById(R.id.overview_iobgraph);
@@ -1049,25 +1060,25 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         final LoopPlugin.LastRun finalLastRun = LoopPlugin.lastRun;
         if (Config.APS && pump.getPumpDescription().isTempBasalCapable) {
             apsModeView.setVisibility(View.VISIBLE);
-            apsModeView.setBackgroundColor(MainApp.gc(R.color.loopenabled));
-            apsModeView.setTextColor(Color.WHITE);
+            apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
+            apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
             final LoopPlugin loopPlugin = LoopPlugin.getPlugin();
             if (loopPlugin.isEnabled(PluginType.LOOP) && loopPlugin.isSuperBolus()) {
-                apsModeView.setBackgroundColor(MainApp.gc(R.color.looppumpsuspended));
+                apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
                 apsModeView.setText(String.format(MainApp.gs(R.string.loopsuperbolusfor), loopPlugin.minutesToEndOfSuspend()));
-                apsModeView.setTextColor(Color.WHITE);
+                apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
             } else if (loopPlugin.isEnabled(PluginType.LOOP) && loopPlugin.isDisconnected()) {
-                apsModeView.setBackgroundColor(MainApp.gc(R.color.looppumpsuspended));
+                apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonCritical));
                 apsModeView.setText(String.format(MainApp.gs(R.string.loopdisconnectedfor), loopPlugin.minutesToEndOfSuspend()));
-                apsModeView.setTextColor(Color.WHITE);
+                apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextCritical));
             } else if (loopPlugin.isEnabled(PluginType.LOOP) && loopPlugin.isSuspended()) {
-                apsModeView.setBackgroundColor(MainApp.gc(R.color.looppumpsuspended));
+                apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
                 apsModeView.setText(String.format(MainApp.gs(R.string.loopsuspendedfor), loopPlugin.minutesToEndOfSuspend()));
-                apsModeView.setTextColor(Color.WHITE);
+                apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
             } else if (pump.isSuspended()) {
-                apsModeView.setBackgroundColor(MainApp.gc(R.color.looppumpsuspended));
+                apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
                 apsModeView.setText(MainApp.gs(R.string.pumpsuspended));
-                apsModeView.setTextColor(Color.WHITE);
+                apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
             } else if (loopPlugin.isEnabled(PluginType.LOOP)) {
                 if (closedLoopEnabled.value()) {
                     apsModeView.setText(MainApp.gs(R.string.closedloop));
@@ -1075,9 +1086,9 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     apsModeView.setText(MainApp.gs(R.string.openloop));
                 }
             } else {
-                apsModeView.setBackgroundColor(MainApp.gc(R.color.loopdisabled));
+                apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonCritical));
                 apsModeView.setText(MainApp.gs(R.string.disabledloop));
-                apsModeView.setTextColor(Color.WHITE);
+                apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextCritical));
             }
         } else {
             apsModeView.setVisibility(View.GONE);
@@ -1086,13 +1097,13 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         // temp target
         TempTarget tempTarget = TreatmentsPlugin.getPlugin().getTempTargetFromHistory();
         if (tempTarget != null) {
-            tempTargetView.setTextColor(Color.BLACK);
-            tempTargetView.setBackgroundColor(MainApp.gc(R.color.tempTargetBackground));
+            tempTargetView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
+            tempTargetView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
             tempTargetView.setVisibility(View.VISIBLE);
             tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()));
         } else {
-            tempTargetView.setTextColor(Color.WHITE);
-            tempTargetView.setBackgroundColor(MainApp.gc(R.color.tempTargetInactiveBackground));
+            tempTargetView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
+            tempTargetView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
             tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units));
             tempTargetView.setVisibility(View.VISIBLE);
         }
@@ -1199,15 +1210,13 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         }
 
         activeProfileView.setText(MainApp.getConfigBuilder().getProfileName());
-        if (profile.getPercentage() != 100 ||  profile.getTimeshift() != 0) {
-            activeProfileView.setBackgroundColor(MainApp.gc(R.color.tempProfileBackground));
-            activeProfileView.setTextColor(Color.BLACK);
+        if (profile.getPercentage() != 100 || profile.getTimeshift() != 0) {
+            activeProfileView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+            activeProfileView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
         } else {
-            activeProfileView.setBackgroundColor(MainApp.gc(R.color.backgroundButton));
-            activeProfileView.setTextColor(Color.WHITE);
+            activeProfileView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
+            activeProfileView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
         }
-
-
 
         tempTargetView.setOnLongClickListener(view -> {
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
@@ -1320,64 +1329,53 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             cobView.setText(cobText);
         }
 
-        CareportalEvent careportalEvent;
-        NSSettingsStatus nsSettings = new NSSettingsStatus().getInstance();
+        if (statuslightsLayout != null) {
+            if (SP.getBoolean(R.string.key_show_statuslights, false)) {
+                CareportalEvent careportalEvent;
+                NSSettingsStatus nsSettings = new NSSettingsStatus().getInstance();
+                double iageUrgent = nsSettings.getExtendedWarnValue("iage", "urgent", 96);
+                double iageWarn = nsSettings.getExtendedWarnValue("iage", "warn", 72);
+                double cageUrgent = nsSettings.getExtendedWarnValue("cage", "urgent", 72);
+                double cageWarn = nsSettings.getExtendedWarnValue("cage", "warn", 48);
+                double sageUrgent = nsSettings.getExtendedWarnValue("sage", "urgent", 166);
+                double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 164);
+                //double pbageUrgent = nsSettings.getExtendedWarnValue("pgage", "urgent", 360);
+                //double pbageWarn = nsSettings.getExtendedWarnValue("pgage", "warn", 240);
+                double batUrgent = SP.getDouble(R.string.key_statuslights_bat_critical, 5.0);
+                double batWarn = SP.getDouble(R.string.key_statuslights_bat_warning, 25.0);
+                double resUrgent = SP.getDouble(R.string.key_statuslights_res_critical, 10.0);
+                double resWarn = SP.getDouble(R.string.key_statuslights_res_warning, 80.0);
 
-        double iageUrgent = nsSettings.getExtendedWarnValue("iage", "urgent", 120);
-        double iageWarn = nsSettings.getExtendedWarnValue("iage", "warn", 96);
-        double cageUrgent = nsSettings.getExtendedWarnValue("cage", "urgent", 48);
-        double cageWarn = nsSettings.getExtendedWarnValue("cage", "warn", 24);
-        double sageUrgent = nsSettings.getExtendedWarnValue("sage", "urgent", 504);
-        double sageWarn = nsSettings.getExtendedWarnValue("sage", "warn", 336);
-        double pbageUrgent = nsSettings.getExtendedWarnValue("pgage", "urgent", 672);
-        double pbageWarn = nsSettings.getExtendedWarnValue("pgage", "warn", 504);
+                if (cageView != null) {
+                    careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SITECHANGE);
+                    double canAge = careportalEvent != null ? careportalEvent.getHoursFromStart() : Double.MAX_VALUE;
+                    applyStatuslight(cageView, "CAN", canAge, cageWarn, cageUrgent, Double.MAX_VALUE, true);
+                }
 
-        if (cage != null) {
-            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SITECHANGE);
-            if (careportalEvent != null) {
-                cage.setTextColor(determineTextColor(careportalEvent, cageWarn, cageUrgent));
-                cage.setText("CAN"); //: " + careportalEvent.age());
+                if (iageView != null) {
+                    careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.INSULINCHANGE);
+                    double insulinAge = careportalEvent != null ? careportalEvent.getHoursFromStart() : Double.MAX_VALUE;
+                    applyStatuslight(iageView, "INS", insulinAge, iageWarn, iageUrgent, Double.MAX_VALUE, true);
+                }
+
+                if (reservoirView != null) {
+                    double reservoirLevel = pump.isInitialized() ? pump.getReservoirLevel() : -1;
+                    applyStatuslight(reservoirView, "RES", reservoirLevel, resWarn, resUrgent, -1, false);
+                }
+
+                if (sageView != null) {
+                    careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SENSORCHANGE);
+                    double sensorAge = careportalEvent != null ? careportalEvent.getHoursFromStart() : Double.MAX_VALUE;
+                    applyStatuslight(sageView, "SEN", sensorAge, sageWarn, sageUrgent, Double.MAX_VALUE, true);
+                }
+
+                if (batteryView != null) {
+                    double batteryLevel = pump.isInitialized() ? pump.getBatteryLevel() : -1;
+                    applyStatuslight(batteryView, "BAT", batteryLevel, batWarn, batUrgent, -1, false);
+                }
+                statuslightsLayout.setVisibility(View.VISIBLE);
             } else {
-                cage.setText("n/a");
-            }
-        }
-
-        if (iage != null) {
-            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.INSULINCHANGE);
-            if (careportalEvent != null) {
-                iage.setTextColor(determineTextColor(careportalEvent, iageWarn, iageUrgent));
-                iage.setText("INS"); //: + careportalEvent.age());
-            } else {
-                iage.setText("n/a");
-            }
-        }
-
-        if (reservoir != null) {
-            if (pump.isInitialized() && pump.getReservoirLevel() < 50) {
-                reservoir.setTextColor(MainApp.gc(R.color.low));
-            } else {
-                reservoir.setTextColor(MainApp.gc(R.color.overviewGray));
-            }
-            reservoir.setText("RES");
-        }
-
-        if (sage != null) {
-            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.SENSORCHANGE);
-            if (careportalEvent != null) {
-                sage.setTextColor(determineTextColor(careportalEvent, sageWarn, sageUrgent));
-                sage.setText("SEN"); // + careportalEvent.age());
-            } else {
-                sage.setText("n/a");
-            }
-        }
-
-        if (pbage != null) {
-            careportalEvent = MainApp.getDbHelper().getLastCareportalEvent(CareportalEvent.PUMPBATTERYCHANGE);
-            if (careportalEvent != null) {
-                pbage.setTextColor(determineTextColor(careportalEvent, pbageWarn, pbageUrgent));
-                pbage.setText("BAT"); //careportalEvent.age());
-            } else {
-                pbage.setText("n/a");
+                statuslightsLayout.setVisibility(View.GONE);
             }
         }
 
@@ -1543,14 +1541,21 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         }
     }
 
-    public static int determineTextColor(CareportalEvent careportalEvent, double warnThreshold, double urgentThreshold) {
-        if (careportalEvent.isOlderThan(urgentThreshold)) {
-            return MainApp.gc(R.color.low);
-        } else if (careportalEvent.isOlderThan(warnThreshold)) {
-            return MainApp.gc(R.color.high);
+    public static void applyStatuslight(TextView view, String text, double value, double warnThreshold, double urgentThreshold, double invalid, boolean checkAscending) {
+        Function<Double, Boolean> check = checkAscending ? (Double threshold) -> value >= threshold : (Double threshold) -> value <= threshold;
+        if (value != invalid) {
+            view.setText(text);
+            if (check.apply(urgentThreshold)) {
+                view.setTextColor(MainApp.gc(R.color.ribbonCritical));
+            } else if (check.apply(warnThreshold)) {
+                view.setTextColor(MainApp.gc(R.color.ribbonWarning));
+            } else {
+                view.setTextColor(MainApp.gc(R.color.ribbonDefault));
+            }
+            view.setVisibility(View.VISIBLE);
         } else {
-            return MainApp.gc(R.color.overviewGray); // MainApp.gc(R.color.colorLightGray);
+            view.setVisibility(View.GONE);
         }
-    }
 
+    }
 }
