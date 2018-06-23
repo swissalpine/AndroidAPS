@@ -1,4 +1,4 @@
-package info.nightscout.androidaps.plugins.SensitivityOref1;
+package info.nightscout.androidaps.plugins.Sensitivity;
 
 import android.support.v4.util.LongSparseArray;
 
@@ -27,33 +27,40 @@ import info.nightscout.utils.SP;
 import info.nightscout.utils.SafeParse;
 
 /**
- * Created by mike on 19.06.2018.
+ * Created by mike on 24.06.2017.
  */
 
-public class SensitivityOref1Plugin extends PluginBase implements SensitivityInterface {
-    private static Logger log = LoggerFactory.getLogger(IobCobCalculatorPlugin.class);
+public class SensitivityAAPSPlugin extends PluginBase implements SensitivityInterface {
+    private static Logger log = LoggerFactory.getLogger(SensitivityAAPSPlugin.class);
 
-    static SensitivityOref1Plugin plugin = null;
+    static SensitivityAAPSPlugin plugin = null;
 
-    public static SensitivityOref1Plugin getPlugin() {
+    public static SensitivityAAPSPlugin getPlugin() {
         if (plugin == null)
-            plugin = new SensitivityOref1Plugin();
+            plugin = new SensitivityAAPSPlugin();
         return plugin;
     }
 
-    public SensitivityOref1Plugin() {
+    public SensitivityAAPSPlugin() {
         super(new PluginDescription()
                 .mainType(PluginType.SENSITIVITY)
-                .pluginName(R.string.sensitivityoref1)
+                .pluginName(R.string.sensitivityaaps)
                 .shortName(R.string.sensitivity_shortname)
-                .preferencesId(R.xml.pref_absorption_oref1)
-                .description(R.string.description_sensitivity_oref1)
+                .preferencesId(R.xml.pref_absorption_aaps)
+                .description(R.string.description_sensitivity_aaps)
         );
     }
 
     @Override
     public AutosensResult detectSensitivity(long fromTime, long toTime) {
         LongSparseArray<AutosensData> autosensDataTable = IobCobCalculatorPlugin.getPlugin().getAutosensDataTable();
+
+        String age = SP.getString(R.string.key_age, "");
+        int defaultHours = 24;
+        if (age.equals(MainApp.gs(R.string.key_adult))) defaultHours = 24;
+        if (age.equals(MainApp.gs(R.string.key_teenage))) defaultHours = 4;
+        if (age.equals(MainApp.gs(R.string.key_child))) defaultHours = 4;
+        int hoursForDetection = SP.getInt(R.string.key_openapsama_autosens_period, defaultHours);
 
         Profile profile = MainApp.getConfigBuilder().getProfile();
 
@@ -69,9 +76,10 @@ public class SensitivityOref1Plugin extends PluginBase implements SensitivityInt
 
         AutosensData current = IobCobCalculatorPlugin.getPlugin().getAutosensData(toTime); // this is running inside lock already
         if (current == null) {
-            log.debug("No current autosens data available");
+            log.debug("No autosens data available");
             return new AutosensResult();
         }
+
 
         List<CareportalEvent> siteChanges = MainApp.getDbHelper().getCareportalEventsFromTime(fromTime, CareportalEvent.SITECHANGE, true);
 
@@ -97,18 +105,18 @@ public class SensitivityOref1Plugin extends PluginBase implements SensitivityInt
                 pastSensitivity += "(SITECHANGE)";
             }
 
-            double deviation = autosensData.validDeviation ? autosensData.deviation : 0d;
+            double deviation = autosensData.deviation;
 
             //set positive deviations to zero if bg < 80
             if (autosensData.bg < 80 && deviation > 0)
                 deviation = 0;
 
-            deviationsArray.add(deviation);
-
-            for (int i = 0; i < autosensData.extraDeviation.size(); i++)
-                deviationsArray.add(autosensData.extraDeviation.get(i));
-            if (deviationsArray.size() > 96)
+            if (autosensData.validDeviation)
+                if (autosensData.time > toTime - hoursForDetection * 60 * 60 * 1000L)
+                    deviationsArray.add(deviation);
+            if (deviationsArray.size() > hoursForDetection * 60 / 5)
                 deviationsArray.remove(0);
+
 
             pastSensitivity += autosensData.pastSensitivity;
             int secondsFromMidnight = Profile.secondsFromMidnight(autosensData.time);
@@ -118,24 +126,11 @@ public class SensitivityOref1Plugin extends PluginBase implements SensitivityInt
             index++;
         }
 
-        // when we have less than 8h worth of deviation data, add up to 90m of zero deviations
-        // this dampens any large sensitivity changes detected based on too little data, without ignoring them completely
-        log.debug("Using most recent " + deviationsArray.size() + " deviations");
-        if (deviationsArray.size() < 96) {
-            int pad = Math.round((1 - deviationsArray.size() / 96) * 18);
-            log.debug("Adding " + pad + " more zero deviations");
-            for (int d = 0; d < pad; d++) {
-                //process.stderr.write(".");
-                deviationsArray.add(0d);
-            }
-        }
-
         Double[] deviations = new Double[deviationsArray.size()];
         deviations = deviationsArray.toArray(deviations);
 
         double sens = profile.getIsf();
 
-        double ratio = 1;
         String ratioLimit = "";
         String sensResult = "";
 
@@ -144,26 +139,13 @@ public class SensitivityOref1Plugin extends PluginBase implements SensitivityInt
 
         Arrays.sort(deviations);
 
-        for (double i = 0.9; i > 0.1; i = i - 0.01) {
-            if (IobCobCalculatorPlugin.percentile(deviations, (i + 0.01)) >= 0 && IobCobCalculatorPlugin.percentile(deviations, i) < 0) {
-                if (Config.logAutosensData)
-                    log.debug(Math.round(100 * i) + "% of non-meal deviations negative (>50% = sensitivity)");
-            }
-            if (IobCobCalculatorPlugin.percentile(deviations, (i + 0.01)) > 0 && IobCobCalculatorPlugin.percentile(deviations, i) <= 0) {
-                if (Config.logAutosensData)
-                    log.debug(Math.round(100 * i) + "% of non-meal deviations negative (>50% = resistance)");
-            }
-        }
-        double pSensitive = IobCobCalculatorPlugin.percentile(deviations, 0.50);
-        double pResistant = IobCobCalculatorPlugin.percentile(deviations, 0.50);
+        double percentile = IobCobCalculatorPlugin.percentile(deviations, 0.50);
+        double basalOff = percentile * (60 / 5) / Profile.toMgdl(sens, profile.getUnits());
+        double ratio = 1 + (basalOff / profile.getMaxDailyBasal());
 
-        double basalOff = 0;
-
-        if (pSensitive < 0) { // sensitive
-            basalOff = pSensitive * (60 / 5) / Profile.toMgdl(sens, profile.getUnits());
+        if (percentile < 0) { // sensitive
             sensResult = "Excess insulin sensitivity detected";
-        } else if (pResistant > 0) { // resistant
-            basalOff = pResistant * (60 / 5) / Profile.toMgdl(sens, profile.getUnits());
+        } else if (percentile > 0) { // resistant
             sensResult = "Excess insulin resistance detected";
         } else {
             sensResult = "Sensitivity normal";
@@ -171,8 +153,6 @@ public class SensitivityOref1Plugin extends PluginBase implements SensitivityInt
 
         if (Config.logAutosensData)
             log.debug(sensResult);
-
-        ratio = 1 + (basalOff / profile.getMaxDailyBasal());
 
         double rawRatio = ratio;
         ratio = Math.max(ratio, SafeParse.stringToDouble(SP.getString(R.string.key_openapsama_autosens_min, "0.7")));
@@ -183,8 +163,10 @@ public class SensitivityOref1Plugin extends PluginBase implements SensitivityInt
             log.debug(ratioLimit);
         }
 
-        if (Config.logAutosensData)
-            log.debug("Sensitivity to: " + new Date(toTime).toLocaleString() + " ratio: " + ratio + " mealCOB: " + current.cob);
+        if (Config.logAutosensData) {
+            log.debug("Sensitivity to: " + new Date(toTime).toLocaleString() + " percentile: " + percentile + " ratio: " + ratio + " mealCOB: " + current.cob);
+            log.debug("Sensitivity to: deviations " + Arrays.toString(deviations));
+        }
 
         AutosensResult output = new AutosensResult();
         output.ratio = Round.roundTo(ratio, 0.01);
