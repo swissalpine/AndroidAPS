@@ -1259,15 +1259,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 }
                 extendedBolusView.setText(extendedBolusText);
             }
-            if (extendedBolusText.equals("")) {
-                if (Config.NSCLIENT) {
-                    extendedBolusView.setVisibility(View.INVISIBLE);
-                } else {
-                    extendedBolusView.setVisibility(View.GONE);
-                }
-            } else {
+            if (extendedBolusText.equals(""))
+                extendedBolusView.setVisibility(shorttextmode ? View.INVISIBLE : View.GONE);
+            else
                 extendedBolusView.setVisibility(View.VISIBLE);
-            }
         }
 
         activeProfileView.setText(MainApp.getConfigBuilder().getProfileName());
