@@ -130,7 +130,7 @@ public class MainApp extends Application {
         String extFilesDir = this.getLogDirectory();
         File engineeringModeSemaphore = new File(extFilesDir, "engineering_mode");
 
-        engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile();
+        engineeringMode = true; // engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile();
         devBranch = BuildConfig.VERSION.contains("dev");
 
         sBus = Config.logEvents ? new LoggingBus(ThreadEnforcer.ANY) : new Bus(ThreadEnforcer.ANY);
