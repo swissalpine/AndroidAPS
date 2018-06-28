@@ -44,6 +44,8 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
     }
 
     private DanaRv2Plugin() {
+        pluginDescription.description(R.string.description_pump_dana_r_v2);
+
         log = LoggerFactory.getLogger(DanaRv2Plugin.class);
         useExtendedBoluses = false;
 
@@ -266,8 +268,12 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
             // Convert duration from minutes to hours
             if (Config.logPumpActions)
                 log.debug("setTempBasalAbsolute: Setting temp basal " + percentRate + "% for " + durationInMinutes + " mins (doLowTemp || doHighTemp)");
-            // use special APS temp basal call ... 100+/15min .... 100-/30min
-            result = setHighTempBasalPercent(percentRate);
+            if (percentRate == 0 && durationInMinutes > 30) {
+                result = setTempBasalPercent(percentRate, durationInMinutes, profile, false);
+            } else {
+                // use special APS temp basal call ... 100+/15min .... 100-/30min
+                result = setHighTempBasalPercent(percentRate);
+            }
             if (!result.success) {
                 log.error("setTempBasalAbsolute: Failed to set hightemp basal");
                 return result;
