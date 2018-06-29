@@ -51,7 +51,7 @@ public class SourceXdripPlugin extends PluginBase implements BgSourceInterface {
         bgReading.date = bundle.getLong(Intents.EXTRA_TIMESTAMP);
         bgReading.raw = bundle.getDouble(Intents.EXTRA_RAW);
         String sourceDescription = bundle.getString(Intents.XDRIP_DATA_SOURCE_DESCRIPTION, "");
-        bgReading.isFiltered = sourceDescription.equals("G5 Native");
+        bgReading.isFiltered = true; // sourceDescription.equals("G5 Native");
         bgReading.sourcePlugin = getName();
 
         boolean isNew = MainApp.getDbHelper().createIfNotExists(bgReading, getName());
