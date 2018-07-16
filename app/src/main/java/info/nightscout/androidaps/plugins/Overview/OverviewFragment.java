@@ -124,6 +124,7 @@ import info.nightscout.utils.SingleClickButton;
 import info.nightscout.utils.T;
 import info.nightscout.utils.ToastUtils;
 
+import static info.nightscout.androidaps.plugins.OpenAPSSMB.SMBDefaults.exercise_mode;
 import static info.nightscout.utils.DateUtil.now;
 
 public class OverviewFragment extends Fragment implements View.OnClickListener, View.OnLongClickListener {
@@ -155,6 +156,9 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     GraphView bgGraph;
     GraphView iobGraph;
     ImageButton chartButton;
+
+    TextView exercise;
+    TextView exerciseView;
 
     TextView iage;
     TextView cage;
@@ -256,6 +260,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             pumpStatusLayout = (LinearLayout) view.findViewById(R.id.overview_pumpstatuslayout);
 
             pumpStatusView.setBackgroundColor(MainApp.gc(R.color.colorInitializingBorder));
+
+            exerciseView = view.findViewById(R.id.exercise);
 
             iobView = (TextView) view.findViewById(R.id.overview_iob);
             cobView = (TextView) view.findViewById(R.id.overview_cob);
@@ -1185,6 +1191,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             } else {
                 acceptTempLayout.setVisibility(View.GONE);
             }
+        }
+
+        if (exerciseView != null) {
+                exerciseView.setVisibility(View.GONE);
         }
 
         // **** Calibration & CGM buttons ****
