@@ -1180,6 +1180,10 @@
     <string name="generated_ecarbs_note">Generated eCarbs with amount: %1$dg, duration: %2$dh, delay: %3$dm</string>
     <string name="key_plugin_stats_report_timestamp" translatable="false">key_plugin_stats_report_timestamp</string>
 
+    <string name="average_profile">Average Profile</string>
+    <string name="average_profile_short">AP</string>
+    <string name="average_profile_description">Define the average values for IC and ISF and they will automatically be calculated, so they align to the basal profile.</string>
+
     <plurals name="objective_days">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>
