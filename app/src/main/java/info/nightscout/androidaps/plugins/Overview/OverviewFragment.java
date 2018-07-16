@@ -1194,7 +1194,12 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         }
 
         if (exerciseView != null) {
+            if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+            } else {
                 exerciseView.setVisibility(View.GONE);
+            }
         }
 
         // **** Calibration & CGM buttons ****
