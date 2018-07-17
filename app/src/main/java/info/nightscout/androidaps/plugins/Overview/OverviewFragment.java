@@ -1193,13 +1193,26 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             }
         }
 
+        // Button Exercise Mode
         if (exerciseView != null) {
-            if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+            if ( (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) ) {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
                 exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                exerciseView.setText("l&h");
+            } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                exerciseView.setText("high");
+            } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
+                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                exerciseView.setText("low");
             } else {
-                exerciseView.setVisibility(View.GONE);
+                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
+                exerciseView.setText("EM");
             }
+            exerciseView.setVisibility(View.VISIBLE);
         }
 
         // **** Calibration & CGM buttons ****

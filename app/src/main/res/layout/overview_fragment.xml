@@ -87,7 +87,8 @@
                         android:paddingTop="3dp"
                         android:text="Ex."
                         android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="@color/mdtp_white" />
+                        android:textColor="@color/mdtp_white"
+                        android:visibility="gone"/>
 
                 </LinearLayout>
 
