@@ -665,15 +665,19 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         } else if (item.getTitle().equals("Low TT & High TT")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
+            updateGUI("exerciseView");
         } else if (item.getTitle().equals("Only Low TT")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
+            updateGUI("exerciseView");
         } else if (item.getTitle().equals("Only High TT")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
+            updateGUI("exerciseView");
         } else if (item.getTitle().equals("None")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
+            updateGUI("exerciseView");
         }
         return super.onContextItemSelected(item);
     }
@@ -1216,15 +1220,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (exerciseView != null) {
             if ( (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) ) {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
-                exerciseView.setText("l & h");
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.inrange));
+                exerciseView.setText("lo|hi");
             } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.inrange));
                 exerciseView.setText("high");
             } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                exerciseView.setBackgroundColor(MainApp.gc(R.color.inrange));
                 exerciseView.setText("low");
             } else {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
