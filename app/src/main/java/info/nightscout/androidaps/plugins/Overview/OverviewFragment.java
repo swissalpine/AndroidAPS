@@ -519,6 +519,12 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if (TreatmentsPlugin.getPlugin().getTempTargetFromHistory() != null) {
                 menu.add(MainApp.gs(R.string.cancel));
             }
+        } else if(v == exerciseView) {
+            menu.setHeaderTitle("Raise Sensitivity");
+            menu.add("Low TT & High TT");
+            menu.add("Only Low TT");
+            menu.add("Only High TT");
+            menu.add("None");
         }
     }
 
@@ -656,8 +662,19 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     .low(0)
                     .high(0);
             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
+        } else if (item.getTitle().equals("Low TT & High TT")) {
+            SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
+            SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
+        } else if (item.getTitle().equals("Only Low TT")) {
+            SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
+            SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
+        } else if (item.getTitle().equals("Only High TT")) {
+            SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
+            SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
+        } else if (item.getTitle().equals("None")) {
+            SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
+            SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
         }
-
         return super.onContextItemSelected(item);
     }
 
@@ -922,6 +939,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         unregisterForContextMenu(apsModeView);
         unregisterForContextMenu(activeProfileView);
         unregisterForContextMenu(tempTargetView);
+        unregisterForContextMenu(exerciseView);
     }
 
     @Override
@@ -936,6 +954,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         registerForContextMenu(apsModeView);
         registerForContextMenu(activeProfileView);
         registerForContextMenu(tempTargetView);
+        registerForContextMenu(exerciseView);
         updateGUI("onResume");
     }
 
@@ -1198,7 +1217,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if ( (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) ) {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
                 exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
-                exerciseView.setText("l&h");
+                exerciseView.setText("l & h");
             } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
                 exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
                 exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
