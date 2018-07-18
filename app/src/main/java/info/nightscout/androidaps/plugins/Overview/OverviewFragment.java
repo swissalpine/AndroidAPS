@@ -96,6 +96,7 @@ import info.nightscout.androidaps.plugins.Loop.LoopPlugin;
 import info.nightscout.androidaps.plugins.Loop.events.EventNewOpenLoopNotification;
 import info.nightscout.androidaps.plugins.NSClientInternal.data.NSDeviceStatus;
 import info.nightscout.androidaps.plugins.NSClientInternal.data.NSSettingsStatus;
+import info.nightscout.androidaps.plugins.OpenAPSSMB.OpenAPSSMBPlugin;
 import info.nightscout.androidaps.plugins.Overview.Dialogs.CalibrationDialog;
 import info.nightscout.androidaps.plugins.Overview.Dialogs.ErrorHelperActivity;
 import info.nightscout.androidaps.plugins.Overview.Dialogs.NewCarbsDialog;
@@ -124,7 +125,6 @@ import info.nightscout.utils.SingleClickButton;
 import info.nightscout.utils.T;
 import info.nightscout.utils.ToastUtils;
 
-import static info.nightscout.androidaps.plugins.OpenAPSSMB.SMBDefaults.exercise_mode;
 import static info.nightscout.utils.DateUtil.now;
 
 public class OverviewFragment extends Fragment implements View.OnClickListener, View.OnLongClickListener {
@@ -514,11 +514,13 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if (TreatmentsPlugin.getPlugin().getTempTargetFromHistory() != null) {
                 menu.add(MainApp.gs(R.string.cancel));
             }
-            menu.add("---");
-            menu.add("Low + high TT raises Sens.");
-            menu.add("Low TT raises Sens.");
-            menu.add("High TT raises Sens.");
-            menu.add("None");
+            if (OpenAPSSMBPlugin.getPlugin().isEnabled(PluginType.APS)) {
+                menu.add("---");
+                menu.add("Low + high changes Sens.");
+                menu.add("Low lowers Sens.");
+                menu.add("High raises Sens.");
+                menu.add("No Changes");
+            }
         }
     }
 
@@ -656,19 +658,19 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     .low(0)
                     .high(0);
             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-        } else if (item.getTitle().equals("Low + high TT raises Sens.")) {
+        } else if (item.getTitle().equals("Low + high changes Sens.")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
             updateGUI("eventExerciseModechange");
-        } else if (item.getTitle().equals("Low TT raises Sens.")) {
+        } else if (item.getTitle().equals("Low lowers Sens.")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
             updateGUI("eventExerciseModechange");
-        } else if (item.getTitle().equals("High TT raises Sens.")) {
+        } else if (item.getTitle().equals("High raises Sens.")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
             updateGUI("eventExerciseModechange");
-        } else if (item.getTitle().equals("None")) {
+        } else if (item.getTitle().equals("No Changes")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
             updateGUI("eventExerciseModechange");
@@ -1179,29 +1181,31 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             apsModeView.setVisibility(View.GONE);
         }
 
-        // temp target
-        TempTarget tempTarget = TreatmentsPlugin.getPlugin().getTempTargetFromHistory();
-        // Add Exercise Mode
-        String exerciseAnzeige;
-        if ( (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) ) {
-            exerciseAnzeige = "lo|hi";
-        } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
-            exerciseAnzeige = "--|hi";
-        } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
-            exerciseAnzeige = "lo|--";
-        } else {
-            exerciseAnzeige = "";
+        // Add Exercise Mode Display for temp target
+        String exerciseAnzeige = "";
+        if (OpenAPSSMBPlugin.getPlugin().isEnabled(PluginType.APS)) {
+            if ((SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false))) {
+                exerciseAnzeige = " lo|hi";
+            } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+                exerciseAnzeige = " --|hi";
+            } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
+                exerciseAnzeige = " lo|--";
+            } else {
+                exerciseAnzeige = "";
+            }
         }
 
+        // temp target
+        TempTarget tempTarget = TreatmentsPlugin.getPlugin().getTempTargetFromHistory();
         if (tempTarget != null) {
             tempTargetView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
             tempTargetView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
             tempTargetView.setVisibility(View.VISIBLE);
-            tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()) + " " + exerciseAnzeige);
+            tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()) + exerciseAnzeige);
         } else {
             tempTargetView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
             tempTargetView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
-            tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units) + " " + exerciseAnzeige);
+            tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units) + exerciseAnzeige);
             tempTargetView.setVisibility(View.VISIBLE);
         }
 
