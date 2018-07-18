@@ -157,9 +157,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     GraphView iobGraph;
     ImageButton chartButton;
 
-    TextView exercise;
-    TextView exerciseView;
-
     TextView iage;
     TextView cage;
     TextView sage;
@@ -260,8 +257,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             pumpStatusLayout = (LinearLayout) view.findViewById(R.id.overview_pumpstatuslayout);
 
             pumpStatusView.setBackgroundColor(MainApp.gc(R.color.colorInitializingBorder));
-
-            exerciseView = view.findViewById(R.id.exercise);
 
             iobView = (TextView) view.findViewById(R.id.overview_iob);
             cobView = (TextView) view.findViewById(R.id.overview_cob);
@@ -519,11 +514,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if (TreatmentsPlugin.getPlugin().getTempTargetFromHistory() != null) {
                 menu.add(MainApp.gs(R.string.cancel));
             }
-        } else if(v == exerciseView) {
-            menu.setHeaderTitle("Raise Sensitivity");
-            menu.add("Low TT & High TT");
-            menu.add("Only Low TT");
-            menu.add("Only High TT");
+            menu.add("---");
+            menu.add("Low + high TT raises Sens.");
+            menu.add("Low TT raises Sens.");
+            menu.add("High TT raises Sens.");
             menu.add("None");
         }
     }
@@ -662,22 +656,22 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     .low(0)
                     .high(0);
             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-        } else if (item.getTitle().equals("Low TT & High TT")) {
+        } else if (item.getTitle().equals("Low + high TT raises Sens.")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
-            updateGUI("exerciseView");
-        } else if (item.getTitle().equals("Only Low TT")) {
+            updateGUI("eventExerciseModechange");
+        } else if (item.getTitle().equals("Low TT raises Sens.")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, true);
-            updateGUI("exerciseView");
-        } else if (item.getTitle().equals("Only High TT")) {
+            updateGUI("eventExerciseModechange");
+        } else if (item.getTitle().equals("High TT raises Sens.")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
-            updateGUI("exerciseView");
+            updateGUI("eventExerciseModechange");
         } else if (item.getTitle().equals("None")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
-            updateGUI("exerciseView");
+            updateGUI("eventExerciseModechange");
         }
         return super.onContextItemSelected(item);
     }
@@ -943,7 +937,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         unregisterForContextMenu(apsModeView);
         unregisterForContextMenu(activeProfileView);
         unregisterForContextMenu(tempTargetView);
-        unregisterForContextMenu(exerciseView);
     }
 
     @Override
@@ -958,7 +951,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         registerForContextMenu(apsModeView);
         registerForContextMenu(activeProfileView);
         registerForContextMenu(tempTargetView);
-        registerForContextMenu(exerciseView);
         updateGUI("onResume");
     }
 
@@ -1189,15 +1181,27 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
         // temp target
         TempTarget tempTarget = TreatmentsPlugin.getPlugin().getTempTargetFromHistory();
+        // Add Exercise Mode
+        String exerciseAnzeige;
+        if ( (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) ) {
+            exerciseAnzeige = "lo|hi";
+        } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+            exerciseAnzeige = "--|hi";
+        } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
+            exerciseAnzeige = "lo|--";
+        } else {
+            exerciseAnzeige = "";
+        }
+
         if (tempTarget != null) {
             tempTargetView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
             tempTargetView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
             tempTargetView.setVisibility(View.VISIBLE);
-            tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()));
+            tempTargetView.setText(Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end()) + " " + exerciseAnzeige);
         } else {
             tempTargetView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
             tempTargetView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
-            tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units));
+            tempTargetView.setText(Profile.toTargetRangeString(profile.getTargetLow(), profile.getTargetHigh(), units, units) + " " + exerciseAnzeige);
             tempTargetView.setVisibility(View.VISIBLE);
         }
 
@@ -1214,28 +1218,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             } else {
                 acceptTempLayout.setVisibility(View.GONE);
             }
-        }
-
-        // Button Exercise Mode
-        if (exerciseView != null) {
-            if ( (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) ) {
-                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.inrange));
-                exerciseView.setText("lo|hi");
-            } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
-                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.inrange));
-                exerciseView.setText("high");
-            } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
-                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.inrange));
-                exerciseView.setText("low");
-            } else {
-                exerciseView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
-                exerciseView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
-                exerciseView.setText("EM");
-            }
-            exerciseView.setVisibility(View.VISIBLE);
         }
 
         // **** Calibration & CGM buttons ****
