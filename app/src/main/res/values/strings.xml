@@ -975,7 +975,7 @@
     <string name="fabric_upload">Fabric Upload</string>
     <string name="allow_automated_crash_reporting">Allow automated crash reporting and feature usage data to be sent to the developers via the fabric.io service.</string>
     <string name="g5appnotdetected">Please update your G5 app to supported version</string>
-    <string name="start_activity_tt">Start Activity TT</string>
+    <string name="start_activity_tt">Start Activity TT + 0% TBR</string>
     <string name="start_eating_soon_tt">Start Eating soon TT</string>
     <string name="temptargetshort">TT</string>
     <string name="do_not_bolus_record_only">Do not bolus, record only</string>
@@ -1177,7 +1177,7 @@
     <string name="careportal_removestartedevents">Clean AndroidAPS started</string>
     <string name="storedsettingsfound">Stored settings found</string>
     <string name="allow_hardware_pump_text">Attention: If you activate and connect to a hardware pump, AndroidAPS will copy the basal settings from the profile to the pump, overwriting the existing basal rate stored on the pump. Make sure you have the correct basal setting in AndroidAPS. If you are not sure or don\'t want to overwrite the basal settings on your pump, press cancel and repeat switching to the pump at a later time.</string>
-    <string name="generated_ecarbs_note">Generated eCarbs with amount: %1$dg, duration: %2$dh, delay: %3$dm</string>
+    <string name="generated_ecarbs_note">eCarbs: %1$dg (%2$dh) after %3$dm</string>
     <string name="key_plugin_stats_report_timestamp" translatable="false">key_plugin_stats_report_timestamp</string>
 
     <string name="average_profile">Average Profile</string>

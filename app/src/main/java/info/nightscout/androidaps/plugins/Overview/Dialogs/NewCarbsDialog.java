@@ -306,6 +306,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                     unitLabel = "mmol/l";
                 }
                 actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + activityTTDuration + " min)</font>");
+                actions.add("Pump: <font color='red'>Disconnect (45 min)</font>");
             }
             if (startEatingSoonTTCheckbox.isChecked()) {
                 if (currentProfile.getUnits().equals(Constants.MMOL)) {
@@ -320,7 +321,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                 } else {
                     actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to0Decimal(hypoTT) + " mg/dl (" + hypoTTDuration + " min)</font>");
                 }
-                actions.add("Pump: <font color='red'>Disconnect (40 min)</font>");
+                actions.add("Pump: <font color='red'>Disconnect (45 min)</font>");
             }
 
             int timeOffset = editTime.getValue().intValue();
@@ -363,6 +364,8 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                         }
                         accepted = true;
 
+                        final Profile profile = MainApp.getConfigBuilder().getProfile();
+
                         if (startActivityTTCheckbox.isChecked()) {
                             TempTarget tempTarget = new TempTarget()
                                     .date(System.currentTimeMillis())
@@ -372,6 +375,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                     .low(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()))
                                     .high(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()));
                             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
+                            MainApp.getConfigBuilder().disconnectPump(45, profile);
                         } else if (startEatingSoonTTCheckbox.isChecked()) {
                             TempTarget tempTarget = new TempTarget()
                                     .date(System.currentTimeMillis())
@@ -390,8 +394,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                     .low(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()))
                                     .high(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()));
                             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                            Profile profile = MainApp.getConfigBuilder().getProfile();
-                            MainApp.getConfigBuilder().disconnectPump(40, profile);
+                            MainApp.getConfigBuilder().disconnectPump(45, profile);
                         }
 
                         if (carbsAfterConstraints > 0) {

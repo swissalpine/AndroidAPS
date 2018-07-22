@@ -748,7 +748,7 @@
     <string name="insight_stay_always_connected">Bleibe immer verbunden</string>
     <string name="start_hypo_tt">Start Hypo TT + 0% TBR</string>
     <string name="start_eating_soon_tt">Starte Essen TT</string>
-    <string name="start_activity_tt">Starte Aktivität TT</string>
+    <string name="start_activity_tt">Starte Aktivität TT + 0% TBR</string>
     <string name="overview_show_sensitivity">Sensitivität</string>
     <string name="show_calibration_button_summary">Sendet eine Kalibierung an xDrip+ oder öffnet den G5 Kalibrierungs-Dialog.</string>
     <string name="secondinsulinincrement">Zweite Insulin-Erhöhung</string>
