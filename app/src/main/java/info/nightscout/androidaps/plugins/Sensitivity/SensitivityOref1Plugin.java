@@ -48,10 +48,10 @@ public class SensitivityOref1Plugin extends AbstractSensitivityPlugin {
     }
 
     @Override
-    public AutosensResult detectSensitivity(long fromTime, long toTime) {
+    public AutosensResult detectSensitivity(IobCobCalculatorPlugin iobCobCalculatorPlugin, long fromTime, long toTime) {
         // todo this method is called from the IobCobCalculatorPlugin, which leads to a circular
         // dependency, this should be avoided
-        LongSparseArray<AutosensData> autosensDataTable = IobCobCalculatorPlugin.getPlugin().getAutosensDataTable();
+        LongSparseArray<AutosensData> autosensDataTable = iobCobCalculatorPlugin.getAutosensDataTable();
 
         Profile profile = MainApp.getConfigBuilder().getProfile();
 
@@ -61,14 +61,14 @@ public class SensitivityOref1Plugin extends AbstractSensitivityPlugin {
         }
 
         if (autosensDataTable == null || autosensDataTable.size() < 4) {
-            log.debug("No autosens data available. lastDataTime=" + IobCobCalculatorPlugin.getPlugin().lastDataTime());
+            log.debug("No autosens data available. lastDataTime=" + iobCobCalculatorPlugin.lastDataTime());
             return new AutosensResult();
         }
 
         // the current
-        AutosensData current = IobCobCalculatorPlugin.getPlugin().getAutosensData(toTime); // this is running inside lock already
+        AutosensData current = iobCobCalculatorPlugin.getAutosensData(toTime); // this is running inside lock already
         if (current == null) {
-            log.debug("No autosens data available. toTime: " + DateUtil.dateAndTimeString(toTime) + " lastDataTime: " + IobCobCalculatorPlugin.getPlugin().lastDataTime());
+            log.debug("No autosens data available. toTime: " + DateUtil.dateAndTimeString(toTime) + " lastDataTime: " + iobCobCalculatorPlugin.lastDataTime());
             return new AutosensResult();
         }
 
@@ -120,10 +120,12 @@ public class SensitivityOref1Plugin extends AbstractSensitivityPlugin {
 
         // when we have less than 8h worth of deviation data, add up to 90m of zero deviations
         // this dampens any large sensitivity changes detected based on too little data, without ignoring them completely
-        log.debug("Using most recent " + deviationsArray.size() + " deviations");
+        if (Config.logAutosensData)
+            log.debug("Using most recent " + deviationsArray.size() + " deviations");
         if (deviationsArray.size() < 96) {
             int pad = Math.round((1 - deviationsArray.size() / 96) * 18);
-            log.debug("Adding " + pad + " more zero deviations");
+            if (Config.logAutosensData)
+                log.debug("Adding " + pad + " more zero deviations");
             for (int d = 0; d < pad; d++) {
                 //process.stderr.write(".");
                 deviationsArray.add(0d);
