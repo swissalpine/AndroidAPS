@@ -75,4 +75,9 @@ public class Constants {
     public static final String BGSOURCE = "BGSOURCE";
     public static final String OVERVIEW = "OVERVIEW";
     public static final String NOTIFICATION = "NOTIFICATION";
+    public static final String ALARM = "ALARM";
+    public static final String DATASERVICE = "DATASERVICE";
+    public static final String DATANS = "DATANS";
+    public static final String DATAFOOD = "DATAFOOD";
+    public static final String DATATREATMENTS = "DATATREATMENTS";
 }
