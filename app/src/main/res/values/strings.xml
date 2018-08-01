@@ -1184,6 +1184,7 @@
     <string name="openaps_noasdata">No autosens data available</string>
     <string name="nav_logsettings">Log settings</string>
     <string name="resettodefaults">Reset to defaults</string>
+    <string name="nsmalfunction">NSClient malfunction. Consider NS and NSClient restart.</string>
 
     <string name="average_profile">Average Profile</string>
     <string name="average_profile_short">AP</string>
