@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 
 import info.nightscout.androidaps.BuildConfig;
-import info.nightscout.androidaps.Config;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.DetailedBolusInfo;
@@ -19,6 +18,7 @@ import info.nightscout.androidaps.interfaces.PluginDescription;
 import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.PumpDescription;
 import info.nightscout.androidaps.interfaces.PumpInterface;
+import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DateUtil;
 
@@ -155,7 +155,7 @@ public class MDIPlugin extends PluginBase implements PumpInterface {
         PumpEnactResult result = new PumpEnactResult();
         result.success = false;
         result.comment = MainApp.gs(R.string.pumperror);
-        if (Config.logPumpComm)
+        if (L.isEnabled(L.PUMPCOMM))
             log.debug("Setting temp basal absolute: " + result);
         return result;
     }
@@ -165,7 +165,7 @@ public class MDIPlugin extends PluginBase implements PumpInterface {
         PumpEnactResult result = new PumpEnactResult();
         result.success = false;
         result.comment = MainApp.gs(R.string.pumperror);
-        if (Config.logPumpComm)
+        if (L.isEnabled(L.PUMPCOMM))
             log.debug("Settings temp basal percent: " + result);
         return result;
     }
@@ -175,7 +175,7 @@ public class MDIPlugin extends PluginBase implements PumpInterface {
         PumpEnactResult result = new PumpEnactResult();
         result.success = false;
         result.comment = MainApp.gs(R.string.pumperror);
-        if (Config.logPumpComm)
+        if (L.isEnabled(L.PUMPCOMM))
             log.debug("Setting extended bolus: " + result);
         return result;
     }
@@ -185,7 +185,7 @@ public class MDIPlugin extends PluginBase implements PumpInterface {
         PumpEnactResult result = new PumpEnactResult();
         result.success = false;
         result.comment = MainApp.gs(R.string.pumperror);
-        if (Config.logPumpComm)
+        if (L.isEnabled(L.PUMPCOMM))
             log.debug("Cancel temp basal: " + result);
         return result;
     }
@@ -195,7 +195,7 @@ public class MDIPlugin extends PluginBase implements PumpInterface {
         PumpEnactResult result = new PumpEnactResult();
         result.success = false;
         result.comment = MainApp.gs(R.string.pumperror);
-        if (Config.logPumpComm)
+        if (L.isEnabled(L.PUMPCOMM))
             log.debug("Canceling extended basal: " + result);
         return result;
     }

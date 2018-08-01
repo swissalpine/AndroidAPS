@@ -19,7 +19,7 @@ import com.squareup.otto.Subscribe;
 
 import org.apache.commons.lang3.StringUtils;
 
-import info.nightscout.androidaps.TDDStatsActivity;
+import info.nightscout.androidaps.activities.TDDStatsActivity;
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.PumpState;
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.Bolus;
 import info.nightscout.androidaps.MainApp;

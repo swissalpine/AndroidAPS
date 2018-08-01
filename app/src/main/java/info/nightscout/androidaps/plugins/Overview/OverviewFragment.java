@@ -81,13 +81,14 @@ import info.nightscout.androidaps.interfaces.Constraint;
 import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.PumpDescription;
 import info.nightscout.androidaps.interfaces.PumpInterface;
+import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.Careportal.CareportalFragment;
 import info.nightscout.androidaps.plugins.Careportal.Dialogs.NewNSTreatmentDialog;
 import info.nightscout.androidaps.plugins.Careportal.OptionsToShow;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.ConstraintsObjectives.ObjectivesPlugin;
 import info.nightscout.androidaps.plugins.IobCobCalculator.AutosensData;
-import info.nightscout.androidaps.plugins.IobCobCalculator.AutosensResult;
 import info.nightscout.androidaps.plugins.IobCobCalculator.CobInfo;
 import info.nightscout.androidaps.plugins.IobCobCalculator.IobCobCalculatorPlugin;
 import info.nightscout.androidaps.plugins.IobCobCalculator.events.EventAutosensCalculationFinished;
@@ -112,13 +113,15 @@ import info.nightscout.androidaps.plugins.Source.SourceDexcomG5Plugin;
 import info.nightscout.androidaps.plugins.Source.SourceXdripPlugin;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.plugins.Treatments.fragments.ProfileViewerDialog;
+import info.nightscout.androidaps.plugins.Wear.ActionStringHandler;
+import info.nightscout.androidaps.events.EventAcceptOpenLoopChange;
 import info.nightscout.androidaps.queue.Callback;
 import info.nightscout.utils.BolusWizard;
 import info.nightscout.utils.DateUtil;
 import info.nightscout.utils.DecimalFormatter;
 import info.nightscout.utils.DefaultValueHelper;
 import info.nightscout.utils.FabricPrivacy;
-import info.nightscout.utils.NSUpload;
+import info.nightscout.androidaps.plugins.NSClientInternal.NSUpload;
 import info.nightscout.utils.OKDialog;
 import info.nightscout.utils.Profiler;
 import info.nightscout.utils.SP;
@@ -129,7 +132,7 @@ import info.nightscout.utils.ToastUtils;
 import static info.nightscout.utils.DateUtil.now;
 
 public class OverviewFragment extends Fragment implements View.OnClickListener, View.OnLongClickListener {
-    private static Logger log = LoggerFactory.getLogger(Constants.OVERVIEW);
+    private static Logger log = LoggerFactory.getLogger(L.OVERVIEW);
 
     TextView timeView;
     TextView bgView;
@@ -470,7 +473,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (v == apsModeView) {
             final LoopPlugin loopPlugin = LoopPlugin.getPlugin();
             final PumpDescription pumpDescription = ConfigBuilderPlugin.getActivePump().getPumpDescription();
-            if (loopPlugin == null || !MainApp.getConfigBuilder().isProfileValid("ContexMenuCreation"))
+            if (!ProfileFunctions.getInstance().isProfileValid("ContexMenuCreation"))
                 return;
             menu.setHeaderTitle(MainApp.gs(R.string.loop));
             if (loopPlugin.isEnabled(PluginType.LOOP)) {
@@ -520,7 +523,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        final Profile profile = MainApp.getConfigBuilder().getProfile();
+        final Profile profile = ProfileFunctions.getInstance().getProfile();
         if (profile == null)
             return true;
         final LoopPlugin loopPlugin = LoopPlugin.getPlugin();
@@ -560,39 +563,39 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             NSUpload.uploadOpenAPSOffline(0);
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.suspendloopfor1h))) {
-            MainApp.getConfigBuilder().suspendLoop(60);
+            LoopPlugin.getPlugin().suspendLoop(60);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.suspendloopfor2h))) {
-            MainApp.getConfigBuilder().suspendLoop(120);
+            LoopPlugin.getPlugin().suspendLoop(120);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.suspendloopfor3h))) {
-            MainApp.getConfigBuilder().suspendLoop(180);
+            LoopPlugin.getPlugin().suspendLoop(180);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.suspendloopfor10h))) {
-            MainApp.getConfigBuilder().suspendLoop(600);
+            LoopPlugin.getPlugin().suspendLoop(600);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor15m))) {
-            MainApp.getConfigBuilder().disconnectPump(15, profile);
+            LoopPlugin.getPlugin().disconnectPump(15, profile);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor30m))) {
-            MainApp.getConfigBuilder().disconnectPump(30, profile);
+            LoopPlugin.getPlugin().disconnectPump(30, profile);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor1h))) {
-            MainApp.getConfigBuilder().disconnectPump(60, profile);
+            LoopPlugin.getPlugin().disconnectPump(60, profile);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor2h))) {
-            MainApp.getConfigBuilder().disconnectPump(120, profile);
+            LoopPlugin.getPlugin().disconnectPump(120, profile);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor3h))) {
-            MainApp.getConfigBuilder().disconnectPump(180, profile);
+            LoopPlugin.getPlugin().disconnectPump(180, profile);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.careportal_profileswitch))) {
@@ -677,7 +680,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     public void onClick(View v) {
         boolean xdrip = MainApp.getSpecificPlugin(SourceXdripPlugin.class) != null && MainApp.getSpecificPlugin(SourceXdripPlugin.class).isEnabled(PluginType.BGSOURCE);
         boolean g5 = MainApp.getSpecificPlugin(SourceDexcomG5Plugin.class) != null && MainApp.getSpecificPlugin(SourceDexcomG5Plugin.class).isEnabled(PluginType.BGSOURCE);
-        String units = MainApp.getConfigBuilder().getProfileUnits();
+        String units = ProfileFunctions.getInstance().getProfileUnits();
 
         FragmentManager manager = getFragmentManager();
         // try to fix  https://fabric.io/nightscout3/android/apps/info.nightscout.androidaps/issues/5aca7a1536c7b23527eb4be7?time=last-seven-days
@@ -765,7 +768,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     }
 
     private void onClickAcceptTemp() {
-        Profile profile = MainApp.getConfigBuilder().getProfile();
+        Profile profile = ProfileFunctions.getInstance().getProfile();
         Context context = getContext();
 
         if (context == null) return;
@@ -780,24 +783,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
                     hideTempRecommendation();
                     clearNotification();
-                    MainApp.getConfigBuilder().applyTBRRequest(finalLastRun.constraintsProcessed, profile, new Callback() {
-                        @Override
-                        public void run() {
-                            if (result.enacted) {
-                                finalLastRun.tbrSetByPump = result;
-                                finalLastRun.lastEnact = new Date();
-                                finalLastRun.lastOpenModeAccept = new Date();
-                                NSUpload.uploadDeviceStatus();
-                                ObjectivesPlugin objectivesPlugin = MainApp.getSpecificPlugin(ObjectivesPlugin.class);
-                                if (objectivesPlugin != null) {
-                                    ObjectivesPlugin.manualEnacts++;
-                                    ObjectivesPlugin.saveProgress();
-                                }
-                            }
-                            scheduleUpdateGUI("onClickAcceptTemp");
-                        }
-                    });
-                    FabricPrivacy.getInstance().logCustom(new CustomEvent("AcceptTemp"));
+                    LoopPlugin.getPlugin().acceptChangeRequest();
                 });
                 builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
                 builder.show();
@@ -807,7 +793,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
     void onClickQuickwizard() {
         final BgReading actualBg = DatabaseHelper.actualBg();
-        final Profile profile = MainApp.getConfigBuilder().getProfile();
+        final Profile profile = ProfileFunctions.getInstance().getProfile();
         final TempTarget tempTarget = TreatmentsPlugin.getPlugin().getTempTargetFromHistory();
 
         final QuickWizardEntry quickWizardEntry = OverviewPlugin.getPlugin().quickWizard.getActive();
@@ -866,7 +852,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
                     synchronized (builder) {
                         if (accepted) {
-                            if (Config.logOverview)
+                            if (L.isEnabled(L.OVERVIEW))
                                 log.debug("guarding: already accepted");
                             return;
                         }
@@ -998,6 +984,11 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     }
 
     @Subscribe
+    public void onStatusEvent(final EventAcceptOpenLoopChange ev) {
+        scheduleUpdateGUI("EventAcceptOpenLoopChange");
+    }
+
+    @Subscribe
     public void onStatusEvent(final EventTempTargetChange ev) {
         scheduleUpdateGUI("EventTempTargetChange");
     }
@@ -1037,6 +1028,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         NotificationManager notificationManager =
                 (NotificationManager) MainApp.instance().getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(Constants.notificationID);
+
+        ActionStringHandler.handleInitiate("cancelChangeRequest");
     }
 
     private void updatePumpStatus(String status) {
@@ -1072,7 +1065,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
     @SuppressLint("SetTextI18n")
     public void updateGUI(final String from) {
-        if (Config.logOverview)
+        if (L.isEnabled(L.OVERVIEW))
             log.debug("updateGUI entered from: " + from);
         final Date updateGUIStart = new Date();
 
@@ -1088,7 +1081,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         pumpStatusLayout.setVisibility(View.GONE);
         loopStatusLayout.setVisibility(View.GONE);
 
-        if (!MainApp.getConfigBuilder().isProfileValid("Overview")) {
+        if (!ProfileFunctions.getInstance().isProfileValid("Overview")) {
             pumpStatusView.setText(R.string.noprofileset);
             pumpStatusLayout.setVisibility(View.VISIBLE);
             return;
@@ -1101,7 +1094,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
         final PumpInterface pump = ConfigBuilderPlugin.getActivePump();
 
-        final Profile profile = MainApp.getConfigBuilder().getProfile();
+        final Profile profile = ProfileFunctions.getInstance().getProfile();
 
         final String units = profile.getUnits();
         final double lowLine = OverviewPlugin.getPlugin().determineLowLine(units);
@@ -1299,7 +1292,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 extendedBolusView.setVisibility(View.VISIBLE);
         }
 
-        activeProfileView.setText(MainApp.getConfigBuilder().getProfileName());
+        activeProfileView.setText(ProfileFunctions.getInstance().getProfileName());
         if (profile.getPercentage() != 100 || profile.getTimeshift() != 0) {
             activeProfileView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
             activeProfileView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
@@ -1307,6 +1300,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             activeProfileView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
             activeProfileView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
         }
+        activeProfileView.setBackgroundColor(Color.GRAY);
 
         // QuickWizard button
         QuickWizardEntry quickWizardEntry = OverviewPlugin.getPlugin().quickWizard.getActive();
@@ -1538,7 +1532,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             final long now = System.currentTimeMillis();
 
             //  ------------------ 1st graph
-            if (Config.logOverview)
+            if (L.isEnabled(L.OVERVIEW))
                 Profiler.log(log, from + " - 1st graph - START", updateGUIStart);
 
             final GraphData graphData = new GraphData(bgGraph, IobCobCalculatorPlugin.getPlugin());
@@ -1571,7 +1565,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             graphData.addNowLine(now);
 
             // ------------------ 2nd graph
-            if (Config.logOverview)
+            if (L.isEnabled(L.OVERVIEW))
                 Profiler.log(log, from + " - 2nd graph - START", updateGUIStart);
 
             final GraphData secondGraphData = new GraphData(iobGraph, IobCobCalculatorPlugin.getPlugin());
@@ -1626,13 +1620,13 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     // finally enforce drawing of graphs
                     graphData.performUpdate();
                     secondGraphData.performUpdate();
-                    if (Config.logOverview)
+                    if (L.isEnabled(L.OVERVIEW))
                         Profiler.log(log, from + " - onDataChanged", updateGUIStart);
                 });
             }
         }).start();
 
-        if (Config.logOverview)
+        if (L.isEnabled(L.OVERVIEW))
             Profiler.log(log, from, updateGUIStart);
     }
 

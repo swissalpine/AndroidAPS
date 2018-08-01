@@ -21,7 +21,9 @@ import android.widget.RadioButton;
 
 import com.google.common.base.Joiner;
 
-import info.nightscout.utils.NSUpload;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
+import info.nightscout.androidaps.plugins.Loop.LoopPlugin;
+import info.nightscout.androidaps.plugins.NSClientInternal.NSUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -302,7 +304,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
 
     private void submit() {
         try {
-            final Profile currentProfile = MainApp.getConfigBuilder().getProfile();
+            final Profile currentProfile = ProfileFunctions.getInstance().getProfile();
             if (currentProfile == null) {
                 return;
             }
@@ -387,7 +389,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                         }
                         accepted = true;
 
-                        final Profile profile = MainApp.getConfigBuilder().getProfile();
+                        Profile profile = ProfileFunctions.getInstance().getProfile();
 
                         if (startActivityTTCheckbox.isChecked()) {
                             TempTarget tempTarget = new TempTarget()
@@ -398,7 +400,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                     .low(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()))
                                     .high(Profile.toMgdl(finalActivityTT, currentProfile.getUnits()));
                             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                            MainApp.getConfigBuilder().disconnectPump(45, profile);
+                            LoopPlugin.getPlugin().disconnectPump(45, profile);
                         } else if (startEatingSoonTTCheckbox.isChecked()) {
                             TempTarget tempTarget = new TempTarget()
                                     .date(System.currentTimeMillis())
@@ -417,7 +419,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                     .low(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()))
                                     .high(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()));
                             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                            MainApp.getConfigBuilder().disconnectPump(45, profile);
+                            LoopPlugin.getPlugin().disconnectPump(45, profile);
                         }
 
                         if (carbsAfterConstraints > 0) {

@@ -40,6 +40,7 @@ import info.nightscout.androidaps.db.Source;
 import info.nightscout.androidaps.db.TempTarget;
 import info.nightscout.androidaps.interfaces.Constraint;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.queue.Callback;
 import info.nightscout.utils.DateUtil;
@@ -200,7 +201,7 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
 
     private void submit() {
         try {
-            Profile currentProfile = MainApp.getConfigBuilder().getProfile();
+            Profile currentProfile = ProfileFunctions.getInstance().getProfile();
             if (currentProfile == null)
                 return;
 

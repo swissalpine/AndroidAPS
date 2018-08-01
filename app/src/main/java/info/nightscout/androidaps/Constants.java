@@ -68,16 +68,4 @@ public class Constants {
     //SMS Communicator
     public static final long SMS_CONFIRM_TIMEOUT = T.mins(5).msecs();
 
-    // logging
-    public static final String AUTOSENS = "AUTOSENS";
-    public static final String EVENTS = "EVENTS";
-    public static final String QUEUE = "QUEUE";
-    public static final String BGSOURCE = "BGSOURCE";
-    public static final String OVERVIEW = "OVERVIEW";
-    public static final String NOTIFICATION = "NOTIFICATION";
-    public static final String ALARM = "ALARM";
-    public static final String DATASERVICE = "DATASERVICE";
-    public static final String DATANS = "DATANS";
-    public static final String DATAFOOD = "DATAFOOD";
-    public static final String DATATREATMENTS = "DATATREATMENTS";
 }
