@@ -1300,7 +1300,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             activeProfileView.setBackgroundColor(MainApp.gc(R.color.ribbonDefault));
             activeProfileView.setTextColor(MainApp.gc(R.color.ribbonTextDefault));
         }
-        activeProfileView.setBackgroundColor(Color.GRAY);
 
         // QuickWizard button
         QuickWizardEntry quickWizardEntry = OverviewPlugin.getPlugin().quickWizard.getActive();
