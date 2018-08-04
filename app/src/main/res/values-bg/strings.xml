@@ -465,9 +465,6 @@
   <string name="error_field_must_not_be_empty">Полето не може  да бъде празно</string>
   <string name="error_phone_not_valid">Телефонният номер не е валиден</string>
   <string name="smscommunicator_invalidphonennumber">Грешен тел номер за SMS</string>
-  <string name="copy_to_clipboard">Копирай</string>
-  <string name="copied_to_clipboard">Копирано</string>
-  <string name="nav_show_logcat">Покажи лог</string>
   <string name="overview_calibration">Калибрация</string>
   <string name="send_calibration" formatted="false">Изпрати калибрация %.1f към xDrip?</string>
   <string name="xdripnotinstalled">xDrip+ не е инсталиран</string>
@@ -991,7 +988,6 @@
   <string name="danar_pumpalarm_vibrate">Вибрация</string>
   <string name="danar_pumpalarm_both">И двете</string>
   <string name="danar_screentimeout">Включен екран за [сек]</string>
-  <string name="danar_backlight">Подсветка за [сек]</string>
   <string name="danar_glucoseunits">Единици на КЗ</string>
   <string name="danar_shutdown">Изключване след(часа)</string>
   <string name="danar_lowreservoir">Минимален инсулин в резервоара (единици)</string>
@@ -1020,6 +1016,5 @@
   <string name="allow_hardware_pump_text">Внимание: Ако активирате и свържете с хардуерна помпа, AndroidAPS ще копира основните настройки от профила в помпата, като презапише съществуващата базова скорост, съхранявана на помпата. Уверете се, че имате правилните основни настройки в AndroidAPS. Ако не сте сигурни или не искате да презапишете основните настройки на помпата, натиснете Cancel и повторете превключването към помпата по-късно.</string>
   <string name="error_adding_treatment_title">Данните за лечението не са пълни</string>
   <string name="error_adding_treatment_message">Събитие (инсулин: %1$.2f, въглехидрати: %2$d, в: %3$s) не може да бъде добавено към събития. Моля уверете се, че е правилно и го добавете ръчно.</string>
-  <string name="generated_ecarbs_note">Генерирани eCarbs с параметри: %1$dгр, продължителност: %2$dh, след: %3$dm</string>
   <string name="openaps_noasdata">Няма налични данни за авточувствителност</string>
 </resources>
