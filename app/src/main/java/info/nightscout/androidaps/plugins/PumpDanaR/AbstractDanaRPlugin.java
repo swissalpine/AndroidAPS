@@ -153,10 +153,10 @@ public abstract class AbstractDanaRPlugin extends PluginBase implements PumpInte
     }
 
     @Override
-    public double getReservoirLevel() { return pump.reservoirRemainingUnits; }
+    public double getReservoirLevel() { return DanaRPump.getInstance().reservoirRemainingUnits; }
 
     @Override
-    public int getBatteryLevel() { return pump.batteryRemaining; }
+    public int getBatteryLevel() { return DanaRPump.getInstance().batteryRemaining; }
 
     @Override
     public void stopBolusDelivering() {
