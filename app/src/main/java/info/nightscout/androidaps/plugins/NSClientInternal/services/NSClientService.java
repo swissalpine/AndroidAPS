@@ -266,7 +266,7 @@ public class NSClientService extends Service {
             }
             MainApp.bus().post(new EventNSClientNewLog("WATCHDOG", "connections in last " + WATCHDOG_INTERVAL_MINUTES + " mins: " + reconnections.size() + "/" + WATCHDOG_MAXCONNECTIONS));
             if (reconnections.size() >= WATCHDOG_MAXCONNECTIONS) {
-                Notification n = new Notification(Notification.NSMALFUNCTION, MainApp.gs(R.string.nsmalfunction), Notification.URGENT);
+                Notification n = new Notification(Notification.NSMALFUNCTION, MainApp.gs(R.string.nsmalfunction), Notification.ANNOUNCEMENT); // URGENT);
                 MainApp.bus().post(new EventNewNotification(n));
                 MainApp.bus().post(new EventNSClientNewLog("WATCHDOG", "pausing for " + WATCHDOG_RECONNECT_IN + " mins"));
                 NSClientPlugin.getPlugin().pause(true);
