@@ -136,7 +136,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
                 addPreferencesFromResource(id);
             } else {
 
-                if (!Config.NSCLIENT && !Config.G5UPLOADER) {
+                if (!Config.NSCLIENT) {
                     addPreferencesFromResource(R.xml.pref_password);
                 }
                 addPreferencesFromResource(R.xml.pref_age);
@@ -159,7 +159,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
                 addPreferencesFromResourceIfEnabled(SensitivityOref0Plugin.getPlugin(), PluginType.SENSITIVITY);
                 addPreferencesFromResourceIfEnabled(SensitivityOref1Plugin.getPlugin(), PluginType.SENSITIVITY);
 
-                if (Config.HWPUMPS) {
+                if (Config.PUMPDRIVERS) {
                     addPreferencesFromResourceIfEnabled(DanaRPlugin.getPlugin(), PluginType.PUMP);
                     addPreferencesFromResourceIfEnabled(DanaRKoreanPlugin.getPlugin(), PluginType.PUMP);
                     addPreferencesFromResourceIfEnabled(DanaRv2Plugin.getPlugin(), PluginType.PUMP);
@@ -175,7 +175,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
                     }
                 }
 
-                if (!Config.NSCLIENT && !Config.G5UPLOADER) {
+                if (!Config.NSCLIENT) {
                     addPreferencesFromResourceIfEnabled(VirtualPumpPlugin.getPlugin(), PluginType.PUMP);
                 }
 
@@ -184,7 +184,7 @@ public class PreferencesActivity extends PreferenceActivity implements SharedPre
                 addPreferencesFromResourceIfEnabled(NSClientPlugin.getPlugin(), PluginType.GENERAL);
                 addPreferencesFromResourceIfEnabled(SmsCommunicatorPlugin.getPlugin(), PluginType.GENERAL);
 
-                if (!Config.NSCLIENT && !Config.G5UPLOADER) {
+                if (!Config.NSCLIENT) {
                     addPreferencesFromResource(R.xml.pref_others);
                 }
                 addPreferencesFromResource(R.xml.pref_datachoices);

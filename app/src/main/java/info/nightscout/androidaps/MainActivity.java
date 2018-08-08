@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
         AndroidPermission.notifyForStoragePermission(this);
         AndroidPermission.notifyForBatteryOptimizationPermission(this);
-        if (BuildConfig.APS || BuildConfig.PUMPCONTROL) {
+        if (Config.PUMPDRIVERS) {
             AndroidPermission.notifyForLocationPermissions(this);
             AndroidPermission.notifyForSMSPermissions(this);
         }
@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            boolean keepScreenOn = BuildConfig.NSCLIENTOLNY && SP.getBoolean(R.string.key_keep_screen_on, false);
+            boolean keepScreenOn = Config.NSCLIENT && SP.getBoolean(R.string.key_keep_screen_on, false);
             if (keepScreenOn)
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             else
@@ -377,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.nav_about:
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle(MainApp.gs(R.string.app_name) + " " + BuildConfig.VERSION);
-                if (Config.NSCLIENT || Config.G5UPLOADER)
+                if (Config.NSCLIENT)
                     builder.setIcon(R.mipmap.yellowowl);
                 else
                     builder.setIcon(R.mipmap.blueowl);

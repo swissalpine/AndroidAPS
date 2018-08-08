@@ -6,21 +6,19 @@ package info.nightscout.androidaps;
 public class Config {
     public static int SUPPORTEDNSVERSION = 1002; // 0.10.00
 
-    // MAIN FUCTIONALITY
-    public static final boolean APS = BuildConfig.APS;
-    // PLUGINS
-    public static final boolean NSCLIENT = BuildConfig.NSCLIENTOLNY;
-    public static final boolean G5UPLOADER = BuildConfig.G5UPLOADER;
-    public static final boolean PUMPCONTROL = BuildConfig.PUMPCONTROL;
+    public static final boolean APS = BuildConfig.FLAVOR.equals("full");
 
-    public static final boolean HWPUMPS = BuildConfig.PUMPDRIVERS;
+    public static final boolean NSCLIENT = BuildConfig.FLAVOR.equals("nsclient") || BuildConfig.FLAVOR.equals("nsclient2");
+    public static final boolean PUMPCONTROL = BuildConfig.FLAVOR.equals("pumpcontrol");
 
-    public static final boolean ACTION = !BuildConfig.NSCLIENTOLNY && !BuildConfig.G5UPLOADER;
-    public static final boolean MDI = !BuildConfig.NSCLIENTOLNY && !BuildConfig.G5UPLOADER;
-    public static final boolean OTHERPROFILES = !BuildConfig.NSCLIENTOLNY && !BuildConfig.G5UPLOADER;
-    public static final boolean SAFETY = !BuildConfig.NSCLIENTOLNY && !BuildConfig.G5UPLOADER;
+    public static final boolean PUMPDRIVERS = BuildConfig.FLAVOR.equals("full") || BuildConfig.FLAVOR.equals("pumpcontrol");
 
-    public static final boolean SMSCOMMUNICATORENABLED = !BuildConfig.NSCLIENTOLNY && !BuildConfig.G5UPLOADER;
+    public static final boolean ACTION = !NSCLIENT;
+    public static final boolean MDI = !NSCLIENT;
+    public static final boolean OTHERPROFILES = !NSCLIENT;
+    public static final boolean SAFETY = !NSCLIENT;
+
+    public static final boolean SMSCOMMUNICATORENABLED = !NSCLIENT;
 
 
 }

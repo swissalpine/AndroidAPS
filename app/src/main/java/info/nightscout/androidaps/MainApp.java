@@ -109,7 +109,7 @@ public class MainApp extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-            log.debug("onCreate");
+        log.debug("onCreate");
         sInstance = this;
         sResources = getResources();
         sConstraintsChecker = new ConstraintChecker(this);
@@ -153,14 +153,14 @@ public class MainApp extends Application {
             pluginsList.add(SensitivityAAPSPlugin.getPlugin());
             pluginsList.add(SensitivityWeightedAveragePlugin.getPlugin());
             pluginsList.add(SensitivityOref1Plugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRPlugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRKoreanPlugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRv2Plugin.getPlugin());
-            if (Config.HWPUMPS) pluginsList.add(DanaRSPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRKoreanPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRv2Plugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(DanaRSPlugin.getPlugin());
             pluginsList.add(CareportalPlugin.getPlugin());
-            if (Config.HWPUMPS && engineeringMode)
+            if (Config.PUMPDRIVERS && engineeringMode)
                 pluginsList.add(InsightPlugin.getPlugin()); // <-- Enable Insight plugin here
-            if (Config.HWPUMPS) pluginsList.add(ComboPlugin.getPlugin());
+            if (Config.PUMPDRIVERS) pluginsList.add(ComboPlugin.getPlugin());
             if (Config.MDI) pluginsList.add(MDIPlugin.getPlugin());
             pluginsList.add(VirtualPumpPlugin.getPlugin());
             if (Config.APS) pluginsList.add(LoopPlugin.getPlugin());
@@ -174,13 +174,12 @@ public class MainApp extends Application {
             pluginsList.add(TreatmentsPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(SafetyPlugin.getPlugin());
             if (Config.APS) pluginsList.add(ObjectivesPlugin.getPlugin());
-            if (!Config.NSCLIENT && !Config.G5UPLOADER)
+            if (!Config.NSCLIENT)
                 pluginsList.add(SourceXdripPlugin.getPlugin());
-            if (!Config.G5UPLOADER)
-                pluginsList.add(SourceNSClientPlugin.getPlugin());
-            if (!Config.NSCLIENT && !Config.G5UPLOADER)
+            pluginsList.add(SourceNSClientPlugin.getPlugin());
+            if (!Config.NSCLIENT)
                 pluginsList.add(SourceMM640gPlugin.getPlugin());
-            if (!Config.NSCLIENT && !Config.G5UPLOADER)
+            if (!Config.NSCLIENT)
                 pluginsList.add(SourceGlimpPlugin.getPlugin());
             if (!Config.NSCLIENT)
                 pluginsList.add(SourceDexcomG5Plugin.getPlugin());
@@ -384,7 +383,7 @@ public class MainApp extends Application {
     }
 
     public static boolean isEngineeringModeOrRelease() {
-        if (!BuildConfig.APS)
+        if (!Config.APS)
             return true;
         return engineeringMode || !devBranch;
     }
