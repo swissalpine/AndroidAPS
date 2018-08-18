@@ -346,7 +346,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                 } else {
                     actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to0Decimal(hypoTT) + " mg/dl (" + hypoTTDuration + " min)</font>");
                 }
-                actions.add("Pump: <font color='red'>Disconnect (45 min)</font>");
+                actions.add("Pump: <font color='red'>Suspend (45 min)</font>");
             }
 
             int timeOffset = editTime.getValue().intValue();
@@ -419,7 +419,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                     .low(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()))
                                     .high(Profile.toMgdl(finalHypoTT, currentProfile.getUnits()));
                             TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget);
-                            LoopPlugin.getPlugin().disconnectPump(45, profile);
+                            LoopPlugin.getPlugin().suspendLoop(45);
                         }
 
                         if (carbsAfterConstraints > 0) {

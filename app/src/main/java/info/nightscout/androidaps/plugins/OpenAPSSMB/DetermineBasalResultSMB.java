@@ -5,8 +5,11 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.Loop.APSResult;
+import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DateUtil;
 
 public class DetermineBasalResultSMB extends APSResult {
@@ -37,6 +40,19 @@ public class DetermineBasalResultSMB extends APSResult {
                 tempBasalRequested = true;
                 rate = result.getDouble("rate");
                 if (rate < 0d) rate = 0d;
+
+                // Anpassung minimale Basalrate 10%, wenn IOB < 0
+                // IOB
+                TreatmentsPlugin.getPlugin().updateTotalIOBTreatments();
+                TreatmentsPlugin.getPlugin().updateTotalIOBTempBasals();
+                final IobTotal bolusIob = TreatmentsPlugin.getPlugin().getLastCalculationTreatments().round();
+                final IobTotal basalIob = TreatmentsPlugin.getPlugin().getLastCalculationTempBasals().round();
+                // Anpassung Basalrate
+                if ((bolusIob.iob + basalIob.basaliob) < 0d) {
+                    double cutoff = ConfigBuilderPlugin.getActivePump().getBaseBasalRate() * 0.2;
+                    if (rate < cutoff) rate = cutoff;
+                }
+
                 duration = result.getInt("duration");
             } else {
                 rate = -1;
