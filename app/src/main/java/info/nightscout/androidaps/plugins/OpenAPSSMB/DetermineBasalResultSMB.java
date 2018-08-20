@@ -41,17 +41,19 @@ public class DetermineBasalResultSMB extends APSResult {
                 rate = result.getDouble("rate");
                 if (rate < 0d) rate = 0d;
 
-                // Anpassung minimale Basalrate 10%, wenn IOB < 0
+                // Anpassung minimale Basalrate 20%, wenn IOB < negative Basalrate (~ eine Stunde ohne Basal)
                 // IOB
                 TreatmentsPlugin.getPlugin().updateTotalIOBTreatments();
                 TreatmentsPlugin.getPlugin().updateTotalIOBTempBasals();
-                final IobTotal bolusIob = TreatmentsPlugin.getPlugin().getLastCalculationTreatments().round();
-                final IobTotal basalIob = TreatmentsPlugin.getPlugin().getLastCalculationTempBasals().round();
+                final IobTotal bolusIob = TreatmentsPlugin.getPlugin().getLastCalculationTreatments();
+                final IobTotal basalIob = TreatmentsPlugin.getPlugin().getLastCalculationTempBasals();
                 // Anpassung Basalrate
-                if ((bolusIob.iob + basalIob.basaliob) < 0d) {
-                    double cutoff = ConfigBuilderPlugin.getActivePump().getBaseBasalRate() * 0.2;
+                double baseBasalRate = ConfigBuilderPlugin.getActivePump().getBaseBasalRate();
+                if ((bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
+                    double cutoff = baseBasalRate * 0.2;
                     if (rate < cutoff) rate = cutoff;
                 }
+                // Ende Anpassung
 
                 duration = result.getInt("duration");
             } else {
