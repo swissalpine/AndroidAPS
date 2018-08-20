@@ -1199,6 +1199,8 @@
     <string name="time_offset">Time offset</string>
     <string name="key_aps_mode" translatable="false">aps_mode</string>
     <string name="setupwizard_preferred_aps_mode">Preferred APS mode</string>
+    <string name="treatments_wizard_total_label">Total</string>
+    <string name="calculation_short">Calc</string>
 
     <string name="average_profile">Average Profile</string>
     <string name="average_profile_short">AP</string>
