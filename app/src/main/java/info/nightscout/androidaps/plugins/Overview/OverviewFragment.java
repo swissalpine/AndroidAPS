@@ -1166,11 +1166,11 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         String exerciseAnzeige = "";
         if (OpenAPSSMBPlugin.getPlugin().isEnabled(PluginType.APS)) {
             if ((SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false))) {
-                exerciseAnzeige = " lo|hi";
+                exerciseAnzeige = " L|H";
             } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
-                exerciseAnzeige = " --|hi";
+                exerciseAnzeige = " -|H;";
             } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
-                exerciseAnzeige = " lo|--";
+                exerciseAnzeige = " L|-";
             } else {
                 exerciseAnzeige = "";
             }

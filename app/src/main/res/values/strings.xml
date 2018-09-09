@@ -571,7 +571,7 @@
     <string name="Glimp">Glimp</string>
     <string name="needwhitelisting">%s needs battery optimalization whitelisting for proper performance</string>
     <string name="loopsuspended">Loop suspended</string>
-    <string name="loopsuspendedfor">Suspended (%1$d m)</string>
+    <string name="loopsuspendedfor">Susp. (%1$d m)</string>
     <string name="loopsuperbolusfor">Superbolus (%1$d m)</string>
     <string name="suspendloopfor1h">Suspend loop for 1h</string>
     <string name="suspendloopfor2h">Suspend loop for 2h</string>
@@ -973,7 +973,7 @@
     <string name="fabric_upload">Fabric Upload</string>
     <string name="allow_automated_crash_reporting">Allow automated crash reporting and feature usage data to be sent to the developers via the fabric.io service.</string>
     <string name="g5appnotdetected">Please update your G5 app to supported version</string>
-    <string name="start_activity_tt">Start Activity TT + 0% TBR (45\')</string>
+    <string name="start_activity_tt">Activity TT + Disconnect (45\')</string>
     <string name="start_eating_soon_tt">Start Eating soon TT</string>
     <string name="temptargetshort">TT</string>
     <string name="do_not_bolus_record_only">Do not bolus, record only</string>
@@ -989,7 +989,7 @@
     <string name="overview_show_iob">Insulin On Board</string>
     <string name="overview_show_basals">Basals</string>
     <string name="no_action_selected">No action selected, nothing will happen</string>
-    <string name="start_hypo_tt">Start Hypo TT + Loop susp. (45\')</string>
+    <string name="start_hypo_tt">Hypo TT + Susp. (60\') + TBR (50%)</string>
     <string name="closed_loop_disabled_on_dev_branch">Running dev version. Closed loop is disabled.</string>
     <string name="key_fromNSAreCommingFakedExtendedBoluses" translatable="false">fromNSAreCommingFakedExtendedBoluses</string>
     <string name="engineering_mode_enabled">Engineering mode enabled</string>
@@ -1049,7 +1049,7 @@
     <string name="iobcobcalculator" translatable="false">IobCobCalculator</string>
     <string name="reset">reset</string>
     <string name="waitingfortimesynchronization">Waiting for time synchronization (%1$d sec)</string>
-    <string name="loopdisconnectedfor">Disconnected (%1$d m)</string>
+    <string name="loopdisconnectedfor">Disc. (%1$d m)</string>
     <string name="automatic_careportal_events">Automatic careportal events</string>
     <string name="automatically_upload_insulin_cannula_and_battery_changes_to_nightscout">Automatically upload insulin, cannula and battery changes and pump alarms to Nightscout</string>
     <string name="key_openapssmb_max_iob" translatable="false">openapsmb_max_iob</string>
