@@ -41,11 +41,12 @@ import info.nightscout.utils.SP;
  * Created by mike on 05.08.2016.
  */
 public class VirtualPumpPlugin extends PluginBase implements PumpInterface {
-    static Integer batteryPercent = 50;
-    static Integer reservoirInUnits = 50;
-    private static Logger log = LoggerFactory.getLogger(VirtualPumpPlugin.class);
+    private Logger log = LoggerFactory.getLogger(L.PUMP);
+
+    Integer batteryPercent = 50;
+    Integer reservoirInUnits = 50;
     private static VirtualPumpPlugin plugin = null;
-    private static boolean fromNSAreCommingFakedExtendedBoluses = false;
+    private boolean fromNSAreCommingFakedExtendedBoluses = false;
     private PumpType pumpType = null;
     private long lastDataTime = 0;
     private PumpDescription pumpDescription = new PumpDescription();
@@ -293,17 +294,12 @@ public class VirtualPumpPlugin extends PluginBase implements PumpInterface {
 
     @Override
     public PumpEnactResult setTempBasalPercent(Integer percent, Integer durationInMinutes, Profile profile, boolean enforceNew) {
-        PumpEnactResult result = new PumpEnactResult();
-        if (TreatmentsPlugin.getPlugin().isTempBasalInProgress()) {
-            result = cancelTempBasal(false);
-            if (!result.success)
-                return result;
-        }
         TemporaryBasal tempBasal = new TemporaryBasal()
                 .date(System.currentTimeMillis())
                 .percent(percent)
                 .duration(durationInMinutes)
                 .source(Source.USER);
+        PumpEnactResult result = new PumpEnactResult();
         result.success = true;
         result.enacted = true;
         result.percent = percent;
