@@ -94,7 +94,6 @@ public class MainApp extends Application {
     public static Resources sResources;
 
     private static DatabaseHelper sDatabaseHelper = null;
-    private static ConfigBuilderPlugin sConfigBuilder = null;
     private static ConstraintChecker sConstraintsChecker = null;
 
     private static ArrayList<PluginBase> pluginsList = null;
@@ -191,18 +190,18 @@ public class MainApp extends Application {
             pluginsList.add(NSClientPlugin.getPlugin());
             pluginsList.add(MaintenancePlugin.initPlugin(this));
 
-            pluginsList.add(sConfigBuilder = ConfigBuilderPlugin.getPlugin());
+            pluginsList.add(ConfigBuilderPlugin.getPlugin());
 
-            MainApp.getConfigBuilder().initialize();
+            ConfigBuilderPlugin.getPlugin().initialize();
         }
 
         NSUpload.uploadAppStart();
 
-        final PumpInterface pump = ConfigBuilderPlugin.getActivePump();
+        final PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
         if (pump != null) {
             new Thread(() -> {
                 SystemClock.sleep(5000);
-                ConfigBuilderPlugin.getCommandQueue().readStatus("Initialization", null);
+                ConfigBuilderPlugin.getPlugin().getCommandQueue().readStatus("Initialization", null);
                 startKeepAliveService();
             }).start();
         }
@@ -297,10 +296,6 @@ public class MainApp extends Application {
             sDatabaseHelper.close();
             sDatabaseHelper = null;
         }
-    }
-
-    public static ConfigBuilderPlugin getConfigBuilder() {
-        return sConfigBuilder;
     }
 
     public static ConstraintChecker getConstraintChecker() {

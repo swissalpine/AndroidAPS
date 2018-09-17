@@ -132,7 +132,7 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
         maxInsulin = MainApp.getConstraintChecker().getMaxBolusAllowed().value();
 
         editInsulin = view.findViewById(R.id.newinsulin_amount);
-        editInsulin.setParams(0d, 0d, maxInsulin, ConfigBuilderPlugin.getActivePump().getPumpDescription().bolusStep, DecimalFormatter.pumpSupportedBolusFormat(), false, textWatcher);
+        editInsulin.setParams(0d, 0d, maxInsulin, ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().bolusStep, DecimalFormatter.pumpSupportedBolusFormat(), false, textWatcher);
 
         Button plus1Button = view.findViewById(R.id.newinsulin_plus05);
         plus1Button.setOnClickListener(this);
@@ -204,7 +204,7 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
     private void submit() {
         try {
             Profile currentProfile = ProfileFunctions.getInstance().getProfile();
-            final PumpInterface pump = MainApp.getConfigBuilder().getActivePump();
+            final PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
             if (currentProfile == null || pump == null)
                 return;
 
@@ -285,7 +285,7 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
                                 TreatmentsPlugin.getPlugin().addToHistoryTreatment(detailedBolusInfo, false);
                             } else {
                                 detailedBolusInfo.date = now();
-                                ConfigBuilderPlugin.getCommandQueue().bolus(detailedBolusInfo, new Callback() {
+                                ConfigBuilderPlugin.getPlugin().getCommandQueue().bolus(detailedBolusInfo, new Callback() {
                                     @Override
                                     public void run() {
                                         if (!result.success) {

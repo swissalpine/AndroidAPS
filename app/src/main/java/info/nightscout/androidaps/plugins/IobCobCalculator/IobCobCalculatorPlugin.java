@@ -530,7 +530,7 @@ public class IobCobCalculatorPlugin extends PluginBase {
 
     public AutosensResult detectSensitivityWithLock(long fromTime, long toTime) {
         synchronized (dataLock) {
-            return ConfigBuilderPlugin.getActiveSensitivity().detectSensitivity(this, fromTime, toTime);
+            return ConfigBuilderPlugin.getPlugin().getActiveSensitivity().detectSensitivity(this, fromTime, toTime);
         }
     }
 
@@ -597,7 +597,7 @@ public class IobCobCalculatorPlugin extends PluginBase {
                 log.debug("Ignoring event for non default instance");
             return;
         }
-        if (MainApp.getConfigBuilder() == null)
+        if (ConfigBuilderPlugin.getPlugin() == null)
             return; // app still initializing
         Profile profile = ProfileFunctions.getInstance().getProfile();
         if (profile == null)
