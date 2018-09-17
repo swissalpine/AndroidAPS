@@ -46,7 +46,7 @@ public class DetermineBasalResultSMB extends APSResult {
                 final IobTotal bolusIob = TreatmentsPlugin.getPlugin().getLastCalculationTreatments();
                 final IobTotal basalIob = TreatmentsPlugin.getPlugin().getLastCalculationTempBasals();
                 // Anpassung Basalrate
-                double baseBasalRate = ConfigBuilderPlugin.getActivePump().getBaseBasalRate();
+                double baseBasalRate = ConfigBuilderPlugin.getPlugin().getActivePump().getBaseBasalRate();
                 if ((bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
                     double cutoff = baseBasalRate * 0.2;
                     if (rate < cutoff) rate = cutoff;

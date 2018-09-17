@@ -437,7 +437,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
                                     }
                                 }
                             };
-                            ConfigBuilderPlugin.getCommandQueue().tempBasalPercent(50, 60, true, profile, callback);
+                            ConfigBuilderPlugin.getPlugin().getCommandQueue().tempBasalPercent(50, 60, true, profile, callback);
                             // Ende Anpassung
                         }
 

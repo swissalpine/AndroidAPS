@@ -85,7 +85,7 @@ public class AverageProfileFragment extends SubscriberFragment {
                              Bundle savedInstanceState) {
         try {
 
-            PumpDescription pumpDescription = ConfigBuilderPlugin.getActivePump().getPumpDescription();
+            PumpDescription pumpDescription = ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription();
             View layout = inflater.inflate(R.layout.average_profile_fragment, container, false);
             diaView = layout.findViewById(R.id.averageprofile_dia);
             diaView.setParams(AverageProfilePlugin.getPlugin().dia, 2d, 48d, 0.1d, new DecimalFormat("0.0"), false, textWatch);
@@ -104,7 +104,7 @@ public class AverageProfileFragment extends SubscriberFragment {
 
             invalidProfile = (TextView) layout.findViewById(R.id.invalidprofile);
 
-            if (!ConfigBuilderPlugin.getActivePump().getPumpDescription().isTempBasalCapable) {
+            if (!ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().isTempBasalCapable) {
                 layout.findViewById(R.id.averageprofile_basal).setVisibility(View.GONE);
             }
 
