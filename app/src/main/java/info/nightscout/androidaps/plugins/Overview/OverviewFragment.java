@@ -474,14 +474,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     menu.add(MainApp.gs(R.string.suspendloopfor2h));
                     menu.add(MainApp.gs(R.string.suspendloopfor3h));
                     menu.add(MainApp.gs(R.string.suspendloopfor10h));
-                    if (pumpDescription.tempDurationStep15mAllowed)
-                        menu.add(MainApp.gs(R.string.disconnectpumpfor15m));
-                    if (pumpDescription.tempDurationStep30mAllowed)
-                        menu.add(MainApp.gs(R.string.disconnectpumpfor30m));
-                    menu.add(MainApp.gs(R.string.disconnectpumpfor1h));
-                    menu.add(MainApp.gs(R.string.disconnectpumpfor2h));
-                    menu.add(MainApp.gs(R.string.disconnectpumpfor3h));
-                } else {
+                }
+                if (pumpDescription.tempDurationStep15mAllowed)
+                    menu.add(MainApp.gs(R.string.disconnectpumpfor15m));
+                if (pumpDescription.tempDurationStep30mAllowed)
+                    menu.add(MainApp.gs(R.string.disconnectpumpfor30m));
+                menu.add(MainApp.gs(R.string.disconnectpumpfor1h));
+                menu.add(MainApp.gs(R.string.disconnectpumpfor2h));
+                menu.add(MainApp.gs(R.string.disconnectpumpfor3h));
+                if (loopPlugin.isSuspended()) {
                     menu.add(MainApp.gs(R.string.resume));
                 }
             }
