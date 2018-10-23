@@ -1223,6 +1223,7 @@
     <string name="loop_openmode_min_change">Minimal request change [%]</string>
     <string name="loop_openmode_min_change_summary">Loop will popup new change request only if change is bigger than this value. Default value is 20%</string>
     <string name="key_short_tabtitles" translatable="false">short_tabtitles</string>
+    <string name="pairfirst">Please pair your pump with your phone!</string>
 
     <string name="average_profile">Average Profile</string>
     <string name="average_profile_short">AP</string>
