@@ -58,6 +58,7 @@ import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.PumpInterface;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
+import info.nightscout.androidaps.plugins.IobCobCalculator.AutosensData;
 import info.nightscout.androidaps.plugins.IobCobCalculator.CobInfo;
 import info.nightscout.androidaps.plugins.IobCobCalculator.IobCobCalculatorPlugin;
 import info.nightscout.androidaps.plugins.IobCobCalculator.events.EventAutosensCalculationFinished;
@@ -72,6 +73,8 @@ import info.nightscout.utils.NumberPicker;
 import info.nightscout.utils.SP;
 import info.nightscout.utils.SafeParse;
 import info.nightscout.utils.ToastUtils;
+
+import static info.nightscout.androidaps.R2.string.key_openapsama_autosens_max;
 
 public class WizardDialog extends DialogFragment implements OnClickListener, CompoundButton.OnCheckedChangeListener, Spinner.OnItemSelectedListener {
     private static Logger log = LoggerFactory.getLogger(WizardDialog.class);
@@ -120,6 +123,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     private static final int FAV1_DEFAULT = 5;
     private static final int FAV2_DEFAULT = 10;
     private static final int FAV3_DEFAULT = 20;
+    TextView autosensProcent;
 
     Context context;
 
@@ -296,6 +300,9 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         Button fav3Button = view.findViewById(R.id.newcarbs_plus3);
         fav3Button.setOnClickListener(this);
         fav3Button.setText(toSignedString(SP.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)));
+
+        autosensProcent = view.findViewById(R.id.treatments_wizard_autosens);
+        // Anpassung Ende
 
         setCancelable(true);
         getDialog().setCanceledOnTouchOutside(false);
@@ -581,6 +588,16 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
             superbolus.setText("");
         }
         superbolusInsulin.setText(DecimalFormatter.to2Decimal(wizard.insulinFromSuperBolus) + "U");
+
+        // Anpassung Autosens
+        if( autosensProcent != null ) {
+            AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensDataSynchronized("WizardDialog");
+            if (autosensData != null)
+                autosensProcent.setText("Autosens: " + String.format("%.0f%%", autosensData.autosensResult.ratio * 100));
+            else
+                autosensProcent.setText("Autosens: --%");
+        }
+        // Anpassung Ende
 
         // Trend
         if (bgtrendCheckbox.isChecked()) {

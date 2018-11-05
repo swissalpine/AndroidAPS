@@ -3,6 +3,7 @@ package info.nightscout.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import info.nightscout.androidaps.R2;
 import info.nightscout.androidaps.data.GlucoseStatus;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.Profile;
@@ -10,7 +11,12 @@ import info.nightscout.androidaps.db.TempTarget;
 import info.nightscout.androidaps.interfaces.TreatmentsInterface;
 import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.IobCobCalculator.AutosensData;
+import info.nightscout.androidaps.plugins.IobCobCalculator.IobCobCalculatorPlugin;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
+
+import static info.nightscout.androidaps.R2.string.key_openapsama_autosens_max;
+import static info.nightscout.androidaps.R2.string.key_openapsama_autosens_min;
 
 /**
  * Created by mike on 11.10.2016.
@@ -124,6 +130,18 @@ public class BolusWizard {
 
         // Total
         calculatedTotalInsulin = insulinFromBG + insulinFromTrend + insulinFromCarbs + insulingFromBolusIOB + insulingFromBasalsIOB + insulinFromCorrection + insulinFromSuperBolus + insulinFromCOB;
+
+       // Anpassung: Autosens
+        AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensDataSynchronized("BolusWizard");
+        if (autosensData != null) {
+            if (calculatedTotalInsulin > 0) {
+                calculatedTotalInsulin = calculatedTotalInsulin * Math.min(autosensData.autosensResult.ratio, SP.getDouble(key_openapsama_autosens_max, 1.2));
+            }
+            if (calculatedTotalInsulin < 0) {
+                calculatedTotalInsulin = calculatedTotalInsulin * ( -Math.max(autosensData.autosensResult.ratio, SP.getDouble(key_openapsama_autosens_min, 0.7)) + 1);
+            }
+        }
+
 
         // Percentage adjustment
         totalBeforePercentageAdjustment = calculatedTotalInsulin;
