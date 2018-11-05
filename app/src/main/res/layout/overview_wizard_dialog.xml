@@ -242,12 +242,19 @@
             android:orientation="horizontal"
             android:padding="5dp">
 
+            <CheckBox
+                android:id="@+id/treatments_wizard_autosenscheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:width="32dp"
+                android:checked="false" />
+
             <TextView
                 android:id="@+id/treatments_wizard_autosens"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginBottom="0dp"
+                android:layout_marginTop="0dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:text="Autosens: ---%"

@@ -41,6 +41,7 @@ import java.util.Date;
 import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
+import info.nightscout.androidaps.R2;
 import info.nightscout.androidaps.data.DetailedBolusInfo;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.Profile;
@@ -73,8 +74,6 @@ import info.nightscout.utils.NumberPicker;
 import info.nightscout.utils.SP;
 import info.nightscout.utils.SafeParse;
 import info.nightscout.utils.ToastUtils;
-
-import static info.nightscout.androidaps.R2.string.key_openapsama_autosens_max;
 
 public class WizardDialog extends DialogFragment implements OnClickListener, CompoundButton.OnCheckedChangeListener, Spinner.OnItemSelectedListener {
     private static Logger log = LoggerFactory.getLogger(WizardDialog.class);
@@ -124,6 +123,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     private static final int FAV2_DEFAULT = 10;
     private static final int FAV3_DEFAULT = 20;
     TextView autosensProcent;
+    CheckBox autosensCheckbox;
 
     Context context;
 
@@ -172,6 +172,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         savedInstanceState.putDouble("editCarbs", editCarbs.getValue());
         savedInstanceState.putDouble("editCorr", editCorr.getValue());
         savedInstanceState.putDouble("editCarbTime", editCarbTime.getValue());
+        savedInstanceState.putBoolean("autosensCheckbox", autosensCheckbox.isChecked());
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -256,6 +257,8 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         bolusIobCheckbox = (CheckBox) view.findViewById(R.id.treatments_wizard_bolusiobcheckbox);
         basalIobCheckbox = (CheckBox) view.findViewById(R.id.treatments_wizard_basaliobcheckbox);
         superbolusCheckbox = (CheckBox) view.findViewById(R.id.treatments_wizard_sbcheckbox);
+        autosensCheckbox = view.findViewById(R.id.treatments_wizard_autosenscheckbox);
+
         loadCheckedStates();
 
         bgCheckbox.setOnCheckedChangeListener(this);
@@ -302,6 +305,8 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         fav3Button.setText(toSignedString(SP.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)));
 
         autosensProcent = view.findViewById(R.id.treatments_wizard_autosens);
+
+        autosensCheckbox.setOnCheckedChangeListener(this);
         // Anpassung Ende
 
         setCancelable(true);
@@ -330,11 +335,13 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     private void saveCheckedStates() {
         SP.putBoolean(MainApp.gs(R.string.key_wizard_include_cob), cobCheckbox.isChecked());
         SP.putBoolean(MainApp.gs(R.string.key_wizard_include_trend_bg), bgtrendCheckbox.isChecked());
-    }
+        SP.putBoolean(R.string.key_wizard_include_autosens, autosensCheckbox.isChecked());
+}
 
     private void loadCheckedStates() {
         bgtrendCheckbox.setChecked(SP.getBoolean(MainApp.gs(R.string.key_wizard_include_trend_bg), false));
         cobCheckbox.setChecked(SP.getBoolean(MainApp.gs(R.string.key_wizard_include_cob), false));
+        autosensCheckbox.setChecked(SP.getBoolean(R.string.key_wizard_include_autosens, false));
     }
 
     @Override
@@ -591,7 +598,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
 
         // Anpassung Autosens
         if( autosensProcent != null ) {
-            AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("WizardDialog");
+            AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensDataSynchronized("WizardDialog");
             if (autosensData != null)
                 autosensProcent.setText("Autosens: " + String.format("%.0f%%", autosensData.autosensResult.ratio * 100));
             else
