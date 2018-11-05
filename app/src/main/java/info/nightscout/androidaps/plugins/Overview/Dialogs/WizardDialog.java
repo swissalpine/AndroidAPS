@@ -591,7 +591,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
 
         // Anpassung Autosens
         if( autosensProcent != null ) {
-            AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensDataSynchronized("WizardDialog");
+            AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("WizardDialog");
             if (autosensData != null)
                 autosensProcent.setText("Autosens: " + String.format("%.0f%%", autosensData.autosensResult.ratio * 100));
             else
