@@ -597,8 +597,8 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         superbolusInsulin.setText(DecimalFormatter.to2Decimal(wizard.insulinFromSuperBolus) + "U");
 
         // Anpassung Autosens
+        AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("WizardDialog");
         if( autosensProcent != null ) {
-            AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensDataSynchronized("WizardDialog");
             if (autosensData != null)
                 autosensProcent.setText("Autosens: " + String.format("%.0f%%", autosensData.autosensResult.ratio * 100));
             else

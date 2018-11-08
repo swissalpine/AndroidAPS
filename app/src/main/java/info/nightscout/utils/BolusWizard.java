@@ -133,7 +133,7 @@ public class BolusWizard {
         calculatedTotalInsulin = insulinFromBG + insulinFromTrend + insulinFromCarbs + insulingFromBolusIOB + insulingFromBasalsIOB + insulinFromCorrection + insulinFromSuperBolus + insulinFromCOB;
 
        // Anpassung: Autosens
-        AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensDataSynchronized("BolusWizard");
+        AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("BolusWizard");
         if (SP.getBoolean(R.string.key_wizard_include_autosens, false) && (autosensData != null)) {
             double ratio = Math.min(autosensData.autosensResult.ratio, SP.getDouble(key_openapsama_autosens_max, 1.2));
             ratio = Math.max(ratio, SP.getDouble(key_openapsama_autosens_min, 0.7));
