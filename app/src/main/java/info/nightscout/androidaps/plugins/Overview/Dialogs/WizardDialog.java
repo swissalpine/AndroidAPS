@@ -305,8 +305,14 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         fav3Button.setText(toSignedString(SP.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)));
 
         autosensProcent = view.findViewById(R.id.treatments_wizard_autosens);
-
         autosensCheckbox.setOnCheckedChangeListener(this);
+        AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("WizardDialog");
+        if( autosensProcent != null ) {
+            if (autosensData != null)
+                autosensProcent.setText("Autosens: " + String.format("%.0f%%", autosensData.autosensResult.ratio * 100));
+            else
+                autosensProcent.setText("Autosens: --%");
+        }
         // Anpassung Ende
 
         setCancelable(true);
