@@ -1070,7 +1070,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // don't set a temp longer than 120 minutes
             } else if (durationReq >= 30) {
                 durationReq = round(durationReq/30)*30;
-                durationReq = Math.min(120,Math.max(0,durationReq));
+                //durationReq = Math.min(120,Math.max(0,durationReq));
+                // In openAPS:  don't set a temp longer than 120 minutes, Zeile 1103-6
+                // https://github.com/openaps/oref0/blob/master/lib/determine-basal/determine-basal.js
+                // => Anpassung
+                durationReq = Math.min(60,Math.max(0,durationReq));
             } else {
                 // if SMB durationReq is less than 30m, set a nonzero low temp
                 smbLowTempReq = round( basal * durationReq/30 ,2);
