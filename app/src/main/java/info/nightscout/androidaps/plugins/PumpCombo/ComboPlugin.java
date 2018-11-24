@@ -572,10 +572,6 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
             }
             if (waitLoops > 0) {
                 long waitDuration = (System.currentTimeMillis() - waitStartTime) / 1000;
-                FabricPrivacy.getInstance().logCustom(new CustomEvent("ComboBolusTimestampWait")
-                        .putCustomAttribute("buildversion", BuildConfig.BUILDVERSION)
-                        .putCustomAttribute("version", BuildConfig.VERSION)
-                        .putCustomAttribute("waitTimeSecs", String.valueOf(waitDuration)));
                 if (L.isEnabled(L.PUMP))
                     log.debug("Waited " + waitDuration + "s for pump to switch to a fresh minute before bolusing");
             }
