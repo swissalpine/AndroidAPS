@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 
+import com.crashlytics.android.answers.CustomEvent;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,8 @@ import info.nightscout.androidaps.db.CareportalEvent;
 import info.nightscout.androidaps.db.Source;
 import info.nightscout.androidaps.db.TDD;
 import info.nightscout.androidaps.db.TemporaryBasal;
+import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderFragment;
+import info.nightscout.androidaps.plugins.Treatments.Treatment;
 import info.nightscout.androidaps.events.EventInitializationChanged;
 import info.nightscout.androidaps.events.EventRefreshOverview;
 import info.nightscout.androidaps.interfaces.Constraint;
@@ -39,7 +43,6 @@ import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.PumpDescription;
 import info.nightscout.androidaps.interfaces.PumpInterface;
 import info.nightscout.androidaps.logging.L;
-import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderFragment;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.ConfigBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.Overview.events.EventDismissNotification;
@@ -60,7 +63,6 @@ import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.PumpHi
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.PumpHistoryRequest;
 import info.nightscout.androidaps.plugins.PumpCombo.ruffyscripter.history.Tdd;
 import info.nightscout.androidaps.plugins.PumpCommon.defs.PumpType;
-import info.nightscout.androidaps.plugins.Treatments.Treatment;
 import info.nightscout.androidaps.plugins.Treatments.TreatmentsPlugin;
 import info.nightscout.utils.DateUtil;
 import info.nightscout.utils.SP;
@@ -132,6 +134,7 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
                 .fragmentClass(ComboFragment.class.getName())
                 .pluginName(R.string.combopump)
                 .shortName(R.string.combopump_shortname)
+                .preferencesId(R.xml.pref_combo)
                 .description(R.string.description_pump_combo)
         );
         ruffyScripter = new RuffyScripter(MainApp.instance().getApplicationContext());
@@ -325,6 +328,7 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
         return basalProfile;
     }
 
+    @NonNull
     @Override
     public long lastDataTime() {
         return pump.lastSuccessfulCmdTime;
@@ -568,6 +572,10 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
             }
             if (waitLoops > 0) {
                 long waitDuration = (System.currentTimeMillis() - waitStartTime) / 1000;
+                FabricPrivacy.getInstance().logCustom(new CustomEvent("ComboBolusTimestampWait")
+                        .putCustomAttribute("buildversion", BuildConfig.BUILDVERSION)
+                        .putCustomAttribute("version", BuildConfig.VERSION)
+                        .putCustomAttribute("waitTimeSecs", String.valueOf(waitDuration)));
                 if (L.isEnabled(L.PUMP))
                     log.debug("Waited " + waitDuration + "s for pump to switch to a fresh minute before bolusing");
             }

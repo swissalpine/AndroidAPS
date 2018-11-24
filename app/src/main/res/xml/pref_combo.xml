@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:key="combopump"
+        android:title="@string/combopump_settings">
+
+        <SwitchPreference
+            android:key="@string/key_combo_btwatchdog"
+            android:defaultValue="false"
+            android:title="@string/combo_bt_watchdog_title"
+            android:summary="@string/combo_bt_watchdog_description" />
+        <SwitchPreference
+            android:key="@string/key_combo_btwatchdog_notify"
+            android:dependency="@string/key_combo_btwatchdog"
+            android:defaultValue="false"
+            android:title="@string/combo_bt_watchdog_notify_title"/>
+    </PreferenceCategory>
+</PreferenceScreen>
