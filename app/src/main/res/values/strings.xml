@@ -248,6 +248,7 @@
     <string name="sv_lang" translatable="false">Swedish</string>
     <string name="fr_lang" translatable="false">French</string>
     <string name="zh_lang" translatable="false">Chinese</string>
+    <string name="tr_lang" translatable="false">Turkish</string>
     <string name="pl_lang" translatable="false">Polish</string>
     <string name="openapsma_maxbasal_title">Max U/hr a Temp Basal can be set to</string>
     <string name="openapsma_maxbasal_summary">This value is called max basal in OpenAPS context</string>
@@ -1231,6 +1232,11 @@
     <string name="average_profile_short">AP</string>
     <string name="average_profile_description">Define the average values for IC and ISF and they will automatically be calculated, so they align to the basal profile.</string>
     <string name="key_wizard_include_autosens" />
+
+    <string name="profile_total">== ∑  %1$s U</string>
+    <string name="profile_ins_units_per_hout">U/h</string>
+    <string name="profile_carbs_per_unit">g/U</string>
+    <string name="profile_per_unit">/U</string>
 
     <plurals name="objective_days">
         <item quantity="one">%1$d day</item>

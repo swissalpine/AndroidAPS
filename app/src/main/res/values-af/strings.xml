@@ -532,6 +532,7 @@
     <string name="disconnectpumpfor2h">Ontkoppel pomp vir 2 h</string>
     <string name="disconnectpumpfor3h">Ontkoppel pomp vir 3 h</string>
     <string name="resume">Hervat</string>
+    <string name="reconnect">Herverbind Pomp</string>
     <string name="smscommunicator_wrongduration">Verkeerde duur</string>
     <string name="smscommunicator_loopsuspended">Lus opgeskort</string>
     <string name="smscommunicator_loopresumed">Lus hervat</string>
@@ -556,6 +557,7 @@
     <string name="danar_bluetooth_status">Bluetooth status</string>
     <string name="nav_about">Omtrent</string>
     <string name="smscommunicator_missingsmspermission">Vermiste SMS toestemming</string>
+    <string name="smscommunicator_missingphonestatepermission">Toestemming vir foon status nog nie gegee nie</string>
     <string name="xdripstatus_settings">xDrip Status (horlosie)</string>
     <string name="xdripstatus">xDrip Statusline (horlosie)</string>
     <string name="xdripstatus_shortname">xds</string>
@@ -1053,6 +1055,10 @@
     <string name="loop_openmode_min_change">Minimale versoek verandering [%]</string>
     <string name="loop_openmode_min_change_summary">Lus sal opspring en nuwe verandering versoek slegs as verandering is groter as hierdie waarde. Verstek waarde is 20%</string>
     <string name="pairfirst">Verbind asseblief jou pomp met jou selfoon!</string>
+    <string name="profile_total">== ∑  %1$s U</string>
+    <string name="profile_ins_units_per_hout">U/h</string>
+    <string name="profile_carbs_per_unit">g/U</string>
+    <string name="profile_per_unit">/U</string>
     <plurals name="objective_days">
         <item quantity="one">%1$d dae</item>
         <item quantity="other">%1$d dae</item>
