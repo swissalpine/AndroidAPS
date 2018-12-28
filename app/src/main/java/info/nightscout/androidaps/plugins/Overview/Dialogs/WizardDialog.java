@@ -366,12 +366,6 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     public synchronized void onClick(View view) {
         switch (view.getId()) {
             case R.id.ok:
-                if (okClicked) {
-                    log.debug("guarding: ok already clicked");
-                    dismiss();
-                    return;
-                }
-                okClicked = true;
                 final Profile profile = ProfileFunctions.getInstance().getProfile();
                 final PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
 
