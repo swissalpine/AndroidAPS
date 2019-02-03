@@ -374,9 +374,7 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
     }
 
     @Override
-    public double getReservoirLevel() {
-        return DanaRPump.getInstance().reservoirRemainingUnits;
-    }
+    public double getReservoirLevel() { return DanaRPump.getInstance().reservoirRemainingUnits; }
 
     @Override
     public int getBatteryLevel() { return DanaRPump.getInstance().batteryRemaining; }

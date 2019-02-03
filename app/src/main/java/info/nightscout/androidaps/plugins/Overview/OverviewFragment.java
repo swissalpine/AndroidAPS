@@ -275,8 +275,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         batteryView = (TextView) view.findViewById(R.id.overview_batterylevel);
         statuslightsLayout = (LinearLayout) view.findViewById(R.id.overview_statuslights);
 
-        bgGraph = (GraphView) view.findViewById(R.id.overview_bggraph);
-        iobGraph = (GraphView) view.findViewById(R.id.overview_iobgraph);
+            bgGraph = (GraphView) view.findViewById(R.id.overview_bggraph);
+            iobGraph = (GraphView) view.findViewById(R.id.overview_iobgraph);
 
         treatmentButton = (SingleClickButton) view.findViewById(R.id.overview_treatmentbutton);
         treatmentButton.setOnClickListener(this);
@@ -463,7 +463,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         super.onCreateContextMenu(menu, v, menuInfo);
         if (v == apsModeView) {
             final LoopPlugin loopPlugin = LoopPlugin.getPlugin();
-            final PumpDescription pumpDescription = ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription();
+            final PumpDescription pumpDescription =
+                    ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription();
             if (!ProfileFunctions.getInstance().isProfileValid("ContexMenuCreation"))
                 return;
             menu.setHeaderTitle(MainApp.gs(R.string.loop));
@@ -541,7 +542,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             updateGUI("suspendmenu");
             NSUpload.uploadOpenAPSOffline(0);
             return true;
-        } else if (item.getTitle().equals(MainApp.gs(R.string.resume))) {
+        } else if (item.getTitle().equals(MainApp.gs(R.string.resume)) ||
+                item.getTitle().equals(MainApp.gs(R.string.reconnect))) {
             loopPlugin.suspendTo(0L);
             updateGUI("suspendmenu");
             ConfigBuilderPlugin.getPlugin().getCommandQueue().cancelTempBasal(true, new Callback() {
@@ -1136,7 +1138,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
                 apsModeView.setText(String.format(MainApp.gs(R.string.loopsuperbolusfor), loopPlugin.minutesToEndOfSuspend()));
                 apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextWarning));
-            } else if (loopPlugin.isEnabled(PluginType.LOOP) && loopPlugin.isDisconnected()) {
+            } else if (loopPlugin.isDisconnected()) {
                 apsModeView.setBackgroundColor(MainApp.gc(R.color.ribbonCritical));
                 apsModeView.setText(String.format(MainApp.gs(R.string.loopdisconnectedfor), loopPlugin.minutesToEndOfSuspend()));
                 apsModeView.setTextColor(MainApp.gc(R.color.ribbonTextCritical));
