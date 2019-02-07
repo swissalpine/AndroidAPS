@@ -30,7 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingTop="2dp">
+                android:paddingTop="3dp">
 
                 <TextView
                     android:id="@+id/overview_apsmode"
@@ -39,8 +39,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingBottom="3dp"
-                    android:paddingTop="3dp"
+                    android:paddingBottom="4dp"
+                    android:paddingTop="4dp"
                     android:text="Open Loop"
 
                     android:textAppearance="?android:attr/textAppearanceSmall" />
@@ -54,8 +54,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingBottom="3dp"
-                    android:paddingTop="3dp"
+                    android:paddingBottom="4dp"
+                    android:paddingTop="4dp"
                     android:text="Profile"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -67,8 +67,8 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
                     android:text="TempTarget"
-                    android:paddingBottom="3dp"
-                    android:paddingTop="3dp"
+                    android:paddingBottom="4dp"
+                    android:paddingTop="4dp"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="@color/mdtp_white" />
 
@@ -406,7 +406,7 @@
 
             <View
                 android:layout_width="fill_parent"
-                android:layout_height="85dip"
+                android:layout_height="80dip"
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
