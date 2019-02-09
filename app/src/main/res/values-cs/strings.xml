@@ -408,7 +408,6 @@
     <string name="array_of_elements">Pole %1$d prvků.\nAktuální hodnota:</string>
     <string name="openapsma_autosensdata_label">Data detekce senzitivity</string>
     <string name="openapsma_scriptdebugdata_label">Ladící informace</string>
-    <string name="openapsama_useautosens">Používat autodetekci senzitivity</string>
     <string name="refresheventsfromnightscout">Obnovit události z NS</string>
     <string name="deletefuturetreatments">Smazat události v budoucnosti</string>
     <string name="eatingsoon">Před jídlem</string>
@@ -705,7 +704,7 @@
     <string name="btwatchdog_summary">Vypne na 1 sek bluetooth v telefonu, pokud se nedaří připojit k pumpě. Může to pomoci u telefonů, které mají problémy s BT</string>
     <string name="DexcomG5">DexcomG5 aplikace (upravená)</string>
     <string name="dexcomg5_nsupload_title">Nahrávat data do NS</string>
-    <string name="dexcomg5_upload">Nastavení nahrávání z G5</string>
+    <string name="bgsource_upload">Nastavení nahrávání z G5</string>
     <string name="poctech_upload">Nastavení nahrávání z Poctech</string>
     <string name="wear_detailed_delta_title">Zobrazovat detailní změny</string>
     <string name="wear_detailed_delta_summary">Zobrazovat rozdíl s jedním desetinným místem navíc</string>
@@ -1106,8 +1105,8 @@
     <string name="extended_bolus">Prodloužený bolus</string>
     <string name="multiwave_bolus">Duální bolus</string>
     <string name="eb_formatter">%1$.2f / %2$.2f U %3$d min</string>
-    <string name="enable_tbr_over_notification">Povolit doč. bazál přes oznámení</string>
-    <string name="disable_tbr_over_notification">Zakázat doč. bazál přes oznámení</string>
+    <string name="enable_tbr_over_notification">Povolit oznámení konce doč. bazálu</string>
+    <string name="disable_tbr_over_notification">Zakázat oznámení konce doč. bazálu</string>
     <string name="refresh">Obnovit</string>
     <string name="description_pump_insight_local">Integrace pro pumpu Accu-Chek Insight</string>
     <string name="not_inserted">Není vloženo</string>
