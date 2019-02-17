@@ -172,18 +172,21 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="right"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textSize="12sp"
                     android:textStyle="normal|bold" />
 
                 <TextView
                     android:layout_width="20dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/overview_basebasal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="left"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
@@ -198,51 +201,51 @@
                     android:id="@+id/overview_canulaage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="5dp"
                     android:layout_marginHorizontal="3dp"
                     android:gravity="center"
+                    android:paddingHorizontal="5dp"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/overview_insulinage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="5dp"
                     android:layout_marginHorizontal="3dp"
                     android:gravity="center"
+                    android:paddingHorizontal="5dp"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/overview_reservoirlevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="5dp"
                     android:layout_marginHorizontal="3dp"
                     android:gravity="center"
+                    android:paddingHorizontal="5dp"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/overview_sensorage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="5dp"
                     android:layout_marginHorizontal="3dp"
                     android:gravity="center"
+                    android:paddingHorizontal="5dp"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/overview_batterylevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="5dp"
                     android:layout_marginHorizontal="3dp"
                     android:gravity="center"
+                    android:paddingHorizontal="5dp"
                     android:text=""
-                    android:textSize="14sp" />
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
@@ -289,7 +292,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:paddingLeft="5dp"
-                        android:text="" />
+                        android:text=""
+                        android:textSize="12sp" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -314,7 +318,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="5dp"
-                        android:text="" />
+                        android:text=""
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -341,7 +346,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingLeft="5dp"
-                        android:text="" />
+                        android:text=""
+                        android:textSize="12sp" />
 
                 </LinearLayout>
 

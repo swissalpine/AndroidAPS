@@ -1372,23 +1372,23 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         final IobTotal basalIob = TreatmentsPlugin.getPlugin().getLastCalculationTempBasals().round();
 
         if (shorttextmode) {
-            String iobtext = DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob) + "U";
+            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + "U";
             iobView.setText(iobtext);
             iobView.setOnClickListener(v -> {
-                String iobtext1 = DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob) + "U\n"
-                        + MainApp.gs(R.string.bolus) + ": " + DecimalFormatter.to2Decimal(bolusIob.iob) + "U\n"
-                        + MainApp.gs(R.string.basal) + ": " + DecimalFormatter.to2Decimal(basalIob.basaliob) + "U\n";
+                String iobtext1 = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + "U\n"
+                        + MainApp.gs(R.string.bolus) + ": " + DecimalFormatter.to1Decimal(bolusIob.iob) + "U\n"
+                        + MainApp.gs(R.string.basal) + ": " + DecimalFormatter.to1Decimal(basalIob.basaliob) + "U\n";
                 OKDialog.show(getActivity(), MainApp.gs(R.string.iob), iobtext1, null);
             });
         } else if (MainApp.sResources.getBoolean(R.bool.isTablet)) {
-            String iobtext = DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob) + "U ("
-                    + MainApp.gs(R.string.bolus) + ": " + DecimalFormatter.to2Decimal(bolusIob.iob) + "U "
-                    + MainApp.gs(R.string.basal) + ": " + DecimalFormatter.to2Decimal(basalIob.basaliob) + "U)";
+            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + "U ("
+                    + MainApp.gs(R.string.bolus) + ": " + DecimalFormatter.to1Decimal(bolusIob.iob) + "U "
+                    + MainApp.gs(R.string.basal) + ": " + DecimalFormatter.to1Decimal(basalIob.basaliob) + "U)";
             iobView.setText(iobtext);
         } else {
-            String iobtext = DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob) + "U ("
-                    + DecimalFormatter.to2Decimal(bolusIob.iob) + "/"
-                    + DecimalFormatter.to2Decimal(basalIob.basaliob) + ")";
+            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + "U ("
+                    + DecimalFormatter.to1Decimal(bolusIob.iob) + "/"
+                    + DecimalFormatter.to1Decimal(basalIob.basaliob) + ")";
             iobView.setText(iobtext);
         }
 
