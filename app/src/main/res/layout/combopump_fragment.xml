@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="5dp"
-    tools:context=".plugins.PumpCombo.ComboFragment">
+    tools:context=".plugins.pump.combo.ComboFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -488,7 +488,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <info.nightscout.utils.SingleClickButton
+                <info.nightscout.androidaps.utils.SingleClickButton
                     android:id="@+id/combo_refresh_button"
                     style="@style/ButtonSmallFontStyle"
                     android:layout_width="match_parent"
@@ -501,7 +501,7 @@
                     android:paddingRight="0dp"
                     android:text="@string/combo_refresh" />
 
-                <info.nightscout.utils.SingleClickButton
+                <info.nightscout.androidaps.utils.SingleClickButton
                     android:id="@+id/actions_tddstats"
                     style="@style/ButtonSmallFontStyle"
                     android:layout_width="match_parent"
@@ -514,7 +514,7 @@
                     android:paddingRight="0dp"
                     android:text="TDD" />
 
-                <info.nightscout.utils.SingleClickButton
+                <info.nightscout.androidaps.utils.SingleClickButton
                     android:id="@+id/actions_fill"
                     style="@style/ButtonSmallFontStyle"
                     android:layout_width="match_parent"
