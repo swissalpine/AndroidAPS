@@ -507,10 +507,14 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             }
             if (OpenAPSSMBPlugin.getPlugin().isEnabled(PluginType.APS)) {
                 menu.add("---");
-                menu.add("Low + high changes Sens.");
+                if ((SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) == false || (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) == false) {
+                    menu.add("Low + high changes Sens.");
+                }
                 menu.add("Low lowers Sens.");
                 menu.add("High raises Sens.");
-                menu.add("No Changes");
+                if ((SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) == true || (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) == true) {
+                    menu.add("No Exercise Mode");
+                }
             }
         }
     }
@@ -662,7 +666,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
             updateGUI("eventExerciseModechange");
-        } else if (item.getTitle().equals("No Changes")) {
+        } else if (item.getTitle().equals("No Exercise Mode")) {
             SP.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false);
             SP.putBoolean(R.string.key_low_temptarget_lowers_sensitivity, false);
             updateGUI("eventExerciseModechange");
