@@ -1,5 +1,4 @@
-package info.nightscout.androidaps.plugins.ProfileAverage;
-
+package info.nightscout.androidaps.plugins.profile.average;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -12,33 +11,25 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.TextView;
-
 import com.squareup.otto.Subscribe;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.text.DecimalFormat;
-
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.ProfileStore;
 import info.nightscout.androidaps.events.EventInitializationChanged;
 import info.nightscout.androidaps.interfaces.PumpDescription;
+import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.plugins.common.SubscriberFragment;
 import info.nightscout.androidaps.plugins.general.careportal.CareportalFragment;
 import info.nightscout.androidaps.plugins.general.careportal.Dialogs.NewNSTreatmentDialog;
 import info.nightscout.androidaps.plugins.general.careportal.OptionsToShow;
-import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
-import info.nightscout.androidaps.plugins.common.SubscriberFragment;
-import info.nightscout.androidaps.utils.DecimalFormatter;
-import info.nightscout.androidaps.utils.FabricPrivacy;
-import info.nightscout.androidaps.utils.NumberPicker;
-import info.nightscout.androidaps.utils.SafeParse;
-import info.nightscout.androidaps.utils.TimeListEdit;
+import info.nightscout.androidaps.utils.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormat;
 
 public class AverageProfileFragment extends SubscriberFragment {
-    private static Logger log = LoggerFactory.getLogger(AverageProfileFragment.class);
+    private static Logger log = LoggerFactory.getLogger(L.PROFILE);
 
     NumberPicker diaView;
     RadioButton mgdlView;
@@ -67,13 +58,11 @@ public class AverageProfileFragment extends SubscriberFragment {
         }
 
         @Override
-        public void beforeTextChanged(CharSequence s, int start,
-                                      int count, int after) {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
 
         @Override
-        public void onTextChanged(CharSequence s, int start,
-                                  int before, int count) {
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
             AverageProfilePlugin.getPlugin().dia = SafeParse.stringToDouble(diaView.getText().toString());
             AverageProfilePlugin.getPlugin().ic = SafeParse.stringToDouble(icView.getText().toString());
             AverageProfilePlugin.getPlugin().isf = SafeParse.stringToDouble(isfView.getText().toString());
@@ -82,11 +71,9 @@ public class AverageProfileFragment extends SubscriberFragment {
     };
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         try {
-
-            PumpDescription pumpDescription = ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription();
+            PumpDescription pumpDescription = info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription();
             View layout = inflater.inflate(R.layout.average_profile_fragment, container, false);
             diaView = layout.findViewById(R.id.averageprofile_dia);
             diaView.setParams(AverageProfilePlugin.getPlugin().dia, 2d, 48d, 0.1d, new DecimalFormat("0.0"), false, textWatch);
@@ -105,7 +92,7 @@ public class AverageProfileFragment extends SubscriberFragment {
 
             invalidProfile = (TextView) layout.findViewById(R.id.invalidprofile);
 
-            if (!ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().isTempBasalCapable) {
+            if (!info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().isTempBasalCapable) {
                 layout.findViewById(R.id.averageprofile_basal).setVisibility(View.GONE);
             }
 
@@ -146,7 +133,7 @@ public class AverageProfileFragment extends SubscriberFragment {
             });
 
             saveButton.setOnClickListener(view -> {
-                if(!AverageProfilePlugin.getPlugin().isValidEditState()){
+                if (!AverageProfilePlugin.getPlugin().isValidEditState()) {
                     return; //Should not happen as saveButton should not be visible if not valid
                 }
                 AverageProfilePlugin.getPlugin().storeSettings();
@@ -185,36 +172,32 @@ public class AverageProfileFragment extends SubscriberFragment {
     protected void updateGUI() {
         Activity activity = getActivity();
         if (activity != null)
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    boolean isValid = AverageProfilePlugin.getPlugin().isValidEditState();
-                    boolean isEdited = AverageProfilePlugin.getPlugin().isEdited();
-                    if (isValid) {
-                        invalidProfile.setVisibility(View.GONE); //show invalid profile
+            activity.runOnUiThread(() -> {
+                boolean isValid = AverageProfilePlugin.getPlugin().isValidEditState();
+                boolean isEdited = AverageProfilePlugin.getPlugin().isEdited();
+                if (isValid) {
+                    invalidProfile.setVisibility(View.GONE); //show invalid profile
 
-                        if (isEdited) {
-                            //edited profile -> save first
-                            profileswitchButton.setVisibility(View.GONE);
-                            saveButton.setVisibility(View.VISIBLE);
-                        } else {
-                            profileswitchButton.setVisibility(View.VISIBLE);
-                            saveButton.setVisibility(View.GONE);
-                        }
-                    } else {
-                        invalidProfile.setVisibility(View.VISIBLE);
+                    if (isEdited) {
+                        //edited profile -> save first
                         profileswitchButton.setVisibility(View.GONE);
-                        saveButton.setVisibility(View.GONE); //don't save an invalid profile
-                    }
-
-                    //Show reset button iff data was edited
-                    if(isEdited) {
-                        resetButton.setVisibility(View.VISIBLE);
+                        saveButton.setVisibility(View.VISIBLE);
                     } else {
-                        resetButton.setVisibility(View.GONE);
+                        profileswitchButton.setVisibility(View.VISIBLE);
+                        saveButton.setVisibility(View.GONE);
                     }
+                } else {
+                    invalidProfile.setVisibility(View.VISIBLE);
+                    profileswitchButton.setVisibility(View.GONE);
+                    saveButton.setVisibility(View.GONE); //don't save an invalid profile
+                }
+
+                //Show reset button iff data was edited
+                if (isEdited) {
+                    resetButton.setVisibility(View.VISIBLE);
+                } else {
+                    resetButton.setVisibility(View.GONE);
                 }
             });
     }
-
 }

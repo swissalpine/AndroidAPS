@@ -1,13 +1,7 @@
-package info.nightscout.androidaps.plugins.ProfileAverage;
+package info.nightscout.androidaps.plugins.profile.average;
 
 import android.support.annotation.NonNull;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import android.support.annotation.Nullable;
 import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
@@ -20,13 +14,15 @@ import info.nightscout.androidaps.interfaces.ProfileInterface;
 import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.utils.DecimalFormatter;
 import info.nightscout.androidaps.utils.SP;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Created by mike on 05.08.2016.
- */
 public class AverageProfilePlugin extends PluginBase implements ProfileInterface {
     public static final String AVERAGE_PROFILE = "AverageProfile";
-    private static Logger log = LoggerFactory.getLogger(AverageProfilePlugin.class);
+    private static Logger log = LoggerFactory.getLogger(L.PROFILE);
 
     private static AverageProfilePlugin averageProfilePlugin;
 
@@ -40,14 +36,6 @@ public class AverageProfilePlugin extends PluginBase implements ProfileInterface
 
     private static final String DEFAULTARRAY = "[{\"time\":\"00:00\",\"timeAsSeconds\":0,\"value\":0}]";
 
-    public boolean isEdited() {
-        return edited;
-    }
-
-    public void setEdited(boolean edited) {
-        this.edited = edited;
-    }
-
     boolean edited;
     boolean mgdl;
     boolean mmol;
@@ -57,6 +45,14 @@ public class AverageProfilePlugin extends PluginBase implements ProfileInterface
     JSONArray basal;
     JSONArray targetLow;
     JSONArray targetHigh;
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
+    }
 
     public AverageProfilePlugin() {
         super(new PluginDescription()
@@ -81,15 +77,10 @@ public class AverageProfilePlugin extends PluginBase implements ProfileInterface
 
         createAndStoreConvertedProfile();
         edited = false;
-        if (L.isEnabled(L.PROFILE))
-            log.debug("Storing settings: " + getRawProfile().getData().toString());
         MainApp.bus().post(new EventProfileStoreChanged());
     }
 
     public synchronized void loadSettings() {
-        if (L.isEnabled(L.PROFILE))
-            log.debug("Loading stored settings");
-
         mgdl = SP.getBoolean(AVERAGE_PROFILE + "mgdl", false);
         mmol = SP.getBoolean(AVERAGE_PROFILE + "mmol", true);
         dia = SP.getDouble(AVERAGE_PROFILE + "dia", Constants.defaultDIA);
@@ -205,5 +196,4 @@ public class AverageProfilePlugin extends PluginBase implements ProfileInterface
     public String getProfileName() {
         return DecimalFormatter.to2Decimal(convertedProfile.getDefaultProfile().percentageBasalSum()) + "U ";
     }
-
 }

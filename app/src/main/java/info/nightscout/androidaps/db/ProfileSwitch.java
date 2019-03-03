@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import info.nightscout.androidaps.plugins.profile.average.AverageProfilePlugin;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.Profile;
 import info.nightscout.androidaps.interfaces.Interval;
 import info.nightscout.androidaps.logging.L;
-import info.nightscout.androidaps.plugins.ProfileAverage.AverageProfilePlugin;
 import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification;
 import info.nightscout.androidaps.plugins.general.overview.graphExtensions.DataPointWithLabelInterface;
 import info.nightscout.androidaps.plugins.general.overview.graphExtensions.PointsWithLabelGraphSeries;
@@ -108,7 +108,7 @@ public class ProfileSwitch implements Interval, DataPointWithLabelInterface {
      */
     public String getCustomizedName() {
         String name = profileName;
-        if(AverageProfilePlugin.AVERAGE_PROFILE.equals(name) || LocalProfilePlugin.LOCAL_PROFILE.equals(name)){
+        if(LocalProfilePlugin.LOCAL_PROFILE.equals(name) || AverageProfilePlugin.AVERAGE_PROFILE.equals(name)){
             name = DecimalFormatter.to2Decimal(getProfileObject().percentageBasalSum()) + "U ";
         }
         if (isCPP) {

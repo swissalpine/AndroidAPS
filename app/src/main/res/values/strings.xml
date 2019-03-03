@@ -1319,6 +1319,9 @@
     <string name="dst_plugin_name" translatable="false">Dayligh Saving time</string>
     <string name="dst_in_24h_warning">Dayligh Saving time change in 24h or less</string>
     <string name="dst_loop_disabled_warning">Dayligh Saving time change in less than 3 hours - Closed loop diabled</string>
+    <string name="average_profile">Average Profile</string>
+    <string name="average_profile_short">AVP</string>
+    <string name="average_profile_description">Define the average values for IC and ISF and they will automatically be calculated, so they align to the basal profile.</string>
 
     <plurals name="objective_days">
         <item quantity="one">%1$d day</item>

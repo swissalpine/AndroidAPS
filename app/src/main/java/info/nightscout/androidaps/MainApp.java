@@ -15,6 +15,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.LoggingBus;
 import com.squareup.otto.ThreadEnforcer;
 
+import info.nightscout.androidaps.plugins.profile.average.AverageProfilePlugin;
 import net.danlew.android.joda.JodaTimeAndroid;
 
 import org.slf4j.Logger;
