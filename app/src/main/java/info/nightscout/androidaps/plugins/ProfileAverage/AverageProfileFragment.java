@@ -36,6 +36,7 @@ import info.nightscout.androidaps.utils.NumberPicker;
 import info.nightscout.androidaps.utils.SafeParse;
 import info.nightscout.androidaps.utils.TimeListEdit;
 
+
 public class AverageProfileFragment extends SubscriberFragment {
     private static Logger log = LoggerFactory.getLogger(AverageProfileFragment.class);
 
