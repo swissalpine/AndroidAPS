@@ -1177,7 +1177,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if ((SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) && (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false))) {
                 exerciseAnzeige = " L|H";
             } else if (SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
-                exerciseAnzeige = " -|H;";
+                exerciseAnzeige = " -|H";
             } else if (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) {
                 exerciseAnzeige = " L|-";
             } else {

@@ -25,16 +25,16 @@ import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.ProfileStore;
 import info.nightscout.androidaps.events.EventInitializationChanged;
 import info.nightscout.androidaps.interfaces.PumpDescription;
-import info.nightscout.androidaps.plugins.Careportal.CareportalFragment;
-import info.nightscout.androidaps.plugins.Careportal.Dialogs.NewNSTreatmentDialog;
-import info.nightscout.androidaps.plugins.Careportal.OptionsToShow;
-import info.nightscout.androidaps.plugins.Common.SubscriberFragment;
-import info.nightscout.androidaps.plugins.ConfigBuilder.ConfigBuilderPlugin;
-import info.nightscout.utils.DecimalFormatter;
-import info.nightscout.utils.FabricPrivacy;
-import info.nightscout.utils.NumberPicker;
-import info.nightscout.utils.SafeParse;
-import info.nightscout.utils.TimeListEdit;
+import info.nightscout.androidaps.plugins.general.careportal.CareportalFragment;
+import info.nightscout.androidaps.plugins.general.careportal.Dialogs.NewNSTreatmentDialog;
+import info.nightscout.androidaps.plugins.general.careportal.OptionsToShow;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.common.SubscriberFragment;
+import info.nightscout.androidaps.utils.DecimalFormatter;
+import info.nightscout.androidaps.utils.FabricPrivacy;
+import info.nightscout.androidaps.utils.NumberPicker;
+import info.nightscout.androidaps.utils.SafeParse;
+import info.nightscout.androidaps.utils.TimeListEdit;
 
 public class AverageProfileFragment extends SubscriberFragment {
     private static Logger log = LoggerFactory.getLogger(AverageProfileFragment.class);

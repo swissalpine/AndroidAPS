@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import info.nightscout.androidaps.R;
-import info.nightscout.androidaps.R2;
 import info.nightscout.androidaps.data.GlucoseStatus;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.Profile;
@@ -17,8 +16,8 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensData;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 
-import static info.nightscout.androidaps.R2.string.key_openapsama_autosens_max;
-import static info.nightscout.androidaps.R2.string.key_openapsama_autosens_min;
+import static info.nightscout.androidaps.R.string.key_openapsama_autosens_max;
+import static info.nightscout.androidaps.R.string.key_openapsama_autosens_min;
 
 /**
  * Created by mike on 11.10.2016.
