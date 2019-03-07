@@ -38,6 +38,7 @@ import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.constraints.dstHelper.DstHelperPlugin;
 import info.nightscout.androidaps.plugins.constraints.objectives.ObjectivesPlugin;
 import info.nightscout.androidaps.plugins.constraints.safety.SafetyPlugin;
+import info.nightscout.androidaps.plugins.constraints.storage.StorageConstraintPlugin;
 import info.nightscout.androidaps.plugins.general.actions.ActionsFragment;
 import info.nightscout.androidaps.plugins.general.careportal.CareportalPlugin;
 import info.nightscout.androidaps.plugins.general.food.FoodPlugin;
@@ -177,6 +178,7 @@ public class MainApp extends Application {
             if (Config.OTHERPROFILES) pluginsList.add(AverageProfilePlugin.getPlugin());
             pluginsList.add(TreatmentsPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(SafetyPlugin.getPlugin());
+            if (Config.SAFETY) pluginsList.add(StorageConstraintPlugin.getPlugin());
             if (Config.APS) pluginsList.add(ObjectivesPlugin.getPlugin());
             pluginsList.add(SourceXdripPlugin.getPlugin());
             pluginsList.add(SourceNSClientPlugin.getPlugin());
@@ -199,6 +201,7 @@ public class MainApp extends Application {
             pluginsList.add(ConfigBuilderPlugin.getPlugin());
 
             pluginsList.add(DstHelperPlugin.getPlugin());
+
 
             ConfigBuilderPlugin.getPlugin().initialize();
         }
