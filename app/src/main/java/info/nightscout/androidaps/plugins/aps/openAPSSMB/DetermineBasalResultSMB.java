@@ -50,6 +50,10 @@ public class DetermineBasalResultSMB extends APSResult {
                     double cutoff = baseBasalRate * 0.2;
                     if (rate < cutoff) rate = cutoff;
                 }
+                // Ulrikes 20% immer
+                /* double baseBasalRate = info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin.getPlugin().getActivePump().getBaseBasalRate();
+                double cutoff = baseBasalRate * 0.2;
+                if (rate < cutoff) rate = cutoff; */
                 // Ende Anpassung
 
                 duration = result.getInt("duration");
