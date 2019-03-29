@@ -1392,4 +1392,9 @@ public class ComboPlugin extends PluginBase implements PumpInterface, Constraint
 
     }
 
+    @Override
+    public boolean canHandleDST() {
+        return false;
+    }
+
 }
