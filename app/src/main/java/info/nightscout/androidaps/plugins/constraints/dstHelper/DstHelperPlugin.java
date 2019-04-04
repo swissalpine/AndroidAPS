@@ -66,9 +66,11 @@ public class DstHelperPlugin extends PluginBase implements ConstraintsInterface 
 
         Calendar cal = Calendar.getInstance();
 
+        /* Anpassung: Deaktivieren der Sommerzeit-/Winterzeitwarnung
         if (willBeDST(cal)) {
             warnUser(Notification.DST_IN_24H, MainApp.gs(R.string.dst_in_24h_warning));
         }
+        */
 
         if (!value.value()) {
             log.debug("Already not allowed - don't check further");
