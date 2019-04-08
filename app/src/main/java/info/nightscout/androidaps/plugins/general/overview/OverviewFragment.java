@@ -34,7 +34,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.crashlytics.android.answers.CustomEvent;
 import com.jjoe64.graphview.GraphView;
 import com.squareup.otto.Subscribe;
 
@@ -46,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -100,28 +100,27 @@ import info.nightscout.androidaps.plugins.aps.loop.events.EventNewOpenLoopNotifi
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload;
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSDeviceStatus;
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSSettingsStatus;
-import info.nightscout.androidaps.plugins.general.overview.Dialogs.CalibrationDialog;
-import info.nightscout.androidaps.plugins.general.overview.Dialogs.ErrorHelperActivity;
-import info.nightscout.androidaps.plugins.general.overview.Dialogs.NewCarbsDialog;
-import info.nightscout.androidaps.plugins.general.overview.Dialogs.NewInsulinDialog;
-import info.nightscout.androidaps.plugins.general.overview.Dialogs.NewTreatmentDialog;
-import info.nightscout.androidaps.plugins.general.overview.Dialogs.WizardDialog;
+import info.nightscout.androidaps.plugins.general.overview.dialogs.CalibrationDialog;
+import info.nightscout.androidaps.plugins.general.overview.dialogs.ErrorHelperActivity;
+import info.nightscout.androidaps.plugins.general.overview.dialogs.NewCarbsDialog;
+import info.nightscout.androidaps.plugins.general.overview.dialogs.NewInsulinDialog;
+import info.nightscout.androidaps.plugins.general.overview.dialogs.NewTreatmentDialog;
+import info.nightscout.androidaps.plugins.general.overview.dialogs.WizardDialog;
 import info.nightscout.androidaps.plugins.general.overview.activities.QuickWizardListActivity;
 import info.nightscout.androidaps.plugins.general.overview.graphData.GraphData;
 import info.nightscout.androidaps.plugins.general.overview.notifications.NotificationRecyclerViewAdapter;
 import info.nightscout.androidaps.plugins.general.overview.notifications.NotificationStore;
+import info.nightscout.androidaps.plugins.general.wear.ActionStringHandler;
 import info.nightscout.androidaps.plugins.source.SourceDexcomG5Plugin;
 import info.nightscout.androidaps.plugins.source.SourceDexcomG6Plugin;
 import info.nightscout.androidaps.plugins.source.SourceXdripPlugin;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.plugins.treatments.fragments.ProfileViewerDialog;
-import info.nightscout.androidaps.plugins.general.wear.ActionStringHandler;
 import info.nightscout.androidaps.queue.Callback;
 import info.nightscout.androidaps.utils.BolusWizard;
 import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.utils.DecimalFormatter;
 import info.nightscout.androidaps.utils.DefaultValueHelper;
-import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.OKDialog;
 import info.nightscout.androidaps.utils.Profiler;
 import info.nightscout.androidaps.utils.SP;
@@ -276,8 +275,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         batteryView = (TextView) view.findViewById(R.id.overview_batterylevel);
         statuslightsLayout = (LinearLayout) view.findViewById(R.id.overview_statuslights);
 
-            bgGraph = (GraphView) view.findViewById(R.id.overview_bggraph);
-            iobGraph = (GraphView) view.findViewById(R.id.overview_iobgraph);
+        bgGraph = (GraphView) view.findViewById(R.id.overview_bggraph);
+        iobGraph = (GraphView) view.findViewById(R.id.overview_iobgraph);
 
         treatmentButton = (SingleClickButton) view.findViewById(R.id.overview_treatmentbutton);
         treatmentButton.setOnClickListener(this);
@@ -505,6 +504,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if (TreatmentsPlugin.getPlugin().getTempTargetFromHistory() != null) {
                 menu.add(MainApp.gs(R.string.cancel));
             }
+            /* Deaktiviert bis Fix vorhanden und Exercise Mode reaktiviert
             if (OpenAPSSMBPlugin.getPlugin().isEnabled(PluginType.APS)) {
                 menu.add("---");
                 if ((SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) == false || (SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, false)) == false) {
@@ -516,6 +516,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     menu.add("No Exercise Mode");
                 }
             }
+            */
         }
     }
 
@@ -906,7 +907,6 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                             } else {
                                 TreatmentsPlugin.getPlugin().addToHistoryTreatment(detailedBolusInfo, false);
                             }
-                            FabricPrivacy.getInstance().logCustom(new CustomEvent("QuickWizard"));
                         }
                     }
                 });
@@ -1489,7 +1489,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (sensitivityView != null) {
             AutosensData autosensData = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("Overview");
             if (autosensData != null)
-                sensitivityView.setText(String.format("%.0f%%", autosensData.autosensResult.ratio * 100));
+                sensitivityView.setText(String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100));
             else
                 sensitivityView.setText("");
         }

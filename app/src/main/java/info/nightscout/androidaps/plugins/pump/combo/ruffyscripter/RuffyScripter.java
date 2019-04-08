@@ -1,6 +1,5 @@
 package info.nightscout.androidaps.plugins.pump.combo.ruffyscripter;
 
-import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +10,6 @@ import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.crashlytics.android.answers.CustomEvent;
 import com.google.common.base.Joiner;
 
 import org.monkey.d.ruffy.ruffy.driver.IRTHandler;
@@ -28,12 +26,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import info.nightscout.androidaps.BuildConfig;
-import info.nightscout.androidaps.Constants;
-import info.nightscout.androidaps.MainApp;
-import info.nightscout.androidaps.R;
-import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification;
-import info.nightscout.androidaps.plugins.general.overview.notifications.Notification;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.commands.ReadQuickInfoCommand;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.history.PumpHistoryRequest;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.commands.BolusCommand;
@@ -46,8 +38,6 @@ import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.commands.Read
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.commands.ReadPumpStateCommand;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.commands.SetBasalProfileCommand;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.commands.SetTbrCommand;
-import info.nightscout.androidaps.utils.FabricPrivacy;
-import info.nightscout.androidaps.utils.SP;
 
 /**
  * Provides scripting 'runtime' and operations. consider moving operations into a separate
@@ -64,8 +54,6 @@ public class RuffyScripter implements RuffyCommands {
     private volatile long menuLastUpdated = 0;
     private volatile boolean unparsableMenuEncountered;
 
-
-    private String previousCommand = "<none>";
     private volatile Command activeCmd = null;
 
     private boolean started = false;
@@ -358,7 +346,6 @@ public class RuffyScripter implements RuffyCommands {
                         // ignore
                     }
                 }
-                previousCommand = "" + activeCmd;
                 activeCmd = null;
             }
         }
@@ -458,13 +445,6 @@ public class RuffyScripter implements RuffyCommands {
     }
 
     private void ensureConnected() {
-        ensureConnected(true);
-    }
-
-    /**
-     * If there's an issue, this times out eventually and throws a CommandException
-     */
-    private void ensureConnected(boolean retry) {
         try {
             if (isConnected()) {
                 return;
@@ -477,55 +457,8 @@ public class RuffyScripter implements RuffyCommands {
             long initialUpdateTime = menuLastUpdated;
             while (initialUpdateTime == menuLastUpdated) {
                 if (System.currentTimeMillis() > timeoutExpired) {
-                    boolean watchdogEnabled = SP.getBoolean(R.string.key_combo_btwatchdog, true);
-                    long watchdogLastTriggered = SP.getLong(R.string.key_btwatchdog_lastbark, 0L);
-                    boolean toggleBT = watchdogEnabled && System.currentTimeMillis() - watchdogLastTriggered > (Constants.MIN_WATCHDOG_INTERVAL_IN_SECONDS * 1000);
-                    if (retry && toggleBT) {
-                        log.debug("Connect failed, toggling BT");
-                        SP.putLong(R.string.key_btwatchdog_lastbark, System.currentTimeMillis());
-                        if (SP.getBoolean(R.string.key_combo_btwatchdog_notify, false)) {
-                            MainApp.bus().post(new EventNewNotification(new Notification(
-                                    Notification.COMBO_PUMP_ALARM,
-                                    MainApp.gs(R.string.combo_bt_watchdog_triggered),
-                                    Notification.NORMAL)));
-                        }
-
-                        // toggle BT
-                        try { ruffyService.doRTConnect(); } catch (Exception e) { /* there, there */}
-                        SystemClock.sleep(1000);
-                        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                        mBluetoothAdapter.disable();
-                        SystemClock.sleep(1000);
-                        mBluetoothAdapter.enable();
-                        SystemClock.sleep(1000);
-
-                        // attempt reconnect
-                        try {
-                            ensureConnected(false);
-                        } catch (Exception e) {
-                            if (SP.getBoolean(R.string.key_combo_btwatchdog_notify, false)) {
-                                MainApp.bus().post(new EventNewNotification(new Notification(
-                                        Notification.COMBO_PUMP_ALARM,
-                                        MainApp.gs(R.string.combo_bt_watchdog_successful),
-                                        Notification.NORMAL)));
-                            }
-                            throw e;
-                        }
-                        if (SP.getBoolean(R.string.key_combo_btwatchdog_notify, false)) {
-                            MainApp.bus().post(new EventNewNotification(new Notification(
-                                    Notification.COMBO_PUMP_ALARM,
-                                    MainApp.gs(R.string.combo_bt_watchdog_failed),
-                                    Notification.NORMAL)));
-                        }
-                    } else {
-                        FabricPrivacy.getInstance().logCustom(new CustomEvent("ComboConnectTimeout")
-                                .putCustomAttribute("buildversion", BuildConfig.BUILDVERSION)
-                                .putCustomAttribute("version", BuildConfig.VERSION)
-                                .putCustomAttribute("activeCommand", "" + (activeCmd != null ? activeCmd.getClass().getSimpleName() : ""))
-                                .putCustomAttribute("previousCommand", previousCommand));
                         throw new CommandException("Timeout connecting to pump");
                     }
-                }
                 SystemClock.sleep(50);
             }
         } catch (CommandException e) {
@@ -909,7 +842,6 @@ public class RuffyScripter implements RuffyCommands {
 
                 // confirm alert
                 verifyMenuIsDisplayed(MenuType.WARNING_OR_ERROR);
-                log.debug("Confirming alert: " + warningOrErrorCode);
                 pressCheckKey();
                 // dismiss alert
                 // if the user has confirmed the alert we have dismissed it with the button press
