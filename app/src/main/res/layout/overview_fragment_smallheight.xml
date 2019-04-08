@@ -39,8 +39,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingBottom="5dp"
-                    android:paddingTop="5dp"
+                    android:paddingBottom="10dp"
+                    android:paddingTop="10dp"
                     android:text="Open Loop"
 
                     android:textAppearance="?android:attr/textAppearanceSmall" />
@@ -54,8 +54,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingBottom="5dp"
-                    android:paddingTop="5dp"
+                    android:paddingBottom="10dp"
+                    android:paddingTop="10dp"
                     android:text="Profile"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -67,8 +67,8 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
                     android:text="TempTarget"
-                    android:paddingBottom="5dp"
-                    android:paddingTop="5dp"
+                    android:paddingBottom="10dp"
+                    android:paddingTop="10dp"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="@color/mdtp_white" />
 
