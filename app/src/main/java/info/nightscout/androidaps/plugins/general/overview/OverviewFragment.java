@@ -128,6 +128,7 @@ import info.nightscout.androidaps.utils.SingleClickButton;
 import info.nightscout.androidaps.utils.T;
 import info.nightscout.androidaps.utils.ToastUtils;
 
+import static info.nightscout.androidaps.R2.string.key_openapssmb_max_iob;
 import static info.nightscout.androidaps.utils.DateUtil.now;
 
 public class OverviewFragment extends Fragment implements View.OnClickListener, View.OnLongClickListener {
@@ -495,6 +496,12 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             if (ConfigBuilderPlugin.getPlugin().getActiveProfileInterface() != null && ConfigBuilderPlugin.getPlugin().getActiveProfileInterface().getProfile() != null) {
                 menu.add(MainApp.gs(R.string.careportal_profileswitch));
             }
+            menu.add("---");
+            menu.add("IOBmax: -0.5 U");
+            menu.add("IOBmax: 0 U");
+            menu.add("IOBmax: 0.5 U");
+            menu.add("IOBmax: 1 U");
+            menu.add("IOBmax: 12 U");
         } else if (v == tempTargetView) {
             menu.setHeaderTitle(MainApp.gs(R.string.careportal_temporarytarget));
             menu.add(MainApp.gs(R.string.custom));
@@ -608,6 +615,23 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             ProfileViewerDialog pvd = ProfileViewerDialog.newInstance(System.currentTimeMillis());
             FragmentManager manager = getFragmentManager();
             pvd.show(manager, "ProfileViewDialog");
+        // Anpassung IOBmax
+        } else if (item.getTitle().equals("IOBmax: -0.5 U")) {
+            SP.putDouble(R.string.key_openapssmb_max_iob, -0.5);
+            updateGUI("eventIOBmaxchange");
+        } else if (item.getTitle().equals("IOBmax: 0 U")) {
+            SP.putDouble(R.string.key_openapssmb_max_iob, 0);
+            updateGUI("eventIOBmaxchange");
+        } else if (item.getTitle().equals("IOBmax: 0.5 U")) {
+            SP.putDouble(R.string.key_openapssmb_max_iob, 0.5);
+            updateGUI("eventIOBmaxchange");
+        } else if (item.getTitle().equals("IOBmax: 1 U")) {
+            SP.putDouble(R.string.key_openapssmb_max_iob, 1);
+            updateGUI("eventIOBmaxchange");
+        } else if (item.getTitle().equals("IOBmax: 12 U")) {
+            SP.putDouble(R.string.key_openapssmb_max_iob, 12);
+            updateGUI("eventIOBmaxchange");
+        // Ende Anpassung
         } else if (item.getTitle().equals(MainApp.gs(R.string.eatingsoon))) {
             DefaultValueHelper defHelper = new DefaultValueHelper();
             double target = defHelper.determineEatingSoonTT(profile.getUnits());
@@ -1390,9 +1414,16 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     + MainApp.gs(R.string.basal) + ": " + DecimalFormatter.to1Decimal(basalIob.basaliob) + "U)";
             iobView.setText(iobtext);
         } else {
-            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + " ("
-                    + DecimalFormatter.to1Decimal(bolusIob.iob) + "/"
-                    + DecimalFormatter.to1Decimal(basalIob.basaliob) + ")";
+            // Anpassung Anzeige IOBmax Original-Anzeige auskommentiert
+            //String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + " ("
+            //        + DecimalFormatter.to1Decimal(bolusIob.iob) + "/"
+            //        + DecimalFormatter.to1Decimal(basalIob.basaliob) + ")";
+            // Anpassung Anzeige IOBmax eigener Code (+ Menü-Einträge)
+            double iob_max_overview = SP.getDouble(R.string.key_openapssmb_max_iob, 3d);
+            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob)
+                    + " (" + DecimalFormatter.to1Decimal(iob_max_overview) + " max)";
+            if (iob_max_overview < 2) iobView.setTextColor(MainApp.gc(R.color.ribbonWarning));
+            // Ende Anpassung
             iobView.setText(iobtext);
         }
 
