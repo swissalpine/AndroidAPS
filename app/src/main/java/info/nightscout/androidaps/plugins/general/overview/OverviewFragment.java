@@ -497,7 +497,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 menu.add(MainApp.gs(R.string.careportal_profileswitch));
             }
             menu.add("---");
-            menu.add("IOBmax: -0.5 U");
+            //menu.add("IOBmax: -0.5 U");
             menu.add("IOBmax: 0 U");
             menu.add("IOBmax: 0.5 U");
             menu.add("IOBmax: 1 U");
@@ -616,9 +616,9 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             FragmentManager manager = getFragmentManager();
             pvd.show(manager, "ProfileViewDialog");
         // Anpassung IOBmax
-        } else if (item.getTitle().equals("IOBmax: -0.5 U")) {
-            SP.putDouble(R.string.key_openapssmb_max_iob, -0.5);
-            updateGUI("eventIOBmaxchange");
+        //} else if (item.getTitle().equals("IOBmax: -0.5 U")) {
+        //    SP.putDouble(R.string.key_openapssmb_max_iob, -0.5);
+        //    updateGUI("eventIOBmaxchange");
         } else if (item.getTitle().equals("IOBmax: 0 U")) {
             SP.putDouble(R.string.key_openapssmb_max_iob, 0);
             updateGUI("eventIOBmaxchange");
@@ -1421,7 +1421,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             // Anpassung Anzeige IOBmax eigener Code (+ Menü-Einträge)
             double iob_max_overview = SP.getDouble(R.string.key_openapssmb_max_iob, 3d);
             String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob)
-                    + " (" + DecimalFormatter.to1Decimal(iob_max_overview) + " max)";
+                    + " <" + DecimalFormatter.to1Decimal(iob_max_overview);
             if (iob_max_overview < 2) iobView.setTextColor(MainApp.gc(R.color.ribbonWarning));
             // Ende Anpassung
             iobView.setText(iobtext);
