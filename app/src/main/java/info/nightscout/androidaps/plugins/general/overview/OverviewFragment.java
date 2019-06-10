@@ -1417,9 +1417,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             //        + DecimalFormatter.to1Decimal(basalIob.basaliob) + ")";
             // Anpassung Anzeige IOBmax eigener Code (+ Menü-Einträge)
             double iob_max_overview = SP.getDouble(R.string.key_openapssmb_max_iob, 3d);
-            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob)
-                    + " <" + DecimalFormatter.to1Decimal(iob_max_overview);
-            if (iob_max_overview < 2) iobView.setTextColor(MainApp.gc(R.color.ribbonWarning));
+            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob);
+            if (iob_max_overview < 2) {
+                iobView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                iobView.setTextColor(MainApp.gc(R.color.colorPrimary));
+                iobtext = iobtext + " < " + DecimalFormatter.to1Decimal(iob_max_overview) + " ";
+            } else {
+                iobView.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+                iobView.setTextColor(MainApp.gc(R.color.defaulttext));
+            }
             // Ende Anpassung
             iobView.setText(iobtext);
         }
