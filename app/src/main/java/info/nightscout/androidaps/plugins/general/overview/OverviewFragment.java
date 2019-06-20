@@ -144,6 +144,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     TextView extendedBolusView;
     TextView activeProfileView;
     TextView iobView;
+    TextView ioblabelView;
+    TextView iobpointView;
     TextView cobView;
     TextView apsModeView;
     TextView tempTargetView;
@@ -257,6 +259,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         pumpStatusView.setBackgroundColor(MainApp.gc(R.color.colorInitializingBorder));
 
         iobView = (TextView) view.findViewById(R.id.overview_iob);
+        ioblabelView = (TextView) view.findViewById(R.id.overview_ioblabel);
+        iobpointView = (TextView) view.findViewById(R.id.overview_iobpoint);
         cobView = (TextView) view.findViewById(R.id.overview_cob);
         apsModeView = (TextView) view.findViewById(R.id.overview_apsmode);
         tempTargetView = (TextView) view.findViewById(R.id.overview_temptarget);
@@ -1419,11 +1423,19 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             double iob_max_overview = SP.getDouble(R.string.key_openapssmb_max_iob, 3d);
             String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob);
             if (iob_max_overview < 2) {
+                ioblabelView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                ioblabelView.setTextColor(MainApp.gc(R.color.colorPrimary));
+                iobpointView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
+                iobpointView.setTextColor(MainApp.gc(R.color.colorPrimary));
                 iobView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
                 iobView.setTextColor(MainApp.gc(R.color.colorPrimary));
                 iobtext = iobtext + " < " + DecimalFormatter.to1Decimal(iob_max_overview) + " ";
             } else {
-                iobView.setBackgroundColor(MainApp.gc(R.color.defaultbackground));
+                ioblabelView.setBackgroundColor(Color.TRANSPARENT);
+                ioblabelView.setTextColor(MainApp.gc(R.color.defaulttext));
+                iobpointView.setBackgroundColor(Color.TRANSPARENT);
+                iobpointView.setTextColor(MainApp.gc(R.color.defaulttext));
+                iobView.setBackgroundColor(Color.TRANSPARENT);
                 iobView.setTextColor(MainApp.gc(R.color.defaulttext));
             }
             // Ende Anpassung
