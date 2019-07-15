@@ -83,7 +83,7 @@ public class IobCobThread extends Thread {
                 log.debug("AUTOSENSDATA thread started: " + from);
             if (ConfigBuilderPlugin.getPlugin() == null) {
                 if (L.isEnabled(L.AUTOSENS))
-                    log.debug("Aborting calculation thread (ConfigBuilder not ready): " + from);
+                    log.debug("Aborting calculation thread (configBuilder not ready): " + from);
                 return; // app still initializing
             }
             if (!ProfileFunctions.getInstance().isProfileValid("IobCobThread")) {

@@ -56,7 +56,7 @@ import info.nightscout.androidaps.queue.commands.CommandTempBasalPercent;
  * DATA FLOW:
  * ---------
  * <p>
- * (request) - > ConfigBuilder.getCommandQueue().bolus(...)
+ * (request) - > configBuilder.getCommandQueue().bolus(...)
  * <p>
  * app no longer waits for result but passes Callback
  * <p>
@@ -68,7 +68,7 @@ import info.nightscout.androidaps.queue.commands.CommandTempBasalPercent;
  * biggest change is we don't need exec pump commands in Handler because it's finished immediately
  * command queueing if not realized by stacking in different Handlers and threads anymore but by internal queue with better control
  * <p>
- * QueueThread calls ConfigBuilder#connect which is passed to getActivePump().connect
+ * QueueThread calls configBuilder#connect which is passed to getActivePump().connect
  * connect should be executed on background and return immediately. afterwards isConnecting() is expected to be true
  * <p>
  * while isConnecting() == true GUI is updated by posting connection progress
