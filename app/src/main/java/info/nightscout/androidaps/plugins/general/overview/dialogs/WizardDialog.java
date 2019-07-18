@@ -2,13 +2,9 @@ package info.nightscout.androidaps.plugins.general.overview.dialogs;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 import android.text.Editable;
-import android.text.Html;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,14 +24,11 @@ import android.widget.TextView;
 
 import com.squareup.otto.Subscribe;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
@@ -106,6 +99,8 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
     NumberPicker editCarbs;
     NumberPicker editCorr;
     NumberPicker editCarbTime;
+
+    private Integer maxCarbs;
 
     LinearLayout notesLayout;
     EditText notesEdit;
@@ -296,6 +291,7 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
         }
         // Anpassung Ende
 
+
         setCancelable(true);
         getDialog().setCanceledOnTouchOutside(false);
         //recovering state if there is something
@@ -306,6 +302,10 @@ public class WizardDialog extends DialogFragment implements OnClickListener, Com
             editCorr.setValue(savedInstanceState.getDouble("editCorr"));
         }
         return view;
+    }
+
+    private String toSignedString(int value) {
+        return value > 0 ? "+" + value : String.valueOf(value);
     }
 
     @Override

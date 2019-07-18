@@ -2,7 +2,7 @@ package info.nightscout.androidaps.plugins.profile.average;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -11,25 +11,28 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.TextView;
+
 import com.squareup.otto.Subscribe;
+
+import java.text.DecimalFormat;
+
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.ProfileStore;
 import info.nightscout.androidaps.events.EventInitializationChanged;
 import info.nightscout.androidaps.interfaces.PumpDescription;
-import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.common.SubscriberFragment;
 import info.nightscout.androidaps.plugins.general.careportal.CareportalFragment;
 import info.nightscout.androidaps.plugins.general.careportal.Dialogs.NewNSTreatmentDialog;
 import info.nightscout.androidaps.plugins.general.careportal.OptionsToShow;
 import info.nightscout.androidaps.utils.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.text.DecimalFormat;
+import info.nightscout.androidaps.utils.DecimalFormatter;
+import info.nightscout.androidaps.utils.NumberPicker;
+import info.nightscout.androidaps.utils.SafeParse;
+import info.nightscout.androidaps.utils.TimeListEdit;
 
 public class AverageProfileFragment extends SubscriberFragment {
-    private static Logger log = LoggerFactory.getLogger(L.PROFILE);
 
     NumberPicker diaView;
     RadioButton mgdlView;
@@ -142,7 +145,6 @@ public class AverageProfileFragment extends SubscriberFragment {
 
             return layout;
         } catch (Exception e) {
-            log.error("Unhandled exception: ", e);
             FabricPrivacy.logException(e);
         }
 

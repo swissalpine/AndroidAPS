@@ -3,7 +3,7 @@ package info.nightscout.androidaps.plugins.general.overview;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.NotificationManager;
-import android.arch.core.util.Function;
+import androidx.arch.core.util.Function;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -12,14 +12,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
@@ -92,6 +92,11 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.events.EventIobCa
 import info.nightscout.androidaps.plugins.aps.loop.APSResult;
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin;
 import info.nightscout.androidaps.plugins.aps.loop.events.EventNewOpenLoopNotification;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
+import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions;
+import info.nightscout.androidaps.plugins.general.careportal.CareportalFragment;
+import info.nightscout.androidaps.plugins.general.careportal.Dialogs.NewNSTreatmentDialog;
+import info.nightscout.androidaps.plugins.general.careportal.OptionsToShow;
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload;
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSDeviceStatus;
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSSettingsStatus;
@@ -104,8 +109,7 @@ import info.nightscout.androidaps.plugins.general.overview.dialogs.WizardDialog;
 import info.nightscout.androidaps.plugins.general.overview.graphData.GraphData;
 import info.nightscout.androidaps.plugins.general.wear.ActionStringHandler;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus;
-import info.nightscout.androidaps.plugins.source.SourceDexcomG5Plugin;
-import info.nightscout.androidaps.plugins.source.SourceDexcomG6Plugin;
+import info.nightscout.androidaps.plugins.source.SourceDexcomPlugin;
 import info.nightscout.androidaps.plugins.source.SourceXdripPlugin;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.plugins.treatments.fragments.ProfileViewerDialog;
@@ -193,7 +197,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     Handler sLoopHandler = new Handler();
     Runnable sRefreshLoop = null;
 
-    public enum CHARTTYPE {PRE, BAS, IOB, COB, DEV, SEN, DEVSLOPE}
+    public enum CHARTTYPE {PRE, BAS, IOB, COB, DEV, SEN, ACTPRIM, ACTSEC, DEVSLOPE}
 
     private static final ScheduledExecutorService worker = Executors.newSingleThreadScheduledExecutor();
     private static ScheduledFuture<?> scheduledUpdate = null;
@@ -356,14 +360,15 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             else
                 predictionsAvailable = false;
 
-            MenuItem item;
+            MenuItem item,dividerItem;
             CharSequence title;
+            int titleMaxChars = 0;
             SpannableString s;
             PopupMenu popup = new PopupMenu(v.getContext(), v);
-
             if (predictionsAvailable) {
                 item = popup.getMenu().add(Menu.NONE, CHARTTYPE.PRE.ordinal(), Menu.NONE, "Predictions");
                 title = item.getTitle();
+                if (titleMaxChars < title.length()) titleMaxChars =  title.length();
                 s = new SpannableString(title);
                 s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.prediction, null)), 0, s.length(), 0);
                 item.setTitle(s);
@@ -373,14 +378,28 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
             item = popup.getMenu().add(Menu.NONE, CHARTTYPE.BAS.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_basals));
             title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
             s = new SpannableString(title);
             s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.basal, null)), 0, s.length(), 0);
             item.setTitle(s);
             item.setCheckable(true);
             item.setChecked(SP.getBoolean("showbasals", true));
 
+            item = popup.getMenu().add(Menu.NONE, CHARTTYPE.ACTPRIM.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_activity));
+            title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
+            s = new SpannableString(title);
+            s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.activity, null)), 0, s.length(), 0);
+            item.setTitle(s);
+            item.setCheckable(true);
+            item.setChecked(SP.getBoolean("showactivityprimary", true));
+
+            dividerItem = popup.getMenu().add("");
+            dividerItem.setEnabled(false);
+
             item = popup.getMenu().add(Menu.NONE, CHARTTYPE.IOB.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_iob));
             title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
             s = new SpannableString(title);
             s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.iob, null)), 0, s.length(), 0);
             item.setTitle(s);
@@ -389,6 +408,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
             item = popup.getMenu().add(Menu.NONE, CHARTTYPE.COB.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_cob));
             title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
             s = new SpannableString(title);
             s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.cob, null)), 0, s.length(), 0);
             item.setTitle(s);
@@ -397,6 +417,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
             item = popup.getMenu().add(Menu.NONE, CHARTTYPE.DEV.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_deviations));
             title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
             s = new SpannableString(title);
             s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.deviations, null)), 0, s.length(), 0);
             item.setTitle(s);
@@ -405,21 +426,36 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
             item = popup.getMenu().add(Menu.NONE, CHARTTYPE.SEN.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_sensitivity));
             title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
             s = new SpannableString(title);
             s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.ratio, null)), 0, s.length(), 0);
             item.setTitle(s);
             item.setCheckable(true);
             item.setChecked(SP.getBoolean("showratios", false));
 
+            item = popup.getMenu().add(Menu.NONE, CHARTTYPE.ACTSEC.ordinal(), Menu.NONE, MainApp.gs(R.string.overview_show_activity));
+            title = item.getTitle();
+            if (titleMaxChars < title.length()) titleMaxChars =  title.length();
+            s = new SpannableString(title);
+            s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.activity, null)), 0, s.length(), 0);
+            item.setTitle(s);
+            item.setCheckable(true);
+            item.setChecked(SP.getBoolean("showactivitysecondary", true));
+
             if (MainApp.devBranch) {
                 item = popup.getMenu().add(Menu.NONE, CHARTTYPE.DEVSLOPE.ordinal(), Menu.NONE, "Deviation slope");
                 title = item.getTitle();
+                if (titleMaxChars < title.length()) titleMaxChars =  title.length();
                 s = new SpannableString(title);
                 s.setSpan(new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.devslopepos, null)), 0, s.length(), 0);
                 item.setTitle(s);
                 item.setCheckable(true);
                 item.setChecked(SP.getBoolean("showdevslope", false));
             }
+
+            // Fairly good guestimate for required divider text size...
+            title = new String(new char[titleMaxChars+10]).replace("\0", "_");
+            dividerItem.setTitle(title);
 
             popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
@@ -436,6 +472,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                         SP.putBoolean("showdeviations", !item.isChecked());
                     } else if (item.getItemId() == CHARTTYPE.SEN.ordinal()) {
                         SP.putBoolean("showratios", !item.isChecked());
+                    } else if (item.getItemId() == CHARTTYPE.ACTPRIM.ordinal()) {
+                        SP.putBoolean("showactivityprimary", !item.isChecked());
+                    } else if (item.getItemId() == CHARTTYPE.ACTSEC.ordinal()) {
+                        SP.putBoolean("showactivitysecondary", !item.isChecked());
                     } else if (item.getItemId() == CHARTTYPE.DEVSLOPE.ordinal()) {
                         SP.putBoolean("showdevslope", !item.isChecked());
                     }
@@ -699,8 +739,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     @Override
     public void onClick(View v) {
         boolean xdrip = SourceXdripPlugin.getPlugin().isEnabled(PluginType.BGSOURCE);
-        boolean g5 = SourceDexcomG5Plugin.getPlugin().isEnabled(PluginType.BGSOURCE);
-        boolean g6 = SourceDexcomG6Plugin.getPlugin().isEnabled(PluginType.BGSOURCE);
+        boolean dexcom = SourceDexcomPlugin.INSTANCE.isEnabled(PluginType.BGSOURCE);
         String units = ProfileFunctions.getInstance().getProfileUnits();
 
         FragmentManager manager = getFragmentManager();
@@ -723,10 +762,16 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 if (xdrip) {
                     CalibrationDialog calibrationDialog = new CalibrationDialog();
                     calibrationDialog.show(manager, "CalibrationDialog");
-                } else if (g5 || g6) {
+                } else if (dexcom) {
                     try {
-                        Intent i = new Intent("com.dexcom.cgm.activities.MeterEntryActivity");
-                        startActivity(i);
+                        String packageName = SourceDexcomPlugin.INSTANCE.findDexcomPackageName();
+                        if (packageName != null) {
+                            Intent i = new Intent("com.dexcom.cgm.activities.MeterEntryActivity");
+                            i.setPackage(packageName);
+                            startActivity(i);
+                        } else {
+                            ToastUtils.showToastInUiThread(getActivity(), MainApp.gs(R.string.dexcom_app_not_installed));
+                        }
                     } catch (ActivityNotFoundException e) {
                         ToastUtils.showToastInUiThread(getActivity(), MainApp.gs(R.string.g5appnotdetected));
                     }
@@ -735,14 +780,14 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             case R.id.overview_cgmbutton:
                 if (xdrip)
                     openCgmApp("com.eveningoutpost.dexdrip");
-                else if (g5 && units.equals(Constants.MGDL))
-                    openCgmApp("com.dexcom.cgm.region5.mgdl");
-                else if (g5 && units.equals(Constants.MMOL))
-                    openCgmApp("com.dexcom.cgm.region5.mmol");
-                else if (g6 && units.equals(Constants.MGDL))
-                    openCgmApp("com.dexcom.g6.region3.mgdl");
-                else if (g6 && units.equals(Constants.MMOL))
-                    openCgmApp("com.dexcom.g6.region3.mmol");
+                else if (dexcom) {
+                    String packageName = SourceDexcomPlugin.INSTANCE.findDexcomPackageName();
+                    if (packageName != null) {
+                        openCgmApp(packageName);
+                    } else {
+                        ToastUtils.showToastInUiThread(getActivity(), MainApp.gs(R.string.dexcom_app_not_installed));
+                    }
+                }
                 break;
             case R.id.overview_treatmentbutton:
                 NewTreatmentDialog treatmentDialogFragment = new NewTreatmentDialog();
@@ -1144,10 +1189,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
 
         // **** Calibration & CGM buttons ****
         boolean xDripIsBgSource = MainApp.getSpecificPlugin(SourceXdripPlugin.class) != null && MainApp.getSpecificPlugin(SourceXdripPlugin.class).isEnabled(PluginType.BGSOURCE);
-        boolean g5IsBgSource = MainApp.getSpecificPlugin(SourceDexcomG5Plugin.class) != null && MainApp.getSpecificPlugin(SourceDexcomG5Plugin.class).isEnabled(PluginType.BGSOURCE);
+        boolean dexcomIsSource = SourceDexcomPlugin.INSTANCE.isEnabled(PluginType.BGSOURCE);
         boolean bgAvailable = DatabaseHelper.actualBg() != null;
         if (calibrationButton != null) {
-            if ((xDripIsBgSource || g5IsBgSource) && bgAvailable && SP.getBoolean(R.string.key_show_calibration_button, true)) {
+            if ((xDripIsBgSource || dexcomIsSource) && bgAvailable && SP.getBoolean(R.string.key_show_calibration_button, true)) {
                 calibrationButton.setVisibility(View.VISIBLE);
             } else {
                 calibrationButton.setVisibility(View.GONE);
@@ -1156,7 +1201,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         if (cgmButton != null) {
             if (xDripIsBgSource && SP.getBoolean(R.string.key_show_cgm_button, false)) {
                 cgmButton.setVisibility(View.VISIBLE);
-            } else if (g5IsBgSource && SP.getBoolean(R.string.key_show_cgm_button, false)) {
+            } else if (dexcomIsSource && SP.getBoolean(R.string.key_show_cgm_button, false)) {
                 cgmButton.setVisibility(View.VISIBLE);
             } else {
                 cgmButton.setVisibility(View.GONE);
@@ -1498,6 +1543,10 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             // set manual x bounds to have nice steps
             graphData.formatAxis(fromTime, endTime);
 
+            if(SP.getBoolean("showactivityprimary", true)) {
+                graphData.addActivity(fromTime, endTime, false,1d);
+            }
+
             // Treatments
             graphData.addTreatments(fromTime, endTime);
 
@@ -1523,6 +1572,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             boolean useDevForScale = false;
             boolean useRatioForScale = false;
             boolean useDSForScale = false;
+            boolean useIAForScale = false;
 
             if (SP.getBoolean("showiob", true)) {
                 useIobForScale = true;
@@ -1532,6 +1582,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 useDevForScale = true;
             } else if (SP.getBoolean("showratios", false)) {
                 useRatioForScale = true;
+            } else if (SP.getBoolean("showactivitysecondary", false)) {
+                useIAForScale = true;
             } else if (SP.getBoolean("showdevslope", false)) {
                 useDSForScale = true;
             }
@@ -1544,6 +1596,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 secondGraphData.addDeviations(fromTime, now, useDevForScale, 1d);
             if (SP.getBoolean("showratios", false))
                 secondGraphData.addRatio(fromTime, now, useRatioForScale, 1d);
+            if(SP.getBoolean("showactivitysecondary", true))
+                secondGraphData.addActivity(fromTime, endTime, useIAForScale,useIAForScale ? 2d: 1d);
             if (SP.getBoolean("showdevslope", false) && MainApp.devBranch)
                 secondGraphData.addDeviationSlope(fromTime, now, useDSForScale, 1d);
 
@@ -1560,6 +1614,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                             || SP.getBoolean("showcob", true)
                             || SP.getBoolean("showdeviations", false)
                             || SP.getBoolean("showratios", false)
+                            || SP.getBoolean("showactivitysecondary", false)
                             || SP.getBoolean("showdevslope", false)) {
                         iobGraph.setVisibility(View.VISIBLE);
                     } else {

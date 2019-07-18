@@ -2,10 +2,12 @@ package info.nightscout.androidaps.utils
 
 import android.content.Context
 import android.content.Intent
-import android.support.v7.app.AlertDialog
 import android.text.Html
+import androidx.appcompat.app.AlertDialog
 import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
+import info.nightscout.androidaps.R2.string.key_openapsama_autosens_max
+import info.nightscout.androidaps.R2.string.key_openapsama_autosens_min
 import info.nightscout.androidaps.data.DetailedBolusInfo
 import info.nightscout.androidaps.data.Profile
 import info.nightscout.androidaps.db.CareportalEvent
@@ -22,6 +24,7 @@ import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin
 import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions
 import info.nightscout.androidaps.plugins.general.overview.dialogs.ErrorHelperActivity
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
 import info.nightscout.androidaps.queue.Callback
 import org.json.JSONException
@@ -112,6 +115,10 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
     var insulinAfterConstraints: Double = 0.0
         private set
 
+    // Anpassung
+    var ratio: Double = 0.0
+        private set
+
     init {
         doCalc()
     }
@@ -177,6 +184,21 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
         // Total
         calculatedTotalInsulin = insulinFromBG + insulinFromTrend + insulinFromCarbs + insulinFromBolusIOB + insulinFromBasalsIOB + insulinFromCorrection + insulinFromSuperBolus + insulinFromCOB
 
+        // Anpassung: Autosens
+        var autosensRatio = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("WizardDialog")?.autosensResult?.ratio
+
+        if (SP.getBoolean(R.string.key_wizard_include_autosens, false) && (autosensRatio != null)) {
+            ratio = Math.min(autosensRatio, SP.getDouble(key_openapsama_autosens_max, 1.2))
+            ratio = Math.max(ratio, SP.getDouble(key_openapsama_autosens_min, 0.7))
+            if (calculatedTotalInsulin > 0) {
+                calculatedTotalInsulin = calculatedTotalInsulin * ratio
+            }
+            if (calculatedTotalInsulin < 0) {
+                calculatedTotalInsulin = calculatedTotalInsulin * ( 2 - ratio)
+            }
+        }
+
+
         // Percentage adjustment
         totalBeforePercentageAdjustment = calculatedTotalInsulin
         if (calculatedTotalInsulin > 0) {
@@ -188,7 +210,7 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
             calculatedTotalInsulin = 0.0
         }
 
-        val bolusStep = ConfigBuilderPlugin.getPlugin().activePump.pumpDescription.bolusStep
+        val bolusStep = ConfigBuilderPlugin.getPlugin().activePump?.pumpDescription?.bolusStep ?: 0.1
         calculatedTotalInsulin = Round.roundTo(calculatedTotalInsulin, bolusStep)
 
         insulinAfterConstraints = MainApp.getConstraintChecker().applyBolusConstraints(Constraint(calculatedTotalInsulin)).value()
@@ -260,7 +282,7 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
 
             val builder = AlertDialog.Builder(context)
             builder.setTitle(MainApp.gs(R.string.confirmation))
-            builder.setMessage(Html.fromHtml(confirmMessage))
+            builder.setMessage(Html.fromHtml(confirmMessage, Html.FROM_HTML_MODE_LEGACY))
             builder.setPositiveButton(MainApp.gs(R.string.ok)) { _, _ ->
                 synchronized(builder) {
                     if (accepted) {
@@ -278,7 +300,7 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
 
                             val pump1 = ConfigBuilderPlugin.getPlugin().activePump
 
-                            if (pump1.pumpDescription.tempBasalStyle == PumpDescription.ABSOLUTE) {
+                            if (pump1?.pumpDescription?.tempBasalStyle == PumpDescription.ABSOLUTE) {
                                 ConfigBuilderPlugin.getPlugin().commandQueue.tempBasalAbsolute(0.0, 120, true, profile, object : Callback() {
                                     override fun run() {
                                         if (!result.success) {
@@ -318,7 +340,7 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
                         detailedBolusInfo.boluscalc = nsJSON()
                         detailedBolusInfo.source = Source.USER
                         detailedBolusInfo.notes = notes
-                        if (detailedBolusInfo.insulin > 0 || ConfigBuilderPlugin.getPlugin().activePump.pumpDescription.storesCarbInfo) {
+                        if (detailedBolusInfo.insulin > 0 || ConfigBuilderPlugin.getPlugin().activePump?.pumpDescription?.storesCarbInfo == true) {
                             ConfigBuilderPlugin.getPlugin().commandQueue.bolus(detailedBolusInfo, object : Callback() {
                                 override fun run() {
                                     if (!result.success) {

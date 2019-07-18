@@ -3,7 +3,7 @@ package info.nightscout.androidaps.queue;
 import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.text.Html;
 import android.text.Spanned;
 
@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
-
-import javax.annotation.Nullable;
 
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
@@ -388,10 +386,10 @@ public class CommandQueue {
         }
 
         // Compare with pump limits
-        Profile.BasalValue[] basalValues = profile.getBasalValues();
+        Profile.ProfileValue[] basalValues = profile.getBasalValues();
         PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
 
-        for (Profile.BasalValue basalValue : basalValues) {
+        for (Profile.ProfileValue basalValue : basalValues) {
             if (basalValue.value < pump.getPumpDescription().basalMinimumRate) {
                 Notification notification = new Notification(Notification.BASAL_VALUE_BELOW_MINIMUM, MainApp.gs(R.string.basalvaluebelowminimum), Notification.URGENT);
                 MainApp.bus().post(new EventNewNotification(notification));

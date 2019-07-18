@@ -13,6 +13,7 @@
     <color name="zt">#b601b6</color>
 
     <color name="ratio">#FFFFFF</color>
+    <color name="activity">#d3f166</color>
     <color name="devslopepos">#FFFFFF00</color>
     <color name="devslopeneg">#FFFF00FF</color>
     <color name="inrange">#00FF00</color>
