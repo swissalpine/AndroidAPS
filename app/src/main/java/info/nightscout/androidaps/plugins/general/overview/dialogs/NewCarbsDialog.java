@@ -75,6 +75,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
 
     //one shot guards
     private boolean accepted;
+    private boolean okClicked;
 
     public NewCarbsDialog() {
         HandlerThread mHandlerThread = new HandlerThread(NewCarbsDialog.class.getSimpleName());
@@ -132,15 +133,15 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
         startHypoTTCheckbox = view.findViewById(R.id.newcarbs_hypo_tt);
 
         editTime = view.findViewById(R.id.newcarbs_time);
-        editTime.setParams(0d, -12 * 60d, 12 * 60d, 5d, new DecimalFormat("0"), false, textWatcher);
+        editTime.setParams(0d, -12 * 60d, 12 * 60d, 5d, new DecimalFormat("0"), false, view.findViewById(R.id.ok), textWatcher);
 
         editDuration = view.findViewById(R.id.new_carbs_duration);
-        editDuration.setParams(0d, 0d, 10d, 1d, new DecimalFormat("0"), false, textWatcher);
+        editDuration.setParams(0d, 0d, 10d, 1d, new DecimalFormat("0"), false, view.findViewById(R.id.ok), textWatcher);
 
         maxCarbs = MainApp.getConstraintChecker().getMaxCarbsAllowed().value();
 
         editCarbs = view.findViewById(R.id.newcarb_carbsamount);
-        editCarbs.setParams(0d, 0d, (double) maxCarbs, 1d, new DecimalFormat("0"), false, textWatcher);
+        editCarbs.setParams(0d, 0d, (double) maxCarbs, 1d, new DecimalFormat("0"), false, view.findViewById(R.id.ok), textWatcher);
 
         Button fav1Button = view.findViewById(R.id.newcarbs_plus1);
         fav1Button.setOnClickListener(this);
@@ -305,6 +306,12 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
     }
 
     private void submit() {
+        if (okClicked) {
+            log.debug("guarding: ok already clicked");
+            dismiss();
+            return;
+        }
+        okClicked = true;
         try {
             final Profile currentProfile = ProfileFunctions.getInstance().getProfile();
             if (currentProfile == null) {
@@ -384,7 +391,7 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
             if (carbsAfterConstraints > 0 || startActivityTTCheckbox.isChecked()
                     || startEatingSoonTTCheckbox.isChecked() || startHypoTTCheckbox.isChecked()) {
                 builder.setMessage(Html.fromHtml(Joiner.on("<br/>").join(actions)));
-                builder.setPositiveButton(MainApp.gs(R.string.accept), (dialog, id) -> {
+                builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
                     synchronized (builder) {
                         if (accepted) {
                             log.debug("guarding: already accepted");
@@ -455,10 +462,9 @@ public class NewCarbsDialog extends DialogFragment implements OnClickListener, C
             } else {
                 builder.setMessage(MainApp.gs(R.string.no_action_selected));
             }
-            builder.setNegativeButton(MainApp.gs(R.string.edit), null);
-            AlertDialog alertDialog = builder.create();
-            alertDialog.setCanceledOnTouchOutside(false);
-            alertDialog.show();
+            builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
+            builder.show();
+            dismiss();
         } catch (Exception e) {
             log.error("Unhandled exception", e);
         }

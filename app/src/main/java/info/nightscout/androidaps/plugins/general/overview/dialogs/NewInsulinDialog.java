@@ -70,8 +70,9 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
 
     private EditText notesEdit;
 
-    // one shot guard
+    //one shot guards
     private boolean accepted;
+    private boolean okClicked;
 
     public NewInsulinDialog() {
         HandlerThread mHandlerThread = new HandlerThread(NewInsulinDialog.class.getSimpleName());
@@ -125,12 +126,12 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
         editLayout = view.findViewById(R.id.newinsulin_time_layout);
         editLayout.setVisibility(View.GONE);
         editTime = view.findViewById(R.id.newinsulin_time);
-        editTime.setParams(0d, -12 * 60d, 12 * 60d, 5d, new DecimalFormat("0"), false, textWatcher);
+        editTime.setParams(0d, -12 * 60d, 12 * 60d, 5d, new DecimalFormat("0"), false, view.findViewById(R.id.ok), textWatcher);
 
         maxInsulin = MainApp.getConstraintChecker().getMaxBolusAllowed().value();
 
         editInsulin = view.findViewById(R.id.newinsulin_amount);
-        editInsulin.setParams(0d, 0d, maxInsulin, ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().bolusStep, DecimalFormatter.pumpSupportedBolusFormat(), false, textWatcher);
+        editInsulin.setParams(0d, 0d, maxInsulin, ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().bolusStep, DecimalFormatter.pumpSupportedBolusFormat(), false, view.findViewById(R.id.ok), textWatcher);
 
         Button plus1Button = view.findViewById(R.id.newinsulin_plus05);
         plus1Button.setOnClickListener(this);
@@ -200,6 +201,13 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
     }
 
     private void submit() {
+        if (okClicked) {
+            log.debug("guarding: ok already clicked");
+            dismiss();
+            return;
+        }
+        okClicked = true;
+
         try {
             Profile currentProfile = ProfileFunctions.getInstance().getProfile();
             final PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
@@ -252,7 +260,7 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
             builder.setTitle(MainApp.gs(R.string.confirmation));
             if (finalInsulinAfterConstraints > 0 || startEatingSoonTTCheckbox.isChecked()) {
                 builder.setMessage(Html.fromHtml(Joiner.on("<br/>").join(actions)));
-                builder.setPositiveButton(MainApp.gs(R.string.accept), (dialog, id) -> {
+                builder.setPositiveButton(MainApp.gs(R.string.ok), (dialog, id) -> {
                     synchronized (builder) {
                         if (accepted) {
                             log.debug("guarding: already accepted");
@@ -298,16 +306,14 @@ public class NewInsulinDialog extends DialogFragment implements OnClickListener 
                                 });
                             }
                         }
-                        dismiss();
                     }
                 });
             } else {
                 builder.setMessage(MainApp.gs(R.string.no_action_selected));
             }
-            builder.setNegativeButton(MainApp.gs(R.string.edit), null);
-            AlertDialog alertDialog = builder.create();
-            alertDialog.setCanceledOnTouchOutside(false);
-            alertDialog.show();
+            builder.setNegativeButton(MainApp.gs(R.string.cancel), null);
+            builder.show();
+            dismiss();
         } catch (Exception e) {
             log.error("Unhandled exception", e);
         }
