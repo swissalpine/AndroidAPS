@@ -656,16 +656,16 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         //    SP.putDouble(R.string.key_openapssmb_max_iob, -0.5);
         //    updateGUI("eventIOBmaxchange");
         } else if (item.getTitle().equals("IOBmax: 0 U")) {
-            SP.putDouble(R.string.key_openapssmb_max_iob, 0);
+            SP.putDouble(MainApp.gs(R.string.key_openapssmb_max_iob), 0d);
             updateGUI("eventIOBmaxchange");
         } else if (item.getTitle().equals("IOBmax: 0.5 U")) {
-            SP.putDouble(R.string.key_openapssmb_max_iob, 0.5);
+            SP.putDouble(MainApp.gs(R.string.key_openapssmb_max_iob), 0.5d);
             updateGUI("eventIOBmaxchange");
         } else if (item.getTitle().equals("IOBmax: 1 U")) {
-            SP.putDouble(R.string.key_openapssmb_max_iob, 1);
+            SP.putDouble(MainApp.gs(R.string.key_openapssmb_max_iob), 1d);
             updateGUI("eventIOBmaxchange");
         } else if (item.getTitle().equals("IOBmax: 12 U")) {
-            SP.putDouble(R.string.key_openapssmb_max_iob, 12);
+            SP.putDouble(MainApp.gs(R.string.key_openapssmb_max_iob), 12d);
             updateGUI("eventIOBmaxchange");
         // Ende Anpassung
         } else if (item.getTitle().equals(MainApp.gs(R.string.eatingsoon))) {
