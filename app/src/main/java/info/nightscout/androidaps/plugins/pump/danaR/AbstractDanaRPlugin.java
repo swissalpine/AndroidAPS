@@ -2,6 +2,8 @@ package info.nightscout.androidaps.plugins.pump.danaR;
 
 import androidx.annotation.Nullable;
 
+import androidx.fragment.app.FragmentActivity;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderFragment;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -75,6 +77,11 @@ public abstract class AbstractDanaRPlugin extends PluginBase implements PumpInte
             NSProfilePlugin.getPlugin().setPluginEnabled(PluginType.PROFILE, true);
             NSProfilePlugin.getPlugin().setFragmentVisible(PluginType.PROFILE, true);
         }
+    }
+
+    @Override
+    public void switchAllowed(ConfigBuilderFragment.PluginViewHolder.PluginSwitcher pluginSwitcher, FragmentActivity activity) {
+        confirmPumpPluginActivation(pluginSwitcher, activity);
     }
 
     @Override
@@ -187,8 +194,8 @@ public abstract class AbstractDanaRPlugin extends PluginBase implements PumpInte
         if (percent > getPumpDescription().maxTempPercent)
             percent = getPumpDescription().maxTempPercent;
         long now = System.currentTimeMillis();
-        TemporaryBasal runningTB = TreatmentsPlugin.getPlugin().getRealTempBasalFromHistory(now);
-        if (runningTB != null && runningTB.percentRate == percent && !enforceNew) {
+        TemporaryBasal activeTemp = TreatmentsPlugin.getPlugin().getRealTempBasalFromHistory(now);
+        if (activeTemp != null && activeTemp.percentRate == percent && activeTemp.getPlannedRemainingMinutes() > 4 && !enforceNew) {
             result.enacted = false;
             result.success = true;
             result.isTempCancel = false;
@@ -499,7 +506,10 @@ public abstract class AbstractDanaRPlugin extends PluginBase implements PumpInte
         return false;
     }
 
+    @Override
+    public void timeDateOrTimeZoneChanged() {
 
+    }
 
 
 }

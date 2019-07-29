@@ -127,26 +127,8 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
     }
 
     @Override
-    public void switchAllowed(ConfigBuilderFragment.PluginViewHolder.PluginSwitcher pluginSwitcher, FragmentActivity context) {
-        boolean allowHardwarePump = SP.getBoolean("allow_hardware_pump", false);
-        if (allowHardwarePump || context == null) {
-            pluginSwitcher.invoke();
-        } else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setMessage(R.string.allow_hardware_pump_text)
-                    .setPositiveButton(R.string.yes, (dialog, id) -> {
-                        pluginSwitcher.invoke();
-                        SP.putBoolean("allow_hardware_pump", true);
-                        if (L.isEnabled(L.PUMP))
-                            log.debug("First time HW pump allowed!");
-                    })
-                    .setNegativeButton(R.string.cancel, (dialog, id) -> {
-                        pluginSwitcher.cancel();
-                        if (L.isEnabled(L.PUMP))
-                            log.debug("User does not allow switching to HW pump!");
-                    });
-            builder.create().show();
-        }
+    public void switchAllowed(ConfigBuilderFragment.PluginViewHolder.PluginSwitcher pluginSwitcher, FragmentActivity activity) {
+        confirmPumpPluginActivation(pluginSwitcher, activity);
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -513,7 +495,7 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
                 if (L.isEnabled(L.PUMP))
                     log.debug("setTempBasalAbsolute: currently running: " + activeTemp.toString());
                 // Correct basal already set ?
-                if (activeTemp.percentRate == percentRate) {
+                if (activeTemp.percentRate == percentRate && activeTemp.getPlannedRemainingMinutes() > 4) {
                     if (!enforceNew) {
                         result.success = true;
                         result.percent = percentRate;
@@ -531,7 +513,7 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
             if (L.isEnabled(L.PUMP))
                 log.debug("setTempBasalAbsolute: Setting temp basal " + percentRate + "% for " + durationInMinutes + " mins (doLowTemp || doHighTemp)");
             if (percentRate == 0 && durationInMinutes > 30) {
-                result = setTempBasalPercent(percentRate, durationInMinutes, profile, false);
+                result = setTempBasalPercent(percentRate, durationInMinutes, profile, enforceNew);
             } else {
                 // use special APS temp basal call ... 100+/15min .... 100-/30min
                 result = setHighTempBasalPercent(percentRate);
@@ -567,8 +549,8 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
         if (percent > getPumpDescription().maxTempPercent)
             percent = getPumpDescription().maxTempPercent;
         long now = System.currentTimeMillis();
-        TemporaryBasal runningTB = TreatmentsPlugin.getPlugin().getTempBasalFromHistory(now);
-        if (runningTB != null && runningTB.percentRate == percent && !enforceNew) {
+        TemporaryBasal activeTemp = TreatmentsPlugin.getPlugin().getTempBasalFromHistory(now);
+        if (activeTemp != null && activeTemp.percentRate == percent && activeTemp.getPlannedRemainingMinutes() > 4 && !enforceNew) {
             result.enacted = false;
             result.success = true;
             result.isTempCancel = false;
@@ -841,6 +823,11 @@ public class DanaRSPlugin extends PluginBase implements PumpInterface, DanaRInte
     @Override
     public boolean canHandleDST() {
         return false;
+    }
+
+    @Override
+    public void timeDateOrTimeZoneChanged() {
+
     }
 
 }

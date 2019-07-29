@@ -26,12 +26,13 @@ public interface TreatmentsInterface {
     IobTotal getLastCalculationTreatments();
     IobTotal getCalculationToTimeTreatments(long time);
     IobTotal getLastCalculationTempBasals();
-    IobTotal getCalculationToTimeTempBasals(long time, Profile profile);
+    IobTotal getCalculationToTimeTempBasals(long time);
 
     MealData getMealData();
 
     List<Treatment> getTreatmentsFromHistory();
     List<Treatment> getTreatments5MinBackFromHistory(long time);
+    List<Treatment> getTreatmentsFromHistoryAfterTimestamp(long timestamp);
     long getLastBolusTime();
 
     // real basals (not faked by extended bolus)

@@ -2,6 +2,7 @@ package info.nightscout.androidaps.plugins.treatments;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -48,7 +49,9 @@ import info.nightscout.androidaps.plugins.general.overview.dialogs.ErrorHelperAc
 import info.nightscout.androidaps.plugins.general.overview.events.EventDismissNotification;
 import info.nightscout.androidaps.plugins.general.overview.notifications.Notification;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensData;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensResult;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin;
+import info.nightscout.androidaps.plugins.pump.medtronic.util.MedtronicUtil;
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityAAPSPlugin;
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityWeightedAveragePlugin;
 import info.nightscout.androidaps.utils.DateUtil;
@@ -290,6 +293,23 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         }
     }
 
+
+    @Override
+    public List<Treatment> getTreatmentsFromHistoryAfterTimestamp(long fromTimestamp) {
+        List<Treatment> in5minback = new ArrayList<>();
+        long time = System.currentTimeMillis();
+        synchronized (treatments) {
+            for (Treatment t : treatments) {
+                if (!t.isValid)
+                    continue;
+                if (t.date <= time && t.date >= fromTimestamp)
+                    in5minback.add(t);
+            }
+            return in5minback;
+        }
+    }
+
+
     @Override
     public List<Treatment> getTreatments5MinBackFromHistory(long time) {
         List<Treatment> in5minback = new ArrayList<>();
@@ -319,6 +339,22 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         }
         if (L.isEnabled(L.DATATREATMENTS))
             log.debug("Last bolus time: " + new Date(last).toLocaleString());
+        return last;
+    }
+
+    public long getLastBolusTime(boolean isSMB) {
+        long now = System.currentTimeMillis();
+        long last = 0;
+        synchronized (treatments) {
+            for (Treatment t : treatments) {
+                if (!t.isValid)
+                    continue;
+                if (t.date > last && t.insulin > 0 && t.isValid && t.date <= now && isSMB == t.isSMB)
+                    last = t.date;
+            }
+        }
+        if (L.isEnabled(L.DATATREATMENTS))
+            log.debug("Last manual bolus time: " + new Date(last).toLocaleString());
         return last;
     }
 
@@ -369,11 +405,11 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     }
 
     @Override
-    public IobTotal getCalculationToTimeTempBasals(long time, Profile profile) {
-        return getCalculationToTimeTempBasals(time, profile, false, 0);
+    public IobTotal getCalculationToTimeTempBasals(long time) {
+        return getCalculationToTimeTempBasals(time, false, 0);
     }
 
-    public IobTotal getCalculationToTimeTempBasals(long time, Profile profile, boolean truncate, long truncateTime) {
+    public IobTotal getCalculationToTimeTempBasals(long time, boolean truncate, long truncateTime) {
         IobTotal total = new IobTotal(time);
 
         InsulinInterface insulinInterface = ConfigBuilderPlugin.getPlugin().getActiveInsulin();
@@ -385,6 +421,8 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
                 TemporaryBasal t = tempBasals.get(pos);
                 if (t.date > time) continue;
                 IobTotal calc;
+                Profile profile = ProfileFunctions.getInstance().getProfile(t.date);
+                if (profile == null) continue;
                 if (truncate && t.end() > truncateTime) {
                     TemporaryBasal dummyTemp = new TemporaryBasal();
                     dummyTemp.copyFrom(t);
@@ -404,6 +442,8 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
                     ExtendedBolus e = extendedBoluses.get(pos);
                     if (e.date > time) continue;
                     IobTotal calc;
+                    Profile profile = ProfileFunctions.getInstance().getProfile(e.date);
+                    if (profile == null) continue;
                     if (truncate && e.end() > truncateTime) {
                         ExtendedBolus dummyExt = new ExtendedBolus();
                         dummyExt.copyFrom(e);
@@ -425,11 +465,65 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         return total;
     }
 
+    public IobTotal getCalculationToTimeTempBasals(long time, long truncateTime, AutosensResult lastAutosensResult, boolean exercise_mode, int half_basal_exercise_target, boolean isTempTarget) {
+        IobTotal total = new IobTotal(time);
+
+        InsulinInterface insulinInterface = ConfigBuilderPlugin.getPlugin().getActiveInsulin();
+        if (insulinInterface == null)
+            return total;
+
+        synchronized (tempBasals) {
+            for (int pos = 0; pos < tempBasals.size(); pos++) {
+                TemporaryBasal t = tempBasals.get(pos);
+                if (t.date > time) continue;
+                IobTotal calc;
+                Profile profile = ProfileFunctions.getInstance().getProfile(t.date);
+                if (profile == null) continue;
+                if (t.end() > truncateTime) {
+                    TemporaryBasal dummyTemp = new TemporaryBasal();
+                    dummyTemp.copyFrom(t);
+                    dummyTemp.cutEndTo(truncateTime);
+                    calc = dummyTemp.iobCalc(time, profile, lastAutosensResult, exercise_mode, half_basal_exercise_target, isTempTarget);
+                } else {
+                    calc = t.iobCalc(time, profile, lastAutosensResult, exercise_mode, half_basal_exercise_target, isTempTarget);
+                }
+                //log.debug("BasalIOB " + new Date(time) + " >>> " + calc.basaliob);
+                total.plus(calc);
+            }
+        }
+        if (ConfigBuilderPlugin.getPlugin().getActivePump().isFakingTempsByExtendedBoluses()) {
+            IobTotal totalExt = new IobTotal(time);
+            synchronized (extendedBoluses) {
+                for (int pos = 0; pos < extendedBoluses.size(); pos++) {
+                    ExtendedBolus e = extendedBoluses.get(pos);
+                    if (e.date > time) continue;
+                    IobTotal calc;
+                    Profile profile = ProfileFunctions.getInstance().getProfile(e.date);
+                    if (profile == null) continue;
+                    if (e.end() > truncateTime) {
+                        ExtendedBolus dummyExt = new ExtendedBolus();
+                        dummyExt.copyFrom(e);
+                        dummyExt.cutEndTo(truncateTime);
+                        calc = dummyExt.iobCalc(time, profile, lastAutosensResult, exercise_mode, half_basal_exercise_target, isTempTarget);
+                    } else {
+                        calc = e.iobCalc(time, profile, lastAutosensResult, exercise_mode, half_basal_exercise_target, isTempTarget);
+                    }
+                    totalExt.plus(calc);
+                }
+            }
+            // Convert to basal iob
+            totalExt.basaliob = totalExt.iob;
+            totalExt.iob = 0d;
+            totalExt.netbasalinsulin = totalExt.extendedBolusInsulin;
+            totalExt.hightempinsulin = totalExt.extendedBolusInsulin;
+            total.plus(totalExt);
+        }
+        return total;
+    }
+
     @Override
     public void updateTotalIOBTempBasals() {
-        Profile profile = ProfileFunctions.getInstance().getProfile();
-        if (profile != null)
-            lastTempBasalsCalculation = getCalculationToTimeTempBasals(DateUtil.now(), profile);
+        lastTempBasalsCalculation = getCalculationToTimeTempBasals(DateUtil.now());
     }
 
     @Nullable
@@ -501,6 +595,8 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     // return true if new record is created
     @Override
     public boolean addToHistoryTreatment(DetailedBolusInfo detailedBolusInfo, boolean allowUpdate) {
+        boolean medtronicPump = MedtronicUtil.isMedtronicPump();
+
         Treatment treatment = new Treatment();
         treatment.date = detailedBolusInfo.date;
         treatment.source = detailedBolusInfo.source;
@@ -513,7 +609,13 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         treatment.source = detailedBolusInfo.source;
         treatment.mealBolus = treatment.carbs > 0;
         treatment.boluscalc = detailedBolusInfo.boluscalc != null ? detailedBolusInfo.boluscalc.toString() : null;
-        TreatmentService.UpdateReturn creatOrUpdateResult = getService().createOrUpdate(treatment);
+        TreatmentService.UpdateReturn creatOrUpdateResult;
+
+        if (!medtronicPump)
+            creatOrUpdateResult = getService().createOrUpdate(treatment);
+        else
+            creatOrUpdateResult = getService().createOrUpdateMedtronic(treatment, false);
+
         boolean newRecordCreated = creatOrUpdateResult.newRecord;
         //log.debug("Adding new Treatment record" + treatment.toString());
         if (detailedBolusInfo.carbTime != 0) {
@@ -523,7 +625,10 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
             carbsTreatment.date = detailedBolusInfo.date + detailedBolusInfo.carbTime * 60 * 1000L + 1000L; // add 1 sec to make them different records
             carbsTreatment.carbs = detailedBolusInfo.carbs;
             carbsTreatment.source = detailedBolusInfo.source;
-            getService().createOrUpdate(carbsTreatment);
+            if (!medtronicPump)
+                getService().createOrUpdate(carbsTreatment);
+            else
+                getService().createOrUpdateMedtronic(carbsTreatment, false);
             //log.debug("Adding new Treatment record" + carbsTreatment);
         }
         if (newRecordCreated && detailedBolusInfo.isValid)

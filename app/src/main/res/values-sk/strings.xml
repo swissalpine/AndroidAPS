@@ -532,10 +532,12 @@
     <string name="loopsuspended">Uzavretý okruh pozastavený</string>
     <string name="loopsuspendedfor">Pozastavený (%1$d min)</string>
     <string name="loopsuperbolusfor">Superbolus (%1$d m)</string>
+    <string name="suspendloop">Pozastaviť uzavretý okruh</string>
     <string name="suspendloopfor1h">Pozastaviť uzavretý okruh na 1 h</string>
     <string name="suspendloopfor2h">Pozastaviť uzavretý okruh na 2 h</string>
     <string name="suspendloopfor3h">Pozastaviť uzavretý okruh na 3 h</string>
     <string name="suspendloopfor10h">Pozastaviť uzavretý okruh na 10 h</string>
+    <string name="suspendloopforXmin">Pozastaviť uzavretý okruh na %1$d min</string>
     <string name="disconnectpumpfor15m">Odpojiť pumpu na 15 min</string>
     <string name="disconnectpumpfor30m">Odpojiť pumpu na 30 min</string>
     <string name="disconnectpumpfor1h">Odpojiť pumpu na 1 h</string>
@@ -886,7 +888,7 @@
     <string name="closed_loop_disabled_on_dev_branch">Bežiaca vývojárska verzia. Uzavretý okruh je zakázaný.</string>
     <string name="engineering_mode_enabled">Vývojársky mód povolený</string>
     <string name="not_eng_mode_or_release">Vývojársky mód nie je povolený a nebeží vydaná verzia</string>
-    <string name="pump_basebasalrate">%.2f U/h</string>
+    <string name="pump_basebasalrate">%1$.2f U/h</string>
     <string name="combo_actvity_reading_basal_profile">Načítavam bazálny profil</string>
     <string name="combo_bolus_rejected_due_to_pump_history_change">História v pumpe sa zmenila po spočítaní bolusu. Bolus nebol podaný. Prosím spočítajte ho znovu, pokiaľ je stále potrebný.</string>
     <string name="combo_error_updating_treatment_record">Bolus úspešne podaný, ale zápis se nepodaril. To sa môže stať, pokiaľ sú podané bolusy rovnakej veľkosti v priebehu 2 minút. Skontrolujte históriu pumpy a zadajte chýbajúce položky do ošetrení. Uistite sa, že nezadávate rovnakú veľkosť v rámci 1 minúty.</string>
@@ -1142,6 +1144,13 @@
     <string name="min_recovery_duration">Min. doba trvania obnovenia [s]</string>
     <string name="recovery_duration">Trvanie obnovenia</string>
     <string name="timeout_during_handshake">Vypršal čas na pripojenie - reštartuj Bluetooth</string>
+    <string name="weekday_sunday_short">Ned</string>
+    <string name="weekday_saturday_short">Sob</string>
+    <string name="weekday_friday_short">Pia</string>
+    <string name="weekday_thursday_short">Štv</string>
+    <string name="weekday_wednesday_short">Str</string>
+    <string name="weekday_tuesday_short">Uto</string>
+    <string name="weekday_monday_short">Pon</string>
     <string name="profile_total">== ∑  %1$s U</string>
     <string name="profile_ins_units_per_hout">U/h</string>
     <string name="profile_carbs_per_unit">g/U</string>
@@ -1187,11 +1196,24 @@
     <string name="old_version">stará verzia</string>
     <string name="very_old_version">veľmi stará verzia</string>
     <string name="new_version_warning">Nová verzia dostupná najmenej %1$d dní! Návrat k liečbe inzulínovou pumpou s podporou senzora po 60 dňoch, okruh bude deaktivovaný po 90 dňoch.</string>
+    <string name="scale_insulin_activity">Mierka grafu aktivity inzulínu</string>
     <string name="twohours">2h</string>
     <string name="formatinsulinunits">%1$.2fU</string>
     <string name="dexcom_app_patched">Dexcom aplikácia (upravená)</string>
     <string name="dexcom_short">DXCM</string>
     <string name="description_source_dexcom">Prijímaj hodnoty glykémie z upravenej Dexcom aplikácie.</string>
+    <!-- Pump Abstract -->
+    <!-- Medtronic (MDT) - Base -->
+    <!-- MDT Configuration -->
+    <!-- RL BLE Scanning -->
+    <!-- RL Status Page -->
+    <!-- RL State -->
+    <!-- RL Errors -->
+    <!-- RL Target Device -->
+    <!-- MDT Errors -->
+    <!-- MDT History -->
+    <!-- MDT Pump Status -->
+    <!-- <string name="medtronic_cmd_profile_not_set">Remote Basal profile setting is not supported. Please modify Basal profile on your pump manually.</string> -->
     <plurals name="objective_days">
         <item quantity="one">%1$d deň</item>
         <item quantity="few">%1$d dní</item>
