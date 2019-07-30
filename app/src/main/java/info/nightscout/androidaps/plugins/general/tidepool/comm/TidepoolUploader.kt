@@ -28,7 +28,7 @@ object TidepoolUploader {
 
     private var wl: PowerManager.WakeLock? = null
 
-    private const val INTEGRATION_BASE_URL = "https://int-api.tidepool.org"
+    private const val INTEGRATION_BASE_URL = "https://api.tidepool.org" //"https://int-api.tidepool.org"
     private const val PRODUCTION_BASE_URL = "https://api.tidepool.org"
 
     internal const val VERSION = "0.0.1"
