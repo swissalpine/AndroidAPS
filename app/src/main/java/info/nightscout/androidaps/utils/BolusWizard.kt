@@ -6,8 +6,6 @@ import android.text.Html
 import androidx.appcompat.app.AlertDialog
 import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
-import info.nightscout.androidaps.R2.string.key_openapsama_autosens_max
-import info.nightscout.androidaps.R2.string.key_openapsama_autosens_min
 import info.nightscout.androidaps.data.DetailedBolusInfo
 import info.nightscout.androidaps.data.Profile
 import info.nightscout.androidaps.db.CareportalEvent
@@ -188,8 +186,8 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
         var autosensRatio = IobCobCalculatorPlugin.getPlugin().getLastAutosensData("WizardDialog")?.autosensResult?.ratio
 
         if (SP.getBoolean(R.string.key_wizard_include_autosens, false) && (autosensRatio != null)) {
-            ratio = Math.min(autosensRatio, SP.getDouble(key_openapsama_autosens_max, 1.2))
-            ratio = Math.max(ratio, SP.getDouble(key_openapsama_autosens_min, 0.7))
+            ratio = Math.min(autosensRatio, SP.getDouble(R.string.openapsama_autosens_max, 1.2))
+            ratio = Math.max(ratio, SP.getDouble(R.string.key_openapsama_autosens_min, 0.7))
             if (calculatedTotalInsulin > 0) {
                 calculatedTotalInsulin = calculatedTotalInsulin * ratio
             }
@@ -210,7 +208,8 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
             calculatedTotalInsulin = 0.0
         }
 
-        val bolusStep = ConfigBuilderPlugin.getPlugin().activePump?.pumpDescription?.bolusStep ?: 0.1
+        val bolusStep = ConfigBuilderPlugin.getPlugin().activePump?.pumpDescription?.bolusStep
+                ?: 0.1
         calculatedTotalInsulin = Round.roundTo(calculatedTotalInsulin, bolusStep)
 
         insulinAfterConstraints = MainApp.getConstraintChecker().applyBolusConstraints(Constraint(calculatedTotalInsulin)).value()
@@ -294,7 +293,7 @@ class BolusWizard @JvmOverloads constructor(val profile: Profile,
 
             val builder = AlertDialog.Builder(context)
             builder.setTitle(MainApp.gs(R.string.confirmation))
-            builder.setMessage(Html.fromHtml(confirmMessage, Html.FROM_HTML_MODE_LEGACY))
+            builder.setMessage(HtmlHelper.fromHtml(confirmMessage))
             builder.setPositiveButton(MainApp.gs(R.string.ok)) { _, _ ->
                 synchronized(builder) {
                     if (accepted) {

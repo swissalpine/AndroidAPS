@@ -78,20 +78,10 @@ import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.PumpDescription;
 import info.nightscout.androidaps.interfaces.PumpInterface;
 import info.nightscout.androidaps.logging.L;
-import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin;
-import info.nightscout.androidaps.plugins.general.careportal.CareportalFragment;
-import info.nightscout.androidaps.plugins.general.careportal.Dialogs.NewNSTreatmentDialog;
-import info.nightscout.androidaps.plugins.general.careportal.OptionsToShow;
-import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
-import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions;
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensData;
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.CobInfo;
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin;
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.events.EventAutosensCalculationFinished;
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.events.EventIobCalculationProgress;
 import info.nightscout.androidaps.plugins.aps.loop.APSResult;
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin;
 import info.nightscout.androidaps.plugins.aps.loop.events.EventNewOpenLoopNotification;
+import info.nightscout.androidaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin;
 import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.general.careportal.CareportalFragment;
@@ -108,7 +98,12 @@ import info.nightscout.androidaps.plugins.general.overview.dialogs.NewTreatmentD
 import info.nightscout.androidaps.plugins.general.overview.dialogs.WizardDialog;
 import info.nightscout.androidaps.plugins.general.overview.graphData.GraphData;
 import info.nightscout.androidaps.plugins.general.wear.ActionStringHandler;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensData;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.CobInfo;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.events.EventAutosensCalculationFinished;
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.events.EventIobCalculationProgress;
 import info.nightscout.androidaps.plugins.source.SourceDexcomPlugin;
 import info.nightscout.androidaps.plugins.source.SourceXdripPlugin;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
@@ -648,8 +643,14 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             newDialog.setOptions(profileswitch, R.string.careportal_profileswitch);
             newDialog.show(getFragmentManager(), "NewNSTreatmentDialog");
         } else if (item.getTitle().equals(MainApp.gs(R.string.danar_viewprofile))) {
-            ProfileViewerDialog pvd = ProfileViewerDialog.newInstance(System.currentTimeMillis());
+            Bundle args = new Bundle();
+            args.putLong("time", DateUtil.now());
+            args.putInt("mode", ProfileViewerDialog.Mode.RUNNING_PROFILE.ordinal());
+            ProfileViewerDialog pvd = new ProfileViewerDialog();
+            pvd.setArguments(args);
             FragmentManager manager = getFragmentManager();
+            if (manager != null)
+                pvd.show(manager, "ProfileViewDialog");
             pvd.show(manager, "ProfileViewDialog");
         // Anpassung IOBmax
         //} else if (item.getTitle().equals("IOBmax: -0.5 U")) {

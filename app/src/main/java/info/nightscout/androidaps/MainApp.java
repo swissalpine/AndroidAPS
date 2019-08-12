@@ -149,6 +149,7 @@ public class MainApp extends Application {
         }
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        mFirebaseAnalytics.setAnalyticsCollectionEnabled(!Boolean.getBoolean("disableFirebase"));
 
         JodaTimeAndroid.init(this);
 
@@ -205,7 +206,7 @@ public class MainApp extends Application {
             if (Config.SAFETY) pluginsList.add(SafetyPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(VersionCheckerPlugin.INSTANCE);
             if (Config.SAFETY) pluginsList.add(StorageConstraintPlugin.getPlugin());
-            //if (Config.SAFETY) pluginsList.add(SignatureVerifier.getPlugin());
+            if (Config.SAFETY) pluginsList.add(SignatureVerifier.getPlugin());
             if (Config.APS) pluginsList.add(ObjectivesPlugin.getPlugin());
             pluginsList.add(SourceXdripPlugin.getPlugin());
             pluginsList.add(SourceNSClientPlugin.getPlugin());
