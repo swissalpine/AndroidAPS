@@ -163,14 +163,12 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/overview_basallayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/overview_runningtemp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textAppearance="?android:attr/textAppearanceSmall"
@@ -266,7 +264,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
-                        android:id="@+id/iob_group"
                         android:orientation="horizontal">
 
                         <TextView
@@ -294,7 +291,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
-                        android:id="@+id/cob_group"
                         android:orientation="horizontal">
                         <TextView
                             android:layout_width="wrap_content"
@@ -320,7 +316,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
-                        android:id="@+id/as_group"
                         android:orientation="horizontal">
 
                         <TextView

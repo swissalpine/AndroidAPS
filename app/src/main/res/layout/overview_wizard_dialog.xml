@@ -19,7 +19,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:width="120dp"
@@ -52,7 +52,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:width="120dp"
@@ -82,40 +82,11 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="5dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/newcarbs_plus1"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="+5" />
-
-            <Button
-                android:id="@+id/newcarbs_plus2"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="+10" />
-
-            <Button
-                android:id="@+id/newcarbs_plus3"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="+20" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:width="120dp"
@@ -143,13 +114,12 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/treatments_wizard_carbtime_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:width="120dp"
@@ -177,12 +147,10 @@
 
 
         <LinearLayout
-            android:id="@+id/treatments_wizard_profile_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -200,28 +168,6 @@
                 android:layout_weight="0.5" />
 
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="-10dp"
-            android:orientation="horizontal"
-            android:padding="5dp">
-
-            <TextView
-                android:id="@+id/treatments_wizard_total"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="5dp"
-                android:layout_marginTop="5dp"
-                android:background="@drawable/background_darkgray"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:text="2.35U 28g"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
-
             <CheckBox
                 android:id="@+id/treatments_wizard_sbcheckbox"
                 android:layout_width="wrap_content"
@@ -229,8 +175,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginLeft="10dp"
                 android:checked="false"
-                android:text="Super\nbolus"
-                android:textSize="12sp" />
+                android:text="Super\nbolus" />
 
         </LinearLayout>
 
@@ -238,30 +183,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginBottom="-10dp"
-            android:orientation="horizontal"
-            android:padding="5dp">
-
-            <CheckBox
-                android:id="@+id/treatments_wizard_autosenscheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:width="32dp"
-                android:checked="false" />
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/treatments_wizard_autosens"
+                android:id="@+id/treatments_wizard_total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="0dp"
-                android:layout_marginTop="0dp"
+                android:background="@drawable/background_darkgray"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:text="Autosens: ---%"
-                android:textAppearance="@android:style/TextAppearance.Material.Medium" />
+                android:text="2.35U 28g"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/treatments_wizard_percent_used"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/background_darkgray"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="50%"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/iob" />
 
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/treatments_wizard_notes_layout"
@@ -290,7 +236,7 @@
 
         </LinearLayout>
 
-        <include layout="@layout/mdtp_done_button" />
+        <include layout="@layout/okcancel" />
 
         <View
             android:layout_width="fill_parent"
@@ -387,7 +333,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/treatments_wizard_cob_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -444,7 +389,6 @@
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
-                android:id="@+id/treatments_wizard_bolusiob"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:width="50dp"
@@ -480,7 +424,6 @@
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
-                android:id="@+id/treatments_wizard_basaliob"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:width="50dp"
@@ -582,7 +525,6 @@
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
-                android:id="@+id/treatments_wizard_correction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:width="94dp"
