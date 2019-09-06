@@ -339,6 +339,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             rangeToDisplay = rangeToDisplay > 24 ? 6 : rangeToDisplay;
             SP.putInt(R.string.key_rangetodisplay, rangeToDisplay);
             updateGUI("rangeChange");
+            SP.putBoolean(R.string.key_objectiveusescale, true);
             return false;
         });
 
@@ -602,6 +603,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                     }
                 }
             });
+            SP.putBoolean(R.string.key_objectiveusereconnect, true);
             NSUpload.uploadOpenAPSOffline(0);
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.suspendloopfor1h))) {
@@ -630,6 +632,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor1h))) {
             LoopPlugin.getPlugin().disconnectPump(60, profile);
+            SP.putBoolean(R.string.key_objectiveusedisconnect, true);
             updateGUI("suspendmenu");
             return true;
         } else if (item.getTitle().equals(MainApp.gs(R.string.disconnectpumpfor2h))) {
