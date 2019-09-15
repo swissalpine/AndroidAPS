@@ -42,7 +42,6 @@ public class Objective2 extends Objective {
                 .hint(new Hint(R.string.pumpdisconnect_hint1))
         );
         tasks.add(new ExamTask(R.string.objectives, R.string.objectives_howtosave,"objectives")
-                .option(new Option(R.string.objectives_writetopaper, false))
                 .option(new Option(R.string.objectives_exportsettings, true))
                 .option(new Option(R.string.objectives_storeelsewhere, true))
                 .option(new Option(R.string.objectives_doexportonstart, false))
@@ -56,7 +55,7 @@ public class Objective2 extends Objective {
                 .option(new Option(R.string.disconnectpumpfor1h, false))
                 .option(new Option(R.string.noisycgm_pause, true))
                 .option(new Option(R.string.noisycgm_replacesensor, true))
-                .option(new Option(R.string.noisycgm_turnoffcgmreceiver, false))
+                .option(new Option(R.string.noisycgm_turnoffphone, false))
                 .option(new Option(R.string.noisycgm_checksmoothing, true))
                 .hint(new Hint(R.string.noisycgm_hint1))
         );
@@ -73,7 +72,6 @@ public class Objective2 extends Objective {
        tasks.add(new ExamTask(R.string.suspendloop, R.string.suspendloop_doigetinsulin,"suspendloop")
                 .option(new Option(R.string.suspendloop_yes, true))
                 .option(new Option(R.string.suspendloop_no, false))
-                 .hint(new Hint(R.string.exercise_hint1))
         );
        tasks.add(new ExamTask(R.string.basaltest, R.string.basaltest_when,"basaltest")
                 .option(new Option(R.string.basaltest_beforeloop, true))
@@ -136,15 +134,14 @@ public class Objective2 extends Objective {
                 .hint(new Hint(R.string.sensitivity_hint1))
         );
         tasks.add(new ExamTask(R.string.wrongcarbs, R.string.wrongcarbs_whattodo,"wrongcarbs")
-                .option(new Option(R.string.disableloop, false))
+                .option(new Option(R.string.wrongcarbs_addfakeinsulin, false))
                 .option(new Option(R.string.wrongcarbs_treatmentstab, true))
-                .hint(new Hint(R.string.sensitivity_hint1))
         );
         tasks.add(new ExamTask(R.string.extendedcarbs, R.string.extendedcarbs_handling,"extendedcarbs")
                 .option(new Option(R.string.extendedcarbs_useextendedcarbs, true))
                 .option(new Option(R.string.extendedcarbs_add, false))
                 .option(new Option(R.string.extendedcarbs_useextendedbolus, false))
-                .hint(new Hint(R.string.sensitivity_hint1))
+                .hint(new Hint(R.string.extendedcarbs_hint1))
         );
         tasks.add(new ExamTask(R.string.nsclient_monitoring, R.string.nsclient_howcanyou,"nsclient")
                 .option(new Option(R.string.nightscout, true))
@@ -154,7 +151,6 @@ public class Objective2 extends Objective {
                 .option(new Option(R.string.xdripfollower, true))
                 .option(new Option(R.string.looponiphone, false))
                 .option(new Option(R.string.spikeiphone, true))
-                .hint(new Hint(R.string.sensitivity_hint1))
         );
         tasks.add(new ExamTask(R.string.nsprofileview_isf_label, R.string.whatistrue,"isf")
                 .option(new Option(R.string.isf_increasingvalue, true))
