@@ -33,17 +33,6 @@
                 android:layout_width="130dp"
                 android:layout_height="40dp" />
 
-            <TextView
-                android:id="@+id/treatments_wizard_bgunits"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:gravity="left"
-                android:minWidth="45dp"
-                android:paddingLeft="5dp"
-                android:text="mg/dl"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -66,17 +55,6 @@
                 android:layout_width="130dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center_horizontal" />
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:gravity="left"
-                android:minWidth="40dp"
-                android:paddingLeft="5dp"
-                android:text="g"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
 
         </LinearLayout>
 
@@ -101,16 +79,6 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_horizontal" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:gravity="left"
-                android:minWidth="45dp"
-                android:paddingLeft="5dp"
-                android:text="@string/insulin_unit_shortname"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -134,15 +102,6 @@
                 android:layout_height="40dp"
                 android:layout_gravity="center_horizontal" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:gravity="left"
-                android:minWidth="45dp"
-                android:paddingLeft="5dp"
-                android:text="min"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
 
 

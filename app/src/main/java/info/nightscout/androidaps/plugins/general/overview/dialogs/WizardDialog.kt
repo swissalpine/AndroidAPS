@@ -211,7 +211,7 @@ class WizardDialog : DialogFragment() {
 
 
         val units = profile.units
-        treatments_wizard_bgunits.text = units
+        //treatments_wizard_bgunits.text = units
         if (units == Constants.MGDL)
             treatments_wizard_bginput.setStep(1.0)
         else
