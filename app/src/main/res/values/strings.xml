@@ -1581,6 +1581,8 @@
     <string name="medtronic_cmd_desc_get_tbr">Get Temporary Basal</string>
     <string name="medtronic_cmd_desc_set_tbr">Set Temporary Basal</string>
     <string name="medtronic_cmd_desc_set_bolus">Set Bolus</string>
+    <string name="profilename">Change profile to</string>
+    <string name="changengetoprofilename">Change profile to %1$s</string>
 
 
     <string name="insulinFromCob"><![CDATA[COB vs IOB: <font color=\'%1$s\'>%2$+.2fU</font>]]></string>
@@ -1592,6 +1594,10 @@
     <string name="deliverpartofboluswizard">Bolus wizard performs calculation but only this part of calculated insulin is delivered. Useful with SMB algorithm.</string>
     <string name="loading">Loading ...</string>
     <string name="snooze">Snooze</string>
+    <string name="time_range">Time range</string>
+    <string name="timerange_value">Time is between %1$s and %2$s</string>
+    <string name="between">Between </string>
+
     <string name="close">Close</string>
     <string name="increasingmaxbasal">Increasing max basal value because setting is lower than your max basal in profile</string>
 
