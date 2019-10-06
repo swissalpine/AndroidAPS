@@ -18,7 +18,6 @@ import com.squareup.otto.LoggingBus;
 import com.squareup.otto.ThreadEnforcer;
 
 import info.nightscout.androidaps.plugins.general.tidepool.TidepoolPlugin;
-import info.nightscout.androidaps.plugins.profile.average.AverageProfilePlugin;
 import net.danlew.android.joda.JodaTimeAndroid;
 
 import org.slf4j.Logger;
@@ -198,7 +197,6 @@ public class MainApp extends Application {
             pluginsList.add(NSProfilePlugin.getPlugin());
             if (Config.OTHERPROFILES) pluginsList.add(SimpleProfilePlugin.getPlugin());
             if (Config.OTHERPROFILES) pluginsList.add(LocalProfilePlugin.getPlugin());
-            if (Config.OTHERPROFILES) pluginsList.add(AverageProfilePlugin.getPlugin());
             pluginsList.add(TreatmentsPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(SafetyPlugin.getPlugin());
             if (Config.SAFETY) pluginsList.add(VersionCheckerPlugin.INSTANCE);
