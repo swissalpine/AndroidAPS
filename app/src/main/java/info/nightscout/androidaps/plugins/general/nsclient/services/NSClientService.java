@@ -111,8 +111,8 @@ public class NSClientService extends Service {
 
     private ArrayList<Long> reconnections = new ArrayList<>();
     private int WATCHDOG_INTERVAL_MINUTES = 2;
-    private int WATCHDOG_RECONNECT_IN = 15;
-    private int WATCHDOG_MAXCONNECTIONS = 5;
+    private int WATCHDOG_RECONNECT_IN = 5; //= 15
+    private int WATCHDOG_MAXCONNECTIONS = 10; //= 5;
 
     public NSClientService() {
         if (handler == null) {
