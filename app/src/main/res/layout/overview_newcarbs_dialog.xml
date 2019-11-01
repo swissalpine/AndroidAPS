@@ -83,7 +83,7 @@
                 android:paddingTop="5dp">
 
                 <TextView
-                    android:layout_width="60dp"
+                    android:layout_width="67dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:textStyle="bold"
@@ -111,7 +111,7 @@
                 android:paddingBottom="5dp">
 
                 <TextView
-                    android:layout_width="60dp"
+                    android:layout_width="67dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:textStyle="bold"
@@ -139,7 +139,7 @@
                 android:paddingTop="5dp">
 
                 <TextView
-                    android:layout_width="60dp"
+                    android:layout_width="67dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:textStyle="bold"
