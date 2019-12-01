@@ -28,13 +28,17 @@ import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.MealData;
 import info.nightscout.androidaps.data.Profile;
 import info.nightscout.androidaps.db.TemporaryBasal;
+import info.nightscout.androidaps.interfaces.PumpInterface;
 import info.nightscout.androidaps.logging.L;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin;
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin;
 import info.nightscout.androidaps.plugins.aps.loop.ScriptReader;
 import info.nightscout.androidaps.plugins.aps.openAPSMA.LoggerCallback;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.utils.SP;
 import info.nightscout.androidaps.utils.SafeParse;
+
 
 public class DetermineBasalAdapterSMBJS {
     private static Logger log = LoggerFactory.getLogger(L.APS);
@@ -49,6 +53,7 @@ public class DetermineBasalAdapterSMBJS {
     private JSONObject mAutosensData = null;
     private boolean mMicrobolusAllowed;
     private boolean mSMBAlwaysAllowed;
+    private long mCurrentTime;
 
     private String storedCurrentTemp = null;
     private String storedIobData = null;
@@ -59,6 +64,7 @@ public class DetermineBasalAdapterSMBJS {
     private String storedAutosens_data = null;
     private String storedMicroBolusAllowed = null;
     private String storedSMBAlwaysAllowed = null;
+    private String storedCurrentTime = null;
 
     private String scriptDebug = "";
 
@@ -89,6 +95,7 @@ public class DetermineBasalAdapterSMBJS {
             log.debug("Reservoir data: " + "undefined");
             log.debug("MicroBolusAllowed:  " + (storedMicroBolusAllowed = "" + mMicrobolusAllowed));
             log.debug("SMBAlwaysAllowed:  " + (storedSMBAlwaysAllowed = "" + mSMBAlwaysAllowed));
+            log.debug("CurrentTime: " + (storedCurrentTime = "" + mCurrentTime));
         }
 
         DetermineBasalResultSMB determineBasalResultSMB = null;
@@ -131,7 +138,8 @@ public class DetermineBasalAdapterSMBJS {
                         makeParam(mMealData, rhino, scope),
                         setTempBasalFunctionsObj,
                         new Boolean(mMicrobolusAllowed),
-                        makeParam(null, rhino, scope) // reservoir data as undefined
+                        makeParam(null, rhino, scope), // reservoir data as undefined
+                        new Long(mCurrentTime)
                 };
 
 
@@ -220,7 +228,8 @@ public class DetermineBasalAdapterSMBJS {
     ) throws JSONException {
 
         String units = profile.getUnits();
-
+        Double bolusincrement = SP.getDouble("key_bolus_increment", SMBDefaults.bolus_increment);
+        Double pumpbolusstep = ConfigBuilderPlugin.getPlugin().getActivePump().getPumpDescription().bolusStep;
         mProfile = new JSONObject();
 
         mProfile.put("max_iob", maxIob);
@@ -236,15 +245,13 @@ public class DetermineBasalAdapterSMBJS {
         mProfile.put("max_daily_safety_multiplier", SP.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3));
         mProfile.put("current_basal_safety_multiplier", SP.getDouble(R.string.key_openapsama_current_basal_safety_multiplier, 4d));
 
-        // TODO AS-FIX
-        // mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
-        mProfile.put("high_temptarget_raises_sensitivity", false);
-        //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
-        mProfile.put("low_temptarget_lowers_sensitivity", false);
+        mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
+        mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
 
 
-        mProfile.put("sensitivity_raises_target", SMBDefaults.sensitivity_raises_target);
-        mProfile.put("resistance_lowers_target", SMBDefaults.resistance_lowers_target);
+
+        mProfile.put("sensitivity_raises_target", SP.getBoolean(R.string.key_sensitivity_raises_target, SMBDefaults.sensitivity_raises_target));
+        mProfile.put("resistance_lowers_target", SP.getBoolean(R.string.key_resistance_lowers_target, SMBDefaults.resistance_lowers_target));
         mProfile.put("adv_target_adjustments", SMBDefaults.adv_target_adjustments);
         mProfile.put("exercise_mode", SMBDefaults.exercise_mode);
         mProfile.put("half_basal_exercise_target", SMBDefaults.half_basal_exercise_target);
@@ -261,13 +268,20 @@ public class DetermineBasalAdapterSMBJS {
         mProfile.put("A52_risk_enable", SMBDefaults.A52_risk_enable);
 
         boolean smbEnabled = SP.getBoolean(MainApp.gs(R.string.key_use_smb), false);
+        mProfile.put("SMBInterval", SP.getInt("key_smbinterval", SMBDefaults.SMBInterval));
         mProfile.put("enableSMB_with_COB", smbEnabled && SP.getBoolean(R.string.key_enableSMB_with_COB, false));
         mProfile.put("enableSMB_with_temptarget", smbEnabled && SP.getBoolean(R.string.key_enableSMB_with_temptarget, false));
         mProfile.put("allowSMB_with_high_temptarget", smbEnabled && SP.getBoolean(R.string.key_allowSMB_with_high_temptarget, false));
         mProfile.put("enableSMB_always", smbEnabled && SP.getBoolean(R.string.key_enableSMB_always, false) && advancedFiltering);
         mProfile.put("enableSMB_after_carbs", smbEnabled && SP.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering);
         mProfile.put("maxSMBBasalMinutes", SP.getInt(R.string.key_smbmaxminutes, SMBDefaults.maxSMBBasalMinutes));
-        mProfile.put("carbsReqThreshold", SMBDefaults.carbsReqThreshold);
+        mProfile.put("maxUAMSMBBasalMinutes", SP.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes));
+        if (bolusincrement < pumpbolusstep){
+          //the bolus incrument is less than what the pump can support (by pump settings or pump restriction), set to value supported by the pump
+          bolusincrement = pumpbolusstep;
+        }
+        mProfile.put("bolus_increment", bolusincrement);
+        mProfile.put("carbsReqThreshold", SP.getInt(R.string.key_carbsReqThreshold, SMBDefaults.carbsReqThreshold));
 
         mProfile.put("current_basal", basalrate);
         mProfile.put("temptargetSet", tempTargetSet);
@@ -287,7 +301,7 @@ public class DetermineBasalAdapterSMBJS {
         mCurrentTemp.put("rate", tb != null ? tb.tempBasalConvertedToAbsolute(now, profile) : 0d);
 
         // as we have non default temps longer than 30 mintues
-        TemporaryBasal tempBasal = TreatmentsPlugin.getPlugin().getTempBasalFromHistory(System.currentTimeMillis());
+        TemporaryBasal tempBasal = TreatmentsPlugin.getPlugin().getTempBasalFromHistory(now);
         if (tempBasal != null) {
             mCurrentTemp.put("minutesrunning", tempBasal.getRealDuration());
         }
@@ -296,6 +310,7 @@ public class DetermineBasalAdapterSMBJS {
 
         mGlucoseStatus = new JSONObject();
         mGlucoseStatus.put("glucose", glucoseStatus.glucose);
+        mGlucoseStatus.put("noise", glucoseStatus.noise);
 
         if (SP.getBoolean(R.string.key_always_use_shortavg, false)) {
             mGlucoseStatus.put("delta", glucoseStatus.short_avgdelta);
@@ -325,6 +340,8 @@ public class DetermineBasalAdapterSMBJS {
         }
         mMicrobolusAllowed = microBolusAllowed;
         mSMBAlwaysAllowed = advancedFiltering;
+
+        mCurrentTime = System.currentTimeMillis();
 
     }
 
