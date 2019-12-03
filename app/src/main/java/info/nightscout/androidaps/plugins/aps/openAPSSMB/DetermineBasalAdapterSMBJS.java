@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import info.nightscout.androidaps.Constants;
 import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
+import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.MealData;
@@ -38,7 +39,6 @@ import info.nightscout.androidaps.plugins.aps.openAPSMA.LoggerCallback;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.utils.SP;
 import info.nightscout.androidaps.utils.SafeParse;
-
 
 public class DetermineBasalAdapterSMBJS {
     private static Logger log = LoggerFactory.getLogger(L.APS);
@@ -241,17 +241,19 @@ public class DetermineBasalAdapterSMBJS {
         mProfile.put("max_bg", maxBg);
         mProfile.put("target_bg", targetBg);
         mProfile.put("carb_ratio", profile.getIc());
-        mProfile.put("sens", Profile.toMgdl(profile.getIsf(), units));
+        mProfile.put("sens", profile.getIsfMgdl());
         mProfile.put("max_daily_safety_multiplier", SP.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3));
         mProfile.put("current_basal_safety_multiplier", SP.getDouble(R.string.key_openapsama_current_basal_safety_multiplier, 4d));
 
-        mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
-        mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
+        // TODO AS-FIX
+        // mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
+        mProfile.put("high_temptarget_raises_sensitivity", false);
+        //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
+        mProfile.put("low_temptarget_lowers_sensitivity", false);
 
 
-
-        mProfile.put("sensitivity_raises_target", SP.getBoolean(R.string.key_sensitivity_raises_target, SMBDefaults.sensitivity_raises_target));
-        mProfile.put("resistance_lowers_target", SP.getBoolean(R.string.key_resistance_lowers_target, SMBDefaults.resistance_lowers_target));
+        mProfile.put("sensitivity_raises_target", SMBDefaults.sensitivity_raises_target);
+        mProfile.put("resistance_lowers_target", SMBDefaults.resistance_lowers_target);
         mProfile.put("adv_target_adjustments", SMBDefaults.adv_target_adjustments);
         mProfile.put("exercise_mode", SMBDefaults.exercise_mode);
         mProfile.put("half_basal_exercise_target", SMBDefaults.half_basal_exercise_target);
@@ -287,7 +289,7 @@ public class DetermineBasalAdapterSMBJS {
         mProfile.put("temptargetSet", tempTargetSet);
         mProfile.put("autosens_max", SafeParse.stringToDouble(SP.getString(R.string.key_openapsama_autosens_max, "1.2")));
 
-        if (units.equals(Constants.MMOL)) {
+        if (ProfileFunctions.getSystemUnits().equals(Constants.MMOL)) {
             mProfile.put("out_units", "mmol/L");
         }
 
@@ -301,7 +303,7 @@ public class DetermineBasalAdapterSMBJS {
         mCurrentTemp.put("rate", tb != null ? tb.tempBasalConvertedToAbsolute(now, profile) : 0d);
 
         // as we have non default temps longer than 30 mintues
-        TemporaryBasal tempBasal = TreatmentsPlugin.getPlugin().getTempBasalFromHistory(now);
+        TemporaryBasal tempBasal = TreatmentsPlugin.getPlugin().getTempBasalFromHistory(System.currentTimeMillis());
         if (tempBasal != null) {
             mCurrentTemp.put("minutesrunning", tempBasal.getRealDuration());
         }

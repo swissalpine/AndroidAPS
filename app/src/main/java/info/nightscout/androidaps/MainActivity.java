@@ -42,7 +42,6 @@ import info.nightscout.androidaps.activities.HistoryBrowseActivity;
 import info.nightscout.androidaps.activities.NoSplashAppCompatActivity;
 import info.nightscout.androidaps.activities.PreferencesActivity;
 import info.nightscout.androidaps.activities.SingleFragmentActivity;
-import info.nightscout.androidaps.data.Profile;
 import info.nightscout.androidaps.events.EventAppExit;
 import info.nightscout.androidaps.events.EventPreferenceChange;
 import info.nightscout.androidaps.events.EventRebuildTabs;
@@ -51,7 +50,6 @@ import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.logging.L;
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin;
 import info.nightscout.androidaps.plugins.bus.RxBus;
-import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions;
 import info.nightscout.androidaps.plugins.constraints.versionChecker.VersionCheckerUtilsKt;
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSSettingsStatus;
 import info.nightscout.androidaps.setupwizard.SetupWizardActivity;
@@ -59,7 +57,6 @@ import info.nightscout.androidaps.tabs.TabPageAdapter;
 import info.nightscout.androidaps.utils.AndroidPermission;
 import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.LocaleHelper;
-import info.nightscout.androidaps.utils.OKDialog;
 import info.nightscout.androidaps.utils.PasswordProtection;
 import info.nightscout.androidaps.utils.SP;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -141,7 +138,7 @@ public class MainActivity extends NoSplashAppCompatActivity {
                 .subscribe(this::processPreferenceChange, FabricPrivacy::logException)
         );
 
-        if (!SP.getBoolean(R.string.key_setupwizard_processed, false)) {
+        if (!SP.getBoolean(R.string.key_setupwizard_processed, false) || !SP.contains(R.string.key_units)) {
             Intent intent = new Intent(this, SetupWizardActivity.class);
             startActivity(intent);
         } else {
@@ -249,8 +246,6 @@ public class MainActivity extends NoSplashAppCompatActivity {
 
     private void doMigrations() {
 
-        checkUpgradeToProfileTarget();
-
         // guarantee that the unreachable threshold is at least 30 and of type String
         // Added in 1.57 at 21.01.2018
         int unreachable_threshold = SP.getInt(R.string.key_pump_unreachable_threshold, 30);
@@ -259,26 +254,6 @@ public class MainActivity extends NoSplashAppCompatActivity {
         SP.putString(R.string.key_pump_unreachable_threshold, Integer.toString(unreachable_threshold));
     }
 
-
-    private void checkUpgradeToProfileTarget() { // TODO: can be removed in the future
-        boolean oldKeyExists = SP.contains("openapsma_min_bg");
-        if (oldKeyExists) {
-            Profile profile = ProfileFunctions.getInstance().getProfile();
-            String oldRange = SP.getDouble("openapsma_min_bg", 0d) + " - " + SP.getDouble("openapsma_max_bg", 0d);
-            String newRange = "";
-            if (profile != null) {
-                newRange = profile.getTargetLow() + " - " + profile.getTargetHigh();
-            }
-            String message = "Target range is changed in current version.\n\nIt's not taken from preferences but from profile.\n\n!!! REVIEW YOUR SETTINGS !!!";
-            message += "\n\nOld settings: " + oldRange;
-            message += "\nProfile settings: " + newRange;
-            OKDialog.show(this, "Target range change", message, () -> {
-                SP.remove("openapsma_min_bg");
-                SP.remove("openapsma_max_bg");
-                SP.remove("openapsma_target_bg");
-            });
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
