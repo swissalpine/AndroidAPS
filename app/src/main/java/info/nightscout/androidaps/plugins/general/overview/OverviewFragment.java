@@ -234,9 +234,9 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         timeView = (TextView) view.findViewById(R.id.overview_time);
         bgView = (TextView) view.findViewById(R.id.overview_bg);
         arrowView = (TextView) view.findViewById(R.id.overview_arrow);
-        if (smallWidth) {
-            arrowView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 35);
-        }
+        //if (smallWidth) {
+            //arrowView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 35);
+        //}
         sensitivityView = (TextView) view.findViewById(R.id.overview_sensitivity);
         timeAgoView = (TextView) view.findViewById(R.id.overview_timeago);
         timeAgoShortView = (TextView) view.findViewById(R.id.overview_timeagoshort);
@@ -1117,8 +1117,8 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 if (deltaShortView != null)
                     deltaShortView.setText(Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units));
                 if (avgdeltaView != null)
-                    avgdeltaView.setText("øΔ15m: " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units) +
-                            "  øΔ40m: " + Profile.toUnitsString(glucoseStatus.long_avgdelta, glucoseStatus.long_avgdelta * Constants.MGDL_TO_MMOLL, units));
+                    avgdeltaView.setText("Δ15m " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units) +
+                            "  Δ40m " + Profile.toUnitsString(glucoseStatus.long_avgdelta, glucoseStatus.long_avgdelta * Constants.MGDL_TO_MMOLL, units));
             } else {
                 if (deltaView != null)
                     deltaView.setText("Δ " + MainApp.gs(R.string.notavailable));

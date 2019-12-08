@@ -43,7 +43,7 @@
                     android:paddingTop="10dp"
                     android:text="Open Loop"
 
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
 
                 <TextView
@@ -57,7 +57,7 @@
                     android:paddingBottom="10dp"
                     android:paddingTop="10dp"
                     android:text="Profile"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <TextView
                     android:id="@+id/overview_temptarget"
@@ -69,7 +69,7 @@
                     android:text="TempTarget"
                     android:paddingBottom="10dp"
                     android:paddingTop="10dp"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="@color/mdtp_white" />
 
             </LinearLayout>
@@ -87,73 +87,79 @@
                     android:layout_height="match_parent"
                     android:layout_marginLeft="5dp"
                     android:layout_marginRight="5dp"
-                    android:paddingBottom="5dp"
-                    android:paddingTop="5dp"
+                    android:paddingBottom="10dp"
+                    android:paddingTop="10dp"
                     android:gravity="center_vertical|center_horizontal"
                     android:text="@string/initializing"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/overview_bg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|left"
-                    android:gravity="center_vertical"
-                    android:text="00.0"
-                    android:textSize="70dp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/overview_arrow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|left"
-                    android:layout_marginTop="-15dp"
-                    android:gravity="center_vertical"
-                    android:paddingLeft="-5dp"
-                    android:paddingRight="-5dp"
-                    android:text="→"
-                    android:textSize="70dp"
-                    android:textStyle="bold" />
+                android:layout_height="match_parent"
+                android:layout_marginTop="5dp"
+                android:gravity="center_horizontal">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="110dp"
                     android:layout_gravity="top"
-                    android:layout_marginTop="10dp"
                     android:gravity="top"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/overview_bg"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="left|center_vertical"
+                        android:gravity="center_vertical"
+                        android:text="00.0"
+                        android:textSize="50dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/overview_arrow"
+                        android:layout_width="match_parent"
+                        android:layout_height="70dp"
+                        android:layout_marginTop="-37dp"
+                        android:layout_gravity="center|top"
+                        android:gravity="center_vertical"
+                        android:text="↑→"
+                        android:textSize="60dp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:layout_marginLeft="20dp"
                     android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/overview_timeago"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="0.5"
+                        android:gravity="bottom"
+                        android:text="x min ago"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/overview_delta"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:text="∆ x mg/dl"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/overview_avgdelta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
-
+                        android:gravity="top"
+                        android:text="∆ 15 min: x     ∆ 40 min: x"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
@@ -169,22 +175,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="right"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textSize="12sp"
-                    android:textStyle="normal|bold" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <TextView
                     android:layout_width="20dp"
                     android:layout_height="wrap_content"
-                    android:textSize="12sp" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 <TextView
                     android:id="@+id/overview_basebasal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="left"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textSize="12sp" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
             </LinearLayout>
 
@@ -277,7 +280,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/iob"
-                        android:textSize="12sp" />/>
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/overview_iobpoint"
@@ -285,7 +288,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
                         android:text=":"
-                        android:textSize="12sp" />/>
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/overview_iob"
@@ -294,7 +297,7 @@
                         android:orientation="horizontal"
                         android:paddingLeft="5dp"
                         android:text=""
-                        android:textSize="12sp" />
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -306,14 +309,14 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
                         android:text="@string/cob"
-                        android:textSize="12sp" />/>
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
                         android:text=":"
-                        android:textSize="12sp" />/>
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/overview_cob"
@@ -321,7 +324,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="5dp"
                         android:text=""
-                        android:textSize="12sp" />
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -335,14 +338,14 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="10dp"
                         android:text="@string/as"
-                        android:textSize="12sp" />/>
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
                         android:text=":"
-                        android:textSize="12sp" />/>
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         android:id="@+id/overview_sensitivity"
@@ -350,7 +353,7 @@
                         android:layout_height="wrap_content"
                         android:paddingLeft="5dp"
                         android:text=""
-                        android:textSize="12sp" />
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
