@@ -403,7 +403,7 @@
                 <Spinner
                     android:id="@+id/careportal_newnstreatment_profile"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_centerInParent="true"
                     android:layout_gravity="center_vertical" />
 
