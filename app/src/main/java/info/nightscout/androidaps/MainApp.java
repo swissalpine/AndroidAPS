@@ -188,6 +188,7 @@ public class MainApp extends Application {
             pluginsList.add(SensitivityAAPSPlugin.getPlugin());
             pluginsList.add(SensitivityWeightedAveragePlugin.getPlugin());
             pluginsList.add(SensitivityOref1Plugin.getPlugin());
+            pluginsList.add(CareportalPlugin.getPlugin());
             if (Config.PUMPDRIVERS) pluginsList.add(DanaRPlugin.getPlugin());
             if (Config.PUMPDRIVERS) pluginsList.add(DanaRKoreanPlugin.getPlugin());
             if (Config.PUMPDRIVERS) pluginsList.add(DanaRv2Plugin.getPlugin());
@@ -197,7 +198,6 @@ public class MainApp extends Application {
             if (Config.PUMPDRIVERS) pluginsList.add(MedtronicPumpPlugin.getPlugin());
             if (!Config.NSCLIENT) pluginsList.add(MDIPlugin.getPlugin());
             pluginsList.add(VirtualPumpPlugin.getPlugin());
-            pluginsList.add(CareportalPlugin.getPlugin());
             if (Config.APS) pluginsList.add(LoopPlugin.getPlugin());
             if (Config.APS) pluginsList.add(OpenAPSMAPlugin.getPlugin());
             if (Config.APS) pluginsList.add(OpenAPSAMAPlugin.getPlugin());
