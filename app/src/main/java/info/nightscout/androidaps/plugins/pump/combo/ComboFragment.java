@@ -19,7 +19,7 @@ import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 
 import info.nightscout.androidaps.activities.TDDStatsActivity;
-import info.nightscout.androidaps.plugins.general.actions.dialogs.FillDialog;
+import info.nightscout.androidaps.dialogs.FillDialog;
 import info.nightscout.androidaps.plugins.pump.combo.ComboPlugin;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.PumpState;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.history.Bolus;

@@ -1,12 +1,14 @@
 package info.nightscout.androidaps;
 
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.SystemClock;
 
+import androidx.annotation.ColorRes;
 import androidx.annotation.PluralsRes;
+import androidx.annotation.StringRes;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.crashlytics.android.Crashlytics;
@@ -50,13 +52,9 @@ import info.nightscout.androidaps.plugins.general.maintenance.LoggerUtils;
 import info.nightscout.androidaps.plugins.general.maintenance.MaintenancePlugin;
 import info.nightscout.androidaps.plugins.general.nsclient.NSClientPlugin;
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload;
-import info.nightscout.androidaps.plugins.general.nsclient.receivers.AckAlarmReceiver;
-import info.nightscout.androidaps.plugins.general.nsclient.receivers.DBAccessReceiver;
 import info.nightscout.androidaps.plugins.general.overview.OverviewPlugin;
 import info.nightscout.androidaps.plugins.general.persistentNotification.PersistentNotificationPlugin;
 import info.nightscout.androidaps.plugins.general.smsCommunicator.SmsCommunicatorPlugin;
-import info.nightscout.androidaps.plugins.source.RandomBgPlugin;
-import info.nightscout.androidaps.utils.ActivityMonitor;
 import info.nightscout.androidaps.plugins.general.wear.WearPlugin;
 import info.nightscout.androidaps.plugins.general.xdripStatusline.StatuslinePlugin;
 import info.nightscout.androidaps.plugins.insulin.InsulinOrefFreePeakPlugin;
@@ -78,6 +76,7 @@ import info.nightscout.androidaps.plugins.sensitivity.SensitivityAAPSPlugin;
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityOref0Plugin;
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityOref1Plugin;
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityWeightedAveragePlugin;
+import info.nightscout.androidaps.plugins.source.RandomBgPlugin;
 import info.nightscout.androidaps.plugins.source.SourceDexcomPlugin;
 import info.nightscout.androidaps.plugins.source.SourceEversensePlugin;
 import info.nightscout.androidaps.plugins.source.SourceGlimpPlugin;
@@ -92,6 +91,7 @@ import info.nightscout.androidaps.receivers.KeepAliveReceiver;
 import info.nightscout.androidaps.receivers.NSAlarmReceiver;
 import info.nightscout.androidaps.receivers.TimeDateOrTZChangeReceiver;
 import info.nightscout.androidaps.services.Intents;
+import info.nightscout.androidaps.utils.ActivityMonitor;
 import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.LocaleHelper;
 import info.nightscout.androidaps.utils.SP;
@@ -102,7 +102,6 @@ import static info.nightscout.androidaps.plugins.constraints.versionChecker.Vers
 
 public class MainApp extends Application {
     private static Logger log = LoggerFactory.getLogger(L.CORE);
-    private static KeepAliveReceiver keepAliveReceiver;
 
     private static MainApp sInstance;
     public static Resources sResources;
@@ -115,11 +114,7 @@ public class MainApp extends Application {
     private static ArrayList<PluginBase> pluginsList = null;
 
     private static DataReceiver dataReceiver = new DataReceiver();
-    private static NSAlarmReceiver alarmReciever = new NSAlarmReceiver();
-    private static AckAlarmReceiver ackAlarmReciever = new AckAlarmReceiver();
-    private static DBAccessReceiver dbAccessReciever = new DBAccessReceiver();
-    private LocalBroadcastManager lbm;
-    BroadcastReceiver btReceiver;
+    private static NSAlarmReceiver alarmReceiver = new NSAlarmReceiver();
     TimeDateOrTZChangeReceiver timeDateOrTZChangeReceiver;
 
     public static boolean devBranch;
@@ -173,7 +168,6 @@ public class MainApp extends Application {
 
         //trigger here to see the new version on app start after an update
         triggerCheckVersion();
-        //setBTReceiver();
 
         if (pluginsList == null) {
             pluginsList = new ArrayList<>();
@@ -245,10 +239,10 @@ public class MainApp extends Application {
             new Thread(() -> {
                 SystemClock.sleep(5000);
                 ConfigBuilderPlugin.getPlugin().getCommandQueue().readStatus("Initialization", null);
-                startKeepAliveService();
             }).start();
         }
 
+        new Thread(() -> KeepAliveReceiver.setAlarm(this)).start();
         doMigrations();
     }
 
@@ -278,7 +272,7 @@ public class MainApp extends Application {
 
 
     private void registerLocalBroadcastReceiver() {
-        lbm = LocalBroadcastManager.getInstance(this);
+        LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
         lbm.registerReceiver(dataReceiver, new IntentFilter(Intents.ACTION_NEW_TREATMENT));
         lbm.registerReceiver(dataReceiver, new IntentFilter(Intents.ACTION_CHANGED_TREATMENT));
         lbm.registerReceiver(dataReceiver, new IntentFilter(Intents.ACTION_REMOVED_TREATMENT));
@@ -293,39 +287,21 @@ public class MainApp extends Application {
         lbm.registerReceiver(dataReceiver, new IntentFilter(Intents.ACTION_NEW_CAL));
 
         //register alarms
-        lbm.registerReceiver(alarmReciever, new IntentFilter(Intents.ACTION_ALARM));
-        lbm.registerReceiver(alarmReciever, new IntentFilter(Intents.ACTION_ANNOUNCEMENT));
-        lbm.registerReceiver(alarmReciever, new IntentFilter(Intents.ACTION_CLEAR_ALARM));
-        lbm.registerReceiver(alarmReciever, new IntentFilter(Intents.ACTION_URGENT_ALARM));
-
-        //register ack alarm
-        lbm.registerReceiver(ackAlarmReciever, new IntentFilter(Intents.ACTION_ACK_ALARM));
-
-        //register dbaccess
-        lbm.registerReceiver(dbAccessReciever, new IntentFilter(Intents.ACTION_DATABASE));
+        lbm.registerReceiver(alarmReceiver, new IntentFilter(Intents.ACTION_ALARM));
+        lbm.registerReceiver(alarmReceiver, new IntentFilter(Intents.ACTION_ANNOUNCEMENT));
+        lbm.registerReceiver(alarmReceiver, new IntentFilter(Intents.ACTION_CLEAR_ALARM));
+        lbm.registerReceiver(alarmReceiver, new IntentFilter(Intents.ACTION_URGENT_ALARM));
 
         this.timeDateOrTZChangeReceiver = new TimeDateOrTZChangeReceiver();
         this.timeDateOrTZChangeReceiver.registerBroadcasts(this);
 
     }
 
-    private void startKeepAliveService() {
-        if (keepAliveReceiver == null) {
-            keepAliveReceiver = new KeepAliveReceiver();
-            keepAliveReceiver.setAlarm(this);
-        }
-    }
-
-    public void stopKeepAliveService() {
-        if (keepAliveReceiver != null)
-            KeepAliveReceiver.cancelAlarm(this);
-    }
-
-    public static String gs(int id) {
+    public static String gs(@StringRes int id) {
         return sResources.getString(id);
     }
 
-    public static String gs(int id, Object... args) {
+    public static String gs(@StringRes int id, Object... args) {
         return sResources.getString(id, args);
     }
 
@@ -333,8 +309,8 @@ public class MainApp extends Application {
         return sResources.getQuantityString(id, quantity, args);
     }
 
-    public static int gc(int id) {
-        return sResources.getColor(id);
+    public static int gc(@ColorRes int id) {
+        return ContextCompat.getColor(instance(), id);
     }
 
     public static MainApp instance() {
@@ -343,13 +319,6 @@ public class MainApp extends Application {
 
     public static DatabaseHelper getDbHelper() {
         return sDatabaseHelper;
-    }
-
-    public static void closeDbHelper() {
-        if (sDatabaseHelper != null) {
-            sDatabaseHelper.close();
-            sDatabaseHelper = null;
-        }
     }
 
     public static FirebaseAnalytics getFirebaseAnalytics() {
@@ -454,20 +423,12 @@ public class MainApp extends Application {
     public void onTerminate() {
         if (L.isEnabled(L.CORE))
             log.debug("onTerminate");
-        super.onTerminate();
-        if (sDatabaseHelper != null) {
-            sDatabaseHelper.close();
-            sDatabaseHelper = null;
-        }
 
-        if (btReceiver != null) {
-            unregisterReceiver(btReceiver);
-        }
-
-        if (timeDateOrTZChangeReceiver != null) {
+        if (timeDateOrTZChangeReceiver != null)
             unregisterReceiver(timeDateOrTZChangeReceiver);
-        }
         unregisterActivityLifecycleCallbacks(ActivityMonitor.INSTANCE);
+        KeepAliveReceiver.cancelAlarm(this);
+        super.onTerminate();
     }
 
     public static int dpToPx(int dp) {
