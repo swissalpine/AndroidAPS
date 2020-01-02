@@ -30,7 +30,7 @@ public class CareportalPlugin extends PluginBase {
     }
 
     @Override
-    public boolean specialEnableCondition() {
-        return Config.NSCLIENT;
+    public boolean specialEnableCondition()  {
+        return true; // Anpassung: Config.NSCLIENT;
     }
 }
