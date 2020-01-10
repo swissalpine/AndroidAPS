@@ -26,14 +26,14 @@ class StatuslightHandler {
                      TextView sageView, TextView batteryView) {
         PumpInterface pump = ConfigBuilderPlugin.getPlugin().getActivePump();
 
-        applyStatuslight("cage", CareportalEvent.SITECHANGE, cageView, "CAN", 48, 72);
-        applyStatuslight("iage", CareportalEvent.INSULINCHANGE, iageView, "INS", 72, 96);
+        applyStatuslight("cage", CareportalEvent.SITECHANGE, cageView, "CAN", 24, 48);
+        applyStatuslight("iage", CareportalEvent.INSULINCHANGE, iageView, "INS", 96, 120);
 
         double reservoirLevel = pump.isInitialized() ? pump.getReservoirLevel() : -1;
         applyStatuslightLevel(R.string.key_statuslights_res_critical, 10.0,
                 R.string.key_statuslights_res_warning, 80.0, reservoirView, "RES", reservoirLevel);
 
-        applyStatuslight("sage", CareportalEvent.SENSORCHANGE, sageView, "SEN", 164, 166);
+        applyStatuslight("sage", CareportalEvent.SENSORCHANGE, sageView, "SEN", 336, 504);
 
         if (pump.model() != PumpType.AccuChekCombo) {
             double batteryLevel = pump.isInitialized() ? pump.getBatteryLevel() : -1;
@@ -41,7 +41,7 @@ class StatuslightHandler {
                     R.string.key_statuslights_bat_warning, 22.0,
                     batteryView, "BAT", batteryLevel);
         } else {
-            applyStatuslight("bage", CareportalEvent.PUMPBATTERYCHANGE, batteryView, "BAT", 504, 744);
+            applyStatuslight("bage", CareportalEvent.PUMPBATTERYCHANGE, batteryView, "BAT", 672, 720);
         }
 
     }
@@ -116,12 +116,12 @@ class StatuslightHandler {
                     batteryView, "BAT ", pump.getBatteryLevel());
         } else {
             handleAge("bage", CareportalEvent.PUMPBATTERYCHANGE, batteryView, "BAT ",
-                    336, 240);
+                    240, 336);
         }
     }
 
     void handleAge(String nsSettingPlugin, String eventName, TextView view, String text,
-                   int defaultUrgentThreshold, int defaultWarnThreshold) {
+                   int defaultWarnThreshold, int defaultUrgentThreshold) {
         NSSettingsStatus nsSettings = new NSSettingsStatus().getInstance();
 
         if (view != null) {
