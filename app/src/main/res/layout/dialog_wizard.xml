@@ -185,6 +185,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
+                android:paddingBottom="0dp"
                 android:text="@string/careportal_newnstreatment_profile_label"
                 android:textAppearance="@android:style/TextAppearance.Material.Small"
                 android:textStyle="bold" />
@@ -210,8 +211,11 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="10dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="5dp"
                 android:checked="false"
-                android:padding="10dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="10dp"
                 android:text="Superbolus"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
