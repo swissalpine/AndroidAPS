@@ -139,6 +139,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
     TextView avgdeltaView;
     TextView baseBasalView;
     TextView extendedBolusView;
+    LinearLayout extendedBolusLayout;
     TextView activeProfileView;
     TextView iobView;
     TextView ioblabelView;
@@ -244,6 +245,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         avgdeltaView = (TextView) view.findViewById(R.id.overview_avgdelta);
         baseBasalView = (TextView) view.findViewById(R.id.overview_basebasal);
         extendedBolusView = (TextView) view.findViewById(R.id.overview_extendedbolus);
+        extendedBolusLayout = view.findViewById(R.id.overview_extendedbolus_layout);
         activeProfileView = (TextView) view.findViewById(R.id.overview_activeprofile);
         pumpStatusView = (TextView) view.findViewById(R.id.overview_pumpstatus);
         pumpDeviceStatusView = (TextView) view.findViewById(R.id.overview_pump);
@@ -1256,15 +1258,18 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 }
             } else {
                 if (extendedBolus != null && !pump.isFakingTempsByExtendedBoluses()) {
-                    extendedBolusText = extendedBolus.toString();
+                    extendedBolusText = extendedBolus.toStringMedium();
                 }
             }
             extendedBolusView.setText(extendedBolusText);
             extendedBolusView.setOnClickListener(v -> OKDialog.show(getActivity(), MainApp.gs(R.string.extended_bolus), extendedBolus.toString()));
-            if (extendedBolusText.equals(""))
-                extendedBolusView.setVisibility(Config.NSCLIENT ? View.INVISIBLE : View.GONE);
-            else
+            if (extendedBolusText.equals("")) {
+                extendedBolusLayout.setVisibility(View.GONE);
+                if (extendedBolusLayout != null) extendedBolusView.setVisibility(Config.NSCLIENT ? View.INVISIBLE : View.GONE);
+            } else {
                 extendedBolusView.setVisibility(View.VISIBLE);
+                if (extendedBolusLayout != null) extendedBolusLayout.setVisibility(View.VISIBLE);
+            }
         }
 
         activeProfileView.setText(ProfileFunctions.getInstance().getProfileNameWithDuration());
