@@ -238,17 +238,36 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/overview_extendedbolus"
+            <LinearLayout
+                android:id="@+id/overview_extendedbolus_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:textAlignment="center"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="@color/mdtp_white" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="1dp"
+                    android:text="@string/extended_bolus_short"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="5dp"
+                    android:layout_height="wrap_content"
+                    android:text=":"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/overview_extendedbolus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="0.50U/h @17:35 1/30min - 0.40U/h"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:alignContent="center"
@@ -287,6 +306,7 @@
                         android:text=""
                         android:textAppearance="?android:attr/textAppearanceMedium" />
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
