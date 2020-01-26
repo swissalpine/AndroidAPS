@@ -235,7 +235,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
         bgView = (TextView) view.findViewById(R.id.overview_bg);
         arrowView = (TextView) view.findViewById(R.id.overview_arrow);
         if (smallWidth) {
-            arrowView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 35);
+            arrowView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 42);
         }
         sensitivityView = (TextView) view.findViewById(R.id.overview_sensitivity);
         timeAgoView = (TextView) view.findViewById(R.id.overview_timeago);
@@ -1102,7 +1102,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 if (avgdeltaView != null)
                     //avgdeltaView.setText("øΔ15': " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units) + "\n" +
                     //        "  øΔ40': " + Profile.toUnitsString(glucoseStatus.long_avgdelta, glucoseStatus.long_avgdelta * Constants.MGDL_TO_MMOLL, units));
-                    avgdeltaView.setText("øΔ15': " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units));
+                    avgdeltaView.setText("øΔ15min: " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units));
             } else {
                 if (deltaView != null)
                     deltaView.setText("Δ " + MainApp.gs(R.string.notavailable));

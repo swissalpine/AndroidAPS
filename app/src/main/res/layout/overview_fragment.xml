@@ -49,7 +49,7 @@
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp"
                     android:text="@string/openloop"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_activeprofile"
                     app:layout_constraintStart_toStartOf="parent"
@@ -65,7 +65,7 @@
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp"
                     android:text="@string/profile"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_temptarget"
                     app:layout_constraintStart_toEndOf="@+id/overview_apsmode"
@@ -79,7 +79,7 @@
                     android:paddingTop="10dp"
                     android:paddingBottom="10dp"
                     android:text="@string/temptargetshort"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
                     android:textColor="@color/mdtp_white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -105,10 +105,10 @@
                     android:layout_marginLeft="10dp"
                     android:layout_marginRight="10dp"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingTop="3dp"
-                    android:paddingBottom="3dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
                     android:text="@string/initializing"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
 
             </LinearLayout>
 
@@ -116,8 +116,8 @@
                 android:id="@+id/bg_tbr_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_marginBottom="3dp"
+                android:orientation="horizontal"
                 app:layout_constraintBottom_toTopOf="@+id/overview_statuslights"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -128,7 +128,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="00.0"
-                    android:textSize="36sp"
+                    android:textSize="32sp"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@+id/overview_arrow"
                     app:layout_constraintStart_toStartOf="parent"
@@ -140,22 +140,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:paddingStart="-2dp"
-                    android:paddingEnd="3dp"
+                    android:paddingEnd="5dp"
                     android:text="→"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@+id/overview_bg_guideline"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg"
-                    app:layout_constraintTop_toTopOf="@+id/overview_bg" />
-
-                <TextView
-                    android:id="@+id/overview_hor_space"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="                    "
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/overview_bg_guideline"
-                    app:layout_constraintStart_toEndOf="@+id/overview_arrow"
                     app:layout_constraintTop_toTopOf="@+id/overview_bg" />
 
 
@@ -202,14 +192,15 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_iob_label"
                     app:layout_constraintGuide_percent="0.40"
-                    app:layout_constraintStart_toEndOf="@+id/overview_hor_space"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- right side IOB -->
+
                 <TextView
                     android:id="@+id/overview_iob_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="@string/iob"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_cob_label"
@@ -229,7 +220,6 @@
                     android:id="@+id/overview_iob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="0dp"
                     android:paddingLeft="10dp"
                     android:text="@string/iob"
                     android:textSize="16sp"
@@ -241,6 +231,7 @@
                     android:id="@+id/overview_cob_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="@string/cob"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_basebasal_label"
@@ -271,6 +262,7 @@
                     android:id="@+id/overview_basebasal_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="@string/basal_short"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_extendedbolus_label"
@@ -301,12 +293,13 @@
                     android:id="@+id/overview_extendedbolus_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:text="@string/extended_bolus_short"
                     android:textSize="16sp"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toTopOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
-                    app:layout_constraintTop_toBottomOf="@+id/overview_basebasal_label"
-                    android:visibility="gone"/>
+                    app:layout_constraintTop_toBottomOf="@+id/overview_basebasal_label" />
 
                 <TextView
                     android:id="@+id/overview_extendedbolus_colon"
@@ -314,9 +307,9 @@
                     android:layout_height="wrap_content"
                     android:text=":"
                     android:textSize="16sp"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_label"
-                    android:visibility="gone"/>
+                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_label" />
 
                 <TextView
                     android:id="@+id/overview_extendedbolus"
@@ -326,15 +319,17 @@
                     android:text="0.50U/h @17:35 1/30min"
                     android:textSize="16sp"
                     android:textStyle="bold"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_colon"
-                    android:visibility="gone" />
+                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_colon" />
 
                 <!-- right side AS  -->
                 <TextView
                     android:id="@+id/overview_sensitivity_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="10dp"
                     android:text="@string/sensitivity_short"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -354,11 +349,12 @@
                     android:id="@+id/overview_sensitivity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
+                    android:layout_marginStart="8dp"
                     android:text="100%"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_sensitivity_colon" />
+
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
