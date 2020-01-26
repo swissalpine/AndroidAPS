@@ -173,7 +173,7 @@
     <string name="overview_newtempbasal_basalpercent">Basal value [%]</string>
     <string name="setbasalquestion">Accept new temp basal:</string>
     <string name="overview_treatment_label">Treatment</string>
-    <string name="overview_calculator_label">Calculator</string>
+    <string name="overview_calculator_label">Calc</string>
     <string name="constraintapllied">Constraint applied!</string>
     <string name="confirmation">Confirmation</string>
     <string name="bolus">Bolus</string>
@@ -1713,5 +1713,7 @@
     <string name="closed_loop_disabled_with_eb">Closed loop disabled because of running Extended bolus</string>
     <string name="extended_bolus_short">EB</string>
     <string name="phonechecker">\"PhoneChecker\"</string>
+    <string name="chartmenu">Chart menu</string>
+    <string name="sensitivity_short">AS</string>
 
 </resources>
