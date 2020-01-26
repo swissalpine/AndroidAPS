@@ -155,7 +155,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="top"
-                        android:text="∆ 15 min: x     ∆ 40 min: x"
+                        android:text="øΔ15: x     øΔ40: x"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
