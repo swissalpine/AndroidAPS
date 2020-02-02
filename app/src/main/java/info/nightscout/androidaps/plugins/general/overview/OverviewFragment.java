@@ -1102,7 +1102,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 if (avgdeltaView != null)
                     //avgdeltaView.setText("øΔ15': " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units) + "\n" +
                     //        "  øΔ40': " + Profile.toUnitsString(glucoseStatus.long_avgdelta, glucoseStatus.long_avgdelta * Constants.MGDL_TO_MMOLL, units));
-                    avgdeltaView.setText("øΔ15min: " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units));
+                    avgdeltaView.setText("avgΔ " + Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units));
             } else {
                 if (deltaView != null)
                     deltaView.setText("Δ " + MainApp.gs(R.string.notavailable));
@@ -1360,19 +1360,13 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             double iob_max_overview = SP.getDouble(R.string.key_openapssmb_max_iob, 3d);
             String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob);
             if (iob_max_overview < 2) {
-                ioblabelView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
-                ioblabelView.setTextColor(MainApp.gc(R.color.colorPrimary));
-                iobpointView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
-                iobpointView.setTextColor(MainApp.gc(R.color.colorPrimary));
-                iobView.setBackgroundColor(MainApp.gc(R.color.ribbonWarning));
-                iobView.setTextColor(MainApp.gc(R.color.colorPrimary));
+                ioblabelView.setTextColor(MainApp.gc(R.color.ribbonWarning));
+                iobpointView.setTextColor(MainApp.gc(R.color.ribbonWarning));
+                iobView.setTextColor(MainApp.gc(R.color.ribbonWarning));
                 iobtext = iobtext + " < " + DecimalFormatter.to1Decimal(iob_max_overview) + " ";
             } else {
-                ioblabelView.setBackgroundColor(Color.TRANSPARENT);
                 ioblabelView.setTextColor(MainApp.gc(R.color.defaulttext));
-                iobpointView.setBackgroundColor(Color.TRANSPARENT);
                 iobpointView.setTextColor(MainApp.gc(R.color.defaulttext));
-                iobView.setBackgroundColor(Color.TRANSPARENT);
                 iobView.setTextColor(MainApp.gc(R.color.defaulttext));
             }
             // Ende Anpassung

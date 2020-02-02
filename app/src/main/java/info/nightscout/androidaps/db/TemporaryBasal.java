@@ -421,7 +421,7 @@ public class TemporaryBasal implements Interval, DbObjectBase {
             //return percentRate + "% @" +
             //        DateUtil.timeString(date) +
             //        " " + getRealDuration() + "/" + durationInMinutes + "'";
-            return percentRate + "%   " + getRealDuration() + "/" + durationInMinutes + "'  ";
+            return percentRate + "%  " + getRealDuration() + "/" + durationInMinutes + "'";
         }
     }
 
