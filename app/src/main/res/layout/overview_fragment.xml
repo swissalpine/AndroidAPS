@@ -216,7 +216,7 @@
                     android:id="@+id/overview_iob_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
+                    android:text=""
                     android:textSize="15sp"
                     app:layout_constraintStart_toEndOf="@+id/overview_iob_label"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_iob_label" />
@@ -248,7 +248,7 @@
                     android:id="@+id/overview_cob_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
+                    android:text=""
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_label" />
@@ -280,7 +280,7 @@
                     android:id="@+id/overview_sensitivity_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
+                    android:text=""
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_sensitivity_label" />
@@ -313,7 +313,7 @@
                     android:id="@+id/overview_extendedbolus_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
+                    android:text=""
                     android:textSize="15sp"
                     android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
@@ -347,7 +347,7 @@
                     android:id="@+id/overview_basebasal_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
+                    android:text=""
                     android:textSize="15sp"
                     app:layout_constraintStart_toEndOf="@+id/overview_basebasal_label"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_basebasal_label" />

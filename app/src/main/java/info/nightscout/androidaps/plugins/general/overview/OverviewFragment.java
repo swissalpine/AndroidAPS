@@ -1375,7 +1375,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
             //        + DecimalFormatter.to1Decimal(basalIob.basaliob) + ")";
             // Anpassung Anzeige IOBmax eigener Code (+ Menü-Einträge)
             double iob_max_overview = SP.getDouble(R.string.key_openapssmb_max_iob, 3d);
-            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob);
+            String iobtext = DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + "U";
             if (iob_max_overview < 2) {
                 ioblabelView.setTextColor(MainApp.gc(R.color.ribbonWarning));
                 iobpointView.setTextColor(MainApp.gc(R.color.ribbonWarning));
@@ -1399,6 +1399,7 @@ public class OverviewFragment extends Fragment implements View.OnClickListener, 
                 if (cobInfo.futureCarbs > 0)
                     cobText += "(" + DecimalFormatter.to0Decimal(cobInfo.futureCarbs) + ")";
             }
+            cobText += "g";
             cobView.setText(cobText);
         }
 
