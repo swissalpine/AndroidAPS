@@ -87,7 +87,7 @@ object VersionCheckerPlugin : PluginBase(PluginDescription()
 }
 
 enum class GracePeriod(val warning: Long, val old: Long, val veryOld: Long) {
-    RELEASE(30, 60, 90),
+    RELEASE(3000, 6000, 9000),
     RC(1, 7, 14)
 }
 
