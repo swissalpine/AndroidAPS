@@ -1,5 +1,6 @@
 package info.nightscout.androidaps.dialogs
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,16 +11,20 @@ import com.google.common.base.Joiner
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
+import info.nightscout.androidaps.activities.ErrorHelperActivity
 import info.nightscout.androidaps.data.Profile
 import info.nightscout.androidaps.db.CareportalEvent
 import info.nightscout.androidaps.db.DatabaseHelper
 import info.nightscout.androidaps.db.Source
 import info.nightscout.androidaps.db.TempTarget
 import info.nightscout.androidaps.interfaces.Constraint
+import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
+import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin
 import info.nightscout.androidaps.plugins.configBuilder.ProfileFunctions
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.plugins.treatments.CarbsGenerator
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
+import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.utils.*
 import kotlinx.android.synthetic.main.dialog_carbs.*
 import kotlinx.android.synthetic.main.notes.*
@@ -152,7 +157,7 @@ class CarbsDialog : DialogFragmentWithDate() {
             actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + eatingSoonTTDuration + " " + MainApp.gs(R.string.unit_minute_short) + ")</font>")
         val hypoSelected = overview_carbs_hypo_tt.isChecked
         if (hypoSelected)
-            actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + hypoTTDuration + " " + MainApp.gs(R.string.unit_minute_short) + ")</font>")
+            actions.add(MainApp.gs(R.string.temptargetshort) + ": " + "<font color='" + MainApp.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + hypoTTDuration + " " + MainApp.gs(R.string.unit_minute_short) + ") + TBR: 50% (60 min)</font>")
 
         val timeOffset = overview_carbs_time.value.toInt()
         val time = eventTime + timeOffset * 1000 * 60
@@ -206,6 +211,25 @@ class CarbsDialog : DialogFragmentWithDate() {
                             .low(Profile.toMgdl(hypoTT, ProfileFunctions.getSystemUnits()))
                             .high(Profile.toMgdl(hypoTT, ProfileFunctions.getSystemUnits()))
                         TreatmentsPlugin.getPlugin().addToHistoryTempTarget(tempTarget)
+                        // Anpassung (und Dialog)
+                        log.debug("USER ENTRY: SUSPEND 1h")
+                        LoopPlugin.getPlugin().suspendLoop(60)
+                        log.debug("USER ENTRY: TEMP BASAL 50% duration: 60")
+                        val profile = ProfileFunctions.getInstance().profile
+                        val callback: Callback = object : Callback() {
+                            override fun run() {
+                                if (!result.success) {
+                                    val i = Intent(MainApp.instance(), ErrorHelperActivity::class.java)
+                                    i.putExtra("soundid", R.raw.boluserror)
+                                    i.putExtra("status", result.comment)
+                                    i.putExtra("title", MainApp.gs(R.string.tempbasaldeliveryerror))
+                                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    MainApp.instance().startActivity(i)
+                                }
+                            }
+                        }
+                        ConfigBuilderPlugin.getPlugin().commandQueue.tempBasalPercent(50, 60, true, profile, callback)
+                        // Ende Anpassung
                     }
                     if (carbsAfterConstraints > 0) {
                         if (duration == 0) {
