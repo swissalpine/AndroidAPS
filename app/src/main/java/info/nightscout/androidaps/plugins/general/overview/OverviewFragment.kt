@@ -572,7 +572,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             if (glucoseStatus != null) {
                 overview_delta?.text = "Δ ${Profile.toUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)} $units"
                 overview_deltashort?.text = Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)
-                overview_avgdelta?.text = "øΔ15m: ${Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}\nøΔ40m: ${Profile.toUnitsString(glucoseStatus.long_avgdelta, glucoseStatus.long_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
+                overview_avgdelta?.text = "avgΔ ${Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
             } else {
                 overview_delta?.text = "Δ " + resourceHelper.gs(R.string.notavailable)
                 overview_deltashort?.text = "---"
@@ -651,7 +651,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         // Basal, TBR
         val activeTemp = treatmentsPlugin.getTempBasalFromHistory(System.currentTimeMillis())
-        overview_basebasal?.text = activeTemp?.let { if (resourceHelper.shortTextMode()) "T: " + activeTemp.toStringVeryShort() else activeTemp.toStringFull() }
+        overview_basebasal?.text = activeTemp?.let { if (resourceHelper.shortTextMode()) activeTemp.toStringVeryShort() else activeTemp.toStringFull() }
             ?: resourceHelper.gs(R.string.pump_basebasalrate, profile.basal)
         overview_basebasal?.setOnClickListener {
             var fullText = "${resourceHelper.gs(R.string.pump_basebasalrate_label)}: ${resourceHelper.gs(R.string.pump_basebasalrate, profile.basal)}"
@@ -709,6 +709,14 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     resourceHelper.gs(R.string.formatinsulinunits, basalIob.basaliob) + ")"
             }
         }
+
+        if (sp.getDouble(R.string.key_openapssmb_max_iob, 0.0) < 2) {
+            overview_iob?.text = resourceHelper.gs(R.string.formatinsulinunits, bolusIob.iob + basalIob.basaliob) + " < " + sp.getDouble(R.string.key_openapssmb_max_iob, 0.0)
+            overview_iob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
+        } else {
+            overview_iob?.setTextColor(resourceHelper.gc(R.color.defaulttext))
+        }
+
         overview_iob?.setOnClickListener {
             activity?.let {
                 OKDialog.show(it, resourceHelper.gs(R.string.iob),

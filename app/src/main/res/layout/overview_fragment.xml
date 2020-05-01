@@ -80,7 +80,6 @@
                     android:paddingBottom="3dp"
                     android:text="@string/temptargetshort"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/mdtp_white"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/overview_activeprofile"
@@ -378,7 +377,7 @@
                 app:layout_constraintTop_toBottomOf="@id/overview_notifications">
 
                 <ImageView
-                    android:layout_width="20dp"
+                    android:layout_width="15dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -392,10 +391,10 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="2dp"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <ImageView
-                    android:layout_width="20dp"
+                    android:layout_width="15dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -409,7 +408,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="0dp"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/careportal_reservoirlevel"
@@ -418,10 +417,10 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="2dp"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <ImageView
-                    android:layout_width="20dp"
+                    android:layout_width="15dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -435,10 +434,10 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="2dp"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <ImageView
-                    android:layout_width="20dp"
+                    android:layout_width="15dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -452,7 +451,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="1dp"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/careportal_batterylevel"
@@ -461,7 +460,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="0dp"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
             </LinearLayout>
 

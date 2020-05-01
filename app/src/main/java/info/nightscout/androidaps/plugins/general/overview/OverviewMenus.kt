@@ -211,6 +211,11 @@ class OverviewMenus @Inject constructor(
                 if (activePlugin.activeProfileInterface.profile != null) {
                     menu.add(resourceHelper.gs(R.string.careportal_profileswitch))
                 }
+                menu.add("---")
+                menu.add("IOBmax: 0 U")
+                menu.add("IOBmax: 0.5 U")
+                menu.add("IOBmax: 1 U")
+                menu.add("IOBmax: 12 U")
             }
 
             R.id.overview_temptarget    -> {
@@ -414,6 +419,19 @@ class OverviewMenus @Inject constructor(
                     .low(0.0)
                     .high(0.0)
                 activePlugin.activeTreatments.addToHistoryTempTarget(tempTarget)
+            }
+
+            "IOBmax: 0 U" -> {
+                sp.putDouble(R.string.key_openapssmb_max_iob, 0.0)
+            }
+            "IOBmax: 0.5 U" -> {
+                sp.putDouble(R.string.key_openapssmb_max_iob, 0.5)
+            }
+            "IOBmax: 1 U" -> {
+                sp.putDouble(R.string.key_openapssmb_max_iob, 1.0)
+            }
+            "IOBmax: 12 U" -> {
+                sp.putDouble(R.string.key_openapssmb_max_iob, 12.0)
             }
         }
         return false
