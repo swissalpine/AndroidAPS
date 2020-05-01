@@ -114,20 +114,21 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/bg_tbr_layout"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toTopOf="@id/overview_bggraph"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/overview_pumpstatuslayout">
+                app:layout_constraintTop_toBottomOf="@id/overview_pumpstatuslayout">
 
                 <TextView
                     android:id="@+id/overview_bg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
                     android:text="00.0"
-                    android:textSize="42sp"
+                    android:textSize="32sp"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@+id/overview_arrow"
                     app:layout_constraintStart_toStartOf="parent"
@@ -135,10 +136,9 @@
 
                 <TextView
                     android:id="@+id/overview_arrow"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
-                    android:paddingStart="-2dp"
+                    android:paddingStart="0dp"
                     android:paddingEnd="0dp"
                     android:text="→"
                     android:textSize="28sp"
@@ -147,23 +147,14 @@
                     app:layout_constraintStart_toEndOf="@+id/overview_bg"
                     app:layout_constraintTop_toTopOf="@+id/overview_bg" />
 
-                <TextView
-                    android:id="@+id/overview_hor_space"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="                    "
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/overview_bg_guideline"
-                    app:layout_constraintStart_toEndOf="@+id/overview_arrow"
-                    app:layout_constraintTop_toTopOf="@+id/overview_bg" />
-
 
                 <TextView
                     android:id="@+id/overview_timeago"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:paddingLeft="10dp"
                     android:text="1 min ago"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_delta"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
                     app:layout_constraintStart_toStartOf="parent"
@@ -171,10 +162,11 @@
 
                 <TextView
                     android:id="@+id/overview_delta"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="delta 15m: 0.3"
-                    android:textSize="14sp"
+                    android:paddingLeft="10dp"
+                    android:text="Δ: -?? mg/dl"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_avgdelta"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
                     app:layout_constraintStart_toStartOf="parent"
@@ -182,10 +174,11 @@
 
                 <TextView
                     android:id="@+id/overview_avgdelta"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="delta 40m: 0.3"
-                    android:textSize="14sp"
+                    android:paddingLeft="10dp"
+                    android:text="ØΔ15': ??"
+                    android:textSize="15sp"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/overview_delta" />
@@ -200,8 +193,8 @@
                     android:orientation="vertical"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_iob_label"
-                    app:layout_constraintGuide_percent="0.40"
-                    app:layout_constraintStart_toEndOf="@+id/overview_hor_space"
+                    app:layout_constraintGuide_percent="0.42"
+                    app:layout_constraintStart_toEndOf="@+id/overview_arrow"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- right side IOB -->
@@ -209,40 +202,44 @@
                     android:id="@+id/overview_iob_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="2dp"
                     android:text="@string/iob"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
-                    app:layout_constraintTop_toBottomOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/overview_iob_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="16sp"
-                    app:layout_constraintStart_toEndOf="@+id/overview_iob_label"
-                    app:layout_constraintTop_toTopOf="@+id/overview_iob_label" />
+                    android:text=""
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/overview_iob_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_iob_label" />
 
                 <TextView
                     android:id="@+id/overview_iob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
+                    android:paddingLeft="5dp"
                     android:text="@string/iob"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_iob_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_iob_colon" />
+                    app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
 
                 <!-- right side COB -->
                 <TextView
                     android:id="@+id/overview_cob_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="2dp"
                     android:text="@string/cob"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/overview_basebasal_label"
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toTopOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
                     app:layout_constraintTop_toBottomOf="@+id/overview_iob_label" />
 
@@ -250,101 +247,40 @@
                     android:id="@+id/overview_cob_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="16sp"
-                    app:layout_constraintStart_toEndOf="@+id/overview_cob_label"
-                    app:layout_constraintTop_toBottomOf="@+id/overview_iob_label" />
+                    android:text=""
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_cob_label" />
 
                 <TextView
                     android:id="@+id/overview_cob"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
+                    android:paddingStart="5dp"
                     android:text="@string/cob"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
-
-                <!-- right side basal -->
-                <TextView
-                    android:id="@+id/overview_basebasal_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/basal_short"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/overview_extendedbolus_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
-                    app:layout_constraintTop_toBottomOf="@+id/overview_cob_label" />
-
-                <TextView
-                    android:id="@+id/overview_basebasal_colon"
-                    android:layout_width="5dp"
-                    android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="16sp"
-                    app:layout_constraintStart_toEndOf="@+id/overview_basebasal_label"
-                    app:layout_constraintTop_toBottomOf="@+id/overview_cob_label" />
-
-                <TextView
-                    android:id="@+id/overview_basebasal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:text="0.50U/h @17:35 1/30min"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@+id/overview_basebasal_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_basebasal_colon" />
-
-                <!-- right side extended  -->
-                <TextView
-                    android:id="@+id/overview_extendedbolus_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/extended_bolus_short"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toTopOf="@+id/overview_sensitivity_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
-                    app:layout_constraintTop_toBottomOf="@+id/overview_basebasal_label" />
-
-                <TextView
-                    android:id="@+id/overview_extendedbolus_colon"
-                    android:layout_width="5dp"
-                    android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_label" />
-
-                <TextView
-                    android:id="@+id/overview_extendedbolus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:text="0.50U/h @17:35 1/30min"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_colon" />
 
                 <!-- right side AS  -->
                 <TextView
                     android:id="@+id/overview_sensitivity_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="2dp"
                     android:text="@string/sensitivity_short"
-                    android:textSize="16sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toTopOf="@id/overview_extendedbolus_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
-                    app:layout_constraintTop_toBottomOf="@+id/overview_extendedbolus_label" />
+                    app:layout_constraintTop_toBottomOf="@+id/overview_cob_label" />
 
                 <TextView
                     android:id="@+id/overview_sensitivity_colon"
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
-                    android:text=":"
-                    android:textSize="16sp"
+                    android:text=""
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_sensitivity_label" />
 
@@ -352,12 +288,78 @@
                     android:id="@+id/overview_sensitivity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
+                    android:paddingStart="5dp"
                     android:text="100%"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_sensitivity_label"
-                    app:layout_constraintStart_toEndOf="@+id/overview_sensitivity_colon" />
+                    app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
+
+                <!-- right side extended  -->
+                <TextView
+                    android:id="@+id/overview_extendedbolus_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="2dp"
+                    android:text="@string/extended_bolus_short"
+                    android:textSize="15sp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toTopOf="@id/overview_basebasal_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
+                    app:layout_constraintTop_toBottomOf="@+id/overview_sensitivity_label" />
+
+                <TextView
+                    android:id="@+id/overview_extendedbolus_colon"
+                    android:layout_width="5dp"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="15sp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_extendedbolus_label" />
+
+                <TextView
+                    android:id="@+id/overview_extendedbolus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="5dp"
+                    android:text="0.50U/h @17:35 1/30min"
+                    android:textSize="15sp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
+
+
+                <!-- right side basal -->
+                <TextView
+                    android:id="@+id/overview_basebasal_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/basal_short"
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
+                    app:layout_constraintTop_toBottomOf="@+id/overview_extendedbolus_label" />
+
+                <TextView
+                    android:id="@+id/overview_basebasal_colon"
+                    android:layout_width="5dp"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/overview_basebasal_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_basebasal_label" />
+
+                <TextView
+                    android:id="@+id/overview_basebasal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="5dp"
+                    android:text="0.50U/h @17:35 1/30min"
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/overview_basebasal_label"
+                    app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -376,7 +378,7 @@
                 app:layout_constraintTop_toBottomOf="@id/overview_notifications">
 
                 <ImageView
-                    android:layout_width="30dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -393,7 +395,7 @@
                     android:textSize="14sp" />
 
                 <ImageView
-                    android:layout_width="30dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -406,7 +408,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
-                    android:paddingEnd="2dp"
+                    android:paddingEnd="0dp"
                     android:textSize="14sp" />
 
                 <TextView
@@ -419,7 +421,7 @@
                     android:textSize="14sp" />
 
                 <ImageView
-                    android:layout_width="30dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -436,7 +438,7 @@
                     android:textSize="14sp" />
 
                 <ImageView
-                    android:layout_width="30dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center_vertical"
@@ -458,7 +460,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
-                    android:paddingEnd="2dp"
+                    android:paddingEnd="0dp"
                     android:textSize="14sp" />
 
             </LinearLayout>
