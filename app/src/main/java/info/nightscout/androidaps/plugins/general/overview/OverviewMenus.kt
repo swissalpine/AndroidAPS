@@ -198,9 +198,10 @@ class OverviewMenus @Inject constructor(
                 if (!loopPlugin.isEnabled(PluginType.LOOP)) {
                     menu.add(resourceHelper.gs(R.string.enableloop))
                 }
-                if (!loopPlugin.isDisconnected) {
-                    showSuspendPump(menu, pumpDescription)
-                } else {
+
+                showSuspendPump(menu, pumpDescription)
+
+                if (loopPlugin.isDisconnected) {
                     menu.add(resourceHelper.gs(R.string.reconnect))
                 }
             }
