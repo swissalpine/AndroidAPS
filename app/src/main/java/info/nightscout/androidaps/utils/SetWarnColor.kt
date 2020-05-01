@@ -11,9 +11,9 @@ import javax.inject.Singleton
 @Singleton
 class WarnColors @Inject constructor(val resourceHelper: ResourceHelper) {
 
-    private val normalColor = Color.WHITE
-    private val warnColor = Color.YELLOW
-    private val urgentColor = Color.RED
+    private val normalColor = resourceHelper.gc(R.color.defaulttext)
+    private val warnColor = resourceHelper.gc(R.color.ribbonWarning)
+    private val urgentColor = resourceHelper.gc(R.color.ribbonCritical)
 
     fun setColor(view: TextView?, value: Double, warnLevel: Double, urgentLevel: Double) =
         view?.setTextColor(when {
@@ -31,8 +31,8 @@ class WarnColors @Inject constructor(val resourceHelper: ResourceHelper) {
 
     fun setColorByAge(view: TextView?, careportalEvent: CareportalEvent, warnThreshold: Double, urgentThreshold: Double) =
         view?.setTextColor(when {
-            careportalEvent.isOlderThan(urgentThreshold) -> resourceHelper.gc(R.color.low)
-            careportalEvent.isOlderThan(warnThreshold)   -> resourceHelper.gc(R.color.high)
-            else                                         -> Color.WHITE
+            careportalEvent.isOlderThan(urgentThreshold) -> urgentColor
+            careportalEvent.isOlderThan(warnThreshold)   -> warnColor
+            else                                         -> normalColor
         })
 }
