@@ -617,7 +617,7 @@
     <string name="Glimp">Glimp</string>
     <string name="needwhitelisting">%1$s needs battery optimalization whitelisting for proper performance</string>
     <string name="loopsuspended">Loop suspended</string>
-    <string name="loopsuspendedfor">Suspended (%1$d m)</string>
+    <string name="loopsuspendedfor">Susp. (%1$d m)</string>
     <string name="loopsuperbolusfor">Superbolus (%1$d m)</string>
     <string name="suspendloop">Suspend loop</string>
     <string name="suspendloopfor1h">Suspend loop for 1h</string>
@@ -1080,7 +1080,7 @@
     <string name="iobcobcalculator" translatable="false">IobCobCalculator</string>
     <string name="reset">reset</string>
     <string name="waitingfortimesynchronization">Waiting for time synchronization (%1$d sec)</string>
-    <string name="loopdisconnectedfor">Disconnected (%1$d m)</string>
+    <string name="loopdisconnectedfor">Disc. (%1$d m)</string>
     <string name="key_openapssmb_max_iob" translatable="false">openapsmb_max_iob</string>
     <string name="openapssmb_maxiob_title">Maximum total IOB OpenAPS can\'t go over [U]</string>
     <string name="openapssmb_maxiob_summary">This value is called Max IOB in OpenAPS context\nOpenAPS will not add more insulin if current IOB is greater than this value</string>
