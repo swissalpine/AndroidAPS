@@ -3,13 +3,21 @@ package info.nightscout.androidaps.plugins.aps.openAPSSMB;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.inject.Inject;
+
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.logging.AAPSLogger;
 import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.plugins.aps.loop.APSResult;
+import info.nightscout.androidaps.plugins.pump.combo.ComboPlugin;
 import info.nightscout.androidaps.utils.DateUtil;
+import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
+import info.nightscout.androidaps.data.IobTotal;
 
 public class DetermineBasalResultSMB extends APSResult {
+
+    @Inject ComboPlugin comboPlugin;
+    @Inject TreatmentsPlugin treatmentsPlugin;
 
     private double eventualBG;
     private double snoozeBG;
@@ -39,6 +47,25 @@ public class DetermineBasalResultSMB extends APSResult {
                 tempBasalRequested = true;
                 rate = result.getDouble("rate");
                 if (rate < 0d) rate = 0d;
+
+                // Anpassung minimale Basalrate 20%, wenn IOB < negative Basalrate (~ eine Stunde ohne Basal)
+                // IOB
+                treatmentsPlugin.updateTotalIOBTreatments();
+                treatmentsPlugin.updateTotalIOBTempBasals();
+                final IobTotal bolusIob = treatmentsPlugin.getLastCalculationTreatments();
+                final IobTotal basalIob = treatmentsPlugin.getLastCalculationTempBasals();
+                // Anpassung Basalrate
+                double baseBasalRate = comboPlugin.getBaseBasalRate();
+                if ((bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
+                    double cutoff = baseBasalRate * 0.2;
+                    if (rate < cutoff) rate = cutoff;
+                }
+                // Ulrikes 20% immer
+                /* double baseBasalRate = info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin.getPlugin().getActivePump().getBaseBasalRate();
+                double cutoff = baseBasalRate * 0.2;
+                if (rate < cutoff) rate = cutoff; */
+                // Ende Anpassung
+
                 duration = result.getInt("duration");
             } else {
                 rate = -1;
