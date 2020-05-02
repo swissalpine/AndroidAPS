@@ -50,6 +50,7 @@
                     android:paddingBottom="3dp"
                     android:text="@string/openloop"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/defaulttextcolor"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_activeprofile"
                     app:layout_constraintStart_toStartOf="parent"
@@ -66,6 +67,7 @@
                     android:paddingBottom="3dp"
                     android:text="@string/profile"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/defaulttextcolor"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_temptarget"
                     app:layout_constraintStart_toEndOf="@+id/overview_apsmode"
@@ -80,6 +82,7 @@
                     android:paddingBottom="3dp"
                     android:text="@string/temptargetshort"
                     android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/defaulttextcolor"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/overview_activeprofile"
@@ -127,7 +130,7 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
                     android:text="00.0"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textColorHint="#FFFFFF"
                     android:textSize="32sp"
                     android:textStyle="bold"
@@ -142,7 +145,7 @@
                     android:paddingStart="0dp"
                     android:paddingEnd="0dp"
                     android:text="→"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="28sp"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@+id/overview_bg_guideline"
@@ -156,7 +159,7 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
                     android:text="1 min ago"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_delta"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
@@ -169,7 +172,7 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
                     android:text="Δ: -?? mg/dl"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_avgdelta"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
@@ -182,7 +185,7 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
                     android:text="ØΔ15': ??"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
                     app:layout_constraintStart_toStartOf="parent"
@@ -211,7 +214,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="2dp"
                     android:text="@string/iob"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
@@ -222,7 +225,7 @@
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_iob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_iob_label" />
@@ -233,7 +236,7 @@
                     android:layout_height="wrap_content"
                     android:paddingLeft="5dp"
                     android:text="@string/iob"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_iob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
@@ -246,7 +249,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginBottom="2dp"
                     android:text="@string/cob"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
@@ -257,7 +260,7 @@
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_label" />
@@ -268,7 +271,7 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="5dp"
                     android:text="@string/cob"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
@@ -281,7 +284,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginBottom="2dp"
                     android:text="@string/sensitivity_short"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@id/overview_extendedbolus_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
@@ -292,7 +295,7 @@
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_sensitivity_label" />
@@ -303,7 +306,7 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="5dp"
                     android:text="100%"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_sensitivity_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
@@ -316,7 +319,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_marginBottom="2dp"
                     android:text="@string/extended_bolus_short"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     android:visibility="gone"
                     app:layout_constraintBottom_toTopOf="@id/overview_basebasal_label"
@@ -328,7 +331,7 @@
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
@@ -340,7 +343,7 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="5dp"
                     android:text="0.50U/h @17:35 1/30min"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_extendedbolus_label"
@@ -354,7 +357,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:text="@string/basal_short"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/overview_bg_guideline"
@@ -365,7 +368,7 @@
                     android:layout_width="5dp"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_basebasal_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_basebasal_label" />
@@ -376,7 +379,7 @@
                     android:layout_height="wrap_content"
                     android:paddingStart="5dp"
                     android:text="0.50U/h @17:35 1/30min"
-                    android:textColor="@color/defaulttext"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_basebasal_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob_colon" />
@@ -412,6 +415,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="2dp"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
 
                 <ImageView
@@ -423,21 +427,23 @@
                     android:src="@drawable/icon_cp_age_insulin" />
 
                 <TextView
-                    android:id="@+id/careportal_insulinage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:paddingStart="1dp"
-                    android:paddingEnd="0dp"
-                    android:textSize="15sp" />
-
-                <TextView
                     android:id="@+id/careportal_reservoirlevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="2dp"
+                    android:textColor="@color/defaulttextcolor"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/careportal_insulinage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="1dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
 
                 <ImageView
@@ -455,6 +461,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="2dp"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
 
                 <ImageView
@@ -472,6 +479,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="1dp"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
 
                 <TextView
@@ -481,6 +489,7 @@
                     android:gravity="center_vertical"
                     android:paddingStart="1dp"
                     android:paddingEnd="0dp"
+                    android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
 
             </LinearLayout>

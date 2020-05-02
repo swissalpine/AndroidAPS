@@ -54,7 +54,7 @@ class StatusLightHandler @Inject constructor(
         val resUrgent = sp.getDouble(criticalSetting, criticalDefaultValue)
         val resWarn = sp.getDouble(warnSetting, warnDefaultValue)
         @Suppress("SetTextI18n")
-        view?.text = " " + DecimalFormatter.to0Decimal(level) + units
+        view?.text = " " + DecimalFormatter.to0Decimal(level)
         warnColors.setColorInverse(view, level, resWarn, resUrgent)
     }
 }
