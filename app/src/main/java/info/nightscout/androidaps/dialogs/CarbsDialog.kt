@@ -1,5 +1,7 @@
 package info.nightscout.androidaps.dialogs
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,17 +12,23 @@ import com.google.common.base.Joiner
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
+import info.nightscout.androidaps.activities.ErrorHelperActivity
 import info.nightscout.androidaps.data.Profile
 import info.nightscout.androidaps.db.CareportalEvent
 import info.nightscout.androidaps.db.Source
 import info.nightscout.androidaps.db.TempTarget
+import info.nightscout.androidaps.events.EventRefreshOverview
+import info.nightscout.androidaps.interfaces.CommandQueueProvider
 import info.nightscout.androidaps.interfaces.Constraint
+import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
+import info.nightscout.androidaps.plugins.bus.RxBusWrapper
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.configBuilder.ProfileFunction
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.treatments.CarbsGenerator
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
+import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.utils.*
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
 import info.nightscout.androidaps.utils.resources.ResourceHelper
@@ -41,6 +49,10 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculatorPlugin: IobCobCalculatorPlugin
     @Inject lateinit var carbsGenerator: CarbsGenerator
+    @Inject lateinit var rxBus: RxBusWrapper
+    @Inject lateinit var loopPlugin: LoopPlugin
+    @Inject lateinit var commandQueue: CommandQueueProvider
+    @Inject lateinit var ctx: Context
 
     companion object {
         private const val FAV1_DEFAULT = 5
@@ -156,6 +168,10 @@ class CarbsDialog : DialogFragmentWithDate() {
         val actions: LinkedList<String?> = LinkedList()
         val unitLabel = if (units == Constants.MMOL) resourceHelper.gs(R.string.mmol) else resourceHelper.gs(R.string.mgdl)
 
+        //Anpassung 1
+        val profile = profileFunction.getProfile() ?: return false
+        //Ende Anpassung
+
         val activitySelected = overview_carbs_activity_tt.isChecked
         if (activitySelected)
             actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + "<font color='" + resourceHelper.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + activityTTDuration + " " + resourceHelper.gs(R.string.unit_minute_short) + ")</font>")
@@ -164,7 +180,7 @@ class CarbsDialog : DialogFragmentWithDate() {
             actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + "<font color='" + resourceHelper.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + eatingSoonTTDuration + " " + resourceHelper.gs(R.string.unit_minute_short) + ")</font>")
         val hypoSelected = overview_carbs_hypo_tt.isChecked
         if (hypoSelected)
-            actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + "<font color='" + resourceHelper.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + hypoTTDuration + " " + resourceHelper.gs(R.string.unit_minute_short) + ")</font>")
+            actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + "<font color='" + resourceHelper.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + hypoTTDuration + " " + resourceHelper.gs(R.string.unit_minute_short) + ")  + TBR: 50% (60 min)</font>")
 
         val timeOffset = overview_carbs_time.value.toInt()
         eventTime -= eventTime % 1000
@@ -224,6 +240,27 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 .low(Profile.toMgdl(hypoTT, profileFunction.getUnits()))
                                 .high(Profile.toMgdl(hypoTT, profileFunction.getUnits()))
                             treatmentsPlugin.addToHistoryTempTarget(tempTarget)
+
+                            // Anpassung 2 (und Text start_hypo_tt in strings.xml)
+                            aapsLogger.debug("USER ENTRY: SUSPEND 1h")
+                            loopPlugin.suspendLoop(60)
+                            rxBus.send(EventRefreshOverview("suspendmenu"))
+                            val callback: Callback = object : Callback() {
+                                override fun run() {
+                                    if (!result.success) {
+                                        val i = Intent(ctx, ErrorHelperActivity::class.java)
+                                        i.putExtra("soundid", R.raw.boluserror)
+                                        i.putExtra("status", result.comment)
+                                        i.putExtra("title", resourceHelper.gs(R.string.tempbasaldeliveryerror))
+                                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        ctx.startActivity(i)
+                                    }
+                                }
+                            }
+                            aapsLogger.debug("USER ENTRY: TEMP BASAL 50% duration: 60")
+                            commandQueue.tempBasalPercent(50, 60, true, profile, callback)
+                            // Ende Anpassung
+
                         }
                     }
                     if (carbsAfterConstraints > 0) {
