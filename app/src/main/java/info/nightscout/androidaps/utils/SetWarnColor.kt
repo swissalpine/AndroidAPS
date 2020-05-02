@@ -13,7 +13,7 @@ class WarnColors @Inject constructor(val resourceHelper: ResourceHelper) {
 
     private val normalColor = resourceHelper.gc(R.color.defaulttext)
     private val warnColor = resourceHelper.gc(R.color.ribbonWarning)
-    private val urgentColor = resourceHelper.gc(R.color.ribbonCritical)
+    private val urgentColor = resourceHelper.gc(R.color.textwarning)
 
     fun setColor(view: TextView?, value: Double, warnLevel: Double, urgentLevel: Double) =
         view?.setTextColor(when {

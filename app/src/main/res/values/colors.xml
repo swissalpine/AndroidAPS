@@ -106,4 +106,6 @@
     <color name="metadataTextWarning">#FF8C00</color>
     <color name="metadataTextError">#FF5555</color>
 
+    <color name="textwarning">#FF3333</color>
+
 </resources>
