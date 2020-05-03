@@ -171,7 +171,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
-                    android:text="Δ: -?? mg/dl"
+                    android:text="Δ -?? mg/dl"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toTopOf="@+id/overview_avgdelta"
@@ -184,7 +184,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
-                    android:text="ØΔ15': ??"
+                    android:text="avgΔ 00"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp"
                     app:layout_constraintEnd_toEndOf="@+id/overview_arrow"
@@ -201,7 +201,7 @@
                     android:orientation="vertical"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/overview_iob_label"
-                    app:layout_constraintGuide_percent="0.42"
+                    app:layout_constraintGuide_percent="0.34"
                     app:layout_constraintStart_toEndOf="@+id/overview_arrow"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -417,7 +417,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:scaleType="centerInside"
-                    android:src="@drawable/icon_cp_age_canula" />
+                    android:src="@drawable/icon_cp_age_canula2" />
 
                 <TextView
                     android:id="@+id/careportal_canulaage"
@@ -435,7 +435,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:scaleType="centerInside"
-                    android:src="@drawable/icon_cp_age_insulin" />
+                    android:src="@drawable/icon_cp_age_insulin2" />
 
                 <TextView
                     android:id="@+id/careportal_reservoirlevel"
@@ -464,7 +464,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:scaleType="centerInside"
-                    android:src="@drawable/icon_cp_age_sensor" />
+                    android:src="@drawable/icon_cp_age_sensor2" />
 
                 <TextView
                     android:id="@+id/careportal_sensorage"
@@ -483,7 +483,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:scaleType="centerInside"
-                    android:src="@drawable/icon_cp_age_battery" />
+                    android:src="@drawable/icon_cp_age_battery2" />
 
                 <TextView
                     android:id="@+id/careportal_pbage"
