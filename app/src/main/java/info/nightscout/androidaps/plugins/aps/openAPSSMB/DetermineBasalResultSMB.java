@@ -8,13 +8,16 @@ import javax.inject.Inject;
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.logging.AAPSLogger;
 import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.plugins.aps.loop.APSResult;
 import info.nightscout.androidaps.plugins.pump.combo.ComboPlugin;
 import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.data.IobTotal;
+import info.nightscout.androidaps.utils.sharedPreferences.SP;
 
 public class DetermineBasalResultSMB extends APSResult {
+    @Inject SP sp;
 
     @Inject ComboPlugin comboPlugin;
     @Inject TreatmentsPlugin treatmentsPlugin;
@@ -41,7 +44,11 @@ public class DetermineBasalResultSMB extends APSResult {
             if (result.has("eventualBG")) eventualBG = result.getDouble("eventualBG");
             if (result.has("snoozeBG")) snoozeBG = result.getDouble("snoozeBG");
             //if (result.has("insulinReq")) insulinReq = result.getDouble("insulinReq");
-            //if (result.has("carbsReq")) carbsReq = result.getDouble("carbsReq");
+
+            if (sp.getBoolean(R.string.key_smb_enable_carbs_suggestions, false)) {
+                if (result.has("carbsReq")) carbsReq = result.getInt("carbsReq");
+                if (result.has("carbsReqWithin")) carbsReqWithin = result.getInt("carbsReqWithin");
+            }
 
             if (result.has("rate") && result.has("duration")) {
                 tempBasalRequested = true;
