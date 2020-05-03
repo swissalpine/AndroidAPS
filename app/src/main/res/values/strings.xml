@@ -1835,8 +1835,8 @@
     <string name="key_statuslights_copy_ns" translatable="false">statuslights_copy_ns</string>
     <string name="copyexistingvalues">Copy NS settings (if exists)?</string>
     <string name="key_statuslights_overview_advanced" translatable="false">statuslights_overview_advanced</string>
-    <string name="cob_required">(20g needed in 45min)</string>
-    <string name="overview_carbs_required">(%dg needed in %dmin)</string>
+    <string name="cob_required">(20 g in 45 min)</string>
+    <string name="overview_carbs_required">(%d g in %d min)</string>
 
 
     <!-- Omnipod -->
