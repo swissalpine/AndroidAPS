@@ -282,9 +282,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:text="@string/cob_required"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/cobAlert"
+                    android:textColor="@color/ribbonWarning"
+                    android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
                     app:layout_constraintStart_toEndOf="@+id/overview_cob" />
 
@@ -425,7 +424,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingStart="1dp"
+                    android:paddingStart="0dp"
                     android:paddingEnd="2dp"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
@@ -442,9 +441,10 @@
                     android:id="@+id/careportal_reservoirlevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="-5dp"
                     android:gravity="center_vertical"
-                    android:paddingStart="1dp"
-                    android:paddingEnd="2dp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="6dp"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
 
@@ -453,7 +453,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingStart="1dp"
+                    android:paddingStart="0dp"
                     android:paddingEnd="0dp"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
@@ -470,8 +470,9 @@
                     android:id="@+id/careportal_sensorage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="-3dp"
                     android:gravity="center_vertical"
-                    android:paddingStart="1dp"
+                    android:paddingStart="0dp"
                     android:paddingEnd="2dp"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
@@ -489,7 +490,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:paddingStart="1dp"
+                    android:paddingStart="0dp"
                     android:paddingEnd="1dp"
                     android:textColor="@color/defaulttextcolor"
                     android:textSize="15sp" />
