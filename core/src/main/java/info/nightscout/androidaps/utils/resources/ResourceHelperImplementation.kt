@@ -12,8 +12,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.PluralsRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import info.nightscout.androidaps.Config
-import info.nightscout.androidaps.R
+import info.nightscout.androidaps.core.R
 import javax.inject.Inject
 
 /**
@@ -41,20 +40,6 @@ class ResourceHelperImplementation @Inject constructor(private val context: Cont
 
     override fun openRawResourceFd(id: Int): AssetFileDescriptor =
         context.resources.openRawResourceFd(id)
-
-    override fun getIcon(): Int =
-        when {
-            Config.NSCLIENT    -> R.mipmap.ic_yellowowl
-            Config.PUMPCONTROL -> R.mipmap.ic_pumpcontrol
-            else               -> R.mipmap.ic_launcher
-        }
-
-    override fun getNotificationIcon(): Int =
-        when {
-            Config.NSCLIENT    -> R.drawable.ic_notif_nsclient
-            Config.PUMPCONTROL -> R.drawable.ic_notif_pumpcontrol
-            else               -> R.drawable.ic_notif_aaps
-        }
 
     override fun decodeResource(id: Int): Bitmap =
         BitmapFactory.decodeResource(context.resources, id)
