@@ -192,7 +192,6 @@
     <string name="disableloop">Disable loop</string>
     <string name="enableloop">Enable loop</string>
 
-    <string name="lgs">LGS</string>
     <string name="openloop_newsuggestion">New suggestion available</string>
     <string name="carbssuggestion">Carbs Suggestion</string>
     <string name="unsupportednsversion">Unsupported version of Nightscout</string>
@@ -257,7 +256,6 @@
     <string name="password_preferences_decrypt_prompt">You will be asked for master password, which is needed to decrypt imported preferences.</string>
     <string name="preferences_export_canceled">Export canceled! Preferences were NOT exported!</string>
     <string name="preferences_import_canceled">Import canceled! Preferences were NOT imported!</string>
-
     <string name="preferences_import_list_title">Select file to import</string>
 
     <string name="check_preferences_before_import">Please check preferences before importing:</string>
@@ -489,7 +487,7 @@
     <string name="MM640g">MM640g</string>
     <string name="ongoingnotificaction">Ongoing Notification</string>
     <string name="old_data">OLD DATA</string>
-    <string name="minago">%1$d min ago</string>
+    <string name="minago">%1$d m ago</string>
     <string name="sms_minago">%1$dmin ago</string>
     <string name="localprofile">Local Profile</string>
     <string name="openapsama">OpenAPS AMA</string>
@@ -608,7 +606,7 @@
     <string name="wear_detailedIOB_title">Show detailed IOB</string>
     <string name="wear_detailedIOB_summary">Break down IOB into bolus and basal IOB on the watchface</string>
     <string name="nosuccess">not successful - please check phone</string>
-    <string name="notavailable">Not available</string>
+    <string name="notavailable">n/a</string>
     <string name="key_smscommunicator_allowednumbers" translatable="false">smscommunicator_allowednumbers</string>
     <string name="key_smscommunicator_remotecommandsallowed" translatable="false">smscommunicator_remotecommandsallowed</string>
     <string name="patientage">Patient age</string>
@@ -1115,7 +1113,6 @@
     <string name="nav_setupwizard">Setup Wizard</string>
     <string name="setupwizard_finish">FINISH</string>
     <string name="setupwizard_language_prompt">Select your language</string>
-    <string name="key_language" translatable="false">language</string>
     <string name="key_openapsama_min_5m_carbimpact" translatable="false">openapsama_min_5m_carbimpact</string>
     <string name="boluserrorcode">Asked: %1$.2fU Delivered: %2$.2fU Error code: %3$s</string>
     <string name="firstinsulinincrement">First insulin increment</string>
@@ -1839,6 +1836,10 @@
     <string name="key_statuslights_overview_advanced" translatable="false">statuslights_overview_advanced</string>
     <string name="cob_required">(20 g in 45 min needed)</string>
     <string name="overview_carbs_required">(%d g in %d min needed)</string>
+    <string name="classic_desrciption">Original skin</string>
+    <string name="buttonson_desrciption">Buttons are always displayed on bottom of screen</string>
+    <string name="key_skin" translatable="false">skin</string>
+    <string name="skin">Skin</string>
 
 
     <!-- Omnipod -->
