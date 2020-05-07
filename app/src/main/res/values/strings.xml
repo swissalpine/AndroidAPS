@@ -1713,7 +1713,7 @@
     <string name="key_units" translatable="false">units</string>
     <string name="doyouwantswitchprofile">Do you want to switch profile and discard changes made to current profile?</string>
     <string name="key_wizard_calculation_visible" translatable="false">wizard_calculation_visible</string>
-    <string name="format_carbs">%1$dg</string>
+    <string name="format_carbs">%1$d g</string>
     <string name="common_on">On</string>
     <string name="common_off">Off</string>
     <string name="objectives_button_unfinish">Clear finished</string>
@@ -1834,8 +1834,8 @@
     <string name="key_statuslights_copy_ns" translatable="false">statuslights_copy_ns</string>
     <string name="copyexistingvalues">Copy NS settings (if exists)?</string>
     <string name="key_statuslights_overview_advanced" translatable="false">statuslights_overview_advanced</string>
-    <string name="cob_required">(20 g in 45 min needed)</string>
-    <string name="overview_carbs_required">(%d g in %d min needed)</string>
+    <string name="cob_required">Carbs required: 20 g in 45 m</string>
+    <string name="overview_carbs_required">Carbs required: %d g in %d m</string>
     <string name="classic_desrciption">Original skin</string>
     <string name="buttonson_desrciption">Buttons are always displayed on bottom of screen</string>
     <string name="key_skin" translatable="false">skin</string>

@@ -14,7 +14,7 @@
         <TextView
             android:id="@+id/overview_activeprofile"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_gravity="end"
             android:layout_marginEnd="5dp"
             android:layout_weight="1"
@@ -22,12 +22,14 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="Profile"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/overview_temptarget"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_gravity="end"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
@@ -35,7 +37,8 @@
             android:paddingBottom="3dp"
             android:text="TempTarget"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/mdtp_white" />
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
@@ -49,7 +52,7 @@
         <TextView
             android:id="@+id/overview_pumpstatus"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:gravity="center_vertical|center_horizontal"

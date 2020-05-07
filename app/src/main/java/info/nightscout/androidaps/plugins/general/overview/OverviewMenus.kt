@@ -424,15 +424,19 @@ class OverviewMenus @Inject constructor(
 
             "IOBmax: 0 U" -> {
                 sp.putDouble(R.string.key_openapssmb_max_iob, 0.0)
+                rxBus.send(EventRefreshOverview("OnMenuItemClickListener", now = true))
             }
             "IOBmax: 0.5 U" -> {
                 sp.putDouble(R.string.key_openapssmb_max_iob, 0.5)
+                rxBus.send(EventRefreshOverview("OnMenuItemClickListener", now = true))
             }
             "IOBmax: 1 U" -> {
                 sp.putDouble(R.string.key_openapssmb_max_iob, 1.0)
+                rxBus.send(EventRefreshOverview("OnMenuItemClickListener", now = true))
             }
             "IOBmax: 12 U" -> {
                 sp.putDouble(R.string.key_openapssmb_max_iob, 12.0)
+                rxBus.send(EventRefreshOverview("OnMenuItemClickListener", now = true))
             }
         }
         return false

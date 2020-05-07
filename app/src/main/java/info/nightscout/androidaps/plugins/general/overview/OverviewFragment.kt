@@ -76,26 +76,8 @@ import kotlinx.android.synthetic.main.overview_buttons_layout.overview_insulinbu
 import kotlinx.android.synthetic.main.overview_buttons_layout.overview_quickwizardbutton
 import kotlinx.android.synthetic.main.overview_buttons_layout.overview_treatmentbutton
 import kotlinx.android.synthetic.main.overview_buttons_layout.overview_wizardbutton
-import kotlinx.android.synthetic.main.overview_fragment.*
 import kotlinx.android.synthetic.main.overview_fragment.overview_notifications
 import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.*
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_activeprofile
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_apsmode
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_arrow
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_basebasal
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_bg
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_bggraph
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_chartMenuButton
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_cob
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_extendedbolus
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_iob
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_iobcalculationprogess
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_iobgraph
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_looplayout
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_pumpstatus
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_pumpstatuslayout
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_sensitivity
-import kotlinx.android.synthetic.main.overview_fragment_nsclient_tablet.overview_temptarget
 import kotlinx.android.synthetic.main.overview_graphs_layout.overview_bggraph
 import kotlinx.android.synthetic.main.overview_graphs_layout.overview_chartMenuButton
 import kotlinx.android.synthetic.main.overview_graphs_layout.overview_iobcalculationprogess
@@ -617,7 +599,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 pump.isSuspended                                                        -> {
                     overview_apsmode.setImageResource(R.drawable.loop_paused)
-                    overview_apsmode_text?.text = ""
+                    overview_apsmode_text?.text = "Pump suspended"
 //                    overview_apsmode_text?.text = resourceHelper.gs(R.string.pumpsuspended)
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonWarning))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
@@ -625,7 +607,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value() && loopPlugin.isLGS -> {
                     overview_apsmode.setImageResource(R.drawable.loop_lgs)
-                    overview_apsmode_text?.text = ""
+                    overview_apsmode_text?.text = "LGS"
 //                    overview_apsmode_text?.text = resourceHelper.gs(R.string.closedloop)
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
@@ -633,7 +615,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value()                     -> {
                     overview_apsmode.setImageResource(R.drawable.loop_closed)
-                    overview_apsmode_text?.text = ""
+                    overview_apsmode_text?.text = "Closed Loop"
 //                    overview_apsmode_text?.text = resourceHelper.gs(R.string.closedloop)
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
@@ -753,7 +735,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         var cobText: String = resourceHelper.gs(R.string.value_unavailable_short)
         val cobInfo = iobCobCalculatorPlugin.getCobInfo(false, "Overview COB")
         if (cobInfo.displayCob != null) {
-            cobText = resourceHelper.gs(R.string.format_carbs, cobInfo.displayCob.toInt()) + " g"
+            cobText = resourceHelper.gs(R.string.format_carbs, cobInfo.displayCob.toInt())
             if (cobInfo.futureCarbs > 0) cobText += "(" + DecimalFormatter.to0Decimal(cobInfo.futureCarbs) + ")"
         }
         overview_cob?.text = cobText
