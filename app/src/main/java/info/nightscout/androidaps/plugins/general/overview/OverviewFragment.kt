@@ -615,8 +615,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value()                     -> {
                     overview_apsmode.setImageResource(R.drawable.loop_closed)
-                    overview_apsmode_text?.text = "Closed Loop"
-//                    overview_apsmode_text?.text = resourceHelper.gs(R.string.closedloop)
+                    overview_apsmode_text?.text = ""
+                    overview_apsmode_text?.text = resourceHelper.gs(R.string.closedloop)
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
                 }
@@ -624,7 +624,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 loopPlugin.isEnabled() && !closedLoopEnabled.value()                    -> {
                     overview_apsmode.setImageResource(R.drawable.loop_open)
                     overview_apsmode_text?.text = ""
-//                    overview_apsmode_text?.text = resourceHelper.gs(R.string.openloop)
+                    overview_apsmode_text?.text = resourceHelper.gs(R.string.openloop)
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
                 }
@@ -716,6 +716,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         } else {
             overview_iob?.setTextColor(resourceHelper.gc(R.color.defaulttext))
         }
+        //Anpassung Ende
 
         overview_iob_llayout?.setOnClickListener {
             activity?.let {
