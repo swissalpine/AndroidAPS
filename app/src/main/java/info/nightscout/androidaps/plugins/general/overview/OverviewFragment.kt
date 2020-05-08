@@ -583,7 +583,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 loopPlugin.isDisconnected                                               -> {
                     overview_apsmode.setImageResource(R.drawable.loop_disconnected)
-                    overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper)
+                    overview_apsmode_text?.text = "Disc. (" + DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + ")"
 //                    overview_apsmode_text?.text = String.format(resourceHelper.gs(R.string.loopdisconnectedfor), loopPlugin.minutesToEndOfSuspend())
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonCritical))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextCritical))
@@ -591,7 +591,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 loopPlugin.isEnabled() && loopPlugin.isSuspended                        -> {
                     overview_apsmode.setImageResource(R.drawable.loop_paused)
-                    overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper)
+                    overview_apsmode_text?.text = "Susp. (" + DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + ")"
 //                    overview_apsmode_text?.text = String.format(resourceHelper.gs(R.string.loopsuspendedfor), loopPlugin.minutesToEndOfSuspend())
 //                    overview_apsmode_text?.setBackgroundColor(resourceHelper.gc(R.color.ribbonWarning))
 //                    overview_apsmode_text?.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
