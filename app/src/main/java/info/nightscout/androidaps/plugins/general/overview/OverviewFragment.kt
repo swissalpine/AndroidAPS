@@ -737,7 +737,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val cobInfo = iobCobCalculatorPlugin.getCobInfo(false, "Overview COB")
         if (cobInfo.displayCob != null) {
             cobText = resourceHelper.gs(R.string.format_carbs, cobInfo.displayCob.toInt())
-            if (cobInfo.futureCarbs > 0) cobText += "(" + DecimalFormatter.to0Decimal(cobInfo.futureCarbs) + ")"
+            if (cobInfo.futureCarbs > 0) cobText += " (" + DecimalFormatter.to0Decimal(cobInfo.futureCarbs) + ")"
         }
         overview_cob?.text = cobText
 
