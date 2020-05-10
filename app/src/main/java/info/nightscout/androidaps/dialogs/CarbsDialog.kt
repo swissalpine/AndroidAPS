@@ -23,7 +23,7 @@ import info.nightscout.androidaps.interfaces.Constraint
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
 import info.nightscout.androidaps.plugins.bus.RxBusWrapper
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.configBuilder.ProfileFunction
+import info.nightscout.androidaps.interfaces.ProfileFunction
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.treatments.CarbsGenerator
@@ -186,7 +186,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         eventTime -= eventTime % 1000
         val time = eventTime + timeOffset * 1000 * 60
         if (timeOffset != 0)
-            actions.add(resourceHelper.gs(R.string.time) + ": " + DateUtil.dateAndTimeString(time))
+            actions.add(resourceHelper.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(time))
         val duration = overview_carbs_duration.value.toInt()
         if (duration > 0)
             actions.add(resourceHelper.gs(R.string.duration) + ": " + duration + resourceHelper.gs(R.string.shorthour))
@@ -200,7 +200,7 @@ class CarbsDialog : DialogFragmentWithDate() {
             actions.add(resourceHelper.gs(R.string.careportal_newnstreatment_notes_label) + ": " + notes)
 
         if (eventTimeChanged)
-            actions.add(resourceHelper.gs(R.string.time) + ": " + DateUtil.dateAndTimeString(eventTime))
+            actions.add(resourceHelper.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
         if (carbsAfterConstraints > 0 || activitySelected || eatingSoonSelected || hypoSelected) {
             activity?.let { activity ->
