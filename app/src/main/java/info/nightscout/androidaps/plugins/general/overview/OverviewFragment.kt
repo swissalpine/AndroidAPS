@@ -680,6 +680,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         overview_basebasal?.setTextColor(activeTemp?.let { resourceHelper.gc(R.color.basal) }
             ?: resourceHelper.gc(R.color.defaulttextcolor))
         overview_basebasal_icon.setImageResource(if (activeTemp != null) R.drawable.icon_cp_basal_start else R.drawable.icon_cp_basal_end)
+        // overview_basebasal_icon.setImageResource(if (activeTemp != null) R.drawable.icon_cp_basal_start else R.drawable.icon_cp_basal_end)
 
         // Extended bolus
         val extendedBolus = treatmentsPlugin.getExtendedBolusFromHistory(System.currentTimeMillis())
@@ -754,14 +755,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         val lastRun = loopPlugin.lastRun
         if (config.APS && lastRun?.constraintsProcessed != null && lastRun?.constraintsProcessed.carbsReq > 0) {
-            overview_cob?.text = cobText + " ("+lastRun?.constraintsProcessed.carbsReq + " req)"
-            if(!carbAnimation.isRunning)
-                carbAnimation.start()
+            overview_cob?.text = cobText + " | "+lastRun?.constraintsProcessed.carbsReq + " req."
+            overview_cob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
+            //if(!carbAnimation.isRunning)
+            //    carbAnimation.start()
         }else{
             overview_cob?.text = cobText
-            if(carbAnimation.isRunning)
-                carbAnimation.stop()
-                carbAnimation.selectDrawable(0);
+            overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttext))
+            //if(carbAnimation.isRunning)
+            //    carbAnimation.stop()
+            //    carbAnimation.selectDrawable(0);
         }
 
         val predictionsAvailable = if (config.APS) lastRun?.request?.hasPredictions == true else config.NSCLIENT
@@ -782,7 +785,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         overview_sensitivity?.text =
             iobCobCalculatorPlugin.getLastAutosensData("Overview")?.let { autosensData ->
                 String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
-            } ?: ""
+            } ?: resourceHelper.gs(R.string.value_unavailable_short)
 
         // ****** GRAPH *******
         GlobalScope.launch(Dispatchers.Main) {

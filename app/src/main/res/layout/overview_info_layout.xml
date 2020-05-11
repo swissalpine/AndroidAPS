@@ -251,7 +251,8 @@
         android:id="@+id/overview_cob_required_llayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/overview_iob_llayout">>
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/overview_iob_llayout">
 
         <TextView
             android:id="@+id/overview_cob_required"
