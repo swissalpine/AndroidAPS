@@ -660,7 +660,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonWarning))
             overview_temptarget?.text = Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end(), resourceHelper)
         } else {
-            overview_temptarget?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
+            overview_temptarget?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
             overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
             overview_temptarget?.text = Profile.toTargetRangeString(profile.targetLowMgdl, profile.targetHighMgdl, Constants.MGDL, units)
         }
@@ -677,8 +677,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 OKDialog.show(it, resourceHelper.gs(R.string.basal), fullText)
             }
         }
-        overview_basebasal?.setTextColor(activeTemp?.let { resourceHelper.gc(R.color.basal) }
-            ?: resourceHelper.gc(R.color.defaulttextcolor))
+        //overview_basebasal?.setTextColor(activeTemp?.let { resourceHelper.gc(R.color.basal) }
+        //    ?: resourceHelper.gc(R.color.defaulttextcolor))
 
         if (activeTemp != null)
             overview_basebasal_icon.setImageResource(if (activeTemp.tempBasalConvertedToPercent(System.currentTimeMillis(), profile) > 100) R.drawable.icon_cp_basal_tbr_high else R.drawable.icon_cp_basal_tbr_low)
@@ -707,7 +707,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_activeprofile?.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
         } else {
             overview_activeprofile?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
-            overview_activeprofile?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
+            overview_activeprofile?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
         }
 
         processButtonsVisibility()
@@ -732,7 +732,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_iob?.text = resourceHelper.gs(R.string.formatinsulinunits, bolusIob.iob + basalIob.basaliob) + " < " + sp.getDouble(R.string.key_openapssmb_max_iob, 0.0)
             overview_iob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
         } else {
-            overview_iob?.setTextColor(resourceHelper.gc(R.color.defaulttext))
+            overview_iob?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
         }
         //Anpassung Ende
 
@@ -766,7 +766,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             //    carbAnimation.start()
         }else{
             overview_cob?.text = cobText
-            overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttext))
+            overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
             //if(carbAnimation.isRunning)
             //    carbAnimation.stop()
             //    carbAnimation.selectDrawable(0);
