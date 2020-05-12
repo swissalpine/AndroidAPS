@@ -224,6 +224,34 @@
                 app:layout_gravity="fill"
                 app:layout_row="4" />
 
+            <info.nightscout.androidaps.utils.SingleClickButton
+                android:id="@+id/actions_announcement"
+                style="@style/ButtonSmallFontStyle"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:drawableTop="@drawable/icon_cp_announcement"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
+                android:text="@string/careportal_announcement"
+                app:layout_column="0"
+                app:layout_columnWeight="1"
+                app:layout_gravity="fill"
+                app:layout_row="5" />
+
+            <info.nightscout.androidaps.utils.SingleClickButton
+                android:id="@+id/actions_question"
+                style="@style/ButtonSmallFontStyle"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:drawableTop="@drawable/icon_cp_question"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
+                android:text="@string/careportal_question"
+                app:layout_column="1"
+                app:layout_columnWeight="1"
+                app:layout_gravity="fill"
+                app:layout_row="5" />
+
         </androidx.gridlayout.widget.GridLayout>
 
         <TextView
@@ -251,7 +279,7 @@
                 app:layout_column="0"
                 app:layout_columnWeight="1"
                 app:layout_gravity="fill"
-                app:layout_row="4" />
+                app:layout_row="6" />
 
             <info.nightscout.androidaps.utils.SingleClickButton
                 android:id="@+id/actions_tddstats"
@@ -261,12 +289,12 @@
                 android:drawableTop="@drawable/icon_danarstats"
                 android:paddingLeft="0dp"
                 android:paddingRight="0dp"
-                android:text="@string/danar_stats_tdd"
+                android:text="@string/tdd"
 
                 app:layout_column="1"
                 app:layout_columnWeight="1"
                 app:layout_gravity="fill"
-                app:layout_row="4" />
+                app:layout_row="6" />
 
         </androidx.gridlayout.widget.GridLayout>
 

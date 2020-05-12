@@ -48,6 +48,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var treatmentsPlugin: TreatmentsPlugin
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculatorPlugin: IobCobCalculatorPlugin
+    @Inject lateinit var nsUpload: NSUpload
     @Inject lateinit var carbsGenerator: CarbsGenerator
     @Inject lateinit var rxBus: RxBusWrapper
     @Inject lateinit var loopPlugin: LoopPlugin
@@ -270,7 +271,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                         } else {
                             aapsLogger.debug("USER ENTRY: CARBS $carbsAfterConstraints time: $time duration: $duration")
                             carbsGenerator.generateCarbs(carbsAfterConstraints, time, duration, notes)
-                            NSUpload.uploadEvent(CareportalEvent.NOTE, DateUtil.now() - 2000, resourceHelper.gs(R.string.generated_ecarbs_note, carbsAfterConstraints, duration, timeOffset))
+                            nsUpload.uploadEvent(CareportalEvent.NOTE, DateUtil.now() - 2000, resourceHelper.gs(R.string.generated_ecarbs_note, carbsAfterConstraints, duration, timeOffset))
                         }
                     }
                 }, null)
