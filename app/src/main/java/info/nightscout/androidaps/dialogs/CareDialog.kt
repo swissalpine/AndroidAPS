@@ -143,7 +143,7 @@ class CareDialog : DialogFragmentWithDate() {
         }
         actions_care_duration.setParams(savedInstanceState?.getDouble("actions_care_duration")
             ?: 0.0, 0.0, Constants.MAX_PROFILE_SWITCH_DURATION, 10.0, DecimalFormat("0"), false, ok)
-        if (options == EventType.NOTE || options == EventType.QUESTION || options == EventType.ANNOUNCEMENT)
+        if (options == EventType.NOTE || options == EventType.QUESTION || options == EventType.ANNOUNCEMENT || options == EventType.EXERCISE)
             notes_layout?.visibility = View.VISIBLE // independent to preferences
     }
 
