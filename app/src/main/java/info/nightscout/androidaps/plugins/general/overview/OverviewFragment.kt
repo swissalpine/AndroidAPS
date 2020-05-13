@@ -758,17 +758,19 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         }
 
         val lastRun = loopPlugin.lastRun
-        if (config.APS && lastRun?.constraintsProcessed != null && lastRun?.constraintsProcessed.carbsReq > 0) {
-            overview_cob?.text = cobText + " | "+lastRun?.constraintsProcessed.carbsReq + " req."
-            overview_cob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
-            //if(!carbAnimation.isRunning)
-            //    carbAnimation.start()
-        }else{
-            overview_cob?.text = cobText
-            overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
-            //if(carbAnimation.isRunning)
-            //    carbAnimation.stop()
-            //    carbAnimation.selectDrawable(0);
+        if (config.APS && lastRun?.constraintsProcessed != null) {
+            if (lastRun.constraintsProcessed!!.carbsReq > 0) {
+                overview_cob?.text = cobText + " | " + lastRun.constraintsProcessed!!.carbsReq + " " + resourceHelper.gs(R.string.required)
+                //if (!carbAnimation.isRunning)
+                //    carbAnimation.start()
+                overview_cob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
+            } else {
+                overview_cob?.text = cobText
+                //if (carbAnimation.isRunning)
+                //    carbAnimation.stop()
+                //carbAnimation.selectDrawable(0);
+                overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
+            }
         }
 
         val predictionsAvailable = if (config.APS) lastRun?.request?.hasPredictions == true else config.NSCLIENT
