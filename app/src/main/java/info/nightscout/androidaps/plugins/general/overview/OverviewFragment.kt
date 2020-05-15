@@ -485,7 +485,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_iobgraph.removeAllViews()
             for (i in 1 until numOfGraphs) {
                 val label = TextView(context)
-                label.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).also { it.setMargins(100, 0, 0, -90) }
+                label.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT).also { it.setMargins(100, 0, 0, -40) }
                 overview_iobgraph.addView(label)
                 secondaryGraphsLabel.add(label)
                 val graph = GraphView(context)
