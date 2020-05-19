@@ -802,7 +802,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         // ****** GRAPH *******
         GlobalScope.launch(Dispatchers.Main) {
             overview_bggraph ?: return@launch
-            val graphData = GraphData(injector, overview_bggraph, iobCobCalculatorPlugin)
+            val graphData = GraphData(injector, overview_bggraph, iobCobCalculatorPlugin, treatmentsPlugin)
             val secondaryGraphsData: ArrayList<GraphData> = ArrayList()
 
             // do preparation in different thread
@@ -865,7 +865,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 // ------------------ 2nd graph
                 for (g in 0 until secondaryGraphs.size) {
-                    val secondGraphData = GraphData(injector, secondaryGraphs[g], iobCobCalculatorPlugin)
+                    val secondGraphData = GraphData(injector, secondaryGraphs[g], iobCobCalculatorPlugin, treatmentsPlugin)
                     var useIobForScale = false
                     var useCobForScale = false
                     var useDevForScale = false
