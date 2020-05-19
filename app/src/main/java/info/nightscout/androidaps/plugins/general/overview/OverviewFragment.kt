@@ -561,7 +561,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             if (glucoseStatus != null) {
                 overview_delta?.text = "Δ ${Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)}"
                 overview_deltashort?.text = Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)
-                overview_avgdelta?.text = "avgΔ ${Profile.toUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
+                overview_avgdelta?.text = "avgΔ ${Profile.toSignedUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
             } else {
                 overview_delta?.text = "Δ --" //+ resourceHelper.gs(R.string.notavailable)
                 overview_deltashort?.text = "---"
