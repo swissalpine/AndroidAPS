@@ -653,6 +653,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         } else {
             overview_apsmode_text?.visibility = View.GONE
         }
+        val lastRun = loopPlugin.lastRun
 
         // temp target
         val tempTarget = treatmentsPlugin.tempTargetFromHistory
@@ -661,9 +662,25 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonWarning))
             overview_temptarget?.text = Profile.toTargetRangeString(tempTarget.low, tempTarget.high, Constants.MGDL, units) + " " + DateUtil.untilString(tempTarget.end(), resourceHelper)
         } else {
-            overview_temptarget?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
-            overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
-            overview_temptarget?.text = Profile.toTargetRangeString(profile.targetLowMgdl, profile.targetHighMgdl, Constants.MGDL, units)
+            //If the target is not the same as set in the profile then oref has overridden it
+            //show this change to the user if it exists
+            var targetused = lastRun?.constraintsProcessed?.targetBG
+            if (targetused != null && targetused != 0.0) {
+
+                if (((profile.targetLowMgdl+profile.targetHighMgdl)/2)!= targetused) {
+                    overview_temptarget?.text = Profile.toTargetRangeString(targetused, targetused, Constants.MGDL, units)
+                    overview_temptarget?.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
+                    overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.tempTargetBackground))
+                } else {
+                    overview_temptarget?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
+                    overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
+                    overview_temptarget?.text = Profile.toTargetRangeString(profile.targetLowMgdl, profile.targetHighMgdl, Constants.MGDL, units)
+                }
+            } else {
+                overview_temptarget?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
+                overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
+                overview_temptarget?.text = Profile.toTargetRangeString(profile.targetLowMgdl, profile.targetHighMgdl, Constants.MGDL, units)
+            }
         }
 
         // Basal, TBR
@@ -757,7 +774,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             if (cobInfo.futureCarbs > 0) cobText += " (" + DecimalFormatter.to0Decimal(cobInfo.futureCarbs) + ")"
         }
 
-        val lastRun = loopPlugin.lastRun
         if (config.APS && lastRun?.constraintsProcessed != null) {
             if (lastRun.constraintsProcessed!!.carbsReq > 0) {
                 overview_cob?.text = cobText + " | " + lastRun.constraintsProcessed!!.carbsReq + " " + resourceHelper.gs(R.string.required)
@@ -790,7 +806,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         // Sensitivity
         if (sp.getBoolean(R.string.key_openapsama_useautosens, false) && constraintChecker.isAutosensModeEnabled().value()) {
             overview_sensitivity_icon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
-        }else {
+        } else {
             overview_sensitivity_icon.setImageResource(R.drawable.ic_x_swap_vert_48px_green)
         }
 
