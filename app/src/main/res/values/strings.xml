@@ -308,6 +308,9 @@
     <string name="smscommunicator_carbsreplywithcode">To enter %1$dg at %2$s reply with code %3$s</string>
     <string name="smscommunicator_basalpctreplywithcode">To start basal %1$d%% for %2$d min reply with code %3$s</string>
     <string name="smscommunicator_suspendreplywithcode">To suspend loop for %1$d minutes reply with code %2$s</string>
+    <string name="smscommunicator_loopresumereplywithcode">To resume loop reply with code %1$s</string>
+    <string name="smscommunicator_loopenablereplywithcode">To enable loop reply with code %1$s</string>
+    <string name="smscommunicator_loopdisablereplywithcode">To disable loop reply with code %1$s</string>
     <string name="smscommunicator_tempbasalset">Temp basal %1$.2fU/h for %2$d min started successfully</string>
     <string name="smscommunicator_extendedset">Extended bolus %1$.2fU for %2$d min started successfully</string>
     <string name="smscommunicator_carbsset">Carbs %1$dg entered successfully</string>
@@ -1693,7 +1696,7 @@
     <string name="description_pump_omnipod_dash">Pump integration for Omnipod Dash.</string>
     <string name="omnipod_alert_finish_pairing_reminder">Finish pairing reminder</string>
     <string name="omnipod_alert_finish_setup_reminder_reminder">Finish setup reminder</string>
-    <string name="omnipod_alert_expiration">Pod wil expire soon</string>
+    <string name="omnipod_alert_expiration">Pod will expire soon</string>
     <string name="omnipod_alert_expiration_advisory">Pod will expire soon</string>
     <string name="omnipod_alert_shutdown_imminent">Shutdown is imminent</string>
     <string name="omnipod_alert_low_reservoir">Low reservoir</string>
