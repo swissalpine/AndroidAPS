@@ -248,24 +248,5 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/overview_cob_required_llayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@+id/overview_iob_llayout">
-
-        <TextView
-            android:id="@+id/overview_cob_required"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:text="@string/cob_required"
-            android:textColor="@color/ribbonWarning"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toBottomOf="@+id/overview_cob_label"
-            app:layout_constraintStart_toEndOf="@+id/overview_cob" />
-    </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
