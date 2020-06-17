@@ -600,44 +600,44 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_apsmode?.visibility = View.VISIBLE
             when {
                 loopPlugin.isEnabled() && loopPlugin.isSuperBolus                       -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_superbolus)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_superbolus)
                     overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper)
                 }
 
                 loopPlugin.isDisconnected                                               -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_disconnected)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_disconnected)
                     overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + " disc."
                 }
 
                 loopPlugin.isEnabled() && loopPlugin.isSuspended                        -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_paused)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_paused)
                     overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + " susp."
                 }
 
                 pump.isSuspended                                                        -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_paused)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_paused)
                     overview_apsmode_text?.text = "Pump suspended"
                 }
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value() && loopPlugin.isLGS -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_lgs)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_lgs)
                     overview_apsmode_text?.text = "LGS"
                 }
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value()                     -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_closed)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_closed)
                     overview_apsmode_text?.text = ""
                     overview_apsmode_text?.text = resourceHelper.gs(R.string.closedloop)
                 }
 
                 loopPlugin.isEnabled() && !closedLoopEnabled.value()                    -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_open)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_open)
                     overview_apsmode_text?.text = ""
                     overview_apsmode_text?.text = resourceHelper.gs(R.string.openloop)
                }
 
                 else                                                                    -> {
-                    overview_apsmode.setImageResource(R.drawable.loop_disabled)
+                    overview_apsmode.setImageResource(R.drawable.ic_loop_disabled)
                     overview_apsmode_text?.text = ""
                     overview_apsmode_text?.text = resourceHelper.gs(R.string.disabledloop)
                 }
@@ -684,9 +684,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         //    ?: resourceHelper.gc(R.color.defaulttextcolor))
 
         if (activeTemp != null)
-            overview_basebasal_icon.setImageResource(if (activeTemp.tempBasalConvertedToPercent(System.currentTimeMillis(), profile) > 100) R.drawable.icon_cp_basal_tbr_high else R.drawable.icon_cp_basal_tbr_low)
+            overview_basebasal_icon.setImageResource(if (activeTemp.tempBasalConvertedToPercent(System.currentTimeMillis(), profile) > 100) R.drawable.ic_cp_basal_tbr_high else R.drawable.ic_cp_basal_tbr_low)
         else
-            overview_basebasal_icon.setImageResource(R.drawable.icon_cp_basal_no_tbr)
+            overview_basebasal_icon.setImageResource(R.drawable.ic_cp_basal_no_tbr)
 
         // Extended bolus
         val extendedBolus = treatmentsPlugin.getExtendedBolusFromHistory(System.currentTimeMillis())
