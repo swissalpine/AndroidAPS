@@ -41,9 +41,9 @@
     <string name="disconnected">Disconnected</string>
     <string name="disconnecting">Disconnecting</string>
     <string name="androidaps_start">AndroidAPS started</string>
-    <string name="formatinsulinunits">%1$.2f U</string>
+    <string name="formatinsulinunits">%1$.2fU</string>
     <string name="reservoirvalue">%1$.0f / %2$d U</string>
-    <string name="pump_basebasalrate">%1$.2f U/h</string>
+    <string name="pump_basebasalrate">%1$.2fU/h</string>
     <string name="format_hours">%1$.2f h</string>
     <string name="format_mins">%1$d mins</string>
     <string name="format_mins_short">%1$dm</string>
