@@ -5,6 +5,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="3dp"
     android:layout_marginBottom="3dp"
+    android:background="?android:attr/colorControlHighlight"
     android:orientation="horizontal"
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
@@ -17,7 +18,7 @@
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_canula2" />
+        android:src="@drawable/icon_cp_age_canula" />
 
                 <TextView
                     android:id="@+id/careportal_canulaage"
@@ -37,7 +38,7 @@
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_insulin2" />
+        android:src="@drawable/icon_cp_age_insulin" />
 
                 <TextView
                     android:id="@+id/careportal_reservoirlevel"
@@ -67,7 +68,7 @@
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_sensor2" />
+        android:src="@drawable/icon_cp_age_sensor" />
 
                 <TextView
                     android:id="@+id/careportal_sensorage"
@@ -88,7 +89,7 @@
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_battery2" />
+        android:src="@drawable/icon_cp_age_battery" />
 
                 <TextView
                     android:id="@+id/careportal_pbage"
