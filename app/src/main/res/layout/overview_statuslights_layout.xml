@@ -5,7 +5,6 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="3dp"
     android:layout_marginBottom="3dp"
-    android:background="?android:attr/colorControlHighlight"
     android:orientation="horizontal"
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
@@ -14,11 +13,11 @@
         android:layout_width="15dp"
         android:layout_height="25dp"
         android:layout_marginStart="-5dp"
-        android:layout_marginTop="-1dp"
+        android:layout_marginTop="-2dp"
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_canula" />
+        android:src="@drawable/ic_cp_age_canula" />
 
                 <TextView
                     android:id="@+id/careportal_canulaage"
@@ -33,12 +32,12 @@
     <ImageView
         android:layout_width="15dp"
         android:layout_height="25dp"
-        android:layout_marginTop="-1dp"
+        android:layout_marginTop="-3dp"
         android:layout_marginEnd="-1dp"
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_insulin" />
+        android:src="@drawable/ic_cp_age_insulin" />
 
                 <TextView
                     android:id="@+id/careportal_reservoirlevel"
@@ -64,11 +63,11 @@
     <ImageView
         android:layout_width="15dp"
         android:layout_height="25dp"
-        android:layout_marginTop="-1dp"
+        android:layout_marginTop="-2dp"
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_sensor" />
+        android:src="@drawable/ic_cp_age_sensor" />
 
                 <TextView
                     android:id="@+id/careportal_sensorage"
@@ -89,7 +88,7 @@
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:scaleType="centerInside"
-        android:src="@drawable/icon_cp_age_battery" />
+        android:src="@drawable/ic_cp_age_battery" />
 
                 <TextView
                     android:id="@+id/careportal_pbage"
