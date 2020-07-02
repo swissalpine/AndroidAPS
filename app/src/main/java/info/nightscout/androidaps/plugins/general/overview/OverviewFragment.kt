@@ -762,13 +762,13 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (config.APS && lastRun?.constraintsProcessed != null) {
             if (lastRun.constraintsProcessed!!.carbsReq > 0) {
                 //only display carbsreq when carbs havnt been entered recently
-                if (treatmentsPlugin.lastCarbTime < lastRun.lastAPSRun){
+                if (treatmentsPlugin.lastCarbTime < lastRun.lastAPSRun) {
                     cobText = cobText + " | " + lastRun.constraintsProcessed!!.carbsReq + " " + resourceHelper.gs(R.string.required)
-                    overview_cob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
                 }
                 overview_cob?.text = cobText
                 //if (!carbAnimation.isRunning)
                 //    carbAnimation.start()
+                overview_cob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
             } else {
                 overview_cob?.text = cobText
                 //carbAnimation.stop()
