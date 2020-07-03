@@ -600,44 +600,44 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_apsmode?.visibility = View.VISIBLE
             when {
                 loopPlugin.isEnabled() && loopPlugin.isSuperBolus                       -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_superbolus)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_superbolus)
                     overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper)
                 }
 
                 loopPlugin.isDisconnected                                               -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_disconnected)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_disconnected)
                     overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + " disc."
                 }
 
                 loopPlugin.isEnabled() && loopPlugin.isSuspended                        -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_paused)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_paused)
                     overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + " susp."
                 }
 
                 pump.isSuspended                                                        -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_paused)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_paused)
                     overview_apsmode_text?.text = "Pump suspended"
                 }
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value() && loopPlugin.isLGS -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_lgs)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_lgs)
                     overview_apsmode_text?.text = "LGS"
                 }
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value()                     -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_closed)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_closed)
                     overview_apsmode_text?.text = ""
                     overview_apsmode_text?.text = resourceHelper.gs(R.string.closedloop)
                 }
 
                 loopPlugin.isEnabled() && !closedLoopEnabled.value()                    -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_open)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_open)
                     overview_apsmode_text?.text = ""
                     overview_apsmode_text?.text = resourceHelper.gs(R.string.openloop)
                }
 
                 else                                                                    -> {
-                    overview_apsmode.setImageResource(R.drawable.ic_loop_disabled)
+                    overview_apsmode?.setImageResource(R.drawable.ic_loop_disabled)
                     overview_apsmode_text?.text = ""
                     overview_apsmode_text?.text = resourceHelper.gs(R.string.disabledloop)
                 }
@@ -658,6 +658,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             val targetUsed = lastRun?.constraintsProcessed?.targetBG ?: 0.0
 
             if (targetUsed != 0.0 && profile.targetMgdl != targetUsed) {
+                aapsLogger.debug("Adjusted target. Profile: ${profile.targetMgdl} APS: $targetUsed")
                 overview_temptarget?.text = Profile.toTargetRangeString(targetUsed, targetUsed, Constants.MGDL, units)
                 overview_temptarget?.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
                 overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.inrange))
@@ -775,7 +776,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 //carbAnimation.selectDrawable(0);
                 overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
             }
-        }
+        } else overview_cob?.text = cobText
 
         val predictionsAvailable = if (config.APS) lastRun?.request?.hasPredictions == true else config.NSCLIENT
 
