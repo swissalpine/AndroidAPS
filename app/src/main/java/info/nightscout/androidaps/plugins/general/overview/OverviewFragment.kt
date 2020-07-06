@@ -158,7 +158,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     private val secondaryGraphs = ArrayList<GraphView>()
     private val secondaryGraphsLabel = ArrayList<TextView>()
 
-    private lateinit var carbAnimation: AnimationDrawable
+    private var carbAnimation: AnimationDrawable? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -190,9 +190,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         overview_bggraph?.gridLabelRenderer?.labelVerticalWidth = axisWidth
         overview_bggraph?.layoutParams?.height = resourceHelper.dpToPx(skinProvider.activeSkin().mainGraphHeight)
 
-        carbAnimation = overview_carbs_icon.background as AnimationDrawable
-        carbAnimation.setEnterFadeDuration(1200)
-        carbAnimation.setExitFadeDuration(1200)
+        carbAnimation = overview_carbs_icon?.background as AnimationDrawable?
+        carbAnimation?.setEnterFadeDuration(1200)
+        carbAnimation?.setExitFadeDuration(1200)
 
         rangeToDisplay = sp.getInt(R.string.key_rangetodisplay, 6)
 
@@ -646,6 +646,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             overview_apsmode_text?.visibility = View.GONE
         }
         val lastRun = loopPlugin.lastRun
+        val predictionsAvailable = if (config.APS) lastRun?.request?.hasPredictions == true else config.NSCLIENT
 
         // temp target
         val tempTarget = treatmentsPlugin.tempTargetFromHistory
@@ -685,9 +686,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         //    ?: resourceHelper.gc(R.color.defaulttextcolor))
 
         if (activeTemp != null)
-            overview_basebasal_icon.setImageResource(if (activeTemp.tempBasalConvertedToPercent(System.currentTimeMillis(), profile) > 100) R.drawable.ic_cp_basal_tbr_high else R.drawable.ic_cp_basal_tbr_low)
+            overview_basebasal_icon?.setImageResource(if (activeTemp.tempBasalConvertedToPercent(System.currentTimeMillis(), profile) > 100) R.drawable.ic_cp_basal_tbr_high else R.drawable.ic_cp_basal_tbr_low)
         else
-            overview_basebasal_icon.setImageResource(R.drawable.ic_cp_basal_no_tbr)
+            overview_basebasal_icon?.setImageResource(R.drawable.ic_cp_basal_no_tbr)
 
         // Extended bolus
         val extendedBolus = treatmentsPlugin.getExtendedBolusFromHistory(System.currentTimeMillis())
@@ -767,18 +768,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     cobText = cobText + " | " + lastRun.constraintsProcessed!!.carbsReq + " " + resourceHelper.gs(R.string.required)
                 }
                 overview_cob?.text = cobText
-                //if (!carbAnimation.isRunning)
-                //    carbAnimation.start()
+                //if (carbAnimation?.isRunning == false)
+                //    carbAnimation?.start()
                 overview_cob?.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
             } else {
                 overview_cob?.text = cobText
-                //carbAnimation.stop()
-                //carbAnimation.selectDrawable(0);
+                //carbAnimation?.stop()
+                //carbAnimation?.selectDrawable(0);
                 overview_cob?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
             }
         } else overview_cob?.text = cobText
-
-        val predictionsAvailable = if (config.APS) lastRun?.request?.hasPredictions == true else config.NSCLIENT
 
         // pump status from ns
         overview_pump?.text = nsDeviceStatus.pumpStatus
@@ -794,9 +793,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         // Sensitivity
         if (sp.getBoolean(R.string.key_openapsama_useautosens, false) && constraintChecker.isAutosensModeEnabled().value()) {
-            overview_sensitivity_icon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
+            overview_sensitivity_icon?.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
         } else {
-            overview_sensitivity_icon.setImageResource(R.drawable.ic_x_swap_vert)
+            overview_sensitivity_icon?.setImageResource(R.drawable.ic_x_swap_vert)
         }
 
         overview_sensitivity?.text =
