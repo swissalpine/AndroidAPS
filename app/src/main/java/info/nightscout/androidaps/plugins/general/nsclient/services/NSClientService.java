@@ -346,8 +346,8 @@ public class NSClientService extends DaggerService {
             }
             rxBus.send(new EventNSClientNewLog("WATCHDOG", "connections in last " + WATCHDOG_INTERVAL_MINUTES + " mins: " + reconnections.size() + "/" + WATCHDOG_MAXCONNECTIONS));
             if (reconnections.size() >= WATCHDOG_MAXCONNECTIONS) {
-                Notification n = new Notification(Notification.NSMALFUNCTION, resourceHelper.gs(R.string.nsmalfunction), Notification.URGENT);
-                rxBus.send(new EventNewNotification(n));
+                //Notification n = new Notification(Notification.NSMALFUNCTION, resourceHelper.gs(R.string.nsmalfunction), Notification.URGENT);
+                //rxBus.send(new EventNewNotification(n));
                 rxBus.send(new EventNSClientNewLog("WATCHDOG", "pausing for " + WATCHDOG_RECONNECT_IN + " mins"));
                 nsClientPlugin.pause(true);
                 rxBus.send(new EventNSClientUpdateGUI());
