@@ -63,7 +63,6 @@
             android:id="@+id/overview_avgdelta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textSize="16sp" />
@@ -94,8 +93,8 @@
         <TextView
             android:id="@+id/overview_apsmode_text"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:layout_height="match_parent"
+            android:gravity="bottom|center_horizontal"
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="Open Loop"
