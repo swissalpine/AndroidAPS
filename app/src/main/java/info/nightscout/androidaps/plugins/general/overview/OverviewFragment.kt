@@ -665,7 +665,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 overview_temptarget?.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
                 overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.inrange))
             } else {
-                overview_temptarget?.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
+                overview_temptarget?.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
                 overview_temptarget?.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
                 overview_temptarget?.text = Profile.toTargetRangeString(profile.targetLowMgdl, profile.targetHighMgdl, Constants.MGDL, units)
             }
