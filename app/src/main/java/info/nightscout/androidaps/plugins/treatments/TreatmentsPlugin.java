@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.gson.GsonBuilder;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -471,8 +470,8 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
             Treatment treatment = new Treatment(getInjector());
             treatment.date = i;
             treatment.insulin = running * 5.0 / 60.0; // 5 min chunk
-            Iob iob = treatment.iobCalc(i, profile.getDia());
-            total.iob += iob.iobContrib;
+            Iob iob = treatment.iobCalc(time, profile.getDia());
+            total.basaliob += iob.iobContrib;
             total.activity += iob.activityContrib;
         }
         return total;
@@ -603,6 +602,12 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
                 nsUpload.uploadTempBasalStartPercent(tempBasal, profileFunction.getProfile(tempBasal.date));
         }
         return newRecordCreated;
+    }
+
+    public TreatmentUpdateReturn createOrUpdateMedtronic(Treatment treatment, boolean fromNightScout) {
+        TreatmentService.UpdateReturn resultRecord = getService().createOrUpdateMedtronic(treatment, fromNightScout);
+
+        return new TreatmentUpdateReturn(resultRecord.success, resultRecord.newRecord);
     }
 
     // return true if new record is created
