@@ -23,7 +23,7 @@
             android:paddingBottom="3dp"
             android:text="Profile"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textSize="18sp"
+            android:textSize="18dp"
             android:textStyle="bold" />
 
         <TextView
@@ -37,7 +37,7 @@
             android:paddingBottom="3dp"
             android:text="TempTarget"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textSize="18sp"
+            android:textSize="18dp"
             android:textStyle="bold" />
 
     </LinearLayout>
@@ -57,7 +57,8 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="@string/initializing"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="18dp" />
 
     </LinearLayout>
 

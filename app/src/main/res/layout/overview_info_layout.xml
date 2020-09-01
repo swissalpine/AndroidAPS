@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/info_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:paddingTop="5dp">
+    android:paddingTop="5dp"
+    android:paddingLeft="2dp"
+    android:paddingRight="2dp"
+    android:paddingBottom="5dp">
 
     <TextView
         android:id="@+id/overview_bg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginTop="0dp"
+        android:paddingBottom="10dp"
         android:text="00.0"
-        android:textSize="52sp"
+        android:textSize="48dp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/overview_arrow"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,15 +28,15 @@
 
     <ImageView
         android:id="@+id/overview_arrow"
-        android:layout_width="40dp"
+        android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         app:layout_constraintEnd_toStartOf="@+id/overview_deltas_llayout"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@+id/overview_bg"
-        app:layout_constraintTop_toTopOf="@+id/overview_bg"
-        android:paddingTop="18dp"
-        android:src="@drawable/ic_flat" />
+        android:paddingTop="12dp"
+        android:src="@drawable/ic_flat"
+        tools:ignore="MissingConstraints" />
 
     <LinearLayout
         android:id="@+id/overview_deltas_llayout"
@@ -39,32 +45,34 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toStartOf="@+id/overview_apsmode_llayout"
         app:layout_constraintStart_toEndOf="@+id/overview_arrow"
-        app:layout_constraintTop_toTopOf="parent">
+        tools:ignore="MissingConstraints">
 
         <TextView
             android:id="@+id/overview_timeago"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="2dp"
+            android:paddingTop="0dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            android:textSize="16sp" />
+            android:textSize="17dp" />
 
         <TextView
             android:id="@+id/overview_delta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-2dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            android:textSize="16sp" />
+            android:textSize="17dp" />
 
         <TextView
             android:id="@+id/overview_avgdelta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-2dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            android:textSize="16sp" />
+            android:textSize="17dp" />
 
     </LinearLayout>
 
@@ -72,9 +80,9 @@
         android:id="@+id/overview_apsmode_llayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="3dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
@@ -98,7 +106,8 @@
             android:paddingBottom="3dp"
             android:text="Open Loop"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textSize="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -127,7 +136,8 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textSize="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -156,7 +166,8 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textSize="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -185,7 +196,8 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textSize="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -213,7 +225,8 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textSize="20dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -242,7 +255,8 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textSize="20dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

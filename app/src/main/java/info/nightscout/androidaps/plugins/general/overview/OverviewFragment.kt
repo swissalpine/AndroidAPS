@@ -172,7 +172,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val screenWidth = dm.widthPixels
         val screenHeight = dm.heightPixels
         smallWidth = screenWidth <= Constants.SMALL_WIDTH
-        smallHeight = screenHeight <= Constants.SMALL_HEIGHT
+        smallHeight = false; //screenHeight <= Constants.SMALL_HEIGHT // Anpassung: Verhindert Abschalten des Scroll Views in Overview Tab
         val landscape = screenHeight < screenWidth
 
         return inflater.inflate(skinProvider.activeSkin().overviewLayout(landscape, resourceHelper.gb(R.bool.isTablet), smallHeight), container, false)

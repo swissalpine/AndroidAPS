@@ -3,9 +3,9 @@
     android:id="@+id/overview_statuslights"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="-2dp"
+    android:layout_marginTop="0dp"
     android:layout_marginBottom="3dp"
-    android:paddingTop="0dp"
+    android:paddingTop="2dp"
     android:paddingBottom="2dp">
 
     <LinearLayout
@@ -16,9 +16,9 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_weight="1"
-            android:layout_marginBottom="-5dp"
+            android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
             android:src="@drawable/ic_cp_age_canula" />
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
             android:textColor="@color/defaulttextcolor"
-            android:textSize="15sp" />
+            android:textSize="18dp" />
 
     </LinearLayout>
 
@@ -41,9 +41,9 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_marginTop="-2dp"
-            android:layout_marginBottom="-3dp"
+            android:layout_marginBottom="0dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
@@ -63,7 +63,7 @@
                 android:paddingStart="0dp"
                 android:paddingEnd="5dp"
                 android:textColor="@color/defaulttextcolor"
-                android:textSize="15sp" />
+                android:textSize="18dp" />
 
             <TextView
                 android:id="@+id/careportal_insulinage"
@@ -73,7 +73,7 @@
                 android:paddingStart="5dp"
                 android:paddingEnd="0dp"
                 android:textColor="@color/defaulttextcolor"
-                android:textSize="15sp" />
+                android:textSize="18dp" />
         </LinearLayout>
 
     </LinearLayout>
@@ -86,9 +86,9 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_weight="1"
-            android:layout_marginBottom="-5dp"
+            android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
             android:src="@drawable/ic_cp_age_sensor" />
@@ -99,7 +99,7 @@
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
             android:textColor="@color/defaulttextcolor"
-            android:textSize="15sp" />
+            android:textSize="18dp" />
     </LinearLayout>
 
     <LinearLayout
@@ -110,9 +110,9 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_weight="1"
-            android:layout_marginBottom="-5dp"
+            android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
             android:src="@drawable/ic_cp_age_battery" />
@@ -130,7 +130,7 @@
                 android:gravity="center|center_vertical"
                 android:paddingEnd="5dp"
                 android:textColor="@color/defaulttextcolor"
-                android:textSize="15sp" />
+                android:textSize="18dp" />
 
             <TextView
                 android:id="@+id/careportal_batterylevel"
@@ -139,7 +139,7 @@
                 android:gravity="center|center_vertical"
                 android:paddingStart="5dp"
                 android:textColor="@color/defaulttextcolor"
-                android:textSize="15sp" />
+                android:textSize="18dp" />
 
         </LinearLayout>
 
