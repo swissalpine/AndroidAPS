@@ -7,9 +7,9 @@ import javax.inject.Inject;
 
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.data.IobTotal;
+import info.nightscout.androidaps.interfaces.ActivePluginProvider;
 import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.plugins.aps.loop.APSResult;
-import info.nightscout.androidaps.plugins.pump.combo.ComboPlugin;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.utils.sharedPreferences.SP;
@@ -17,7 +17,7 @@ import info.nightscout.androidaps.utils.sharedPreferences.SP;
 public class DetermineBasalResultSMB extends APSResult {
     @Inject SP sp;
 
-    @Inject ComboPlugin comboPlugin;
+    @Inject ActivePluginProvider activePlugin;
     @Inject TreatmentsPlugin treatmentsPlugin;
 
     private double eventualBG;
@@ -58,15 +58,14 @@ public class DetermineBasalResultSMB extends APSResult {
                 treatmentsPlugin.updateTotalIOBTempBasals();
                 final IobTotal bolusIob = treatmentsPlugin.getLastCalculationTreatments();
                 final IobTotal basalIob = treatmentsPlugin.getLastCalculationTempBasals();
-                // Anpassung Basalrate
-                double baseBasalRate = comboPlugin.getBaseBasalRate();
+                double baseBasalRate = activePlugin.getActivePump().getBaseBasalRate();
+                // Anpassung der Basalrate
                 if ((bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
                     double cutoff = baseBasalRate * 0.2;
                     if (rate < cutoff) rate = cutoff;
                 }
                 // Ulrikes 20% immer
-                /* double baseBasalRate = comboPlugin.getBaseBasalRate();
-                double cutoff = baseBasalRate * 0.2;
+                /* double cutoff = baseBasalRate * 0.2;
                 if (rate < cutoff) rate = cutoff; */
                 // Ende Anpassung
 
