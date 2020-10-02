@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import javax.inject.Inject;
 
 import dagger.android.HasAndroidInjector;
+import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.interfaces.ActivePluginProvider;
 import info.nightscout.androidaps.logging.LTag;
@@ -60,8 +61,8 @@ public class DetermineBasalResultSMB extends APSResult {
                 final IobTotal basalIob = treatmentsPlugin.getLastCalculationTempBasals();
                 double baseBasalRate = activePlugin.getActivePump().getBaseBasalRate();
                 // Anpassung der Basalrate
-                if ((bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
-                    double cutoff = baseBasalRate * 0.2;
+                if (sp.getBoolean(R.string.keto_protect, false) && (bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
+                    double cutoff = baseBasalRate * (sp.getDouble(R.string.keto_protect_basal, 20d) * 0.01);
                     if (rate < cutoff) rate = cutoff;
                 }
                 // Ulrikes 20% immer
