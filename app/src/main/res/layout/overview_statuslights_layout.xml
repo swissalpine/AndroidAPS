@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/overview_statuslights"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -21,7 +22,7 @@
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_cp_age_canula" />
+            app:srcCompat="@drawable/ic_cp_age_canula" />
 
         <TextView
             android:id="@+id/careportal_canulaage"
@@ -47,7 +48,7 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_cp_age_insulin" />
+            app:srcCompat="@drawable/ic_cp_age_insulin" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -91,7 +92,7 @@
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_cp_age_sensor" />
+            app:srcCompat="@drawable/ic_cp_age_sensor" />
 
         <TextView
             android:id="@+id/careportal_sensorage"
@@ -115,7 +116,7 @@
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_cp_age_battery" />
+            app:srcCompat="@drawable/ic_cp_age_battery" />
 
         <LinearLayout
             android:layout_width="match_parent"
