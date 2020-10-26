@@ -1454,6 +1454,7 @@
     <string name="the_following_data_will_be_uploaded_to_your_open_humans_account">The following data will be uploaded to your Open Humans account: Glucose values, boluses, carbs, careportal events (except notes), extended boluses, profile switches, total daily doses, temporary basals, temp targets, preferences, application version, device model and screen dimensions. Secret or private information such as your Nightscout URL or API secret will not be uploaded.</string>
     <string name="setupwizard_pump_riley_link_status">RileyLink status:</string>
     <string name="keto_protect" translatable="false">keto_protect</string>
+    <string name="keto_protect_strategy" translatable="false">keto_protect_strategy</string>
     <string name="keto_protect_basal" translatable="false">keto_protect_basal</string>
     <string name="keto_protect_title">Ketoacidosis Protection</string>
     <string name="keto_protect_summary">Enable a small safety TBR to reduce the ketoacidosis risk.</string>
