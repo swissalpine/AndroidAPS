@@ -11,6 +11,13 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <include
+            android:id="@+id/careportal_stats"
+            layout="@layout/careportal_stats_fragment_lowres"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -125,13 +132,6 @@
             android:paddingStart="15dp"
             android:paddingEnd="15dp"
             android:text="@string/careportal" />
-
-        <include
-            android:id="@+id/careportal_stats"
-            layout="@layout/careportal_stats_fragment_lowres"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp" />
 
         <androidx.gridlayout.widget.GridLayout
             android:layout_width="match_parent"
