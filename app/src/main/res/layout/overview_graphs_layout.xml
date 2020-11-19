@@ -14,7 +14,7 @@
             android:id="@+id/overview_bggraph"
             android:layout_width="wrap_content"
             android:layout_height="200dp"
-            android:layout_marginBottom="10dp"/>
+            android:layout_marginBottom="5dp"/>
 
         <ImageButton
             android:id="@+id/overview_chartMenuButton"
