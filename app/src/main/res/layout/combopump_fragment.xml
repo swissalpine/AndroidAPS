@@ -470,6 +470,13 @@
                 android:layout_marginRight="20dp"
                 android:layout_marginTop="5dp" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawableTop="@drawable/ic_combo"
+                android:paddingTop="10dp" />
+
         </LinearLayout>
 
     </ScrollView>
