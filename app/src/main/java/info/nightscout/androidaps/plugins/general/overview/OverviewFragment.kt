@@ -175,7 +175,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val screenWidth = dm.widthPixels
         val screenHeight = dm.heightPixels
         smallWidth = screenWidth <= Constants.SMALL_WIDTH
-        smallHeight = screenHeight <= Constants.SMALL_HEIGHT // Anpassung: false; Verhindert Abschalten des Scroll Views in Overview Tab
+        smallHeight = screenHeight <= Constants.SMALL_HEIGHT
         val landscape = screenHeight < screenWidth
 
         return inflater.inflate(skinProvider.activeSkin().overviewLayout(landscape, resourceHelper.gb(R.bool.isTablet), smallHeight), container, false)
@@ -579,6 +579,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
             val glucoseStatus = GlucoseStatus(injector).glucoseStatusData
             if (glucoseStatus != null) {
+                overview_delta_large?.text = Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)
+                overview_delta_large?.setTextColor(color)
                 overview_delta?.text = "Δ ${Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)}"
                 overview_avgdelta?.text = "avgΔ ${Profile.toSignedUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
             } else {

@@ -26,6 +26,20 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
+    <TextView
+        android:id="@+id/overview_delta_large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(+1.0)"
+        android:textSize="60sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/overview_bg"
+        app:layout_constraintEnd_toStartOf="@+id/overview_arrow"
+        app:layout_constraintStart_toEndOf="@+id/overview_bg"
+        app:layout_constraintTop_toTopOf="@+id/overview_bg" />
+
+
     <ImageView
         android:id="@+id/overview_arrow"
         android:layout_width="30dp"
