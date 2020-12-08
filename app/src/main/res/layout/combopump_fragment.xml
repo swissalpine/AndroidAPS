@@ -464,18 +464,20 @@
 
             <View
                 android:layout_width="fill_parent"
-                android:layout_height="80dp"
+                android:layout_height="2dip"
                 android:layout_marginBottom="5dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
-                android:layout_marginTop="5dp" />
+                android:layout_marginTop="5dp"
+                android:background="@color/listdelimiter" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:drawableTop="@drawable/ic_combo"
-                android:paddingTop="10dp" />
+                android:paddingTop="10dp"
+                android:layout_marginBottom="70dp"/>
 
         </LinearLayout>
 
