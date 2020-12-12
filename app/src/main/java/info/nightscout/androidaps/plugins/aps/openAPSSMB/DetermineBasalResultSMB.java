@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import javax.inject.Inject;
 
 import dagger.android.HasAndroidInjector;
+import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.interfaces.ActivePluginProvider;
@@ -62,16 +63,16 @@ public class DetermineBasalResultSMB extends APSResult {
                 // Get active BaseBasalRate
                 double baseBasalRate = activePlugin.getActivePump().getBaseBasalRate();
                 // Activate a small TBR
-                if ( sp.getBoolean(R.string.keto_protect, false) && sp.getBoolean("keto_protect_strategy", true) && (bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
+                if ( sp.getBoolean(R.string.key_keto_protect, false) && sp.getBoolean(R.string.key_variable_keto_protect_strategy, true) && (bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
                     // Variable strategy
                     double cutoff = baseBasalRate * (sp.getDouble(R.string.keto_protect_basal, 20d) * 0.01);
                     if (rate < cutoff) rate = cutoff;
-                } else if ( sp.getBoolean(R.string.keto_protect, false) && !sp.getBoolean("keto_protect_strategy", true) ) {
+                } else if ( sp.getBoolean(R.string.key_keto_protect, false) && !sp.getBoolean(R.string.key_variable_keto_protect_strategy, true) ) {
                     // Continuous strategy
                     double cutoff = baseBasalRate * ( sp.getDouble(R.string.keto_protect_basal, 20d) * 0.01 );
                     if (rate < cutoff) rate = cutoff;
                 }
-                // Ende Anpassung
+                // End Ketoacidosis Protetion
 
                 duration = result.getInt("duration");
             } else {
