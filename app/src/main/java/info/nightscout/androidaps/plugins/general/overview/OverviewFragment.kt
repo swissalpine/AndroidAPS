@@ -621,6 +621,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 loopPlugin.isEnabled() && loopPlugin.isSuspended                        -> {
                     overview_apsmode?.setImageResource(R.drawable.ic_loop_paused)
+                    overview_apsmode_text?.text = DateUtil.age(loopPlugin.minutesToEndOfSuspend() * 60000L, true, resourceHelper) + " susp."
                     overview_apsmode_text?.visibility = View.VISIBLE
                 }
 
