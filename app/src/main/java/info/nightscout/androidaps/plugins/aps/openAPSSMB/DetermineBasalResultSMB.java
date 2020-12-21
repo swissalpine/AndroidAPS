@@ -10,7 +10,6 @@ import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.interfaces.ActivePluginProvider;
-import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.plugins.aps.loop.APSResult;
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin;
 import info.nightscout.androidaps.utils.DateUtil;
@@ -63,7 +62,7 @@ public class DetermineBasalResultSMB extends APSResult {
                 // Get active BaseBasalRate
                 double baseBasalRate = activePlugin.getActivePump().getBaseBasalRate();
                 // Activate a small TBR
-                if ( sp.getBoolean(R.string.key_keto_protect, false) && sp.getBoolean(R.string.key_variable_keto_protect_strategy, true) && (bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate)) {
+                if ( sp.getBoolean(R.string.key_keto_protect, false) && sp.getBoolean(R.string.key_variable_keto_protect_strategy, true) && (bolusIob.iob + basalIob.basaliob) < (0 - baseBasalRate) && -(bolusIob.activity + basalIob.activity) > 0) {
                     // Variable strategy
                     double cutoff = baseBasalRate * (sp.getDouble(R.string.keto_protect_basal, 20d) * 0.01);
                     if (rate < cutoff) rate = cutoff;
