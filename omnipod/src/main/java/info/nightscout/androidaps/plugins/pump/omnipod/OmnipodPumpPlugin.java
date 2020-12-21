@@ -54,6 +54,7 @@ import info.nightscout.androidaps.plugins.common.ManufacturerType;
 import info.nightscout.androidaps.plugins.general.actions.defs.CustomAction;
 import info.nightscout.androidaps.plugins.general.actions.defs.CustomActionType;
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload;
+import info.nightscout.androidaps.plugins.general.overview.events.EventDismissNotification;
 import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification;
 import info.nightscout.androidaps.plugins.general.overview.notifications.Notification;
 import info.nightscout.androidaps.plugins.pump.common.data.TempBasalPair;
@@ -177,7 +178,7 @@ public class OmnipodPumpPlugin extends PumpPluginBase implements PumpInterface, 
         super(new PluginDescription() //
                         .mainType(PluginType.PUMP) //
                         .fragmentClass(OmnipodOverviewFragment.class.getName()) //
-                        .pluginIcon(R.drawable.ic_pod)
+                        .pluginIcon(R.drawable.ic_pod_128)
                         .pluginName(R.string.omnipod_name) //
                         .shortName(R.string.omnipod_name_short) //
                         .preferencesId(R.xml.pref_omnipod) //
@@ -382,12 +383,14 @@ public class OmnipodPumpPlugin extends PumpPluginBase implements PumpInterface, 
             } else {
                 // Not sure what's going on. Notify the user
                 aapsLogger.error(LTag.PUMP, "Unknown TBR in both Pod state and AAPS");
-                rxBus.send(new EventNewNotification(new Notification(Notification.OMNIPOD_PUMP_ALARM, resourceHelper.gs(R.string.omnipod_error_tbr_running_but_aaps_not_aware), Notification.NORMAL).sound(R.raw.boluserror)));
+                rxBus.send(new EventNewNotification(new Notification(Notification.OMNIPOD_UNKNOWN_TBR, resourceHelper.gs(R.string.omnipod_error_tbr_running_but_aaps_not_aware), Notification.NORMAL).sound(R.raw.boluserror)));
             }
         } else if (!podStateManager.isTempBasalRunning() && tempBasal != null) {
             aapsLogger.warn(LTag.PUMP, "Removing AAPS TBR that actually hadn't succeeded");
             activePlugin.getActiveTreatments().removeTempBasal(tempBasal);
         }
+
+        rxBus.send(new EventDismissNotification(Notification.OMNIPOD_UNCERTAIN_TBR));
     }
 
     private void handleActivePodAlerts() {
@@ -534,18 +537,24 @@ public class OmnipodPumpPlugin extends PumpPluginBase implements PumpInterface, 
 
     /**
      * We don't do periodical status requests because that could drain the Pod's battery
-     * The only actual status requests we send to the Pod here are on startup (in {@link #initializeAfterRileyLinkConnection() initializeAfterRileyLinkConnection()})
+     * The only actual status requests we send to the Pod here are on startup (in {@link #initializeAfterRileyLinkConnection() initializeAfterRileyLinkConnection()}),
+     * When explicitly requested through SMS commands
      * And when the basal and/or temp basal status is uncertain
      * When the user explicitly requested it by clicking the Refresh button on the Omnipod tab (which is executed through {@link #executeCustomCommand(CustomCommand)})
      */
     @Override
-    public void getPumpStatus() {
+    public void getPumpStatus(String reason) {
         if (firstRun) {
             initializeAfterRileyLinkConnection();
             firstRun = false;
-        } else if (!podStateManager.isBasalCertain() || !podStateManager.isTempBasalCertain()) {
-            aapsLogger.info(LTag.PUMP, "Acknowledged AAPS getPumpStatus request because basal and/or temp basal is uncertain");
-            getPodStatus();
+        } else {
+            if ("SMS".equals(reason)) {
+                aapsLogger.info(LTag.PUMP, "Acknowledged AAPS getPumpStatus request it was requested through an SMS");
+                getPodStatus();
+            } else if (!podStateManager.isBasalCertain() || !podStateManager.isTempBasalCertain()) {
+                aapsLogger.info(LTag.PUMP, "Acknowledged AAPS getPumpStatus request because basal and/or temp basal is uncertain");
+                getPodStatus();
+            }
         }
     }
 
@@ -1030,7 +1039,7 @@ public class OmnipodPumpPlugin extends PumpPluginBase implements PumpInterface, 
             }
             if (!success) {
                 aapsLogger.warn(LTag.PUMP, "Failed to retrieve Pod status on startup");
-                rxBus.send(new EventNewNotification(new Notification(Notification.OMNIPOD_PUMP_ALARM, resourceHelper.gs(R.string.omnipod_error_failed_to_refresh_status_on_startup), Notification.NORMAL)));
+                rxBus.send(new EventNewNotification(new Notification(Notification.OMNIPOD_STARTUP_STATUS_REFRESH_FAILED, resourceHelper.gs(R.string.omnipod_error_failed_to_refresh_status_on_startup), Notification.NORMAL)));
             }
         } else {
             aapsLogger.debug(LTag.PUMP, "Not retrieving Pod status on startup: no Pod running");

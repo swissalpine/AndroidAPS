@@ -31,6 +31,7 @@
     <string name="treatmentssafety_maxbolus_title">Max allowed bolus [U]</string>
     <string name="treatmentssafety_maxcarbs_title">Max allowed carbs [g]</string>
 
+    <string name="nav_preferences_plugin">%s Preferences</string>
     <string name="nav_preferences">Preferences</string>
     <string name="nav_refreshtreatments">Refresh treatments from NS</string>
     <string name="nav_resetdb">Reset Databases</string>
@@ -1175,7 +1176,9 @@
 
     <string name="notification">Notification</string>
     <string name="notification_message">Notification: %1$s</string>
+    <string name="alarm_message">Alarm: %1$s</string>
     <string name="message_short">Msg:</string>
+    <string name="alarm_short">Alarm:</string>
     <string name="profilepercentage">Profile percentage</string>
     <string name="percent_u">Percent [%]:</string>
     <string name="startprofile">Start profile %1$d%% for %2$d min</string>
@@ -1412,14 +1415,16 @@
     <string name="filter">Filter</string>
     <string name="copytolocalprofile_invalid">Unable to create local profile. Profile is invalid.</string>
     <string name="cta_dont_kill_my_app_info">Don\'t kill my app?</string>
-    
+
     <string name="key_keto_protect" translatable="false">keto_protect</string>
     <string name="key_variable_keto_protect_strategy" translatable="false">variable_keto_protect_strategy</string>
     <string name="keto_protect_basal" translatable="false">keto_protect_basal</string>
     <string name="keto_protect_title">Ketoacidosis Protection</string>
     <string name="keto_protect_summary">Enables a small safety TBR to reduce the ketoacidosis risk.</string>
     <string name="keto_protect_strategy_title">Variable protection?</string>
-    <string name="keto_protect_strategy_summary">If activated the small safety TBR kicks in when IOB is in negative range as if no basal insulin has been delivered for one hour.\nIf deactivated every Zero Temp is replaced with the small TBR.</string>	
+    <string name="keto_protect_strategy_summary">If activated the small safety TBR kicks in when IOB is in negative range as if no basal insulin has been delivered for one hour.\nIf deactivated every Zero Temp is replaced with the small TBR.</string>
     <string name="keto_protect_basal_title">Quantity of the safety TBR [%]</string>
     <string name="keto_protect_basal_summary">Quantity of the small safety TBR in % which is given to avoid ketoacidosis.</string>
+    <string name="alarm">Alarm</string>
+
 </resources>
