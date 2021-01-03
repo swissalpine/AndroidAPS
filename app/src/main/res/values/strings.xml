@@ -489,7 +489,7 @@
     <string name="smscommunicator_wrongduration">Wrong duration</string>
     <string name="smscommunicator_loopsuspended">Loop suspended</string>
     <string name="smscommunicator_loopresumed">Loop resumed</string>
-    <string name="treatments_wizard_bgtrend_label">15min trend</string>
+    <string name="treatments_wizard_bgtrend_label">Trend 15\'</string>
     <string name="treatments_wizard_cob_label">COB</string>
     <string name="superbolus">Superbolus</string>
     <string name="ns_logappstartedevent">Log app start to NS</string>
