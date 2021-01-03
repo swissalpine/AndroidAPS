@@ -85,7 +85,7 @@
                     android:drawableTop="@drawable/ic_loop_closed"
                     android:text="@string/closedloop"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp"
+                    android:textSize="18dp"
                     android:visibility="gone" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -99,9 +99,9 @@
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
                     android:drawableTop="@drawable/ic_loop_lgs"
-                    android:text="@string/lowglucosesuspend"
+                    android:text="LGS"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp"
+                    android:textSize="18dp"
                     android:visibility="gone" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -117,7 +117,7 @@
                     android:drawableTop="@drawable/ic_loop_open"
                     android:text="@string/openloop"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp"
+                    android:textSize="18dp"
                     android:visibility="gone" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -131,9 +131,9 @@
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
                     android:drawableTop="@drawable/ic_loop_resume"
-                    android:text="@string/enableloop"
+                    android:text="Resume"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp"
+                    android:textSize="18dp"
                     android:visibility="gone" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -149,7 +149,7 @@
                     android:drawableTop="@drawable/ic_loop_disabled"
                     android:text="@string/disableloop"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
             </LinearLayout>
 
@@ -193,7 +193,7 @@
                 android:paddingRight="10dp"
                 android:text="@string/resumeloop"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="11sp"
+                android:textSize="18dp"
                 android:visibility="gone" />
 
             <LinearLayout
@@ -213,9 +213,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_paused"
-                    android:text="@string/duration1h"
+                    android:text="1 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_suspend_2h"
@@ -227,9 +227,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_paused"
-                    android:text="@string/duration2h"
+                    android:text="2 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -242,9 +242,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_paused"
-                    android:text="@string/duration3h"
+                    android:text="3 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
@@ -257,9 +257,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_paused"
-                    android:text="@string/duration10h"
+                    android:text="10 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
             </LinearLayout>
 
@@ -301,7 +301,7 @@
                 android:paddingRight="10dp"
                 android:text="@string/reconnect"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="11sp"
+                android:textSize="18dp"
                 android:visibility="gone" />
 
             <LinearLayout
@@ -321,9 +321,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
-                    android:text="@string/duration15m"
+                    android:text="15 m"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_disconnect_30m"
@@ -335,9 +335,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
-                    android:text="@string/duration30m"
+                    android:text="30 m"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_disconnect_1h"
@@ -349,9 +349,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
-                    android:text="@string/duration1h"
+                    android:text="1 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_disconnect_2h"
@@ -363,9 +363,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
-                    android:text="@string/duration2h"
+                    android:text="2 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_disconnect_3h"
@@ -377,9 +377,9 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
-                    android:text="@string/duration3h"
+                    android:text="3 h"
                     android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:textSize="18dp" />
 
             </LinearLayout>
 

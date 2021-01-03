@@ -397,14 +397,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="94dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/bginsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -424,7 +424,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="86dp"
+                    android:width="95dp"
                     android:text="@string/treatments_wizard_bgtrend_label"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -433,14 +433,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="94dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/bgtrendinsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -460,7 +460,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="86dp"
+                    android:width="95dp"
                     android:text="@string/treatments_wizard_cob_label"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -469,14 +469,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="94dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/cobinsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -496,7 +496,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="130dp"
+                    android:width="95dp"
                     android:text="@string/treatments_wizard_bolusiob_label"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -504,14 +504,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="50dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/bolusiobinsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -531,7 +531,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="130dp"
+                    android:width="95dp"
                     android:text="@string/treatments_wizard_basaliob_label"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -539,14 +539,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="50dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/basaliobinsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -564,7 +564,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="86dp"
+                    android:width="95dp"
                     android:text="@string/treatments_wizard_carbs_label"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -573,14 +573,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="94dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/carbsinsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -598,7 +598,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="86dp"
+                    android:width="95dp"
                     android:text="@string/superbolus"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -607,14 +607,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="94dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/sbinsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -632,7 +632,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="86dp"
+                    android:width="95dp"
                     android:text="@string/treatments_wizard_correction_label"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -640,14 +640,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:width="94dp"
+                    android:width="90dp"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
 
                 <TextView
                     android:id="@+id/correctioninsulin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:width="50dp"
+                    android:width="60dp"
                     android:gravity="end"
                     android:textAppearance="?android:attr/textAppearanceSmall" />
             </TableRow>
