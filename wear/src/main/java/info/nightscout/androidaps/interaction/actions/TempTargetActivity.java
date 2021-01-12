@@ -94,13 +94,13 @@ public class TempTargetActivity extends ViewSelectorActivity {
                      if (lowRange != null){
                          def = SafeParse.stringToDouble(lowRange.editText.getText().toString());
                      }
-                     lowRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 72d, 180d, 1d, new DecimalFormat("0"), false);
+                     lowRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 72d, 220d, 1d, new DecimalFormat("0"), false);
                  } else {
                      double def = 5.5;
                      if (lowRange != null){
                          def = SafeParse.stringToDouble(lowRange.editText.getText().toString());
                      }
-                     lowRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 4d, 10d, 0.1d, new DecimalFormat("#0.0"), false);
+                     lowRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 4d, 12.2d, 0.1d, new DecimalFormat("#0.0"), false);
                  }
                  if(isSingleTarget){
                      setLabelToPlusMinusView(view, aaps.gs(R.string.action_target));
@@ -116,13 +116,13 @@ public class TempTargetActivity extends ViewSelectorActivity {
                      if (highRange != null){
                          def = SafeParse.stringToDouble(highRange.editText.getText().toString());
                      }
-                     highRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 72d, 180d, 1d, new DecimalFormat("0"), false);
+                     highRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 72d, 220d, 1d, new DecimalFormat("0"), false);
                  } else {
                      double def = 5.5;
                      if (highRange != null){
                          def = SafeParse.stringToDouble(highRange.editText.getText().toString());
                      }
-                     highRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 4d, 10d, 0.1d, new DecimalFormat("#0.0"), false);
+                     highRange = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, def, 4d, 12.2d, 0.1d, new DecimalFormat("#0.0"), false);
                  }
                  setLabelToPlusMinusView(view, aaps.gs(R.string.action_high));
                  container.addView(view);
