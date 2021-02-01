@@ -273,6 +273,40 @@
 
         </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/overview_reconnect_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:text="Reconnect pump"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:visibility="gone"/>
+
+        <info.nightscout.androidaps.utils.ui.SingleClickButton
+            android:id="@+id/overview_reconnect"
+            style="?android:attr/buttonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginEnd="-4dp"
+            android:layout_weight="0.5"
+            android:drawableTop="@drawable/ic_loop_reconnect"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:text="@string/reconnect"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="18dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -287,22 +321,6 @@
                 android:layout_marginRight="10dp"
                 android:text="@string/disconnectpump"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
-
-            <info.nightscout.androidaps.utils.ui.SingleClickButton
-                android:id="@+id/overview_reconnect"
-                style="?android:attr/buttonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginEnd="-4dp"
-                android:layout_weight="0.5"
-                android:drawableTop="@drawable/ic_loop_reconnect"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:text="@string/reconnect"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                android:textSize="18dp"
-                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/overview_disconnect_buttons"

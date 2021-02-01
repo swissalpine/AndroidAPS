@@ -182,17 +182,19 @@ class LoopDialog : DaggerDialogFragment() {
                 binding.overviewDisable.visibility = View.GONE
                 binding.overviewSuspend.visibility = View.GONE
             }
+            // Anpassung: Eigener Abschnitt Reconnect
             if (!loopPlugin.isDisconnected) {
-                binding.overviewPumpHeader.text = resourceHelper.gs(R.string.disconnectpump)
-                binding.overviewDisconnect15m.visibility = pumpDescription.tempDurationStep15mAllowed.toVisibility()
-                binding.overviewDisconnect30m.visibility = pumpDescription.tempDurationStep30mAllowed.toVisibility()
-                binding.overviewDisconnectButtons.visibility = View.VISIBLE
+                binding.overviewReconnectHeader.visibility = View.GONE
                 binding.overviewReconnect.visibility = View.GONE
             } else {
-                binding.overviewPumpHeader.text = resourceHelper.gs(R.string.reconnect)
-                binding.overviewDisconnectButtons.visibility = View.GONE
+                binding.overviewReconnectHeader.visibility = View.VISIBLE
                 binding.overviewReconnect.visibility = View.VISIBLE
             }
+            // Anpassung: Disconnect ist immer sichtbar
+            binding.overviewPumpHeader.text = resourceHelper.gs(R.string.disconnectpump)
+            binding.overviewDisconnect15m.visibility = pumpDescription.tempDurationStep15mAllowed.toVisibility()
+            binding.overviewDisconnect30m.visibility = pumpDescription.tempDurationStep30mAllowed.toVisibility()
+            binding.overviewDisconnectButtons.visibility = View.VISIBLE
         }
         val profile = profileFunction.getProfile()
         val profileStore = activePlugin.activeProfileInterface.profile
