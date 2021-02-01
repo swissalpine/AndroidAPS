@@ -327,6 +327,8 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/mdtp_cancel"
+                android:textColor="@color/mdtp_accent_color"
+                android:textSize="18dp"
                 android:textAlignment="textEnd" />
 
             <Button
@@ -335,6 +337,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:textColor="@color/mdtp_accent_color"
+                android:textSize="18dp"
                 android:text="@string/mdtp_ok" />
         </LinearLayout>
 
