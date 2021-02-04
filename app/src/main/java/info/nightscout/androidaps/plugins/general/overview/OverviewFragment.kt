@@ -585,7 +585,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 binding.infoLayout.deltaLarge.text = Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)
                 binding.infoLayout.deltaLarge.setTextColor(color)
                 binding.infoLayout.delta.text = "Δ ${Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)}"
-                binding.infoLayout.avgDelta.text .text = "avgΔ ${Profile.toSignedUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
+                binding.infoLayout.avgDelta.text = "avgΔ ${Profile.toSignedUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
             } else {
                 binding.infoLayout.delta.text = "Δ --" //+ resourceHelper.gs(R.string.notavailable)
                 binding.infoLayout.avgDelta.text = "avgΔ --"
@@ -690,7 +690,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         // Basal, TBR
         val activeTemp = treatmentsPlugin.getTempBasalFromHistory(System.currentTimeMillis())
-        binding.infoLayout.baseBasal.text = activeTemp?.let { "T:" + activeTemp.toStringVeryShort() }
+        binding.infoLayout.baseBasal.text = activeTemp?.let { activeTemp.toStringVeryShort() }
             ?: resourceHelper.gs(R.string.pump_basebasalrate, profile.basal)
         binding.infoLayout.basalLayout.setOnClickListener {
             var fullText = "${resourceHelper.gs(R.string.basebasalrate_label)}: ${resourceHelper.gs(R.string.pump_basebasalrate, profile.basal)}"
@@ -743,10 +743,10 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         //Anpassung
         if (sp.getDouble(R.string.key_openapssmb_max_iob, 0.0) < 2) {
-            binding.infoLayout.text = resourceHelper.gs(R.string.formatinsulinunits, bolusIob.iob + basalIob.basaliob) + " < " + sp.getDouble(R.string.key_openapssmb_max_iob, 0.0)
-            binding.infoLayout.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
+            binding.infoLayout.iob.text = resourceHelper.gs(R.string.formatinsulinunits, bolusIob.iob + basalIob.basaliob) + " < " + sp.getDouble(R.string.key_openapssmb_max_iob, 0.0)
+            binding.infoLayout.iob.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
         } else {
-            binding.infoLayout.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
+            binding.infoLayout.iob.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
         }
         //Anpassung Ende
 

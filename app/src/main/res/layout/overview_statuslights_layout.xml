@@ -22,10 +22,10 @@
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_cp_age_canula" />
+            app:srcCompat="@drawable/ic_cp_age_cannula" />
 
         <TextView
-            android:id="@+id/canula_age"
+            android:id="@+id/cannula_age"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"

@@ -63,8 +63,7 @@
             android:drawableTop="@drawable/ic_cp_bolus_carbs"
             android:text="@string/treatments_wizard_carbs_label"
             android:textColor="@color/colorCarbsButton"
-            android:textSize="11dp"
-            tools:ignore="SmallSp" />
+            android:textSize="11dp" />
 
         <info.nightscout.androidaps.utils.ui.SingleClickButton
             android:id="@+id/wizard_button"
@@ -76,8 +75,7 @@
             android:drawableTop="@drawable/ic_calculator"
             android:text="@string/overview_calculator_label"
             android:textColor="@color/colorCalculatorButton"
-            android:textSize="11dp"
-            tools:ignore="SmallSp" />
+            android:textSize="11dp" />
 
         <info.nightscout.androidaps.utils.ui.SingleClickButton
             android:id="@+id/calibration_button"
@@ -90,8 +88,7 @@
             android:text="@string/overview_calibration"
             android:textColor="@color/colorCalibrationButton"
             android:textSize="11dp"
-            android:visibility="gone"
-            tools:ignore="SmallSp" />
+            android:visibility="gone" />
 
         <info.nightscout.androidaps.utils.ui.SingleClickButton
             android:id="@+id/cgm_button"
@@ -104,8 +101,7 @@
             android:text="@string/overview_cgm"
             android:textColor="@color/colorCalibrationButton"
             android:textSize="11dp"
-            android:visibility="gone"
-            tools:ignore="SmallSp" />
+            android:visibility="gone" />
 
         <info.nightscout.androidaps.utils.ui.SingleClickButton
             android:id="@+id/quick_wizard_button"
@@ -117,8 +113,7 @@
             android:drawableTop="@drawable/ic_quick_wizard"
             android:text="@string/quickwizard"
             android:textColor="@color/colorQuickWizardButton"
-            android:textSize="11dp"
-            tools:ignore="SmallSp" />
+            android:textSize="11dp" />
 
     </LinearLayout>
 

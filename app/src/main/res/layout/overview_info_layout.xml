@@ -12,7 +12,7 @@
     android:paddingBottom="5dp">
 
     <TextView
-        android:id="@+id/overview_bg"
+        android:id="@+id/bg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="3dp"
@@ -21,48 +21,48 @@
         android:text="00.0"
         android:textSize="48dp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@+id/overview_arrow"
+        app:layout_constraintEnd_toStartOf="@+id/arrow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
 
     <TextView
-        android:id="@+id/overview_delta_large"
+        android:id="@+id/delta_large"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="(+1.0)"
         android:textSize="60sp"
         android:textStyle="bold"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/overview_bg"
-        app:layout_constraintEnd_toStartOf="@+id/overview_arrow"
-        app:layout_constraintStart_toEndOf="@+id/overview_bg"
-        app:layout_constraintTop_toTopOf="@+id/overview_bg" />
+        app:layout_constraintBottom_toBottomOf="@+id/bg"
+        app:layout_constraintEnd_toStartOf="@+id/arrow"
+        app:layout_constraintStart_toEndOf="@+id/bg"
+        app:layout_constraintTop_toTopOf="@+id/bg" />
 
 
     <ImageView
-        android:id="@+id/overview_arrow"
+        android:id="@+id/arrow"
         android:layout_width="30dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        app:layout_constraintEnd_toStartOf="@+id/overview_deltas_llayout"
+        app:layout_constraintEnd_toStartOf="@+id/deltas_layout"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/overview_bg"
+        app:layout_constraintStart_toEndOf="@+id/bg"
         android:paddingTop="12dp"
         app:srcCompat="@drawable/ic_flat"
         tools:ignore="MissingConstraints" />
 
     <LinearLayout
-        android:id="@+id/overview_deltas_llayout"
+        android:id="@+id/deltas_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintEnd_toStartOf="@+id/overview_apsmode_llayout"
-        app:layout_constraintStart_toEndOf="@+id/overview_arrow"
+        app:layout_constraintEnd_toStartOf="@+id/aps_mode_layout"
+        app:layout_constraintStart_toEndOf="@+id/arrow"
         tools:ignore="MissingConstraints">
 
         <TextView
-            android:id="@+id/overview_timeago"
+            android:id="@+id/time_ago"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="0dp"
@@ -71,7 +71,7 @@
             android:textSize="17dp" />
 
         <TextView
-            android:id="@+id/overview_delta"
+            android:id="@+id/delta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="-2dp"
@@ -80,7 +80,7 @@
             android:textSize="17dp" />
 
         <TextView
-            android:id="@+id/overview_avgdelta"
+            android:id="@+id/avg_delta"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="-2dp"
@@ -91,7 +91,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_apsmode_llayout"
+        android:id="@+id/aps_mode_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -99,13 +99,13 @@
         android:layout_marginEnd="3dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@+id/overview_bg"
-        app:layout_constraintEnd_toStartOf="@id/overview_time_llayout"
-        app:layout_constraintStart_toEndOf="@id/overview_deltas_llayout"
+        app:layout_constraintBottom_toBottomOf="@+id/bg"
+        app:layout_constraintEnd_toStartOf="@id/time_layout"
+        app:layout_constraintStart_toEndOf="@id/deltas_layout"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/overview_apsmode"
+            android:id="@+id/aps_mode"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="center_horizontal"
@@ -113,7 +113,7 @@
             app:srcCompat="@drawable/ic_loop_closed" />
 
         <TextView
-            android:id="@+id/overview_apsmode_text"
+            android:id="@+id/aps_mode_text"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="bottom|center_horizontal"
@@ -126,20 +126,20 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_time_llayout"
+        android:id="@+id/time_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/overview_bg"
+        app:layout_constraintBottom_toBottomOf="@+id/bg"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/overview_apsmode_llayout"
+        app:layout_constraintStart_toEndOf="@id/aps_mode_layout"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/overview_time"
+            android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -150,7 +150,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/overview_timeagoshort"
+            android:id="@+id/time_ago_short"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -164,16 +164,16 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_iob_llayout"
+        android:id="@+id/iob_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/overview_cob_llayout"
+        app:layout_constraintEnd_toStartOf="@+id/cob_layout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/overview_bg">
+        app:layout_constraintTop_toBottomOf="@+id/bg">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -182,7 +182,7 @@
             app:srcCompat="@drawable/ic_bolus" />
 
         <TextView
-            android:id="@+id/overview_iob"
+            android:id="@+id/iob"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
@@ -195,25 +195,25 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_cob_llayout"
+        android:id="@+id/cob_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/overview_basal_llayout"
-        app:layout_constraintStart_toEndOf="@+id/overview_iob_llayout"
-        app:layout_constraintTop_toTopOf="@+id/overview_iob_llayout">
+        app:layout_constraintEnd_toStartOf="@+id/basal_layout"
+        app:layout_constraintStart_toEndOf="@+id/iob_layout"
+        app:layout_constraintTop_toTopOf="@+id/iob_layout">
 
         <ImageView
-            android:id="@+id/overview_carbs_icon"
+            android:id="@+id/carbs_icon"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/anim_carbs" />
 
         <TextView
-            android:id="@+id/overview_cob"
+            android:id="@+id/cob"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
@@ -226,25 +226,25 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_basal_llayout"
+        android:id="@+id/basal_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/overview_extended_llayout"
-        app:layout_constraintStart_toEndOf="@+id/overview_cob_llayout"
-        app:layout_constraintTop_toTopOf="@+id/overview_iob_llayout">
+        app:layout_constraintEnd_toStartOf="@+id/extended_layout"
+        app:layout_constraintStart_toEndOf="@+id/cob_layout"
+        app:layout_constraintTop_toTopOf="@+id/iob_layout">
 
         <ImageView
-            android:id="@+id/overview_basebasal_icon"
+            android:id="@+id/base_basal_icon"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="center_horizontal"
             app:srcCompat="@drawable/ic_cp_basal_no_tbr" />
 
         <TextView
-            android:id="@+id/overview_basebasal"
+            android:id="@+id/base_basal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
@@ -257,15 +257,15 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_extended_llayout"
+        android:id="@+id/extended_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/overview_as_llayout"
-        app:layout_constraintStart_toEndOf="@+id/overview_basal_llayout"
-        app:layout_constraintTop_toTopOf="@+id/overview_iob_llayout">
+        app:layout_constraintEnd_toStartOf="@+id/as_layout"
+        app:layout_constraintStart_toEndOf="@+id/basal_layout"
+        app:layout_constraintTop_toTopOf="@+id/iob_layout">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -274,7 +274,7 @@
             app:srcCompat="@drawable/ic_actions_startextbolus" />
 
         <TextView
-            android:id="@+id/overview_extendedbolus"
+            android:id="@+id/extended_bolus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
@@ -287,25 +287,25 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/overview_as_llayout"
+        android:id="@+id/as_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/overview_extended_llayout"
-        app:layout_constraintTop_toTopOf="@+id/overview_iob_llayout">
+        app:layout_constraintStart_toEndOf="@+id/extended_layout"
+        app:layout_constraintTop_toTopOf="@+id/iob_layout">
 
         <ImageView
-            android:id="@+id/overview_sensitivity_icon"
+            android:id="@+id/sensitivity_icon"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="center_horizontal"
             app:srcCompat="@drawable/ic_swap_vert_black_48dp_green" />
 
         <TextView
-            android:id="@+id/overview_sensitivity"
+            android:id="@+id/sensitivity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
