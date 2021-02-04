@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/overview_statuslights"
+    android:id="@+id/status_lights"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="0dp"
@@ -25,7 +25,7 @@
             app:srcCompat="@drawable/ic_cp_age_canula" />
 
         <TextView
-            android:id="@+id/careportal_canulaage"
+            android:id="@+id/canula_age"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
@@ -57,7 +57,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/careportal_reservoirlevel"
+                android:id="@+id/reservoir_level"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|center_vertical"
@@ -67,7 +67,7 @@
                 android:textSize="18dp" />
 
             <TextView
-                android:id="@+id/careportal_insulinage"
+                android:id="@+id/insulin_age"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|center_vertical"
@@ -95,7 +95,7 @@
             app:srcCompat="@drawable/ic_cp_age_sensor" />
 
         <TextView
-            android:id="@+id/careportal_sensorage"
+            android:id="@+id/sensor_age"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
@@ -125,7 +125,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/careportal_pbage"
+                android:id="@+id/pb_age"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|center_vertical"
@@ -134,7 +134,7 @@
                 android:textSize="18dp" />
 
             <TextView
-                android:id="@+id/careportal_batterylevel"
+                android:id="@+id/battery_level"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|center_vertical"
