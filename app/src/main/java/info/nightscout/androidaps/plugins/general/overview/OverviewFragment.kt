@@ -636,26 +636,31 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     } else {
                         R.drawable.ic_loop_paused
                     })
+                    binding.infoLayout.apsModeText.text = "Pump suspended"
                     binding.infoLayout.apsModeText.visibility = View.VISIBLE
                 }
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value() && loopPlugin.isLGS -> {
                     binding.infoLayout.apsMode.setImageResource(R.drawable.ic_loop_lgs)
+                    binding.infoLayout.apsModeText.text = "LGS"
                     binding.infoLayout.apsModeText.visibility = View.VISIBLE
                 }
 
                 loopPlugin.isEnabled() && closedLoopEnabled.value()                     -> {
                     binding.infoLayout.apsMode.setImageResource(R.drawable.ic_loop_closed)
+                    binding.infoLayout.apsModeText.text = resourceHelper.gs(R.string.closedloop)
                     binding.infoLayout.apsModeText.visibility = View.VISIBLE
                 }
 
                 loopPlugin.isEnabled() && !closedLoopEnabled.value()                    -> {
                     binding.infoLayout.apsMode.setImageResource(R.drawable.ic_loop_open)
+                    binding.infoLayout.apsModeText.text = resourceHelper.gs(R.string.openloop)
                     binding.infoLayout.apsModeText.visibility = View.VISIBLE
                 }
 
                 else                                                                    -> {
                     binding.infoLayout.apsMode.setImageResource(R.drawable.ic_loop_disabled)
+                    binding.infoLayout.apsModeText.text = resourceHelper.gs(R.string.disabledloop)
                     binding.infoLayout.apsModeText.visibility = View.VISIBLE
                 }
             }
