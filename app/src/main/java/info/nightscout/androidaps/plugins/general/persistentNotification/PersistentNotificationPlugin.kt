@@ -7,10 +7,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.RemoteInput
-import androidx.core.app.TaskStackBuilder
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.Constants
-import info.nightscout.androidaps.MainActivity
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.Profile
 import info.nightscout.androidaps.events.*
@@ -26,8 +24,9 @@ import info.nightscout.androidaps.utils.androidNotification.NotificationHolder
 import info.nightscout.androidaps.utils.androidNotification.openAppIntent
 import info.nightscout.androidaps.utils.resources.IconsProvider
 import info.nightscout.androidaps.utils.resources.ResourceHelper
+import info.nightscout.androidaps.utils.rx.AapsSchedulers
+import info.nightscout.androidaps.utils.valueToUnitsString
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,6 +36,7 @@ class PersistentNotificationPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
     resourceHelper: ResourceHelper,
+    private val aapsSchedulers: AapsSchedulers,
     private val profileFunction: ProfileFunction,
     private val fabricPrivacy: FabricPrivacy,
     private val activePlugins: ActivePluginProvider,
@@ -74,36 +74,36 @@ class PersistentNotificationPlugin @Inject constructor(
         createNotificationChannel() // make sure channels exist before triggering updates through the bus
         disposable.add(rxBus
             .toObservable(EventRefreshOverview::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventExtendedBolusChange::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventTempBasalChange::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventTreatmentChange::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventInitializationChanged::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventNewBasalProfile::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventAutosensCalculationFinished::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         disposable.add(rxBus
             .toObservable(EventPreferenceChange::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ triggerNotificationUpdate() }) { fabricPrivacy.logException(it) })
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ triggerNotificationUpdate() }, fabricPrivacy::logException))
         triggerNotificationUpdate()
     }
 
@@ -136,12 +136,12 @@ class PersistentNotificationPlugin @Inject constructor(
             val lastBG = iobCobCalculatorPlugin.lastBg()
             val glucoseStatus = GlucoseStatus(injector).glucoseStatusData
             if (lastBG != null) {
-                line1aa = lastBG.valueToUnitsToString(units)
+                line1aa = lastBG.valueToUnitsString(units)
                 line1 = line1aa
                 if (glucoseStatus != null) {
                     line1 += ("  Δ" + Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)
                         + " avgΔ" + Profile.toSignedUnitsString(glucoseStatus.avgdelta, glucoseStatus.avgdelta * Constants.MGDL_TO_MMOLL, units))
-                    line1aa += lastBG.directionToSymbol(databaseHelper)
+                    line1aa += "  " + lastBG.trendArrow.symbol
                 } else {
                     line1 += " " +
                         resourceHelper.gs(R.string.old_data) +
@@ -155,7 +155,7 @@ class PersistentNotificationPlugin @Inject constructor(
             val activeTemp = activePlugins.activeTreatments.getTempBasalFromHistory(System.currentTimeMillis())
             if (activeTemp != null) {
                 line1 += "  " + activeTemp.toStringShort()
-                line1aa += " " + activeTemp.toStringShort() + "."
+                line1aa += "  " + activeTemp.toStringShort() + "."
             }
             //IOB
             activePlugins.activeTreatments.updateTotalIOBTreatments()
@@ -163,7 +163,7 @@ class PersistentNotificationPlugin @Inject constructor(
             val bolusIob = activePlugins.activeTreatments.lastCalculationTreatments.round()
             val basalIob = activePlugins.activeTreatments.lastCalculationTempBasals.round()
             line2 = resourceHelper.gs(R.string.treatments_iob_label_string) + " " + DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob) + "U " + resourceHelper.gs(R.string.cob) + ": " + iobCobCalculatorPlugin.getCobInfo(false, "PersistentNotificationPlugin").generateCOBString()
-            val line2aa = resourceHelper.gs(R.string.treatments_iob_label_string) + " " + DecimalFormatter.to1Decimal(bolusIob.iob + basalIob.basaliob) + "U. " + resourceHelper.gs(R.string.cob) + ": " + iobCobCalculatorPlugin.getCobInfo(false, "PersistentNotificationPlugin").generateCOBString() + "."
+            val line2aa = resourceHelper.gs(R.string.treatments_iob_label_string) + " " + DecimalFormatter.to2Decimal(bolusIob.iob + basalIob.basaliob) + "U. " + resourceHelper.gs(R.string.cob) + ": " + iobCobCalculatorPlugin.getCobInfo(false, "PersistentNotificationPlugin").generateCOBString() + "."
             line3 = DecimalFormatter.to2Decimal(pump.baseBasalRate) + " U/h"
             var line3aa = DecimalFormatter.to2Decimal(pump.baseBasalRate) + " U/h."
             line3 += " - " + profileFunction.getProfileName()
