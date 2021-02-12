@@ -23,6 +23,8 @@ import info.nightscout.androidaps.interfaces.CommandQueueProvider
 import info.nightscout.androidaps.interfaces.Constraint
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
 import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.interfaces.ProfileFunction
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
@@ -59,6 +61,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var loopPlugin: LoopPlugin
     @Inject lateinit var commandQueue: CommandQueueProvider
     @Inject lateinit var ctx: Context
+    @Inject lateinit var uel: UserEntryLogger
 
     companion object {
 
@@ -227,7 +230,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                 OKDialog.showConfirmation(activity, resourceHelper.gs(R.string.carbs), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                     when {
                         activitySelected   -> {
-                            aapsLogger.debug("USER ENTRY: TEMPTARGET ACTIVITY $activityTT duration: $activityTTDuration")
+                            uel.log("TT ACTIVITY", d1 = activityTT, i1 = activityTTDuration)
                             val tempTarget = TempTarget()
                                 .date(System.currentTimeMillis())
                                 .duration(activityTTDuration)
@@ -239,7 +242,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                         }
 
                         eatingSoonSelected -> {
-                            aapsLogger.debug("USER ENTRY: TEMPTARGET EATING SOON $eatingSoonTT duration: $eatingSoonTTDuration")
+                            uel.log("TT EATING SOON", d1 = eatingSoonTT, i1 = eatingSoonTTDuration)
                             val tempTarget = TempTarget()
                                 .date(System.currentTimeMillis())
                                 .duration(eatingSoonTTDuration)
@@ -251,7 +254,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                         }
 
                         hypoSelected       -> {
-                            aapsLogger.debug("USER ENTRY: TEMPTARGET HYPO $hypoTT duration: $hypoTTDuration")
+                            uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
                             val tempTarget = TempTarget()
                                 .date(System.currentTimeMillis())
                                 .duration(hypoTTDuration)
@@ -285,10 +288,10 @@ class CarbsDialog : DialogFragmentWithDate() {
                     }
                     if (carbsAfterConstraints > 0) {
                         if (duration == 0) {
-                            aapsLogger.debug("USER ENTRY: CARBS $carbsAfterConstraints time: $time")
+                            uel.log("CARBS", d1 = carbsAfterConstraints.toDouble(), i1 = timeOffset)
                             carbsGenerator.createCarb(carbsAfterConstraints, time, CareportalEvent.CARBCORRECTION, notes)
                         } else {
-                            aapsLogger.debug("USER ENTRY: CARBS $carbsAfterConstraints time: $time duration: $duration")
+                            uel.log("CARBS", d1 = carbsAfterConstraints.toDouble(), i1 = timeOffset, i2 = duration)
                             carbsGenerator.generateCarbs(carbsAfterConstraints, time, duration, notes)
                             nsUpload.uploadEvent(CareportalEvent.NOTE, DateUtil.now() - 2000, resourceHelper.gs(R.string.generated_ecarbs_note, carbsAfterConstraints, duration, timeOffset))
                         }
