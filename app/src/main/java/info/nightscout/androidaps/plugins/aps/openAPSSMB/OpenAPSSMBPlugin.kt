@@ -171,7 +171,7 @@ class OpenAPSSMBPlugin @Inject constructor(
                 smbAllowed.value(),
                 uam.value(),
                 advancedFiltering.value(),
-                activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin")
+                advancedFiltering.value()) //activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin")
             val now = System.currentTimeMillis()
             val determineBasalResultSMB = determineBasalAdapterSMBJS.invoke()
             profiler.log(LTag.APS, "SMB calculation", start)
