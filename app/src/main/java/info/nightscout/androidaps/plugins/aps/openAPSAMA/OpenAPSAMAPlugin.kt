@@ -1,8 +1,6 @@
-package info.nightscout.androidaps.plugins.aps.openAPSSMB
+package info.nightscout.androidaps.plugins.aps.openAPSAMA
 
 import android.content.Context
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.Profile
@@ -19,16 +17,17 @@ import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
 import info.nightscout.androidaps.utils.DateUtil
+import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.Profiler
 import info.nightscout.androidaps.utils.Round
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import org.json.JSONException
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-open class OpenAPSSMBPlugin @Inject constructor(
+open class OpenAPSAMAPlugin @Inject constructor(
     injector: HasAndroidInjector,
     aapsLogger: AAPSLogger,
     private val rxBus: RxBusWrapper,
@@ -41,28 +40,28 @@ open class OpenAPSSMBPlugin @Inject constructor(
     private val iobCobCalculatorPlugin: IobCobCalculatorPlugin,
     private val hardLimits: HardLimits,
     private val profiler: Profiler,
-    private val sp: SP
+    private val fabricPrivacy: FabricPrivacy
 ) : PluginBase(PluginDescription()
     .mainType(PluginType.APS)
-    .fragmentClass(OpenAPSSMBFragment::class.java.name)
+    .fragmentClass(OpenAPSAMAFragment::class.java.name)
     .pluginIcon(R.drawable.ic_generic_icon)
-    .pluginName(R.string.openapssmb)
-    .shortName(R.string.smb_shortname)
-    .preferencesId(R.xml.pref_openapssmb)
-    .description(R.string.description_smb)
-    .setDefault(),
+    .pluginName(R.string.openapsama)
+    .shortName(R.string.oaps_shortname)
+    .preferencesId(R.xml.pref_openapsama)
+    .description(R.string.description_ama),
     aapsLogger, resourceHelper, injector
-), APSInterface, ConstraintsInterface {
+), APSInterface {
 
     // last values
     override var lastAPSRun: Long = 0
-    override var lastAPSResult: DetermineBasalResultSMB? = null
-    var lastDetermineBasalAdapterSMBJS: DetermineBasalAdapterSMBJS? = null
-    var lastAutosensResult = AutosensResult()
+    override var lastAPSResult: DetermineBasalResultAMA? = null
+    var lastDetermineBasalAdapterAMAJS: DetermineBasalAdapterAMAJS? = null
+    var lastAutosensResult: AutosensResult = AutosensResult()
 
     override fun specialEnableCondition(): Boolean {
         return try {
-            activePlugin.activePump.pumpDescription.isTempBasalCapable
+            val pump = activePlugin.activePump
+            pump.pumpDescription.isTempBasalCapable
         } catch (ignored: Exception) {
             // may fail during initialization
             true
@@ -74,17 +73,10 @@ open class OpenAPSSMBPlugin @Inject constructor(
         return pump.pumpDescription.isTempBasalCapable
     }
 
-    override fun preprocessPreferences(preferenceFragment: PreferenceFragmentCompat) {
-        super.preprocessPreferences(preferenceFragment)
-        val smbAlwaysEnabled = sp.getBoolean(R.string.key_enableSMB_always, false)
-        preferenceFragment.findPreference<SwitchPreference>(resourceHelper.gs(R.string.key_enableSMB_with_COB))?.isVisible = !smbAlwaysEnabled
-        preferenceFragment.findPreference<SwitchPreference>(resourceHelper.gs(R.string.key_enableSMB_with_temptarget))?.isVisible = !smbAlwaysEnabled
-        preferenceFragment.findPreference<SwitchPreference>(resourceHelper.gs(R.string.key_enableSMB_after_carbs))?.isVisible = !smbAlwaysEnabled
-    }
-
     override fun invoke(initiator: String, tempBasalFallback: Boolean) {
         aapsLogger.debug(LTag.APS, "invoke from $initiator tempBasalFallback: $tempBasalFallback")
         lastAPSResult = null
+        val determineBasalAdapterAMAJS = DetermineBasalAdapterAMAJS(ScriptReader(context), injector)
         val glucoseStatus = GlucoseStatus(injector).glucoseStatusData
         val profile = profileFunction.getProfile()
         val pump = activePlugin.activePump
@@ -103,18 +95,20 @@ open class OpenAPSSMBPlugin @Inject constructor(
             aapsLogger.debug(LTag.APS, resourceHelper.gs(R.string.openapsma_noglucosedata))
             return
         }
-
         val inputConstraints = Constraint(0.0) // fake. only for collecting all results
         val maxBasal = constraintChecker.getMaxBasalAllowed(profile).also {
             inputConstraints.copyReasons(it)
         }.value()
         var start = System.currentTimeMillis()
         var startPart = System.currentTimeMillis()
+        val iobArray = iobCobCalculatorPlugin.calculateIobArrayInDia(profile)
+        profiler.log(LTag.APS, "calculateIobArrayInDia()", startPart)
+        startPart = System.currentTimeMillis()
+        val mealData = iobCobCalculatorPlugin.mealData
         profiler.log(LTag.APS, "getMealData()", startPart)
         val maxIob = constraintChecker.getMaxIOBAllowed().also { maxIOBAllowedConstraint ->
             inputConstraints.copyReasons(maxIOBAllowedConstraint)
         }.value()
-
         var minBg = hardLimits.verifyHardLimits(Round.roundTo(profile.targetLowMgdl, 0.1), "minBg", hardLimits.VERY_HARD_LIMIT_MIN_BG[0].toDouble(), hardLimits.VERY_HARD_LIMIT_MIN_BG[1].toDouble())
         var maxBg = hardLimits.verifyHardLimits(Round.roundTo(profile.targetHighMgdl, 0.1), "maxBg", hardLimits.VERY_HARD_LIMIT_MAX_BG[0].toDouble(), hardLimits.VERY_HARD_LIMIT_MAX_BG[1].toDouble())
         var targetBg = hardLimits.verifyHardLimits(profile.targetMgdl, "targetBg", hardLimits.VERY_HARD_LIMIT_TARGET_BG[0].toDouble(), hardLimits.VERY_HARD_LIMIT_TARGET_BG[1].toDouble())
@@ -141,62 +135,38 @@ open class OpenAPSSMBPlugin @Inject constructor(
         } else {
             lastAutosensResult.sensResult = "autosens disabled"
         }
-        val iobArray = iobCobCalculatorPlugin.calculateIobArrayForSMB(lastAutosensResult, SMBDefaults.exercise_mode, SMBDefaults.half_basal_exercise_target, isTempTarget)
-        profiler.log(LTag.APS, "calculateIobArrayInDia()", startPart)
-        startPart = System.currentTimeMillis()
-        val smbAllowed = Constraint(!tempBasalFallback).also {
-            constraintChecker.isSMBModeEnabled(it)
-            inputConstraints.copyReasons(it)
-        }
-        val advancedFiltering = Constraint(!tempBasalFallback).also {
-            constraintChecker.isAdvancedFilteringEnabled(it)
-            inputConstraints.copyReasons(it)
-        }
-        val uam = Constraint(true).also {
-            constraintChecker.isUAMEnabled(it)
-            inputConstraints.copyReasons(it)
-        }
         profiler.log(LTag.APS, "detectSensitivityAndCarbAbsorption()", startPart)
-        profiler.log(LTag.APS, "SMB data gathering", start)
+        profiler.log(LTag.APS, "AMA data gathering", start)
         start = System.currentTimeMillis()
-
-        DetermineBasalAdapterSMBJS(ScriptReader(context), injector).also { determineBasalAdapterSMBJS ->
-            determineBasalAdapterSMBJS.setData(profile, maxIob, maxBasal, minBg, maxBg, targetBg,
-                activePlugin.activePump.baseBasalRate,
-                iobArray,
-                glucoseStatus,
-                iobCobCalculatorPlugin.mealData,
+        try {
+            determineBasalAdapterAMAJS.setData(profile, maxIob, maxBasal, minBg, maxBg, targetBg, activePlugin.activePump.baseBasalRate, iobArray, glucoseStatus, mealData,
                 lastAutosensResult.ratio,
-                isTempTarget,
-                smbAllowed.value(),
-                uam.value(),
-                advancedFiltering.value(),
-                advancedFiltering.value()) //activePlugin.activeBgSource.javaClass.simpleName == "DexcomPlugin")
+                isTempTarget
+            )
+        } catch (e: JSONException) {
+            fabricPrivacy.logException(e)
+            return
+        }
+        val determineBasalResultAMA = determineBasalAdapterAMAJS.invoke()
+        profiler.log(LTag.APS, "AMA calculation", start)
+        // Fix bug determine basal
+        if (determineBasalResultAMA == null) {
+            aapsLogger.error(LTag.APS, "SMB calculation returned null")
+            lastDetermineBasalAdapterAMAJS = null
+            lastAPSResult = null
+            lastAPSRun = 0
+        } else {
+            if (determineBasalResultAMA.rate == 0.0 && determineBasalResultAMA.duration == 0 && !treatmentsPlugin.isTempBasalInProgress) determineBasalResultAMA.tempBasalRequested = false
+            determineBasalResultAMA.iob = iobArray[0]
             val now = System.currentTimeMillis()
-            val determineBasalResultSMB = determineBasalAdapterSMBJS.invoke()
-            profiler.log(LTag.APS, "SMB calculation", start)
-            if (determineBasalResultSMB == null) {
-                aapsLogger.error(LTag.APS, "SMB calculation returned null")
-                lastDetermineBasalAdapterSMBJS = null
-                lastAPSResult = null
-                lastAPSRun = 0
-            } else {
-                // TODO still needed with oref1?
-                // Fix bug determine basal
-                if (determineBasalResultSMB.rate == 0.0 && determineBasalResultSMB.duration == 0 && !treatmentsPlugin.isTempBasalInProgress) determineBasalResultSMB.tempBasalRequested = false
-                determineBasalResultSMB.iob = iobArray[0]
-                determineBasalResultSMB.json?.put("timestamp", DateUtil.toISOString(now))
-                determineBasalResultSMB.inputConstraints = inputConstraints
-                lastDetermineBasalAdapterSMBJS = determineBasalAdapterSMBJS
-                lastAPSResult = determineBasalResultSMB
-                lastAPSRun = now
-            }
+            determineBasalResultAMA.json?.put("timestamp", DateUtil.toISOString(now))
+            determineBasalResultAMA.inputConstraints = inputConstraints
+            lastDetermineBasalAdapterAMAJS = determineBasalAdapterAMAJS
+            lastAPSResult = determineBasalResultAMA
+            lastAPSRun = now
         }
         rxBus.send(EventOpenAPSUpdateGui())
-    }
 
-    override fun isSuperBolusEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
-        value[aapsLogger] = false
-        return value
+        //deviceStatus.suggested = determineBasalResultAMA.json;
     }
 }
