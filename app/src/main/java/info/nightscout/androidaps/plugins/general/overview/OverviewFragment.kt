@@ -588,7 +588,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 binding.infoLayout.deltaLarge.text = Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)
                 binding.infoLayout.deltaLarge.setTextColor(color)
                 binding.infoLayout.delta.text = "Δ ${Profile.toSignedUnitsString(glucoseStatus.delta, glucoseStatus.delta * Constants.MGDL_TO_MMOLL, units)}"
-                binding.infoLayout.avgDelta.text = "avgΔ ${Profile.toSignedUnitsString(glucoseStatus.short_avgdelta, glucoseStatus.short_avgdelta * Constants.MGDL_TO_MMOLL, units)}"
+                binding.infoLayout.avgDelta.text = "avgΔ ${Profile.toSignedUnitsString(glucoseStatus.shortAvgDelta, glucoseStatus.shortAvgDelta * Constants.MGDL_TO_MMOLL, units)}"
             } else {
                 binding.infoLayout.delta.text = "Δ --" //+ resourceHelper.gs(R.string.notavailable)
                 binding.infoLayout.avgDelta.text = "avgΔ --"
