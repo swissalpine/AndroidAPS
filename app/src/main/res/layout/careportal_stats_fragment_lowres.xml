@@ -16,13 +16,12 @@
             android:gravity="center_vertical"
             android:paddingStart="15dp"
             android:paddingEnd="2dp"
-            android:text="@string/careportal_sensor_label"
+            android:text="@string/cannula"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_cp_age_sensor" />
-
+            app:drawableStartCompat="@drawable/ic_cp_age_cannula" />
 
         <TextView
-            android:id="@+id/sensor_age"
+            android:id="@+id/cannula_age"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -31,14 +30,13 @@
             android:textColor="@android:color/white"
             android:textSize="14sp" />
 
-
         <TextView
-            android:id="@+id/sensor_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:paddingStart="2dp"
+            android:text=""
             android:textColor="@android:color/white"
             android:textSize="14sp"
             tools:ignore="RtlSymmetry" />
@@ -126,12 +124,13 @@
             android:gravity="center_vertical"
             android:paddingStart="15dp"
             android:paddingEnd="2dp"
-            android:text="@string/cannula"
+            android:text="@string/careportal_sensor_label"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_cp_age_cannula" />
+            app:drawableStartCompat="@drawable/ic_cp_age_sensor" />
+
 
         <TextView
-            android:id="@+id/cannula_age"
+            android:id="@+id/sensor_age"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -140,13 +139,14 @@
             android:textColor="@android:color/white"
             android:textSize="14sp" />
 
+
         <TextView
+            android:id="@+id/sensor_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:paddingStart="2dp"
-            android:text=""
             android:textColor="@android:color/white"
             android:textSize="14sp"
             tools:ignore="RtlSymmetry" />
