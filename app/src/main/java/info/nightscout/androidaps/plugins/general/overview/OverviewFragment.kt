@@ -873,7 +873,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 graphData.addTreatments(fromTime, endTime)
 
                 // set manual x bounds to have nice steps
-                graphData.setNumVerticalLables()
+                graphData.setNumVerticalLabels()
                 graphData.formatAxis(fromTime, endTime)
 
 
