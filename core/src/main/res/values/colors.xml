@@ -30,7 +30,7 @@
     <color name="list_delimiter">#505050</color>
 
     <!--    BgReading-->
-    <color name="inrange">#70DA00</color>
+    <color name="inrange">#00FF00</color>
     <color name="low">#FF0000</color>
     <color name="high">#FFFF00</color>
     <color name="iob">#1e88e5</color>
@@ -84,6 +84,10 @@
     <color name="metadataOk">#77dd77</color>
     <color name="metadataTextWarning">#FF8C00</color>
     <color name="metadataTextError">#FF5555</color>
+
+    <!-- Import/Export -->
+    <color name="importListAdditionalInfo">#BBBBBB</color>
+    <color name="importListFileName">#FFFFFF</color>
 
     <color name="mdtp_accent_color">#67dfe8</color>
 
