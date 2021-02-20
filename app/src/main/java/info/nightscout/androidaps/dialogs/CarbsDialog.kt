@@ -30,6 +30,7 @@ import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.treatments.CarbsGenerator
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
+import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.utils.*
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
 import info.nightscout.androidaps.utils.extensions.formatColor
@@ -268,19 +269,13 @@ class CarbsDialog : DialogFragmentWithDate() {
                             val callback: Callback = object : Callback() {
                                 override fun run() {
                                     if (!result.success) {
-                                        val i = Intent(ctx, ErrorHelperActivity::class.java)
-                                        i.putExtra("soundid", R.raw.boluserror)
-                                        i.putExtra("status", result.comment)
-                                        i.putExtra("title", resourceHelper.gs(R.string.tempbasaldeliveryerror))
-                                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        ctx.startActivity(i)
+                                        ErrorHelperActivity.runAlarm(ctx, result.comment, resourceHelper.gs(R.string.tempbasaldeliveryerror), info.nightscout.androidaps.dana.R.raw.boluserror)
                                     }
                                 }
                             }
                             aapsLogger.debug("USER ENTRY: TEMP BASAL 50% duration: 60")
                             commandQueue.tempBasalPercent(50, 60, true, profile, callback)
                             // Ende Anpassung
-
                         }
                     }
                     if (carbsAfterConstraints > 0) {
