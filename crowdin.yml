@@ -19,6 +19,8 @@ files:
     translation: /dana/src/main/res/values-%android_code%/strings.xml
   - source: /medtronic/src/main/res/values/strings.xml
     translation: /medtronic/src/main/res/values-%android_code%/strings.xml
+  - source: /omnipod-common/src/main/res/values/strings.xml
+    translation: /omnipod-common/src/main/res/values-%android_code%/strings.xml
   - source: /omnipod-dash/src/main/res/values/strings.xml
     translation: /omnipod-dash/src/main/res/values-%android_code%/strings.xml
   - source: /omnipod-eros/src/main/res/values/strings.xml
@@ -29,3 +31,5 @@ files:
     translation: /insight/src/main/res/values-%android_code%/strings.xml
   - source: /insight/src/main/res/values/insight_*.xml
     translation: /insight/src/main/res/values-%android_code%/%original_file_name%
+  - source: /automation/src/main/res/values/strings.xml
+    translation: /automation/src/main/res/values-%android_code%/strings.xml
