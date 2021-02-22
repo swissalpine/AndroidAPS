@@ -34,9 +34,6 @@ class DetermineBasalResultSMB private constructor(injector: HasAndroidInjector) 
 
                 // Ketocidosis Protection
                 // Calculate IOB
-
-                // Ketocidosis Protection
-                // Calculate IOB
                 treatmentsPlugin.updateTotalIOBTreatments()
                 treatmentsPlugin.updateTotalIOBTempBasals()
                 val bolusIob = treatmentsPlugin.lastCalculationTreatments
