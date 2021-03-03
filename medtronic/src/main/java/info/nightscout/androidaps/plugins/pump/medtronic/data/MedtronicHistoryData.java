@@ -595,7 +595,7 @@ public class MedtronicHistoryData {
             careportalEvent.eventType = event;
             careportalEvent.json = data.toString();
             databaseHelper.createOrUpdate(careportalEvent);
-            nsUpload.uploadCareportalEntryToNS(data);
+            nsUpload.uploadCareportalEntryToNS(data, date);
         } catch (JSONException e) {
             aapsLogger.error("Unhandled exception", e);
         }
@@ -1523,7 +1523,9 @@ public class MedtronicHistoryData {
     // HELPER METHODS
 
     private void sort(List<PumpHistoryEntry> list) {
-        Collections.sort(list, new PumpHistoryEntry.Comparator());
+        if (list!=null && !list.isEmpty()) {
+            Collections.sort(list, new PumpHistoryEntry.Comparator());
+        }
     }
 
 

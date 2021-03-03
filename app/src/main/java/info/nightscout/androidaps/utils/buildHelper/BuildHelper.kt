@@ -8,14 +8,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BuildHelper @Inject constructor(private val config: Config) {
+class BuildHelper @Inject constructor(private val config: Config, loggerUtils: LoggerUtils) {
 
     private var devBranch = false
     private var engineeringMode = false
 
     init {
-        val extFilesDir = LoggerUtils.getLogDirectory()
-        val engineeringModeSemaphore = File(extFilesDir, "engineering_mode")
+        val extFilesDir = loggerUtils.logDirectory
+        val engineeringModeSemaphore = File(extFilesDir, "engineering__mode")
 
         engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile
         devBranch = BuildConfig.VERSION.contains("-") || BuildConfig.VERSION.matches(Regex(".*[a-zA-Z]+.*"))

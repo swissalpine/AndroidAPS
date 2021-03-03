@@ -2,7 +2,6 @@ package info.nightscout.androidaps.utils.protection
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
@@ -45,11 +44,9 @@ class PasswordCheck @Inject constructor(
 
         userInput2.visibility = View.GONE
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val autoFillHintPasswordKind = context.getString(preference)
-            userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
-            userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
-        }
+        val autoFillHintPasswordKind = context.getString(preference)
+        userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
+        userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
 
         alertDialogBuilder
             .setCancelable(false)
@@ -80,11 +77,9 @@ class PasswordCheck @Inject constructor(
         val userInput = promptsView.findViewById<View>(R.id.password_prompt_pass) as EditText
         val userInput2 = promptsView.findViewById<View>(R.id.password_prompt_pass_confirm) as EditText
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val autoFillHintPasswordKind = context.getString(preference)
-            userInput.setAutofillHints(AUTOFILL_HINT_NEW_PASSWORD, "aaps_${autoFillHintPasswordKind}")
-            userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
-        }
+        val autoFillHintPasswordKind = context.getString(preference)
+        userInput.setAutofillHints(AUTOFILL_HINT_NEW_PASSWORD, "aaps_${autoFillHintPasswordKind}")
+        userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
 
         alertDialogBuilder
             .setCancelable(false)
@@ -145,11 +140,9 @@ class PasswordCheck @Inject constructor(
 
         userInput2.visibility = View.GONE
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val autoFillHintPasswordKind = context.getString(preference)
-            userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
-            userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
-        }
+        val autoFillHintPasswordKind = context.getString(preference)
+        userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
+        userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
 
         alertDialogBuilder
             .setCancelable(false)

@@ -16,6 +16,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +40,8 @@ import info.nightscout.androidaps.events.EventNsTreatment;
 import info.nightscout.androidaps.events.EventReloadTreatmentData;
 import info.nightscout.androidaps.events.EventTreatmentChange;
 import info.nightscout.androidaps.interfaces.DatabaseHelperInterface;
+import info.nightscout.androidaps.interfaces.TreatmentServiceInterface;
+import info.nightscout.androidaps.interfaces.UpdateReturn;
 import info.nightscout.androidaps.logging.AAPSLogger;
 import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.plugins.bus.RxBusWrapper;
@@ -49,15 +52,15 @@ import info.nightscout.androidaps.plugins.pump.medtronic.data.MedtronicHistoryDa
 import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.JsonHelper;
+import info.nightscout.androidaps.utils.rx.AapsSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 
 
 /**
  * Created by mike on 24.09.2017.
  */
 
-public class TreatmentService extends OrmLiteBaseService<DatabaseHelper> {
+public class TreatmentService extends OrmLiteBaseService<DatabaseHelper> implements TreatmentServiceInterface {
 
     @Inject AAPSLogger aapsLogger;
     @Inject FabricPrivacy fabricPrivacy;
@@ -65,6 +68,7 @@ public class TreatmentService extends OrmLiteBaseService<DatabaseHelper> {
     @Inject MedtronicPumpPlugin medtronicPumpPlugin;
     @Inject DatabaseHelperInterface databaseHelper;
     @Inject OpenHumansUploader openHumansUploader;
+    @Inject AapsSchedulers aapsSchedulers;
 
     private final CompositeDisposable disposable = new CompositeDisposable();
 
@@ -77,7 +81,7 @@ public class TreatmentService extends OrmLiteBaseService<DatabaseHelper> {
         dbInitialize();
         disposable.add(rxBus
                 .toObservable(EventNsTreatment.class)
-                .observeOn(Schedulers.io())
+                .observeOn(aapsSchedulers.getIo())
                 .subscribe(event -> {
                     int mode = event.getMode();
                     JSONObject payload = event.getPayload();
@@ -470,7 +474,7 @@ public class TreatmentService extends OrmLiteBaseService<DatabaseHelper> {
     }
 
 
-    public UpdateReturn createOrUpdateMedtronic(Treatment treatment, boolean fromNightScout) {
+    @NotNull public UpdateReturn createOrUpdateMedtronic(@NotNull Treatment treatment, boolean fromNightScout) {
 
         if (MedtronicHistoryData.doubleBolusDebug)
             aapsLogger.debug(LTag.DATATREATMENTS, "DoubleBolusDebug: createOrUpdateMedtronic:: originalTreatment={}, fromNightScout={}", treatment, fromNightScout);
@@ -818,24 +822,6 @@ public class TreatmentService extends OrmLiteBaseService<DatabaseHelper> {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    public class UpdateReturn {
-        public UpdateReturn(boolean success, boolean newRecord) {
-            this.success = success;
-            this.newRecord = newRecord;
-        }
-
-        boolean newRecord;
-        boolean success;
-
-        @Override
-        public String toString() {
-            return "UpdateReturn [" +
-                    "newRecord=" + newRecord +
-                    ", success=" + success +
-                    ']';
-        }
     }
 
 }

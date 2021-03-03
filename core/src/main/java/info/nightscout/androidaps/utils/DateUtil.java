@@ -42,18 +42,16 @@ import info.nightscout.androidaps.utils.resources.ResourceHelper;
 @Singleton
 public class DateUtil {
     private final Context context;
-    private final ResourceHelper resourceHelper;
 
     @Inject
-    public DateUtil(Context context, ResourceHelper resourceHelper) {
+    public DateUtil(Context context) {
         this.context = context;
-        this.resourceHelper = resourceHelper;
     }
 
     /**
      * The date format in iso.
      */
-    private static final String FORMAT_DATE_ISO_OUT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private static final String FORMAT_DATE_ISO_OUT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /**
      * Takes in an ISO date string of the following format:
@@ -141,12 +139,12 @@ public class DateUtil {
                 hours -= 12;
             if ((m.group(3).equals(" p.m.") || m.group(3).equals(" PM") || m.group(3).equals("PM")) && !(m.group(1).equals("12")))
                 hours += 12;
-            Calendar c = Calendar.getInstance();
-            c.set(Calendar.HOUR_OF_DAY, hours);
-            c.set(Calendar.MINUTE, minutes);
-            c.set(Calendar.SECOND, 0);
-            c.set(Calendar.MILLISECOND, 0);
-            retval = c.getTimeInMillis();
+            DateTime t = new DateTime()
+                    .withHourOfDay(hours)
+                    .withMinuteOfHour(minutes)
+                    .withSecondOfMinute(0)
+                    .withMillisOfSecond(0);
+            retval = t.getMillis();
         }
         return retval;
     }
@@ -191,10 +189,6 @@ public class DateUtil {
             format = "HH:mm:ss";
         }
         return new DateTime(mills).toString(DateTimeFormat.forPattern(format));
-    }
-
-    public static String timeFullString(long mills) {
-        return new DateTime(mills).toString(DateTimeFormat.fullTime());
     }
 
     public String dateAndTimeString(Date date) {
@@ -261,6 +255,12 @@ public class DateUtil {
         return System.currentTimeMillis();
     }
 
+    public long nowWithoutMilliseconds() {
+        long n = System.currentTimeMillis();
+        n = n - n % 1000;
+        return n;
+    }
+
     public static long now() {
         return System.currentTimeMillis();
     }
@@ -277,10 +277,6 @@ public class DateUtil {
     public static boolean isOlderThan(long date, long minutes) {
         long diff = now() - date;
         return diff > T.mins(minutes).msecs();
-    }
-
-    public static GregorianCalendar gregorianCalendar() {
-        return new GregorianCalendar();
     }
 
     public static long getTimeZoneOffsetMs() {

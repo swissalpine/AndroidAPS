@@ -6,7 +6,6 @@ import android.content.ServiceConnection;
 
 import androidx.annotation.NonNull;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,9 +40,9 @@ import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.utils.DecimalFormatter;
 import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.resources.ResourceHelper;
+import info.nightscout.androidaps.utils.rx.AapsSchedulers;
 import info.nightscout.androidaps.utils.sharedPreferences.SP;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by andy on 23.04.18.
@@ -70,6 +69,7 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
     protected PumpDriverState pumpState = PumpDriverState.NotInitialized;
     protected boolean displayConnectionMessages = false;
     protected PumpType pumpType;
+    protected AapsSchedulers aapsSchedulers;
 
 
     protected PumpPluginAbstract(
@@ -84,7 +84,8 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
             SP sp,
             Context context,
             FabricPrivacy fabricPrivacy,
-            DateUtil dateUtil
+            DateUtil dateUtil,
+            AapsSchedulers aapsSchedulers
     ) {
 
         super(pluginDescription, injector, aapsLogger, resourceHelper, commandQueue);
@@ -100,6 +101,7 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
         pumpDescription.setPumpDescription(pumpType);
         this.pumpType = pumpType;
         this.dateUtil = dateUtil;
+        this.aapsSchedulers = aapsSchedulers;
     }
 
 
@@ -119,7 +121,7 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
 
         disposable.add(rxBus
                 .toObservable(EventAppExit.class)
-                .observeOn(Schedulers.io())
+                .observeOn(aapsSchedulers.getIo())
                 .subscribe(event -> context.unbindService(serviceConnection), fabricPrivacy::logException)
         );
         onStartCustomActions();
@@ -147,7 +149,7 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
     /**
      * Service class (same one you did serviceConnection for)
      *
-     * @return
+     * @return Class
      */
     public abstract Class getServiceClass();
 
@@ -183,13 +185,13 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
     }
 
 
-    public void connect(String reason) {
+    public void connect(@NonNull String reason) {
         if (displayConnectionMessages)
             aapsLogger.debug(LTag.PUMP, "connect (reason={}) [PumpPluginAbstract] - default (empty) implementation." + reason);
     }
 
 
-    public void disconnect(String reason) {
+    public void disconnect(@NonNull String reason) {
         if (displayConnectionMessages)
             aapsLogger.debug(LTag.PUMP, "disconnect (reason={}) [PumpPluginAbstract] - default (empty) implementation." + reason);
     }
@@ -216,13 +218,13 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
     }
 
     // Upload to pump new basal profile
-    @NonNull public PumpEnactResult setNewBasalProfile(Profile profile) {
+    @NonNull public PumpEnactResult setNewBasalProfile(@NonNull Profile profile) {
         aapsLogger.debug(LTag.PUMP, "setNewBasalProfile [PumpPluginAbstract] - Not implemented.");
         return getOperationNotSupportedWithCustomText(R.string.pump_operation_not_supported_by_pump_driver);
     }
 
 
-    public boolean isThisProfileSet(Profile profile) {
+    public boolean isThisProfileSet(@NonNull Profile profile) {
         aapsLogger.debug(LTag.PUMP, "isThisProfileSet [PumpPluginAbstract] - Not implemented.");
         return true;
     }
@@ -246,22 +248,20 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
 
 
     @NonNull @Override
-    public PumpEnactResult setTempBasalAbsolute(Double absoluteRate, Integer durationInMinutes, Profile profile,
-                                                boolean enforceNew) {
+    public PumpEnactResult setTempBasalAbsolute(double absoluteRate, int durationInMinutes, @NonNull Profile profile, boolean enforceNew) {
         aapsLogger.debug(LTag.PUMP, "setTempBasalAbsolute [PumpPluginAbstract] - Not implemented.");
         return getOperationNotSupportedWithCustomText(R.string.pump_operation_not_supported_by_pump_driver);
     }
 
 
     @NonNull @Override
-    public PumpEnactResult setTempBasalPercent(Integer percent, Integer durationInMinutes, Profile profile,
-                                               boolean enforceNew) {
+    public PumpEnactResult setTempBasalPercent(int percent, int durationInMinutes, @NonNull Profile profile, boolean enforceNew) {
         aapsLogger.debug(LTag.PUMP, "setTempBasalPercent [PumpPluginAbstract] - Not implemented.");
         return getOperationNotSupportedWithCustomText(R.string.pump_operation_not_supported_by_pump_driver);
     }
 
 
-    @NonNull public PumpEnactResult setExtendedBolus(Double insulin, Integer durationInMinutes) {
+    @NonNull public PumpEnactResult setExtendedBolus(double insulin, int durationInMinutes) {
         aapsLogger.debug(LTag.PUMP, "setExtendedBolus [PumpPluginAbstract] - Not implemented.");
         return getOperationNotSupportedWithCustomText(R.string.pump_operation_not_supported_by_pump_driver);
     }
@@ -317,7 +317,7 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
 
 
     @NonNull @Override
-    public JSONObject getJSONStatus(Profile profile, String profileName, String version) {
+    public JSONObject getJSONStatus(@NonNull Profile profile, @NonNull String profileName, @NonNull String version) {
 
         if ((getPumpStatusData().lastConnection + 60 * 60 * 1000L) < System.currentTimeMillis()) {
             return new JSONObject();
@@ -440,11 +440,11 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
     }
 
 
-    public ManufacturerType manufacturer() {
+    @NonNull public ManufacturerType manufacturer() {
         return pumpType.getManufacturer();
     }
 
-    @NotNull
+    @NonNull
     public PumpType model() {
         return pumpType;
     }
@@ -473,5 +473,4 @@ public abstract class PumpPluginAbstract extends PumpPluginBase implements PumpI
     private PumpEnactResult getOperationNotSupportedWithCustomText(int resourceId) {
         return new PumpEnactResult(getInjector()).success(false).enacted(false).comment(getResourceHelper().gs(resourceId));
     }
-
 }

@@ -42,9 +42,9 @@ import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.T
 import info.nightscout.androidaps.utils.resources.ResourceHelper
+import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.androidaps.utils.sharedPreferences.SP
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.concurrent.TimeUnit
@@ -53,8 +53,10 @@ import kotlin.math.abs
 import kotlin.math.min
 
 class DanaRSService : DaggerService() {
+
     @Inject lateinit var injector: HasAndroidInjector
     @Inject lateinit var aapsLogger: AAPSLogger
+    @Inject lateinit var aapsSchedulers: AapsSchedulers
     @Inject lateinit var rxBus: RxBusWrapper
     @Inject lateinit var sp: SP
     @Inject lateinit var resourceHelper: ResourceHelper
@@ -81,8 +83,8 @@ class DanaRSService : DaggerService() {
         super.onCreate()
         disposable.add(rxBus
             .toObservable(EventAppExit::class.java)
-            .observeOn(Schedulers.io())
-            .subscribe({ stopSelf() }) { fabricPrivacy.logException(it) }
+            .observeOn(aapsSchedulers.io)
+            .subscribe({ stopSelf() }, fabricPrivacy::logException)
         )
     }
 
@@ -166,12 +168,7 @@ class DanaRSService : DaggerService() {
                 if (abs(timeDiff) > 60 * 60 * 1.5) {
                     aapsLogger.debug(LTag.PUMPCOMM, "Pump time difference: $timeDiff seconds - large difference")
                     //If time-diff is very large, warn user until we can synchronize history readings properly
-                    val i = Intent(context, ErrorHelperActivity::class.java)
-                    i.putExtra("soundid", R.raw.error)
-                    i.putExtra("status", resourceHelper.gs(R.string.largetimediff))
-                    i.putExtra("title", resourceHelper.gs(R.string.largetimedifftitle))
-                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(i)
+                    ErrorHelperActivity.runAlarm(context, resourceHelper.gs(R.string.largetimediff), resourceHelper.gs(R.string.largetimedifftitle), R.raw.error)
 
                     //de-initialize pump
                     danaPump.reset()
@@ -179,14 +176,18 @@ class DanaRSService : DaggerService() {
                     rxBus.send(EventInitializationChanged())
                     return
                 } else {
-                    if (danaPump.usingUTC) {
-                        sendMessage(DanaRS_Packet_Option_Set_Pump_UTC_And_TimeZone(injector, DateUtil.now(), offset))
-                    } else if (danaPump.protocol >= 6) { // can set seconds
-                        sendMessage(DanaRS_Packet_Option_Set_Pump_Time(injector, DateUtil.now()))
-                    } else {
-                        waitForWholeMinute() // Dana can set only whole minute
-                        // add 10sec to be sure we are over minute (will be cut off anyway)
-                        sendMessage(DanaRS_Packet_Option_Set_Pump_Time(injector, DateUtil.now() + T.secs(10).msecs()))
+                    when {
+                        danaPump.usingUTC      -> {
+                            sendMessage(DanaRS_Packet_Option_Set_Pump_UTC_And_TimeZone(injector, DateUtil.now(), offset))
+                        }
+                        danaPump.protocol >= 6 -> { // can set seconds
+                            sendMessage(DanaRS_Packet_Option_Set_Pump_Time(injector, DateUtil.now()))
+                        }
+                        else                   -> {
+                            waitForWholeMinute() // Dana can set only whole minute
+                            // add 10sec to be sure we are over minute (will be cut off anyway)
+                            sendMessage(DanaRS_Packet_Option_Set_Pump_Time(injector, DateUtil.now() + T.secs(10).msecs()))
+                        }
                     }
                     if (danaPump.usingUTC) sendMessage(DanaRS_Packet_Option_Get_Pump_UTC_And_TimeZone(injector))
                     else sendMessage(DanaRS_Packet_Option_Get_Pump_Time(injector))
@@ -214,7 +215,7 @@ class DanaRSService : DaggerService() {
     }
 
     fun loadEvents(): PumpEnactResult {
-        if (!danaRSPlugin.isInitialized) {
+        if (!danaRSPlugin.isInitialized()) {
             val result = PumpEnactResult(injector).success(false)
             result.comment = "pump not initialized"
             return result
@@ -277,6 +278,7 @@ class DanaRSService : DaggerService() {
                     danaPump.bolusStopped = true
                     danaPump.bolusStopForced = true
                     aapsLogger.debug(LTag.PUMPCOMM, "Communication stopped")
+                    bleComm.disconnect("Communication stopped")
                 }
             }
         }
@@ -408,7 +410,7 @@ class DanaRSService : DaggerService() {
         sendMessage(DanaRS_Packet_Bolus_Get_Extended_Bolus_State(injector))
         loadEvents()
         rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.DISCONNECTING))
-        return  msgStop.success()
+        return msgStop.success()
     }
 
     fun updateBasalsInPump(profile: Profile): Boolean {
@@ -436,12 +438,12 @@ class DanaRSService : DaggerService() {
             RecordTypes.RECORD_TYPE_ALARM -> msg = DanaRS_Packet_History_Alarm(injector)
             RecordTypes.RECORD_TYPE_PRIME -> msg = DanaRS_Packet_History_Prime(injector)
             RecordTypes.RECORD_TYPE_BASALHOUR -> msg = DanaRS_Packet_History_Basal(injector)
-            RecordTypes.RECORD_TYPE_BOLUS     -> msg = DanaRS_Packet_History_Bolus(injector)
-            RecordTypes.RECORD_TYPE_CARBO     -> msg = DanaRS_Packet_History_Carbohydrate(injector)
-            RecordTypes.RECORD_TYPE_DAILY     -> msg = DanaRS_Packet_History_Daily(injector)
-            RecordTypes.RECORD_TYPE_GLUCOSE   -> msg = DanaRS_Packet_History_Blood_Glucose(injector)
-            RecordTypes.RECORD_TYPE_REFILL    -> msg = DanaRS_Packet_History_Refill(injector)
-            RecordTypes.RECORD_TYPE_SUSPEND   -> msg = DanaRS_Packet_History_Suspend(injector)
+            RecordTypes.RECORD_TYPE_BOLUS -> msg = DanaRS_Packet_History_Bolus(injector)
+            RecordTypes.RECORD_TYPE_CARBO -> msg = DanaRS_Packet_History_Carbohydrate(injector)
+            RecordTypes.RECORD_TYPE_DAILY -> msg = DanaRS_Packet_History_Daily(injector)
+            RecordTypes.RECORD_TYPE_GLUCOSE -> msg = DanaRS_Packet_History_Blood_Glucose(injector)
+            RecordTypes.RECORD_TYPE_REFILL -> msg = DanaRS_Packet_History_Refill(injector)
+            RecordTypes.RECORD_TYPE_SUSPEND -> msg = DanaRS_Packet_History_Suspend(injector)
         }
         if (msg != null) {
             sendMessage(DanaRS_Packet_General_Set_History_Upload_Mode(injector, 1))
@@ -458,6 +460,7 @@ class DanaRSService : DaggerService() {
     }
 
     inner class LocalBinder : Binder() {
+
         val serviceInstance: DanaRSService
             get() = this@DanaRSService
     }

@@ -3,10 +3,12 @@ package info.nightscout.androidaps.utils.wizard
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.Profile
-import info.nightscout.androidaps.db.BgReading
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.ValueWrapper
+import info.nightscout.androidaps.database.entities.GlucoseValue
+import info.nightscout.androidaps.interfaces.ProfileFunction
 import info.nightscout.androidaps.logging.AAPSLogger
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
-import info.nightscout.androidaps.interfaces.ProfileFunction
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
@@ -14,6 +16,7 @@ import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.JsonHelper.safeGetInt
 import info.nightscout.androidaps.utils.JsonHelper.safeGetString
 import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.androidaps.utils.valueToUnits
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
@@ -27,11 +30,14 @@ class QuickWizardEntry @Inject constructor(private val injector: HasAndroidInjec
     @Inject lateinit var treatmentsPlugin: TreatmentsPlugin
     @Inject lateinit var loopPlugin: LoopPlugin
     @Inject lateinit var iobCobCalculatorPlugin: IobCobCalculatorPlugin
+    @Inject lateinit var repository: AppRepository
+    @Inject lateinit var dateUtil: DateUtil
 
     lateinit var storage: JSONObject
     var position: Int = -1
 
     companion object {
+
         const val YES = 0
         const val NO = 1
         private const val POSITIVE_ONLY = 2
@@ -71,8 +77,9 @@ class QuickWizardEntry @Inject constructor(private val injector: HasAndroidInjec
 
     fun isActive(): Boolean = Profile.secondsFromMidnight() >= validFrom() && Profile.secondsFromMidnight() <= validTo()
 
-    fun doCalc(profile: Profile, profileName: String, lastBG: BgReading, _synchronized: Boolean): BolusWizard {
-        val tempTarget = treatmentsPlugin.tempTargetFromHistory
+    fun doCalc(profile: Profile, profileName: String, lastBG: GlucoseValue, _synchronized: Boolean): BolusWizard {
+        val dbRecord = repository.getTemporaryTargetActiveAt(dateUtil._now()).blockingGet()
+        val tempTarget = if (dbRecord is ValueWrapper.Existing)  dbRecord.value else null
         //BG
         var bg = 0.0
         if (useBG() == YES) {
@@ -82,7 +89,7 @@ class QuickWizardEntry @Inject constructor(private val injector: HasAndroidInjec
         var cob = 0.0
         if (useCOB() == YES) {
             val cobInfo = iobCobCalculatorPlugin.getCobInfo(_synchronized, "QuickWizard COB")
-            if (cobInfo.displayCob != null) cob = cobInfo.displayCob
+            if (cobInfo.displayCob != null) cob = cobInfo.displayCob!!
         }
         // Bolus IOB
         var bolusIOB = false
@@ -111,9 +118,9 @@ class QuickWizardEntry @Inject constructor(private val injector: HasAndroidInjec
         var trend = false
         if (useTrend() == YES) {
             trend = true
-        } else if (useTrend() == POSITIVE_ONLY && glucoseStatus != null && glucoseStatus.short_avgdelta > 0) {
+        } else if (useTrend() == POSITIVE_ONLY && glucoseStatus != null && glucoseStatus.shortAvgDelta > 0) {
             trend = true
-        } else if (useTrend() == NEGATIVE_ONLY && glucoseStatus != null && glucoseStatus.short_avgdelta < 0) {
+        } else if (useTrend() == NEGATIVE_ONLY && glucoseStatus != null && glucoseStatus.shortAvgDelta < 0) {
             trend = true
         }
         val percentage = sp.getDouble(R.string.key_boluswizard_percentage, 100.0)
@@ -130,7 +137,7 @@ class QuickWizardEntry @Inject constructor(private val injector: HasAndroidInjec
 
     fun validFrom(): Int = safeGetInt(storage, "validFrom")
 
-    fun validTo(): Int = safeGetInt(storage, "validTo")
+    private fun validTo(): Int = safeGetInt(storage, "validTo")
 
     fun useBG(): Int = safeGetInt(storage, "useBG", YES)
 

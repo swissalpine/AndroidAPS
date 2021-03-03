@@ -36,9 +36,9 @@ import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.Round;
 import info.nightscout.androidaps.utils.T;
 import info.nightscout.androidaps.utils.resources.ResourceHelper;
+import info.nightscout.androidaps.utils.rx.AapsSchedulers;
 import info.nightscout.androidaps.utils.sharedPreferences.SP;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 
 @Singleton
 public class DanaRv2Plugin extends AbstractDanaRPlugin {
@@ -58,6 +58,7 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
     public DanaRv2Plugin(
             HasAndroidInjector injector,
             AAPSLogger aapsLogger,
+            AapsSchedulers aapsSchedulers,
             RxBusWrapper rxBus,
             Context context,
             DanaPump danaPump,
@@ -70,7 +71,7 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
             DateUtil dateUtil,
             FabricPrivacy fabricPrivacy
     ) {
-        super(injector, danaPump, resourceHelper, constraintChecker, aapsLogger, commandQueue, rxBus, activePlugin, sp, dateUtil);
+        super(injector, danaPump, resourceHelper, constraintChecker, aapsLogger, aapsSchedulers, commandQueue, rxBus, activePlugin, sp, dateUtil);
         this.aapsLogger = aapsLogger;
         this.context = context;
         this.resourceHelper = resourceHelper;
@@ -90,7 +91,7 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
 
         disposable.add(rxBus
                 .toObservable(EventAppExit.class)
-                .observeOn(Schedulers.io())
+                .observeOn(aapsSchedulers.getIo())
                 .subscribe(event -> context.unbindService(mConnection), fabricPrivacy::logException)
         );
         super.onStart();
@@ -219,7 +220,7 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
 
     // This is called from APS
     @NonNull @Override
-    public PumpEnactResult setTempBasalAbsolute(Double absoluteRate, Integer durationInMinutes, Profile profile, boolean enforceNew) {
+    public PumpEnactResult setTempBasalAbsolute(double absoluteRate, int durationInMinutes, @NonNull Profile profile, boolean enforceNew) {
         // Recheck pump status if older than 30 min
         //This should not be needed while using queue because connection should be done before calling this
         //if (pump.lastConnection.getTime() + 30 * 60 * 1000L < System.currentTimeMillis()) {
@@ -250,7 +251,7 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
         }
 
         if (doLowTemp || doHighTemp) {
-            Integer percentRate = Double.valueOf(absoluteRate / getBaseBasalRate() * 100).intValue();
+            int percentRate = Double.valueOf(absoluteRate / getBaseBasalRate() * 100).intValue();
             // Any basal less than 0.10u/h will be dumped once per hour, not every 4 mins. So if it's less than .10u/h, set a zero temp.
             if (absoluteRate < 0.10d) percentRate = 0;
             if (percentRate < 100) percentRate = Round.ceilTo((double) percentRate, 10d).intValue();
@@ -297,7 +298,7 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
     }
 
     @NonNull @Override
-    public PumpEnactResult setTempBasalPercent(Integer percent, Integer durationInMinutes, Profile profile, boolean enforceNew) {
+    public PumpEnactResult setTempBasalPercent(int percent, int durationInMinutes, @NonNull Profile profile, boolean enforceNew) {
         DanaPump pump = danaPump;
         PumpEnactResult result = new PumpEnactResult(getInjector());
         percent = constraintChecker.applyBasalPercentConstraints(new Constraint<>(percent), profile).value();
@@ -385,14 +386,13 @@ public class DanaRv2Plugin extends AbstractDanaRPlugin {
             result.isTempCancel = true;
             result.comment = resourceHelper.gs(R.string.ok);
             aapsLogger.debug(LTag.PUMP, "cancelRealTempBasal: OK");
-            return result;
         } else {
             result.success = false;
             result.comment = resourceHelper.gs(R.string.danar_valuenotsetproperly);
             result.isTempCancel = true;
             aapsLogger.error("cancelRealTempBasal: Failed to cancel temp basal");
-            return result;
         }
+        return result;
     }
 
     @NonNull @Override

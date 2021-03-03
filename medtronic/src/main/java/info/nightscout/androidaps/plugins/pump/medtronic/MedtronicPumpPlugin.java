@@ -2,7 +2,6 @@ package info.nightscout.androidaps.plugins.pump.medtronic;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -11,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -48,7 +47,6 @@ import info.nightscout.androidaps.plugins.bus.RxBusWrapper;
 import info.nightscout.androidaps.plugins.common.ManufacturerType;
 import info.nightscout.androidaps.plugins.general.actions.defs.CustomAction;
 import info.nightscout.androidaps.plugins.general.actions.defs.CustomActionType;
-import info.nightscout.androidaps.queue.commands.CustomCommand;
 import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification;
 import info.nightscout.androidaps.plugins.general.overview.notifications.Notification;
 import info.nightscout.androidaps.plugins.pump.common.PumpPluginAbstract;
@@ -90,6 +88,7 @@ import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.TimeChangeType;
 import info.nightscout.androidaps.utils.resources.ResourceHelper;
+import info.nightscout.androidaps.utils.rx.AapsSchedulers;
 import info.nightscout.androidaps.utils.sharedPreferences.SP;
 
 
@@ -140,7 +139,8 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
             MedtronicHistoryData medtronicHistoryData,
             RileyLinkServiceData rileyLinkServiceData,
             ServiceTaskExecutor serviceTaskExecutor,
-            DateUtil dateUtil
+            DateUtil dateUtil,
+            AapsSchedulers aapsSchedulers
     ) {
 
         super(new PluginDescription() //
@@ -152,7 +152,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
                         .preferencesId(R.xml.pref_medtronic)
                         .description(R.string.description_pump_medtronic), //
                 PumpType.Medtronic_522_722, // we default to most basic model, correct model from config is loaded later
-                injector, resourceHelper, aapsLogger, commandQueue, rxBus, activePlugin, sp, context, fabricPrivacy, dateUtil
+                injector, resourceHelper, aapsLogger, commandQueue, rxBus, activePlugin, sp, context, fabricPrivacy, dateUtil, aapsSchedulers
         );
 
         this.rileyLinkUtil = rileyLinkUtil;
@@ -202,7 +202,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
     }
 
     @Override
-    public void updatePreferenceSummary(@NotNull Preference pref) {
+    public void updatePreferenceSummary(@NonNull Preference pref) {
         super.updatePreferenceSummary(pref);
 
         if (pref.getKey().equals(getResourceHelper().gs(R.string.key_rileylink_mac_address))) {
@@ -327,11 +327,10 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
     }
 
     @Override public RileyLinkPumpInfo getPumpInfo() {
-        String pumpDescription = pumpType.getDescription();
         String frequency = resourceHelper.gs(medtronicPumpStatus.pumpFrequency.equals("medtronic_pump_frequency_us_ca") ? R.string.medtronic_pump_frequency_us_ca : R.string.medtronic_pump_frequency_worldwide);
         String model = medtronicPumpStatus.medtronicDeviceType == null ? "???" : "Medtronic " + medtronicPumpStatus.medtronicDeviceType.getPumpModel();
         String serialNumber = medtronicPumpStatus.serialNumber;
-        return new RileyLinkPumpInfo(pumpDescription, frequency, model, serialNumber);
+        return new RileyLinkPumpInfo(frequency, model, serialNumber);
     }
 
     @Override public long getLastConnectionTimeMillis() {
@@ -422,14 +421,16 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
 
     @Override
     public void getPumpStatus(String reason) {
+        boolean needRefresh = true;
 
         if (firstRun) {
-            initializePump(!isRefresh);
+            needRefresh = initializePump(!isRefresh);
         } else {
             refreshAnyStatusThatNeedsToBeRefreshed();
         }
 
-        rxBus.send(new EventMedtronicPumpValuesChanged());
+        if (needRefresh)
+            rxBus.send(new EventMedtronicPumpValuesChanged());
     }
 
 
@@ -556,7 +557,10 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
     }
 
 
-    private void initializePump(boolean realInit) {
+    private boolean initializePump(boolean realInit) {
+
+        if (rileyLinkMedtronicService == null)
+            return false;
 
         aapsLogger.info(LTag.PUMP, getLogPrefix() + "initializePump - start");
 
@@ -571,7 +575,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
 
                 setRefreshButtonEnabled(true);
 
-                return;
+                return true;
             }
 
             medtronicUtil.dismissNotification(MedtronicNotificationType.PumpUnreachable, rxBus);
@@ -614,7 +618,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
             aapsLogger.error("Number of error counts was 5 or more. Starting tunning.");
             setRefreshButtonEnabled(true);
             serviceTaskExecutor.startTask(new WakeAndTuneTask(getInjector()));
-            return;
+            return true;
         }
 
         medtronicPumpStatus.setLastCommunicationToNow();
@@ -628,6 +632,8 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
         // this.pumpState = PumpDriverState.Initialized;
 
         this.firstRun = false;
+
+        return true;
     }
 
     private void getBasalProfiles() {
@@ -641,7 +647,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
 
 
     @Override
-    public boolean isThisProfileSet(Profile profile) {
+    public boolean isThisProfileSet(@NonNull Profile profile) {
         aapsLogger.debug(LTag.PUMP, "isThisProfileSet: basalInitalized=" + medtronicPumpStatus.basalProfileStatus);
 
         if (!isInitialized)
@@ -868,13 +874,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
                         // LOG.debug("MedtronicPumpPlugin::deliverBolus - Show dialog. Context: "
                         // + MainApp.instance().getApplicationContext());
 
-                        Intent i = new Intent(context, ErrorHelperActivity.class);
-                        i.putExtra("soundid", R.raw.boluserror);
-                        i.putExtra("status", getResourceHelper().gs(R.string.medtronic_cmd_cancel_bolus_not_supported));
-                        i.putExtra("title", getResourceHelper().gs(R.string.medtronic_warning));
-                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(i);
-
+                        ErrorHelperActivity.Companion.runAlarm(context, getResourceHelper().gs(R.string.medtronic_cmd_cancel_bolus_not_supported), getResourceHelper().gs(R.string.medtronic_warning), R.raw.boluserror);
                     }).start();
                 }
 
@@ -957,7 +957,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
     // if enforceNew===true current temp basal is canceled and new TBR set (duration is prolonged),
     // if false and the same rate is requested enacted=false and success=true is returned and TBR is not changed
     @NonNull @Override
-    public PumpEnactResult setTempBasalAbsolute(Double absoluteRate, Integer durationInMinutes, Profile profile,
+    public PumpEnactResult setTempBasalAbsolute(double absoluteRate, int durationInMinutes, Profile profile,
                                                 boolean enforceNew) {
 
         setRefreshButtonEnabled(false);
@@ -1069,8 +1069,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
 
 
     @NonNull @Override
-    public PumpEnactResult setTempBasalPercent(Integer percent, Integer durationInMinutes, Profile profile,
-                                               boolean enforceNew) {
+    public PumpEnactResult setTempBasalPercent(int percent, int durationInMinutes, @NonNull Profile profile,                                               boolean enforceNew) {
         if (percent == 0) {
             return setTempBasalAbsolute(0.0d, durationInMinutes, profile, enforceNew);
         } else {
@@ -1425,7 +1424,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
     }
 
     @NonNull @Override
-    public PumpEnactResult setNewBasalProfile(Profile profile) {
+    public PumpEnactResult setNewBasalProfile(@NonNull Profile profile) {
         aapsLogger.info(LTag.PUMP, getLogPrefix() + "setNewBasalProfile");
 
         // this shouldn't be needed, but let's do check if profile setting we are setting is same as current one
@@ -1555,12 +1554,7 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
                 if (rileyLinkMedtronicService.verifyConfiguration()) {
                     serviceTaskExecutor.startTask(new WakeAndTuneTask(getInjector()));
                 } else {
-                    Intent i = new Intent(context, ErrorHelperActivity.class);
-                    i.putExtra("soundid", R.raw.boluserror);
-                    i.putExtra("status", getResourceHelper().gs(R.string.medtronic_error_operation_not_possible_no_configuration));
-                    i.putExtra("title", getResourceHelper().gs(R.string.medtronic_warning));
-                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(i);
+                    ErrorHelperActivity.Companion.runAlarm(context, getResourceHelper().gs(R.string.medtronic_error_operation_not_possible_no_configuration), getResourceHelper().gs(R.string.medtronic_warning), R.raw.boluserror);
                 }
             }
             break;
@@ -1581,10 +1575,6 @@ public class MedtronicPumpPlugin extends PumpPluginAbstract implements PumpInter
                 break;
         }
 
-    }
-
-    @Nullable @Override public PumpEnactResult executeCustomCommand(CustomCommand customCommand) {
-        return null;
     }
 
     @Override

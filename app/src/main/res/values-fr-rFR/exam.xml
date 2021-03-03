@@ -8,7 +8,7 @@
     <string name="dia_meaningisequaltodiapump">Si vous êtes convaincu que la valeur de DAI que vous avez utilisée dans votre pompe avant AndroidAPS marche bien, il n\'y a pas besoin de la changer lorsque vous commencez à boucler.</string>
     <string name="dia_valuemustbedetermined">Vous devez déterminer par vous-même la valeur appropriée pour la DAI.</string>
     <string name="hypott_label">Cible temporaire Hypo</string>
-    <string name="hypott_whenhypott">Quelle est la principale raison de fixer une cible temp. hypo ?</string>
+    <string name="hypott_whenhypott">Quelle est la raison principale pour définir une cible temporaire hypo?</string>
     <string name="hypott_wrongbasal">Pour corriger les hypos causés par des paramètres de débit basal incorrects.</string>
     <string name="hypott_preventoversmb">Pour empêcher AndroidAPS de surcorriger une hausse de glycémie causée par les glucides à action rapide utilisés pour traiter une hypo.</string>
     <string name="hypott_exercise">Pour corriger une hypo due à un exercice.</string>
@@ -48,7 +48,7 @@
     <string name="exerciseprofile_label">Exercices et profils</string>
     <string name="exerciseprofile_whattodo">Comment utiliser les profils pour aider au mieux le système à gérer un exercice aérobique ?</string>
     <string name="exerciseprofile_switchprofilebelow100">Faites un changement de profil à moins de 100%.</string>
-    <string name="exerciseprofile_switchprofileabove100">Faites un changement de profil à plus de 100 %.</string>
+    <string name="exerciseprofile_switchprofileabove100">Faites un changement de profil à plus de 100%.</string>
     <string name="exerciseprofile_leaveat100">Laissez le profil fixé à 100%.</string>
     <string name="exerciseprofile_suspendloop">Suspendez la boucle.</string>
     <string name="exerciseprofile_hint1">https://androidaps.readthedocs.io/en/latest/CROWDIN/fr/Usage/temptarget.html#cible-temporaire-activite</string>
@@ -137,7 +137,7 @@
     <string name="wronginsulin_donothing">Ne faites rien et laissez AndroidAPS corriger tout taux élevé de glycémie qui en résulte.</string>
     <string name="iob_label">Insuline Active (IA)</string>
     <string name="iob_which">Sélectionnez toutes les bonnes réponses.</string>
-    <string name="iob_value">La valeur de l\'IA est impactée par les dabits de basal temporaires émis.</string>
+    <string name="iob_value">La valeur de l\'IA est impactée par les débits de basal temporaires émis.</string>
     <string name="iob_hightemp">Une basal temp. haute ne sera pas donnée quand votre glycémie est en dessous de la cible.</string>
     <string name="iob_negiob">Une IA négative pendant une période significative en l\'absence d\'exercice indique que votre profil est trop fort et qu\'il faut moins d\'insuline dans vos paramètres.</string>
     <string name="iob_posiob">Une IA positive pendant une période significative indique une résistance à l\'insuline ou des repas non signalés.</string>
@@ -171,6 +171,9 @@
     <string name="isf_hint2">https://androidaps.readthedocs.io/en/latest/CROWDIN/fr/Usage/Profiles.html</string>
     <string name="ic_multiple">Vous pouvez utiliser plus d\'une valeur pour le ratio G/I dans votre profil.</string>
     <string name="ic_isf">Si vous changez votre SI dans votre profil, vous devez toujours modifier votre ratio G/I également.</string>
+    <string name="ic_label_exam">Ratio Glucides sur Insuline (ratio G/I)</string>
+    <string name="ic_increasingvalue">Les ratios G/I plus élevés conduisent à moins d\'insuline injectée pour une quantité donnée de glucides.</string>
+    <string name="ic_decreasingvalue">Les ratios G/I plus faibles conduisent à moins d\'insuline injectée pour une quantité donnée de glucides.</string>
     <string name="ic_noeffect">Si vous avez 0 GA, changer le ratio G/I conduira à différentes quantités d\'insuline pour corriger une valeur de glycémie donnée.</string>
     <string name="ic_different">Le G/I sera différent si vous comptez l\'unité (d\'échange) de pain à 10g ou à 12g.</string>
     <string name="ic_meaning">Le G/I (Ratio Glucides/Insuline) est : combien d\'unités (d\'échange) de pain sont couverte par 1U d\'insuline.</string>
@@ -180,6 +183,7 @@
     <string name="profileswitch_basallower">Le débit de base sera diminuée de 10%.</string>
     <string name="profileswitch_isfhigher">La valeur de SI sera augmentée de 10%.</string>
     <string name="profileswitch_iclower">La valeur du ratio G/I sera un nombre 10% inférieur.</string>
+    <string name="profileswitch_unchanged">Les ratios SI et G/I seront inchangés.</string>
     <string name="profileswitch_hint1" formatted="false">https://androidaps.readthedocs.io/en/latest/CROWDIN/fr/Usage/Profiles.html?highlight=profile%20switch#profile-switch</string>
     <string name="profileswitch2_label">Changement de profil</string>
     <string name="profileswitch2_pctwillchange">Quand vous spécifiez un changement de profil à 120%, quelles réponses sont vraies ?</string>

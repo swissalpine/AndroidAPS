@@ -69,6 +69,7 @@
     <string name="menu_ecarb">eGlucides</string>
     <string name="menu_settings">Paramètres</string>
     <string name="menu_status">États</string>
+    <string name="menu_resync">Re-sync</string>
     <string name="menu_prime_fill">Amorcer/Remplir</string>
     <string name="menu_none">Aucun</string>
     <string name="menu_default">Défaut</string>
@@ -89,6 +90,9 @@
     <string name="action_confirm">CONFIRMER</string>
     <string name="action_timeshift">décalage</string>
     <string name="action_bolus">bolus</string>
+    <string name="bolus_progress">Bolus en cours</string>
+    <string name="press_to_cancel">Click pour annuler</string>
+    <string name="cancel_bolus">ANNULER BOLUS</string>
     <string name="status_pump">Pompe</string>
     <string name="status_loop">Boucle</string>
     <string name="status_cpp">Profil</string>
@@ -128,4 +132,8 @@
     <string name="digitalstyle_pref_your_color">Couleur :</string>
     <string name="digitalstyle_pref_your_color_saturation">Saturation :</string>
     <string name="digitalstyle_pref_your_color_opacity">Opacité :</string>
+    <string name="bolus_progress_channel_name">Progression Bolus AAPS</string>
+    <string name="bolus_progress_silent_channel_name">Progression Bolus silencieuse</string>
+    <string name="bolus_progress_channel_description">Progression et annulation Bolus</string>
+    <string name="bolus_progress_silent_channel_description">Progression et annulation Bolus avec moins de vibrations</string>
 </resources>

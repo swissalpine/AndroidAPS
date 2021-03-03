@@ -8,41 +8,51 @@ import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.dana.DanaPump
+import info.nightscout.androidaps.danaRKorean.DanaRKoreanPlugin
+import info.nightscout.androidaps.danaRv2.DanaRv2Plugin
+import info.nightscout.androidaps.danar.DanaRPlugin
+import info.nightscout.androidaps.danars.DanaRSPlugin
 import info.nightscout.androidaps.data.DetailedBolusInfo
 import info.nightscout.androidaps.data.Profile
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.ValueWrapper
+import info.nightscout.androidaps.database.entities.TemporaryTarget
+import info.nightscout.androidaps.database.interfaces.end
+import info.nightscout.androidaps.database.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
+import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
 import info.nightscout.androidaps.db.CareportalEvent
 import info.nightscout.androidaps.db.Source
 import info.nightscout.androidaps.db.TDD
-import info.nightscout.androidaps.db.TempTarget
 import info.nightscout.androidaps.interfaces.ActivePluginProvider
 import info.nightscout.androidaps.interfaces.CommandQueueProvider
 import info.nightscout.androidaps.interfaces.Constraint
 import info.nightscout.androidaps.interfaces.PluginBase
+import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.logging.AAPSLogger
+import info.nightscout.androidaps.logging.LTag
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
 import info.nightscout.androidaps.plugins.bus.RxBusWrapper
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.plugins.general.overview.events.EventDismissNotification
+import info.nightscout.androidaps.plugins.general.wear.events.EventWearConfirmAction
+import info.nightscout.androidaps.plugins.general.wear.events.EventWearInitiateAction
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
-import info.nightscout.androidaps.danar.DanaRPlugin
-import info.nightscout.androidaps.danaRKorean.DanaRKoreanPlugin
-import info.nightscout.androidaps.danars.DanaRSPlugin
-import info.nightscout.androidaps.danaRv2.DanaRv2Plugin
 import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin
 import info.nightscout.androidaps.plugins.treatments.CarbsGenerator
 import info.nightscout.androidaps.queue.Callback
-import info.nightscout.androidaps.utils.DateUtil
-import info.nightscout.androidaps.utils.DecimalFormatter
-import info.nightscout.androidaps.utils.HardLimits
-import info.nightscout.androidaps.utils.SafeParse
-import info.nightscout.androidaps.utils.ToastUtils
+import info.nightscout.androidaps.utils.*
 import info.nightscout.androidaps.utils.resources.ResourceHelper
+import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.androidaps.utils.sharedPreferences.SP
 import info.nightscout.androidaps.utils.wizard.BolusWizard
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,6 +60,8 @@ import javax.inject.Singleton
 class ActionStringHandler @Inject constructor(
     private val sp: SP,
     private val rxBus: RxBusWrapper,
+    private val aapsLogger: AAPSLogger,
+    aapsSchedulers: AapsSchedulers,
     private val resourceHelper: ResourceHelper,
     private val injector: HasAndroidInjector,
     private val context: Context,
@@ -57,6 +69,7 @@ class ActionStringHandler @Inject constructor(
     private val profileFunction: ProfileFunction,
     private val loopPlugin: LoopPlugin,
     private val wearPlugin: WearPlugin,
+    private val fabricPrivacy: FabricPrivacy,
     private val commandQueue: CommandQueueProvider,
     private val activePlugin: ActivePluginProvider,
     private val iobCobCalculatorPlugin: IobCobCalculatorPlugin,
@@ -69,7 +82,9 @@ class ActionStringHandler @Inject constructor(
     private val hardLimits: HardLimits,
     private val carbsGenerator: CarbsGenerator,
     private val dateUtil: DateUtil,
-    private val config: Config
+    private val config: Config,
+    private val repository: AppRepository,
+    private val nsUpload: NSUpload
 ) {
 
     private val TIMEOUT = 65 * 1000
@@ -77,10 +92,23 @@ class ActionStringHandler @Inject constructor(
     private var lastConfirmActionString: String? = null
     private var lastBolusWizard: BolusWizard? = null
 
-    // TODO Adrian use RxBus instead of Lazy + cross dependency
+    private val disposable = CompositeDisposable()
+
+    init {
+        disposable += rxBus
+            .toObservable(EventWearInitiateAction::class.java)
+            .observeOn(aapsSchedulers.main)
+            .subscribe({ handleInitiate(it.action) }, fabricPrivacy::logException)
+
+        disposable += rxBus
+            .toObservable(EventWearConfirmAction::class.java)
+            .observeOn(aapsSchedulers.main)
+            .subscribe({ handleConfirmation(it.action) }, fabricPrivacy::logException)
+    }
+
     @Synchronized
-    fun handleInitiate(actionString: String) {
-        if (!sp.getBoolean("wearcontrol", false)) return
+    private fun handleInitiate(actionString: String) {
+        if (!sp.getBoolean(R.string.key_wear_control, false)) return
         lastBolusWizard = null
         var rTitle = "CONFIRM" //TODO: i18n
         var rMessage = ""
@@ -182,19 +210,22 @@ class ActionStringHandler @Inject constructor(
                 return
             }
             val bgReading = iobCobCalculatorPlugin.actualBg()
-            if (bgReading == null && useBG) {
+            if (bgReading == null) {
                 sendError("No recent BG to base calculation on!")
                 return
             }
             val cobInfo = iobCobCalculatorPlugin.getCobInfo(false, "Wizard wear")
-            if (useCOB && (cobInfo.displayCob == null)) {
+            if (cobInfo.displayCob == null) {
                 sendError("Unknown COB! BG reading missing or recent app restart?")
                 return
             }
             val format = DecimalFormat("0.00")
             val formatInt = DecimalFormat("0")
-            val bolusWizard = BolusWizard(injector).doCalc(profile, profileName, activePlugin.activeTreatments.tempTargetFromHistory,
-                carbsAfterConstraints, cobInfo.displayCob!!, bgReading!!.valueToUnits(profileFunction.getUnits()),
+            val dbRecord = repository.getTemporaryTargetActiveAt(dateUtil._now()).blockingGet()
+            val tempTarget = if (dbRecord is ValueWrapper.Existing)  dbRecord.value else null
+
+            val bolusWizard = BolusWizard(injector).doCalc(profile, profileName, tempTarget,
+                carbsAfterConstraints, if (cobInfo.displayCob != null) cobInfo.displayCob!! else 0.0, bgReading.valueToUnits(profileFunction.getUnits()),
                 0.0, percentage.toDouble(), useBG, useCOB, useBolusIOB, useBasalIOB, false, useTT, useTrend, false)
             if (Math.abs(bolusWizard.insulinAfterConstraints - bolusWizard.calculatedTotalInsulin) >= 0.01) {
                 sendError("Insulin constraint violation!" +
@@ -252,7 +283,7 @@ class ActionStringHandler @Inject constructor(
                 rAction = "statusmessage"
                 rMessage = "OLD DATA - "
                 //if pump is not busy: try to fetch data
-                if (activePump.isBusy) {
+                if (activePump.isBusy()) {
                     rMessage += resourceHelper.gs(R.string.pumpbusy)
                 } else {
                     rMessage += "trying to fetch data from pump."
@@ -429,10 +460,10 @@ class ActionStringHandler @Inject constructor(
             }
             val profile = profileFunction.getProfile() ?: return "No profile set :("
             //Check for Temp-Target:
-            val tempTarget = activePlugin.activeTreatments.tempTargetFromHistory
-            if (tempTarget != null) {
-                ret += "Temp Target: " + Profile.toTargetRangeString(tempTarget.low, tempTarget.low, Constants.MGDL, profileFunction.getUnits())
-                ret += "\nuntil: " + dateUtil.timeString(tempTarget.originalEnd())
+            val tempTarget = repository.getTemporaryTargetActiveAt(dateUtil._now()).blockingGet()
+            if (tempTarget is ValueWrapper.Existing) {
+                ret += "Temp Target: " + Profile.toTargetRangeString(tempTarget.value.lowTarget, tempTarget.value.lowTarget, Constants.MGDL, profileFunction.getUnits())
+                ret += "\nuntil: " + dateUtil.timeString(tempTarget.value.end)
                 ret += "\n\n"
             }
             ret += "DEFAULT RANGE: "
@@ -463,7 +494,7 @@ class ActionStringHandler @Inject constructor(
 
     @Synchronized
     fun handleConfirmation(actionString: String) {
-        if (!sp.getBoolean("wearcontrol", false)) return
+        if (!sp.getBoolean(R.string.key_wear_control, false)) return
         //Guard from old or duplicate confirmations
         if (lastConfirmActionString == null) return
         if (lastConfirmActionString != actionString) return
@@ -555,17 +586,26 @@ class ActionStringHandler @Inject constructor(
     }
 
     private fun generateTempTarget(duration: Int, low: Double, high: Double) {
-        val tempTarget = TempTarget()
-            .date(System.currentTimeMillis())
-            .duration(duration)
-            .reason("WearPlugin")
-            .source(Source.USER)
-        if (tempTarget.durationInMinutes != 0) {
-            tempTarget.low(low).high(high)
-        } else {
-            tempTarget.low(0.0).high(0.0)
-        }
-        activePlugin.activeTreatments.addToHistoryTempTarget(tempTarget)
+        if (duration != 0)
+            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                timestamp = System.currentTimeMillis(),
+                duration = TimeUnit.MINUTES.toMillis(duration.toLong()),
+                reason = TemporaryTarget.Reason.WEAR,
+                lowTarget = Profile.toMgdl(low, profileFunction.getUnits()),
+                highTarget = Profile.toMgdl(high, profileFunction.getUnits())
+            )).subscribe({ result ->
+                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
+                result.updated.forEach { nsUpload.updateTempTarget(it) }
+            }, {
+                aapsLogger.error("Error while saving temporary target", it)
+            })
+        else
+            disposable += repository.runTransactionForResult(CancelCurrentTemporaryTargetIfAnyTransaction(System.currentTimeMillis()))
+                .subscribe({ result ->
+                    result.updated.forEach { nsUpload.updateTempTarget(it) }
+                }, {
+                    aapsLogger.error("Error while saving temporary target", it)
+                })
     }
 
     private fun doFillBolus(amount: Double) {
@@ -618,13 +658,5 @@ class ActionStringHandler @Inject constructor(
         lastSentTimestamp = System.currentTimeMillis()
         lastConfirmActionString = null
         lastBolusWizard = null
-    } /*
-    public synchronized static void expectNotificationAction(String message, int id) {
-        String actionstring = "dismissoverviewnotification " + id;
-        WearPlugin.getPlugin().requestActionConfirmation("DISMISS", message, actionstring);
-        lastSentTimestamp = System.currentTimeMillis();
-        lastConfirmActionString = actionstring;
-        lastBolusWizard = null;
     }
-*/
 }

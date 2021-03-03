@@ -192,7 +192,7 @@ public class TimeListEdit {
                                       int before, int count) {
             }
         });
-        numberPickers1[position].setTag(tagPrefix +"-1-" + position);
+        numberPickers1[position].setTag(tagPrefix + "-1-" + position);
 
         numberPickers2[position].setTextWatcher(new TextWatcher() {
             @Override
@@ -212,7 +212,7 @@ public class TimeListEdit {
                                       int before, int count) {
             }
         });
-        numberPickers2[position].setTag(tagPrefix +"-2-" + position);
+        numberPickers2[position].setTag(tagPrefix + "-2-" + position);
 
         layout.addView(childView);
     }
@@ -245,7 +245,7 @@ public class TimeListEdit {
         if (i == 0) next = ONEHOURINSECONDS;
         fillSpinner(timeSpinner, secondFromMidnight(i), previous, next);
 
-        editText1.setParams(value1(i), min, max, step, formatter, false,null);
+        editText1.setParams(value1(i), min, max, step, formatter, false, null);
         editText2.setParams(value2(i), min, max, step, formatter, false, null);
 
         if (data2 == null) {
@@ -266,7 +266,7 @@ public class TimeListEdit {
 
     }
 
-    class SpinnerAdapter extends ArrayAdapter<CharSequence> {
+    static class SpinnerAdapter extends ArrayAdapter<CharSequence> {
         List<Integer> values;
 
         SpinnerAdapter(@NonNull Context context, int resource, final @NonNull List<CharSequence> objects, final @NonNull List<Integer> values) {
@@ -371,7 +371,9 @@ public class TimeListEdit {
 
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void addItem(int index, int timeAsSeconds, double value1, double value2) {
+        if (itemsCount() >= 24) return;
         if (itemsCount() > inflatedUntil) {
             layout.removeView(finalAdd);
             inflateRow(++inflatedUntil);

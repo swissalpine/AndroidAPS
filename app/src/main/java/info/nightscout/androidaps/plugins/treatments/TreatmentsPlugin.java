@@ -1,15 +1,12 @@
 package info.nightscout.androidaps.plugins.treatments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +16,6 @@ import javax.inject.Singleton;
 
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.Constants;
-import info.nightscout.androidaps.MainApp;
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.activities.ErrorHelperActivity;
 import info.nightscout.androidaps.data.DetailedBolusInfo;
@@ -27,27 +23,28 @@ import info.nightscout.androidaps.data.Intervals;
 import info.nightscout.androidaps.data.Iob;
 import info.nightscout.androidaps.data.IobTotal;
 import info.nightscout.androidaps.data.NonOverlappingIntervals;
-import info.nightscout.androidaps.data.OverlappingIntervals;
 import info.nightscout.androidaps.data.Profile;
 import info.nightscout.androidaps.data.ProfileIntervals;
+import info.nightscout.androidaps.database.AppRepository;
 import info.nightscout.androidaps.db.ExtendedBolus;
 import info.nightscout.androidaps.db.ProfileSwitch;
 import info.nightscout.androidaps.db.Source;
-import info.nightscout.androidaps.db.TempTarget;
 import info.nightscout.androidaps.db.TemporaryBasal;
 import info.nightscout.androidaps.db.Treatment;
 import info.nightscout.androidaps.events.EventReloadProfileSwitchData;
 import info.nightscout.androidaps.events.EventReloadTempBasalData;
 import info.nightscout.androidaps.events.EventReloadTreatmentData;
-import info.nightscout.androidaps.events.EventTempTargetChange;
 import info.nightscout.androidaps.interfaces.ActivePluginProvider;
+import info.nightscout.androidaps.interfaces.DatabaseHelperInterface;
 import info.nightscout.androidaps.interfaces.PluginBase;
 import info.nightscout.androidaps.interfaces.PluginDescription;
 import info.nightscout.androidaps.interfaces.PluginType;
 import info.nightscout.androidaps.interfaces.ProfileFunction;
 import info.nightscout.androidaps.interfaces.ProfileStore;
 import info.nightscout.androidaps.interfaces.PumpInterface;
+import info.nightscout.androidaps.interfaces.TreatmentServiceInterface;
 import info.nightscout.androidaps.interfaces.TreatmentsInterface;
+import info.nightscout.androidaps.interfaces.UpdateReturn;
 import info.nightscout.androidaps.logging.AAPSLogger;
 import info.nightscout.androidaps.logging.LTag;
 import info.nightscout.androidaps.plugins.bus.RxBusWrapper;
@@ -62,14 +59,15 @@ import info.nightscout.androidaps.utils.DateUtil;
 import info.nightscout.androidaps.utils.FabricPrivacy;
 import info.nightscout.androidaps.utils.T;
 import info.nightscout.androidaps.utils.resources.ResourceHelper;
+import info.nightscout.androidaps.utils.rx.AapsSchedulers;
 import info.nightscout.androidaps.utils.sharedPreferences.SP;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
 
 @Singleton
 public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface {
 
     private final Context context;
+    private final AapsSchedulers aapsSchedulers;
     private final SP sp;
     private final RxBusWrapper rxBus;
     private final ResourceHelper resourceHelper;
@@ -79,10 +77,12 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     private final UploadQueue uploadQueue;
     private final FabricPrivacy fabricPrivacy;
     private final DateUtil dateUtil;
+    private final DatabaseHelperInterface databaseHelper;
+    private final AppRepository repository;
 
     private final CompositeDisposable disposable = new CompositeDisposable();
 
-    protected TreatmentService service;
+    protected TreatmentServiceInterface service;
 
     private IobTotal lastTreatmentCalculation;
     private IobTotal lastTempBasalsCalculation;
@@ -90,7 +90,6 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     private final ArrayList<Treatment> treatments = new ArrayList<>();
     private final Intervals<TemporaryBasal> tempBasals = new NonOverlappingIntervals<>();
     private final Intervals<ExtendedBolus> extendedBoluses = new NonOverlappingIntervals<>();
-    private final Intervals<TempTarget> tempTargets = new OverlappingIntervals<>();
     private final ProfileIntervals<ProfileSwitch> profiles = new ProfileIntervals<>();
 
     @Inject
@@ -98,6 +97,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
             HasAndroidInjector injector,
             AAPSLogger aapsLogger,
             RxBusWrapper rxBus,
+            AapsSchedulers aapsSchedulers,
             ResourceHelper resourceHelper,
             Context context,
             SP sp,
@@ -106,7 +106,9 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
             NSUpload nsUpload,
             FabricPrivacy fabricPrivacy,
             DateUtil dateUtil,
-            UploadQueue uploadQueue
+            UploadQueue uploadQueue,
+            DatabaseHelperInterface databaseHelper,
+            AppRepository repository
     ) {
         super(new PluginDescription()
                         .mainType(PluginType.TREATMENT)
@@ -122,6 +124,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         this.resourceHelper = resourceHelper;
         this.context = context;
         this.rxBus = rxBus;
+        this.aapsSchedulers = aapsSchedulers;
         this.sp = sp;
         this.profileFunction = profileFunction;
         this.activePlugin = activePlugin;
@@ -129,6 +132,8 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         this.dateUtil = dateUtil;
         this.nsUpload = nsUpload;
         this.uploadQueue = uploadQueue;
+        this.databaseHelper = databaseHelper;
+        this.repository = repository;
     }
 
     @Override
@@ -138,7 +143,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         super.onStart();
         disposable.add(rxBus
                 .toObservable(EventReloadTreatmentData.class)
-                .observeOn(Schedulers.io())
+                .observeOn(aapsSchedulers.getIo())
                 .subscribe(event -> {
                             getAapsLogger().debug(LTag.DATATREATMENTS, "EventReloadTreatmentData");
                             initializeTreatmentData(range());
@@ -150,19 +155,13 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
                 ));
         disposable.add(rxBus
                 .toObservable(EventReloadProfileSwitchData.class)
-                .observeOn(Schedulers.io())
+                .observeOn(aapsSchedulers.getIo())
                 .subscribe(event -> initializeProfileSwitchData(range()),
                         fabricPrivacy::logException
                 ));
         disposable.add(rxBus
-                .toObservable(EventTempTargetChange.class)
-                .observeOn(Schedulers.io())
-                .subscribe(event -> initializeTempTargetData(range()),
-                        fabricPrivacy::logException
-                ));
-        disposable.add(rxBus
                 .toObservable(EventReloadTempBasalData.class)
-                .observeOn(Schedulers.io())
+                .observeOn(aapsSchedulers.getIo())
                 .subscribe(event -> {
                             getAapsLogger().debug(LTag.DATATREATMENTS, "EventReloadTempBasalData");
                             initializeTempBasalData(range());
@@ -178,7 +177,8 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         super.onStop();
     }
 
-    public TreatmentService getService() {
+    @Override
+    public TreatmentServiceInterface getService() {
         return this.service;
     }
 
@@ -193,7 +193,6 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         initializeTempBasalData(range);
         initializeTreatmentData(range);
         initializeExtendedBolusData(range);
-        initializeTempTargetData(range);
         initializeProfileSwitchData(range);
     }
 
@@ -208,7 +207,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     private void initializeTempBasalData(long range) {
         getAapsLogger().debug(LTag.DATATREATMENTS, "initializeTempBasalData");
         synchronized (tempBasals) {
-            tempBasals.reset().add(MainApp.getDbHelper().getTemporaryBasalsDataFromTime(DateUtil.now() - range, false));
+            tempBasals.reset().add(databaseHelper.getTemporaryBasalsDataFromTime(DateUtil.now() - range, false));
         }
 
     }
@@ -216,22 +215,15 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     private void initializeExtendedBolusData(long range) {
         getAapsLogger().debug(LTag.DATATREATMENTS, "initializeExtendedBolusData");
         synchronized (extendedBoluses) {
-            extendedBoluses.reset().add(MainApp.getDbHelper().getExtendedBolusDataFromTime(DateUtil.now() - range, false));
+            extendedBoluses.reset().add(databaseHelper.getExtendedBolusDataFromTime(DateUtil.now() - range, false));
         }
 
-    }
-
-    private void initializeTempTargetData(long range) {
-        getAapsLogger().debug(LTag.DATATREATMENTS, "initializeTempTargetData");
-        synchronized (tempTargets) {
-            tempTargets.reset().add(MainApp.getDbHelper().getTemptargetsDataFromTime(DateUtil.now() - range, false));
-        }
     }
 
     private void initializeProfileSwitchData(long range) {
         getAapsLogger().debug(LTag.DATATREATMENTS, "initializeProfileSwitchData");
         synchronized (profiles) {
-            profiles.reset().add(MainApp.getDbHelper().getProfileSwitchData(DateUtil.now() - range, false));
+            profiles.reset().add(databaseHelper.getProfileSwitchData(DateUtil.now() - range, false));
         }
     }
 
@@ -396,11 +388,11 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         } else {
             uploadQueue.removeID("dbAdd", tempBasalId);
         }
-        MainApp.getDbHelper().delete(tempBasal);
+        databaseHelper.delete(tempBasal);
     }
 
     @Override
-    public boolean isInHistoryExtendedBoluslInProgress() {
+    public boolean isInHistoryExtendedBolusInProgress() {
         return getExtendedBolusFromHistory(System.currentTimeMillis()) != null; //TODO:  crosscheck here
     }
 
@@ -420,7 +412,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         PumpInterface pumpInterface = activePlugin.getActivePump();
 
         synchronized (tempBasals) {
-            for (Integer pos = 0; pos < tempBasals.size(); pos++) {
+            for (int pos = 0; pos < tempBasals.size(); pos++) {
                 TemporaryBasal t = tempBasals.get(pos);
                 if (t.date > time) continue;
                 IobTotal calc;
@@ -473,6 +465,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
 
         for (long i = time - range(); i < time; i += T.mins(5).msecs()) {
             Profile profile = profileFunction.getProfile(i);
+            if (profile == null) continue;
             double basal = profile.getBasal(i);
             TemporaryBasal runningTBR = getTempBasalFromHistory(i);
             double running = basal;
@@ -570,7 +563,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     @Override
     public boolean addToHistoryExtendedBolus(ExtendedBolus extendedBolus) {
         //log.debug("Adding new ExtentedBolus record" + extendedBolus.log());
-        boolean newRecordCreated = MainApp.getDbHelper().createOrUpdate(extendedBolus);
+        boolean newRecordCreated = databaseHelper.createOrUpdate(extendedBolus);
         if (newRecordCreated) {
             if (extendedBolus.durationInMinutes == 0) {
                 if (activePlugin.getActivePump().isFakingTempsByExtendedBoluses())
@@ -604,7 +597,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     @Override
     public boolean addToHistoryTempBasal(TemporaryBasal tempBasal) {
         //log.debug("Adding new TemporaryBasal record" + tempBasal.toString());
-        boolean newRecordCreated = MainApp.getDbHelper().createOrUpdate(tempBasal);
+        boolean newRecordCreated = databaseHelper.createOrUpdate(tempBasal);
         if (newRecordCreated) {
             if (tempBasal.durationInMinutes == 0)
                 nsUpload.uploadTempBasalEnd(tempBasal.date, false, tempBasal.pumpId);
@@ -617,9 +610,9 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     }
 
     public TreatmentUpdateReturn createOrUpdateMedtronic(Treatment treatment, boolean fromNightScout) {
-        TreatmentService.UpdateReturn resultRecord = getService().createOrUpdateMedtronic(treatment, fromNightScout);
+        UpdateReturn resultRecord = getService().createOrUpdateMedtronic(treatment, fromNightScout);
 
-        return new TreatmentUpdateReturn(resultRecord.success, resultRecord.newRecord);
+        return new TreatmentUpdateReturn(resultRecord.getSuccess(), resultRecord.getNewRecord());
     }
 
     // return true if new record is created
@@ -640,7 +633,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
             treatment.carbs = detailedBolusInfo.carbs;
         treatment.mealBolus = treatment.carbs > 0;
         treatment.boluscalc = detailedBolusInfo.boluscalc != null ? detailedBolusInfo.boluscalc.toString() : null;
-        TreatmentService.UpdateReturn creatOrUpdateResult;
+        UpdateReturn creatOrUpdateResult;
 
         getAapsLogger().debug(medtronicPump && MedtronicHistoryData.doubleBolusDebug, LTag.DATATREATMENTS, "DoubleBolusDebug: addToHistoryTreatment::treatment={} " + treatment);
 
@@ -649,7 +642,7 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         else
             creatOrUpdateResult = getService().createOrUpdateMedtronic(treatment, false);
 
-        boolean newRecordCreated = creatOrUpdateResult.newRecord;
+        boolean newRecordCreated = creatOrUpdateResult.getNewRecord();
         //log.debug("Adding new Treatment record" + treatment.toString());
         if (detailedBolusInfo.carbTime != 0) {
 
@@ -670,17 +663,12 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         if (newRecordCreated && detailedBolusInfo.isValid)
             nsUpload.uploadTreatmentRecord(detailedBolusInfo);
 
-        if (!allowUpdate && !creatOrUpdateResult.success) {
+        if (!allowUpdate && !creatOrUpdateResult.getSuccess()) {
             getAapsLogger().error("Treatment could not be added to DB", new Exception());
 
             String status = String.format(resourceHelper.gs(R.string.error_adding_treatment_message), treatment.insulin, (int) treatment.carbs, dateUtil.dateAndTimeString(treatment.date));
 
-            Intent i = new Intent(context, ErrorHelperActivity.class);
-            i.putExtra("soundid", R.raw.error);
-            i.putExtra("title", resourceHelper.gs(R.string.error_adding_treatment_title));
-            i.putExtra("status", status);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(i);
+            ErrorHelperActivity.Companion.runAlarm(context, status, resourceHelper.gs(R.string.error_adding_treatment_title), R.raw.error);
 
             Bundle bundle = new Bundle();
             bundle.putString(FirebaseAnalytics.Param.ITEM_LIST_ID, "TreatmentClash");
@@ -710,36 +698,6 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
         return oldestTime;
     }
 
-    @Nullable
-    @Override
-    public TempTarget getTempTargetFromHistory() {
-        synchronized (tempTargets) {
-            return tempTargets.getValueByInterval(System.currentTimeMillis());
-        }
-    }
-
-    @Nullable
-    @Override
-    public TempTarget getTempTargetFromHistory(long time) {
-        synchronized (tempTargets) {
-            return tempTargets.getValueByInterval(time);
-        }
-    }
-
-    @Override
-    public Intervals<TempTarget> getTempTargetsFromHistory() {
-        synchronized (tempTargets) {
-            return new OverlappingIntervals<>(tempTargets);
-        }
-    }
-
-    @Override
-    public void addToHistoryTempTarget(TempTarget tempTarget) {
-        //log.debug("Adding new TemporaryBasal record" + profileSwitch.log());
-        MainApp.getDbHelper().createOrUpdate(tempTarget);
-        nsUpload.uploadTempTarget(tempTarget, profileFunction);
-    }
-
     @Override
     @Nullable
     public ProfileSwitch getProfileSwitchFromHistory(long time) {
@@ -759,12 +717,12 @@ public class TreatmentsPlugin extends PluginBase implements TreatmentsInterface 
     public void addToHistoryProfileSwitch(ProfileSwitch profileSwitch) {
         //log.debug("Adding new TemporaryBasal record" + profileSwitch.log());
         rxBus.send(new EventDismissNotification(Notification.PROFILE_SWITCH_MISSING));
-        MainApp.getDbHelper().createOrUpdate(profileSwitch);
-        nsUpload.uploadProfileSwitch(profileSwitch);
+        databaseHelper.createOrUpdate(profileSwitch);
+        nsUpload.uploadProfileSwitch(profileSwitch, profileSwitch.date);
     }
 
     @Override
-    public void doProfileSwitch(@NotNull final ProfileStore profileStore, @NotNull final String profileName, final int duration, final int percentage, final int timeShift, final long date) {
+    public void doProfileSwitch(@NonNull final ProfileStore profileStore, @NonNull final String profileName, final int duration, final int percentage, final int timeShift, final long date) {
         ProfileSwitch profileSwitch = profileFunction.prepareProfileSwitch(profileStore, profileName, duration, percentage, timeShift, date);
         addToHistoryProfileSwitch(profileSwitch);
         if (percentage == 90 && duration == 10)

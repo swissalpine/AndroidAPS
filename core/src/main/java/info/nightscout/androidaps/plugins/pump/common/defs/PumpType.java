@@ -98,11 +98,18 @@ public enum PumpType {
 
 
     // Insulet
-    Insulet_Omnipod("Insulet Omnipod", ManufacturerType.Insulet, "Omnipod (Eros)", 0.05d, null, //
+    Omnipod_Eros("Omnipod", ManufacturerType.Insulet, "Eros", 0.05d, null, //
             new DoseSettings(0.05d, 30, 8 * 60, 0.05d), //
             PumpTempBasalType.Absolute, //
             new DoseSettings(0.05d, 30, 12 * 60, 0d, 30.0d), PumpCapability.BasalRate_Duration30minAllowed, //
             0.05d, null, 0.05d, null, PumpCapability.OmnipodCapabilities, true),
+
+    Omnipod_Dash("Omnipod", ManufacturerType.Insulet, "Dash", 0.05d, null, //
+            new DoseSettings(0.05d, 30, 8 * 60, 0.05d), //
+            PumpTempBasalType.Absolute, //
+            new DoseSettings(0.05d, 30, 12 * 60, 0d, 30.0d), PumpCapability.BasalRate_Duration30minAllowed, //
+            0.05d, null, 0.05d, null, PumpCapability.OmnipodCapabilities, false),
+
 
     // Medtronic
     Medtronic_512_712("Medtronic 512/712", ManufacturerType.Medtronic, "512/712", 0.1d, null, //
@@ -138,6 +145,14 @@ public enum PumpType {
     TandemTFlex("Tandem t:flex", "t:flex", TandemTSlim), //
     TandemTSlimG4("Tandem t:slim G4", "t:slim G4", TandemTSlim), //
     TandemTSlimX2("Tandem t:slim X2", "t:slim X2", TandemTSlim), //
+
+    // Ypsomed/myLife
+    YpsoPump("YpsoPump", ManufacturerType.Ypsomed, "Ypsopump", 0.1d, null, //
+            new DoseSettings(0.1d, 15, 12 * 60, 0.1d), //
+            PumpTempBasalType.Percent,
+            new DoseSettings(1, 15, 24 * 60, 0d, 500d), PumpCapability.BasalRate_Duration15and30minAllowed, //
+            0.02d, 40.0d, 0.01d, DoseStepSize.YpsopumpBasal, PumpCapability.YpsomedCapabilities),
+
 
     // MDI
     MDI("MDI", ManufacturerType.AndroidAPS, "MDI");
