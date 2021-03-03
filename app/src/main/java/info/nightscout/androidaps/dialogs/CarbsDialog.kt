@@ -14,6 +14,9 @@ import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.activities.ErrorHelperActivity
 import info.nightscout.androidaps.data.Profile
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.entities.TemporaryTarget
+import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
 import info.nightscout.androidaps.databinding.DialogCarbsBinding
 import info.nightscout.androidaps.db.CareportalEvent
 import info.nightscout.androidaps.db.Source
@@ -24,6 +27,7 @@ import info.nightscout.androidaps.interfaces.Constraint
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
 import info.nightscout.androidaps.plugins.bus.RxBusWrapper
 import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.logging.LTag
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
@@ -35,8 +39,11 @@ import info.nightscout.androidaps.utils.*
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
 import info.nightscout.androidaps.utils.extensions.formatColor
 import info.nightscout.androidaps.utils.resources.ResourceHelper
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import java.text.DecimalFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.max
 
@@ -57,6 +64,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var ctx: Context
     @Inject lateinit var uel: UserEntryLogger
     @Inject lateinit var carbTimer: CarbTimer
+    @Inject lateinit var repository: AppRepository
 
     companion object {
 
@@ -64,6 +72,8 @@ class CarbsDialog : DialogFragmentWithDate() {
         private const val FAV2_DEFAULT = 10
         private const val FAV3_DEFAULT = 20
     }
+
+    private val disposable = CompositeDisposable()
 
     private val textWatcher: TextWatcher = object : TextWatcher {
         override fun afterTextChanged(s: Editable) {
@@ -165,6 +175,7 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        disposable.clear()
         _binding = null
     }
 
@@ -229,30 +240,50 @@ class CarbsDialog : DialogFragmentWithDate() {
                     when {
                         activitySelected   -> {
                             uel.log("TT ACTIVITY", d1 = activityTT, i1 = activityTTDuration)
-                            val tempTarget = TempTarget()
-                                .date(System.currentTimeMillis())
-                                .duration(activityTTDuration)
-                                .reason(resourceHelper.gs(R.string.activity))
-                                .source(Source.USER)
-                                .low(Profile.toMgdl(activityTT, profileFunction.getUnits()))
-                                .high(Profile.toMgdl(activityTT, profileFunction.getUnits()))
-                            treatmentsPlugin.addToHistoryTempTarget(tempTarget)
+                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                                timestamp = System.currentTimeMillis(),
+                                duration = TimeUnit.MINUTES.toMillis(activityTTDuration.toLong()),
+                                reason = TemporaryTarget.Reason.ACTIVITY,
+                                lowTarget = Profile.toMgdl(activityTT, profileFunction.getUnits()),
+                                highTarget = Profile.toMgdl(activityTT, profileFunction.getUnits())
+                            )).subscribe({ result ->
+                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
+                                result.updated.forEach { nsUpload.updateTempTarget(it) }
+                            }, {
+                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                            })
                         }
 
                         eatingSoonSelected -> {
                             uel.log("TT EATING SOON", d1 = eatingSoonTT, i1 = eatingSoonTTDuration)
-                            val tempTarget = TempTarget()
-                                .date(System.currentTimeMillis())
-                                .duration(eatingSoonTTDuration)
-                                .reason(resourceHelper.gs(R.string.eatingsoon))
-                                .source(Source.USER)
-                                .low(Profile.toMgdl(eatingSoonTT, profileFunction.getUnits()))
-                                .high(Profile.toMgdl(eatingSoonTT, profileFunction.getUnits()))
-                            treatmentsPlugin.addToHistoryTempTarget(tempTarget)
+                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                                timestamp = System.currentTimeMillis(),
+                                duration = TimeUnit.MINUTES.toMillis(eatingSoonTTDuration.toLong()),
+                                reason = TemporaryTarget.Reason.EATING_SOON,
+                                lowTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits()),
+                                highTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits())
+                            )).subscribe({ result ->
+                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
+                                result.updated.forEach { nsUpload.updateTempTarget(it) }
+                            }, {
+                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                            })
                         }
 
                         hypoSelected       -> {
                             uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
+                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                                timestamp = System.currentTimeMillis(),
+                                duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
+                                reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
+                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
+                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                            )).subscribe({ result ->
+                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
+                                result.updated.forEach { nsUpload.updateTempTarget(it) }
+                            }, {
+                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                            })
                             val tempTarget = TempTarget()
                                 .date(System.currentTimeMillis())
                                 .duration(hypoTTDuration)
