@@ -1,7 +1,6 @@
 package info.nightscout.androidaps.dialogs
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -19,8 +18,6 @@ import info.nightscout.androidaps.database.entities.TemporaryTarget
 import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
 import info.nightscout.androidaps.databinding.DialogCarbsBinding
 import info.nightscout.androidaps.db.CareportalEvent
-import info.nightscout.androidaps.db.Source
-import info.nightscout.androidaps.db.TempTarget
 import info.nightscout.androidaps.events.EventRefreshOverview
 import info.nightscout.androidaps.interfaces.CommandQueueProvider
 import info.nightscout.androidaps.interfaces.Constraint
@@ -268,31 +265,10 @@ class CarbsDialog : DialogFragmentWithDate() {
                             }, {
                                 aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
                             })
+
                         }
 
                         hypoSelected       -> {
-                            uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
-                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
-                                timestamp = System.currentTimeMillis(),
-                                duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
-                                reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
-                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
-                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
-                            )).subscribe({ result ->
-                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
-                                result.updated.forEach { nsUpload.updateTempTarget(it) }
-                            }, {
-                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
-                            })
-                            val tempTarget = TempTarget()
-                                .date(System.currentTimeMillis())
-                                .duration(hypoTTDuration)
-                                .reason(resourceHelper.gs(R.string.hypo))
-                                .source(Source.USER)
-                                .low(Profile.toMgdl(hypoTT, profileFunction.getUnits()))
-                                .high(Profile.toMgdl(hypoTT, profileFunction.getUnits()))
-                            treatmentsPlugin.addToHistoryTempTarget(tempTarget)
-
                             // Anpassung 2 (und Text start_hypo_tt in strings.xml)
                             aapsLogger.debug("USER ENTRY: SUSPEND 1h")
                             loopPlugin.suspendLoop(60)
@@ -307,6 +283,19 @@ class CarbsDialog : DialogFragmentWithDate() {
                             aapsLogger.debug("USER ENTRY: TEMP BASAL 50% duration: 60")
                             commandQueue.tempBasalPercent(50, 60, true, profile, callback)
                             // Ende Anpassung
+                            uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
+                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                                timestamp = System.currentTimeMillis(),
+                                duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
+                                reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
+                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
+                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                            )).subscribe({ result ->
+                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
+                                result.updated.forEach { nsUpload.updateTempTarget(it) }
+                            }, {
+                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                            })
                         }
                     }
                     if (carbsAfterConstraints > 0) {
