@@ -3,7 +3,8 @@ package info.nightscout.androidaps.utils
 import android.graphics.Color
 import android.widget.TextView
 import info.nightscout.androidaps.core.R
-import info.nightscout.androidaps.db.CareportalEvent
+import info.nightscout.androidaps.database.entities.TherapyEvent
+import info.nightscout.androidaps.utils.extensions.isOlderThan
 import info.nightscout.androidaps.utils.resources.ResourceHelper
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,9 +12,9 @@ import javax.inject.Singleton
 @Singleton
 class WarnColors @Inject constructor(val resourceHelper: ResourceHelper) {
 
-    private val normalColor = resourceHelper.gc(R.color.colorLightGray)
-    private val warnColor = resourceHelper.gc(R.color.high)
-    private val urgentColor = resourceHelper.gc(R.color.low)
+    private val normalColor = Color.WHITE
+    private val warnColor = Color.YELLOW
+    private val urgentColor = Color.RED
 
     fun setColor(view: TextView?, value: Double, warnLevel: Double, urgentLevel: Double) =
         view?.setTextColor(when {
@@ -29,10 +30,10 @@ class WarnColors @Inject constructor(val resourceHelper: ResourceHelper) {
             else                 -> normalColor
         })
 
-    fun setColorByAge(view: TextView?, careportalEvent: CareportalEvent, warnThreshold: Double, urgentThreshold: Double) =
+    fun setColorByAge(view: TextView?, therapyEvent: TherapyEvent, warnThreshold: Double, urgentThreshold: Double) =
         view?.setTextColor(when {
-            careportalEvent.isOlderThan(urgentThreshold) -> urgentColor
-            careportalEvent.isOlderThan(warnThreshold)   -> warnColor
-            else                                         -> normalColor
+            therapyEvent.isOlderThan(urgentThreshold) -> resourceHelper.gc(R.color.low)
+            therapyEvent.isOlderThan(warnThreshold)   -> resourceHelper.gc(R.color.high)
+            else                                      -> Color.WHITE
         })
 }
