@@ -698,7 +698,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 binding.loopPumpStatusLayout.tempTarget.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
                 binding.loopPumpStatusLayout.tempTarget.setBackgroundColor(resourceHelper.gc(R.color.inrange))
             } else {
-                binding.loopPumpStatusLayout.tempTarget.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
+                binding.loopPumpStatusLayout.tempTarget.setTextColor(resourceHelper.gc(R.color.colorLightGray))
                 binding.loopPumpStatusLayout.tempTarget.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
                 binding.loopPumpStatusLayout.tempTarget.text = Profile.toTargetRangeString(profile.targetLowMgdl, profile.targetHighMgdl, Constants.MGDL, units)
             }
@@ -745,7 +745,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.loopPumpStatusLayout.activeProfile.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
         } else {
             binding.loopPumpStatusLayout.activeProfile.setBackgroundColor(resourceHelper.gc(R.color.ribbonDefault))
-            binding.loopPumpStatusLayout.activeProfile.setTextColor(resourceHelper.gc(R.color.ribbonTextDefault))
+            binding.loopPumpStatusLayout.activeProfile.setTextColor(resourceHelper.gc(R.color.colorLightGray))
         }
 
         processButtonsVisibility()
@@ -756,15 +756,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val bolusIob = treatmentsPlugin.lastCalculationTreatments.round()
         val basalIob = treatmentsPlugin.lastCalculationTempBasals.round()
         binding.infoLayout.iob.text = resourceHelper.gs(R.string.formatinsulinunits, bolusIob.iob + basalIob.basaliob)
-
-        //Anpassung
-        if (sp.getDouble(R.string.key_openapssmb_max_iob, 0.0) < 2) {
-            binding.infoLayout.iob.text = resourceHelper.gs(R.string.formatinsulinunits, bolusIob.iob + basalIob.basaliob) + " < " + sp.getDouble(R.string.key_openapssmb_max_iob, 0.0)
-            binding.infoLayout.iob.setTextColor(resourceHelper.gc(R.color.ribbonWarning))
-        } else {
-            binding.infoLayout.iob.setTextColor(resourceHelper.gc(R.color.defaulttextcolor))
-        }
-        //Anpassung Ende
 
         binding.infoLayout.iobLayout.setOnClickListener {
             activity?.let {
