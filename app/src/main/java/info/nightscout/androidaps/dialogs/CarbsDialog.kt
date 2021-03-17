@@ -18,7 +18,6 @@ import info.nightscout.androidaps.database.entities.TemporaryTarget
 import info.nightscout.androidaps.database.entities.TherapyEvent
 import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
 import info.nightscout.androidaps.databinding.DialogCarbsBinding
-import info.nightscout.androidaps.db.CareportalEvent
 import info.nightscout.androidaps.events.EventRefreshOverview
 import info.nightscout.androidaps.interfaces.CommandQueueProvider
 import info.nightscout.androidaps.interfaces.Constraint
@@ -160,13 +159,21 @@ class CarbsDialog : DialogFragmentWithDate() {
         binding.hypoTt.setOnClickListener {
             binding.activityTt.isChecked = false
             binding.eatingSoonTt.isChecked = false
+            binding.hypoAction.isChecked = false
         }
         binding.activityTt.setOnClickListener {
             binding.hypoTt.isChecked = false
             binding.eatingSoonTt.isChecked = false
+            binding.hypoAction.isChecked = false
         }
         binding.eatingSoonTt.setOnClickListener {
             binding.hypoTt.isChecked = false
+            binding.activityTt.isChecked = false
+            binding.hypoAction.isChecked = false
+        }
+        binding.hypoAction.setOnClickListener {
+            binding.hypoTt.isChecked = false
+            binding.eatingSoonTt.isChecked = false
             binding.activityTt.isChecked = false
         }
     }
@@ -208,6 +215,9 @@ class CarbsDialog : DialogFragmentWithDate() {
             actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + resourceHelper.gs(R.string.format_mins, eatingSoonTTDuration) + ")").formatColor(resourceHelper, R.color.tempTargetConfirmation))
         val hypoSelected = binding.hypoTt.isChecked
         if (hypoSelected)
+            actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + "<font color='" + resourceHelper.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) +  " (" + hypoTTDuration + " " + resourceHelper.gs(R.string.unit_minute_short) + ")</font>")
+        val hypoActionSelected = binding.hypoAction.isChecked
+        if (hypoActionSelected)
             actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + "<font color='" + resourceHelper.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + hypoTTDuration + " " + resourceHelper.gs(R.string.unit_minute_short) + ")  + TBR: 50% (60 min)</font>")
 
         val timeOffset = binding.time.value.toInt()
@@ -232,7 +242,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         if (eventTimeChanged)
             actions.add(resourceHelper.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
-        if (carbsAfterConstraints > 0 || activitySelected || eatingSoonSelected || hypoSelected) {
+        if (carbsAfterConstraints > 0 || activitySelected || eatingSoonSelected || hypoSelected || hypoActionSelected) {
             activity?.let { activity ->
                 OKDialog.showConfirmation(activity, resourceHelper.gs(R.string.carbs), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                     when {
@@ -270,6 +280,22 @@ class CarbsDialog : DialogFragmentWithDate() {
                         }
 
                         hypoSelected       -> {
+                            uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
+                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                                timestamp = System.currentTimeMillis(),
+                                duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
+                                reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
+                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
+                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                            )).subscribe({ result ->
+                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
+                                result.updated.forEach { nsUpload.updateTempTarget(it) }
+                            }, {
+                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                            })
+                        }
+
+                         hypoActionSelected       -> {
                             // Anpassung 2 (und Text start_hypo_tt in strings.xml)
                             aapsLogger.debug("USER ENTRY: SUSPEND 1h")
                             loopPlugin.suspendLoop(60)

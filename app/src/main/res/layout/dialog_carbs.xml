@@ -73,6 +73,12 @@
                 android:layout_height="match_parent"
                 android:text="@string/start_hypo_tt" />
 
+            <CheckBox
+                android:id="@+id/hypo_action"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/start_hypo_action" />
+
         </LinearLayout>
 
         <TableLayout
