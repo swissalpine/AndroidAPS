@@ -179,6 +179,7 @@
     <string name="configbuilder_nightscoutversion_label">Nightscout version:</string>
     <string name="missing_carbs">Missing %1$d g</string>
     <string name="exported">Preferences exported</string>
+    <string name="ue_exported">User Entries exported</string>
     <string name="export_to">Export settings to</string>
     <string name="import_from">Import settings from</string>
     <string name="setting_imported">Settings imported</string>
@@ -933,7 +934,6 @@
     <string name="format_carbs_ic">%1$.0fg IC: %2$.1f</string>
     <string name="format_cob_ic">%1$.1fg IC: %2$.1f</string>
     <string name="format_percent">%1$d%%</string>
-    <string name="boluswizard">Bolus wizard</string>
     <string name="unit_minute_short">min</string>
     <string name="profile_name">Profile name:</string>
     <string name="selected_profile">Selected:</string>
@@ -1136,5 +1136,7 @@
     <string name="keto_protect_basal_title">Quantity of the safety TBR [%]</string>
     <string name="keto_protect_basal_summary">Quantity of the small safety TBR in % which is given to avoid ketoacidosis.</string>
     <string name="start_hypo_action">Start Hypo TT + Susp. 60\' + TBR 50%</string>
+
+
 
 </resources>
