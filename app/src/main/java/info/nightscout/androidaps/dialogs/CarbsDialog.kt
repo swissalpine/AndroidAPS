@@ -295,9 +295,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
                             })
                         }
-
-                         hypoActionSelected       -> {
-                            // Anpassung 2 (und Text start_hypo_tt in strings.xml)
+                        // Anpassung 2 (und Text start_hypo_tt in strings.xml
+                        hypoActionSelected       -> {
                             aapsLogger.debug("USER ENTRY: SUSPEND 1h")
                             loopPlugin.suspendLoop(60)
                             rxBus.send(EventRefreshOverview("suspendmenu"))
@@ -310,8 +309,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                             }
                             aapsLogger.debug("USER ENTRY: TEMP BASAL 50% duration: 60")
                             commandQueue.tempBasalPercent(50, 60, true, profile, callback)
-                            // Ende Anpassung
-                            uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
+                            // Beginn Übernahme aus hypo selected (s. o.)
+                            uel.log(Action.TT, ValueWithUnit(TemporaryTarget.Reason.HYPOGLYCEMIA.text, Units.TherapyEvent), ValueWithUnit(hypoTT, units) , ValueWithUnit(hypoTTDuration, Units.M))
                             disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
                                 timestamp = System.currentTimeMillis(),
                                 duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
@@ -325,6 +324,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
                             })
                         }
+                        // Ende Anpassung
                     }
                     if (carbsAfterConstraints > 0) {
                         if (duration == 0) {
