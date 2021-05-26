@@ -2,10 +2,15 @@ package info.nightscout.androidaps.plugins.aps.openAPSSMB
 
 import info.nightscout.androidaps.R
 import dagger.android.HasAndroidInjector
+import info.nightscout.androidaps.events.Event
+import info.nightscout.androidaps.interfaces.IobCobCalculator
 import info.nightscout.androidaps.logging.LTag
 import info.nightscout.androidaps.plugins.aps.loop.APSResult
 import org.json.JSONException
 import org.json.JSONObject
+import javax.inject.Inject
+
+
 
 class DetermineBasalResultSMB private constructor(injector: HasAndroidInjector) : APSResult(injector) {
 
@@ -33,10 +38,8 @@ class DetermineBasalResultSMB private constructor(injector: HasAndroidInjector) 
 
                 // Ketocidosis Protection
                 // Calculate IOB
-                treatmentsPlugin.updateTotalIOBTreatments()
-                treatmentsPlugin.updateTotalIOBTempBasals()
-                val bolusIob = treatmentsPlugin.lastCalculationTreatments
-                val basalIob = treatmentsPlugin.lastCalculationTempBasals
+                val bolusIob = iobCobCalculator.calculateIobFromBolus()
+                val basalIob = iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended()
                 // Get active BaseBasalRate
                 val baseBasalRate = activePlugin.activePump.baseBasalRate
                 // Activate a small TBR

@@ -11,7 +11,6 @@ import com.google.common.base.Joiner
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.activities.ErrorHelperActivity
 import info.nightscout.androidaps.data.DetailedBolusInfo
-import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.database.AppRepository
 import info.nightscout.androidaps.database.entities.TemporaryTarget
 import info.nightscout.androidaps.database.entities.UserEntry.Action
@@ -19,18 +18,13 @@ import info.nightscout.androidaps.database.entities.UserEntry.Sources
 import info.nightscout.androidaps.database.entities.ValueWithUnit
 import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
 import info.nightscout.androidaps.databinding.DialogCarbsBinding
-import info.nightscout.androidaps.extensions.formatColor
 import info.nightscout.androidaps.events.EventRefreshOverview
-import info.nightscout.androidaps.interfaces.CommandQueueProvider
-import info.nightscout.androidaps.interfaces.Constraint
-import info.nightscout.androidaps.interfaces.GlucoseUnit
-import info.nightscout.androidaps.interfaces.IobCobCalculator
-import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
-import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.extensions.formatColor
+import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.logging.LTag
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
+import info.nightscout.androidaps.plugins.bus.RxBusWrapper
 import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
 import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.queue.CommandQueue
@@ -49,20 +43,17 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     @Inject lateinit var ctx: Context
     @Inject lateinit var resourceHelper: ResourceHelper
+    @Inject lateinit var loopPlugin: LoopInterface
     @Inject lateinit var constraintChecker: ConstraintChecker
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
     @Inject lateinit var treatmentsPlugin: TreatmentsPlugin
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var iobCobCalculator: IobCobCalculator
-    @Inject lateinit var carbsGenerator: CarbsGenerator
-    @Inject lateinit var rxBus: RxBusWrapper
-    @Inject lateinit var loopPlugin: LoopPlugin
-    @Inject lateinit var commandQueue: CommandQueueProvider
-    @Inject lateinit var ctx: Context
     @Inject lateinit var uel: UserEntryLogger
     @Inject lateinit var carbTimer: CarbTimer
     @Inject lateinit var commandQueue: CommandQueue
     @Inject lateinit var repository: AppRepository
+    @Inject lateinit var rxBus: RxBusWrapper
 
     companion object {
 
@@ -308,7 +299,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                         hypoActionSelected       -> {
                             aapsLogger.debug("USER ENTRY: SUSPEND 1h")
                             loopPlugin.suspendLoop(60)
-                            rxBus.send(EventRefreshOverview("suspendmenu"))
+                            rxBus.send(EventRefreshOverview("ActionLoopSuspend"))
                             val callback: Callback = object : Callback() {
                                 override fun run() {
                                     if (!result.success) {
@@ -317,9 +308,12 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 }
                             }
                             aapsLogger.debug("USER ENTRY: TEMP BASAL 50% duration: 60")
-                            commandQueue.tempBasalPercent(50, 60, true, profile, callback)
+                            commandQueue.tempBasalPercent(50, 60, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
                             // Beginn Übernahme aus hypo selected (s. o.)
-                            uel.log(Action.TT, ValueWithUnit(TemporaryTarget.Reason.HYPOGLYCEMIA.text, Units.TherapyEvent), ValueWithUnit(hypoTT, units) , ValueWithUnit(hypoTTDuration, Units.M))
+                            uel.log(Action.TT, Sources.CarbDialog,
+                                ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.HYPOGLYCEMIA),
+                                ValueWithUnit.fromGlucoseUnit(hypoTT, units.asText),
+                                ValueWithUnit.Minute(hypoTTDuration))
                             disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
                                 timestamp = System.currentTimeMillis(),
                                 duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
@@ -327,8 +321,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
                                 highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
                             )).subscribe({ result ->
-                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
-                                result.updated.forEach { nsUpload.updateTempTarget(it) }
+                                result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                                result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
                             }, {
                                 aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
                             })
