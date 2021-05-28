@@ -83,27 +83,15 @@ open class AppModule {
         fun bindConfigBuilderInterface(configBuilderPlugin: ConfigBuilderPlugin): ConfigBuilder
         @Binds fun bindTreatmentsInterface(treatmentsPlugin: TreatmentsPlugin): TreatmentsInterface
 
-        @Binds
-        fun bindDatabaseHelperInterface(databaseHelperProvider: DatabaseHelperProvider): DatabaseHelperInterface
+        @Binds fun bindDatabaseHelperInterface(databaseHelperProvider: DatabaseHelperProvider): DatabaseHelperInterface
+        @Binds fun bindNotificationHolderInterface(notificationHolder: NotificationHolderImpl): NotificationHolder
+        @Binds fun bindImportExportPrefsInterface(importExportPrefs: ImportExportPrefsImpl): ImportExportPrefs
+        @Binds fun bindIconsProviderInterface(iconsProvider: IconsProviderImplementation): IconsProvider
+        @Binds fun bindLoopInterface(loopPlugin: LoopPlugin): Loop
+        @Binds fun bindIobCobCalculatorInterface(iobCobCalculatorPlugin: IobCobCalculatorPlugin): IobCobCalculator
+        @Binds fun bindSmsCommunicatorInterface(smsCommunicatorPlugin: SmsCommunicatorPlugin): SmsCommunicator
+        @Binds fun bindDataSyncSelector(dataSyncSelectorImplementation: DataSyncSelectorImplementation): DataSyncSelector
 
-        @Binds
-        fun bindNotificationHolderInterface(notificationHolder: NotificationHolderImpl): NotificationHolder
-
-        @Binds
-        fun bindImportExportPrefsInterface(importExportPrefs: ImportExportPrefsImpl): ImportExportPrefs
-
-        @Binds
-        fun bindIconsProviderInterface(iconsProvider: IconsProviderImplementation): IconsProvider
-        @Binds fun bindLoopInterface(loopPlugin: LoopPlugin): LoopInterface
-
-        @Binds
-        fun bindIobCobCalculatorInterface(iobCobCalculatorPlugin: IobCobCalculatorPlugin): IobCobCalculator
-
-        @Binds
-        fun bindSmsCommunicatorInterface(smsCommunicatorPlugin: SmsCommunicatorPlugin): SmsCommunicator
-
-        @Binds
-        fun bindDataSyncSelector(dataSyncSelectorImplementation: DataSyncSelectorImplementation): DataSyncSelector
         @Binds fun bindPumpSync(pumpSyncImplementation: PumpSyncImplementation): PumpSync
 
     }
