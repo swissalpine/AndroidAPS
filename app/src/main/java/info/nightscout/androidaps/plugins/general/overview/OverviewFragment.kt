@@ -38,6 +38,7 @@ import info.nightscout.androidaps.events.EventPreferenceChange
 import info.nightscout.androidaps.events.EventPumpStatusChanged
 import info.nightscout.androidaps.events.EventRefreshOverview
 import info.nightscout.androidaps.extensions.directionToIcon
+import info.nightscout.androidaps.extensions.isInProgress
 import info.nightscout.androidaps.extensions.toVisibility
 import info.nightscout.androidaps.extensions.valueToUnitsString
 import info.nightscout.androidaps.interfaces.*
@@ -702,6 +703,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
             OverviewData.Property.TEMPORARY_TARGET -> {
                 // temp target
+                if (overviewData.temporaryTarget?.isInProgress(dateUtil) == false) overviewData.temporaryTarget = null
                 val tempTarget = overviewData.temporaryTarget
                 if (tempTarget != null) {
                     binding.loopPumpStatusLayout.tempTarget.setTextColor(resourceHelper.gc(R.color.ribbonTextWarning))
@@ -777,7 +779,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     if (menuChartSettings[g + 1][OverviewMenus.CharType.DEV.ordinal]) secondGraphData.addDeviations(useDevForScale, 1.0)
                     if (menuChartSettings[g + 1][OverviewMenus.CharType.BGI.ordinal]) secondGraphData.addMinusBGI(useBGIForScale, if (alignDevBgiScale) 1.0 else 0.8)
                     if (menuChartSettings[g + 1][OverviewMenus.CharType.SEN.ordinal]) secondGraphData.addRatio(useRatioForScale, if (useRatioForScale) 1.0 else 0.8)
-                    if (menuChartSettings[g + 1][OverviewMenus.CharType.DEVSLOPE.ordinal] && buildHelper.isDev()) secondGraphData.addDeviationSlope(useDSForScale, 1.0)
+                    if (menuChartSettings[g + 1][OverviewMenus.CharType.DEVSLOPE.ordinal] && buildHelper.isDev()) secondGraphData.addDeviationSlope(useDSForScale, if(useDSForScale) 1.0 else 0.8, useRatioForScale)
 
                     // set manual x bounds to have nice steps
                     secondGraphData.formatAxis(overviewData.fromTime, overviewData.endTime)
