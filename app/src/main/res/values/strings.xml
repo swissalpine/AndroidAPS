@@ -438,7 +438,7 @@
     <string name="smscommunicator_wrongduration">Wrong duration</string>
     <string name="smscommunicator_loopsuspended">Loop suspended</string>
     <string name="smscommunicator_loopresumed">Loop resumed</string>
-    <string name="treatments_wizard_bgtrend_label">15min trend</string>
+    <string name="treatments_wizard_bgtrend_label">Trend 15\'</string>
     <string name="treatments_wizard_cob_label">COB</string>
     <string name="superbolus">Superbolus</string>
     <string name="ns_logappstartedevent">Log app start to NS</string>
@@ -768,7 +768,7 @@
     <string name="openapsama_bolussnooze_dia_divisor">Bolus snooze dia divisor</string>
     <string name="openapsama_max_daily_safety_multiplier">Max daily safety multiplier</string>
     <string name="openapsama_current_basal_safety_multiplier">Current basal safety multiplier</string>
-    <string name="value_unavailable_short">n/a</string>
+    <string name="value_unavailable_short">--</string>
     <string name="key_virtualpump_uploadstatus" translatable="false">virtualpump_uploadstatus</string>
     <string name="virtualpump_type">Virtual Pump Type</string>
     <string name="virtualpump_definition">Pump Definition</string>
@@ -1155,5 +1155,15 @@
     <string name="ns_receive_cgm_summary">Accept CGM data from NS</string>
     <string name="sms_timeout_while_wating">Timeout while waiting for finish of previous pump communication</string>
     <string name="smscommunicator_another_bolus_in_queue">There is another bolus in queue. Try again later.</string>
+    <string name="key_keto_protect" translatable="false">keto_protect</string>
+    <string name="key_variable_keto_protect_strategy" translatable="false">variable_keto_protect_strategy</string>
+    <string name="keto_protect_basal" translatable="false">keto_protect_basal</string>
+    <string name="keto_protect_title">Ketoacidosis Protection</string>
+    <string name="keto_protect_summary">Enables a small safety TBR to reduce the ketoacidosis risk.</string>
+    <string name="keto_protect_strategy_title">Variable protection?</string>
+    <string name="keto_protect_strategy_summary">If activated the small safety TBR kicks in when IOB is in negative range as if no basal insulin has been delivered for one hour.\nIf deactivated every Zero Temp is replaced with the small TBR.</string>
+    <string name="keto_protect_basal_title">Quantity of the safety TBR [%]</string>
+    <string name="keto_protect_basal_summary">Quantity of the small safety TBR in % which is given to avoid ketoacidosis.</string>
+    <string name="start_hypo_action">Start Hypo TT + Susp. 60\' + TBR 50%</string>
 
 </resources>
