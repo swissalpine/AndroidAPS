@@ -38,8 +38,8 @@ class VersionCheckerPlugin @Inject constructor(
 ), Constraints {
 
     enum class GracePeriod(val warning: Long, val old: Long, val veryOld: Long) {
-        RELEASE(30, 60, 90),
-        RC(1, 7, 14)
+        RELEASE(3000, 6000, 9000), //RELEASE(30, 60, 90),
+        RC(3000, 60000, 9000) //RC(1, 7, 14)
     }
 
     private val gracePeriod: GracePeriod
@@ -51,7 +51,7 @@ class VersionCheckerPlugin @Inject constructor(
 
     companion object {
         private val WARN_EVERY: Long
-            get() = TimeUnit.DAYS.toMillis(1)
+            get() = TimeUnit.DAYS.toMillis(28)
     }
 
     override fun isClosedLoopAllowed(value: Constraint<Boolean>): Constraint<Boolean> {
