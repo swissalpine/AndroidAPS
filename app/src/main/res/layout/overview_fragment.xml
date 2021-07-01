@@ -25,16 +25,16 @@
                 android:layout_height="wrap_content" />
 
             <include
+                android:id="@+id/status_lights_layout"
+                layout="@layout/overview_statuslights_layout" />
+
+            <include
                 android:id="@+id/loop_pump_status_layout"
                 layout="@layout/overview_loop_pumpstatus_layout" />
 
             <include
                 android:id="@+id/info_layout"
                 layout="@layout/overview_info_layout" />
-
-            <include
-                android:id="@+id/status_lights_layout"
-                layout="@layout/overview_statuslights_layout" />
 
             <com.google.android.flexbox.FlexboxLayout xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/nsclient_layout"
