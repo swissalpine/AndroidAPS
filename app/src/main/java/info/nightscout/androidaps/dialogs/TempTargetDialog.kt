@@ -81,7 +81,7 @@ class TempTargetDialog : DialogFragmentWithDate() {
         else
             binding.temptarget.setParams(
                 savedInstanceState?.getDouble("tempTarget")
-                    ?: 144.0,
+                    ?: 140.0,
                 Constants.MIN_TT_MGDL, Constants.MAX_TT_MGDL, 1.0, DecimalFormat("0"), false, binding.okcancel.ok)
 
         val units = profileFunction.getUnits()
