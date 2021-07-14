@@ -187,8 +187,8 @@
     <string name="location_not_found_message">For Bluetooth discovery to work on newer devices, location must be enabled. AAPS does not track your location and it can be disabled after pairing is successful.</string>
 
     <!--    DateUtil-->
-    <string name="minago">%1$d m ago</string>
-    <string name="hoursago">%1$.1f h ago</string>
+    <string name="minago">%1$d m</string>
+    <string name="hoursago">%1$.1f h</string>
     <string name="shorthour">h</string>
     <string name="days">days</string>
     <string name="hours">hours</string>
