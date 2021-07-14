@@ -183,7 +183,7 @@ class OverviewData @Inject constructor(
         get() =
             profile?.let { profile ->
                 if (temporaryBasal?.isInProgress == false) temporaryBasal = null
-                temporaryBasal?.let { "T:" + it.toStringShort() }
+                temporaryBasal?.let { it.toStringShort() }
                     ?: resourceHelper.gs(R.string.pump_basebasalrate, profile.getBasal())
             } ?: resourceHelper.gs(R.string.notavailable)
 
@@ -210,7 +210,7 @@ class OverviewData @Inject constructor(
             } ?: R.drawable.ic_cp_basal_no_tbr
 
     val temporaryBasalColor: Int
-        get() = temporaryBasal?.let { resourceHelper.gc(R.color.basal) }
+        get() = temporaryBasal?.let { resourceHelper.gc(R.color.defaulttextcolor) }
             ?: resourceHelper.gc(R.color.defaulttextcolor)
 
     /*
