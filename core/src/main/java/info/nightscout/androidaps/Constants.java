@@ -52,9 +52,9 @@ public class Constants {
     public static final double defaultHypoTTmmol = 8d;
 
     public static final double MIN_TT_MGDL = 72d;
-    public static final double MAX_TT_MGDL = 180d;
+    public static final double MAX_TT_MGDL = 220d;
     public static final double MIN_TT_MMOL = 4d;
-    public static final double MAX_TT_MMOL = 10d;
+    public static final double MAX_TT_MMOL = 12d;
 
     //NSClientInternal
     public static final int MAX_LOG_LINES = 100;
