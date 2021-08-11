@@ -1155,6 +1155,7 @@
     <string name="ns_receive_cgm_summary">Accept CGM data from NS</string>
     <string name="sms_timeout_while_wating">Timeout while waiting for finish of previous pump communication</string>
     <string name="smscommunicator_another_bolus_in_queue">There is another bolus in queue. Try again later.</string>
+    <string name="calculation_in_progress">Calculation in progress</string>
     <string name="key_keto_protect" translatable="false">keto_protect</string>
     <string name="key_variable_keto_protect_strategy" translatable="false">variable_keto_protect_strategy</string>
     <string name="keto_protect_basal" translatable="false">keto_protect_basal</string>
