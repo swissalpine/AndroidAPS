@@ -5,14 +5,22 @@
     android:id="@+id/info_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal" >
+    android:orientation="horizontal"
+    android:paddingLeft="2dp"
+    android:paddingTop="5dp"
+    android:paddingRight="0dp"
+    android:paddingBottom="5dp" >
 
     <TextView
         android:id="@+id/bg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:paddingTop="1dp"
+        android:paddingBottom="10dp"
         android:text="00.0"
-        android:textSize="60sp"
+        android:textSize="50dp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/delta_large"
         app:layout_constraintStart_toStartOf="parent"
@@ -25,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="(+1.0)"
-        android:textSize="60sp"
+        android:textSize="48dp"
         android:textStyle="bold"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/bg"
@@ -40,7 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="@+id/bg"
+        android:layout_marginTop="10dp"
         app:layout_constraintEnd_toStartOf="@+id/deltas_layout"
         app:layout_constraintStart_toEndOf="@+id/delta_large"
         app:layout_constraintTop_toTopOf="parent"
@@ -48,8 +56,9 @@
 
         <ImageView
             android:id="@+id/arrow"
-            android:layout_width="wrap_content"
+            android:layout_width="42dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-5dp"
             android:layout_gravity="center_vertical"
             app:layout_constraintHorizontal_bias="0.0"
             app:srcCompat="@drawable/ic_flat"
@@ -61,8 +70,11 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             app:layout_constraintTop_toTopOf="@+id/long_avg_delta"
+            android:layout_marginTop="-10dp"
+            android:layout_marginLeft="-2dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:textSize="18dp"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
@@ -74,7 +86,7 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toStartOf="@+id/aps_mode_layout"
         app:layout_constraintStart_toEndOf="@+id/arrows_layout"
-        app:layout_constraintBottom_toBottomOf="@+id/arrows_layout">
+        tools:ignore="MissingConstraints">
 
         <TableRow
             android:layout_width="wrap_content"
@@ -88,6 +100,7 @@
                 android:textAlignment="textEnd"
                 android:text="Δ: "
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="18dp"
                 tools:ignore="HardcodedText" />
 
             <TextView
@@ -98,6 +111,7 @@
                 android:textAlignment="textEnd"
                 android:text="n/a"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="18dp"
                 tools:ignore="HardcodedText" />
 
         </TableRow>
@@ -114,6 +128,7 @@
                 android:textAlignment="textEnd"
                 android:text="15m Δ: "
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="18dp"
                 tools:ignore="HardcodedText" />
 
             <TextView
@@ -124,6 +139,7 @@
                 android:textAlignment="textEnd"
                 android:text="n/a"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="18dp"
                 tools:ignore="HardcodedText" />
 
         </TableRow>
@@ -140,6 +156,7 @@
                 android:textAlignment="textEnd"
                 android:text="40m Δ: "
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="18dp"
                 tools:ignore="HardcodedText" />
 
             <TextView
@@ -150,6 +167,7 @@
                 android:textAlignment="textEnd"
                 android:text="n/a"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:textSize="18dp"
                 tools:ignore="HardcodedText" />
 
         </TableRow>
@@ -160,7 +178,6 @@
         android:id="@+id/aps_mode_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
         android:gravity="center_horizontal"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@+id/bg"
@@ -174,8 +191,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="-4dp"
-            android:visibility="gone"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="-2dp"
+            android:visibility="visible"
             app:srcCompat="@drawable/ic_loop_closed"
             android:contentDescription="@string/closedloop" />
 
@@ -184,11 +203,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_horizontal"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
+            android:layout_marginTop="-7dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
             android:text="Open Loop"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textStyle="bold"
+            android:textSize="20dp"
             android:visibility="gone"
             tools:ignore="HardcodedText" />
     </LinearLayout>
@@ -248,7 +269,7 @@
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_gravity="center_horizontal"
             app:srcCompat="@drawable/ic_bolus"
             android:contentDescription="@string/iob" />
@@ -262,6 +283,7 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="20dp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
@@ -281,7 +303,7 @@
         <ImageView
             android:id="@+id/carbs_icon"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/anim_carbs"
             android:contentDescription="@string/cob" />
@@ -295,6 +317,7 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="20dp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
@@ -314,7 +337,7 @@
         <ImageView
             android:id="@+id/base_basal_icon"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_gravity="center_horizontal"
             app:srcCompat="@drawable/ic_cp_basal_no_tbr"
             android:contentDescription="@string/basal" />
@@ -328,6 +351,7 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="20dp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
@@ -346,7 +370,7 @@
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_gravity="center_horizontal"
             app:srcCompat="@drawable/ic_actions_startextbolus"
             android:contentDescription="@string/extended_bolus" />
@@ -360,6 +384,7 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="20dp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
@@ -379,7 +404,7 @@
         <ImageView
             android:id="@+id/sensitivity_icon"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="36dp"
             android:layout_gravity="center_horizontal"
             app:srcCompat="@drawable/ic_swap_vert_black_48dp_green"
             android:contentDescription="@string/autosenslabel" />
@@ -393,6 +418,7 @@
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="20dp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
