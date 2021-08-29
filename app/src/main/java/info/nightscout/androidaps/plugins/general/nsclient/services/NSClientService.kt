@@ -309,7 +309,7 @@ class NSClientService : DaggerService() {
             rxBus.send(EventNSClientNewLog("WATCHDOG", "connections in last " + WATCHDOG_INTERVAL_MINUTES + " minutes: " + reconnections.size + "/" + WATCHDOG_MAX_CONNECTIONS))
             if (reconnections.size >= WATCHDOG_MAX_CONNECTIONS) {
                 val n = Notification(Notification.NS_MALFUNCTION, resourceHelper.gs(R.string.nsmalfunction), Notification.URGENT)
-                rxBus.send(EventNewNotification(n))
+                //rxBus.send(EventNewNotification(n))
                 rxBus.send(EventNSClientNewLog("WATCHDOG", "pausing for $WATCHDOG_RECONNECT_IN minutes"))
                 nsClientPlugin.pause(true)
                 rxBus.send(EventNSClientUpdateGUI())
