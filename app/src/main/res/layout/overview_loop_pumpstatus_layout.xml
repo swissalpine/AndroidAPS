@@ -25,6 +25,8 @@
             android:paddingBottom="10dp"
             android:text="Profile"
             android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="18dp"
+            android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -38,7 +40,8 @@
             android:paddingBottom="10dp"
             android:text="TempTarget"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/mdtp_white"
+            android:textSize="18dp"
+            android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
@@ -61,7 +64,9 @@
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
             android:text="@string/initializing"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textSize="18dp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
