@@ -23,6 +23,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <include
+                android:id="@+id/status_lights_layout"
+                layout="@layout/overview_statuslights_layout" />
+
             <LinearLayout
                 android:id="@+id/loop_layout"
                 android:layout_width="match_parent"
@@ -37,9 +41,10 @@
                     android:layout_marginEnd="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:text="Profile"
+                    android:textSize="18dp"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     tools:ignore="HardcodedText" />
 
@@ -50,11 +55,11 @@
                     android:layout_gravity="end"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
                     android:text="TempTarget"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/mdtp_white"
+                    android:textSize="18dp"
                     tools:ignore="HardcodedText" />
 
             </LinearLayout>
@@ -63,10 +68,6 @@
             <include
                 android:id="@+id/info_layout"
                 layout="@layout/overview_info_layout" />
-
-            <include
-                android:id="@+id/status_lights_layout"
-                layout="@layout/overview_statuslights_layout" />
 
             <com.google.android.flexbox.FlexboxLayout xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/nsclient_layout"
@@ -142,6 +143,7 @@
             android:paddingTop="6dp"
             android:paddingBottom="6dp"
             android:text="@string/initializing"
+            android:textSize="15dp"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </LinearLayout>
