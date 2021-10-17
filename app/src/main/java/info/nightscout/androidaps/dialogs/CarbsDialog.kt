@@ -25,7 +25,7 @@ import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.logging.LTag
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.queue.CommandQueue
 import info.nightscout.androidaps.utils.*
@@ -52,7 +52,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var carbTimer: CarbTimer
     @Inject lateinit var commandQueue: CommandQueue
     @Inject lateinit var repository: AppRepository
-    @Inject lateinit var rxBus: RxBusWrapper
+    @Inject lateinit var rxBus: RxBus
 
     companion object {
 
