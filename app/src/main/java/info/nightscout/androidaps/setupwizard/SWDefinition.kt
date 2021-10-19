@@ -227,7 +227,7 @@ class SWDefinition @Inject constructor(
             .updateDelay(5)
             .label(R.string.treatmentssafety_maxbolus_title)
             .comment(R.string.common_values))
-        .add(SWEditNumber(injector, 48.0, 1.0, 100.0)
+        .add(SWEditIntNumber(injector, 48, 1, 100)
             .preferenceId(R.string.key_treatmentssafety_maxcarbs)
             .updateDelay(5)
             .label(R.string.treatmentssafety_maxcarbs_title)
@@ -257,7 +257,7 @@ class SWDefinition @Inject constructor(
         .add(SWFragment(injector, this)
             .add(LocalProfileFragment()))
         .validator {
-            localProfilePlugin.profile?.getDefaultProfile()?.let { ProfileSealed.Pure(it).isValid("StartupWizard", activePlugin.activePump, config, resourceHelper, rxBus, hardLimits).isValid }
+            localProfilePlugin.profile?.getDefaultProfile()?.let { ProfileSealed.Pure(it).isValid("StartupWizard", activePlugin.activePump, config, resourceHelper, rxBus, hardLimits, false).isValid }
                 ?: false
         }
         .visibility { localProfilePlugin.isEnabled() }
