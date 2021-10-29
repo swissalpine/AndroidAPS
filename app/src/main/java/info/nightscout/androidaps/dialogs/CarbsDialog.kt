@@ -354,6 +354,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                             ValueWithUnit.Hour(duration).takeIf { duration != 0 })
                         commandQueue.bolus(detailedBolusInfo, object : Callback() {
                             override fun run() {
+                                carbTimer.removeEatReminder()
                                 if (!result.success) {
                                     ErrorHelperActivity.runAlarm(ctx, result.comment, resourceHelper.gs(R.string.treatmentdeliveryerror), R.raw.boluserror)
                                 } else  if (sp.getBoolean(R.string.key_usebolusreminder, false) && remindBolus)
