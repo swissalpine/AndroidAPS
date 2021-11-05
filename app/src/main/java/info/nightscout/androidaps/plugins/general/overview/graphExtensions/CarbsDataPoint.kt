@@ -22,7 +22,7 @@ class CarbsDataPoint @Inject constructor(
     override fun getShape(): PointsWithLabelGraphSeries.Shape = PointsWithLabelGraphSeries.Shape.CARBS
 
     override fun getColor(): Int =
-        if (data.isValid) Color.Cyan
+        if (data.isValid) Color.CYAN
         else rh.gc(android.R.color.holo_red_light)
 
     override fun setY(y: Double) {
