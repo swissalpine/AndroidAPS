@@ -167,7 +167,7 @@ class OverviewData @Inject constructor(
         get() =
             profileFunction.getProfile()?.let { profile ->
                 if (temporaryBasal?.isInProgress == false) temporaryBasal = null
-                temporaryBasal?.let { "T:" + it.toStringShort() }
+                temporaryBasal?.let { it.toStringShort() }
                     ?: rh.gs(R.string.pump_basebasalrate, profile.getBasal())
             } ?: rh.gs(R.string.notavailable)
 
