@@ -10,9 +10,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class WarnColors @Inject constructor(val resourceHelper: ResourceHelper) {
+class WarnColors @Inject constructor(val rh: ResourceHelper) {
 
-    private val normalColor = resourceHelper.gc(R.color.colorLightGray)
+    private val normalColor = rh.gc(R.color.colorLightGray)
     private val warnColor = Color.YELLOW
     private val urgentColor = Color.RED
 
