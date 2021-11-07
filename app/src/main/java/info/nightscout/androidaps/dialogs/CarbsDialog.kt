@@ -25,7 +25,6 @@ import info.nightscout.androidaps.logging.LTag
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.bus.RxBus
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
 import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.utils.*
@@ -237,20 +236,16 @@ class CarbsDialog : DialogFragmentWithDate() {
                 ) + ")").formatColor(rh, R.color.tempTargetConfirmation)
             )
         val hypoSelected = binding.hypoTt.isChecked
+        // Anpassung
         if (hypoSelected)
             actions.add(
-                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor(
-                    rh,
-                    R.color.tempTargetConfirmation
-                )
-            )
-            actions.add(rh.gs(R.string.temptargetshort) + ": " + "<font color='" + rh.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) +  " (" +
+                rh.gs(R.string.temptargetshort) + ": " + "<font color='" + rh.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) +  " (" +
                             hypoTTDuration + " " + rh.gs(R.string.unit_minute_short) + ")</font>")
         val hypoActionSelected = binding.hypoAction.isChecked
         if (hypoActionSelected)
             actions.add(rh.gs(R.string.temptargetshort) + ": " + "<font color='" + rh.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
                             " (" + hypoTTDuration + " " + rh.gs(R.string.unit_minute_short) + ")  + TBR: 50% (60 min)</font>")
-
+        // Ende Anpassung
         val timeOffset = binding.time.value.toInt()
         eventTime -= eventTime % 1000
         val time = eventTime + timeOffset * 1000 * 60
