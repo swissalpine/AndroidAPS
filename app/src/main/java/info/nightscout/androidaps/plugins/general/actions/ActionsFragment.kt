@@ -31,7 +31,7 @@ import info.nightscout.androidaps.extensions.toVisibility
 import info.nightscout.androidaps.activities.HistoryBrowseActivity
 import info.nightscout.androidaps.diaconn.DiaconnG8Plugin
 import info.nightscout.androidaps.interfaces.ActivePlugin
-import info.nightscout.androidaps.interfaces.CommandQueueProvider
+import info.nightscout.androidaps.interfaces.CommandQueue
 import info.nightscout.androidaps.interfaces.Config
 import info.nightscout.androidaps.interfaces.IobCobCalculator
 import info.nightscout.androidaps.interfaces.ProfileFunction
@@ -72,7 +72,7 @@ class ActionsFragment : DaggerFragment() {
     @Inject lateinit var fabricPrivacy: FabricPrivacy
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var iobCobCalculator: IobCobCalculator
-    @Inject lateinit var commandQueue: CommandQueueProvider
+    @Inject lateinit var commandQueue: CommandQueue
     @Inject lateinit var buildHelper: BuildHelper
     @Inject lateinit var protectionCheck: ProtectionCheck
     @Inject lateinit var skinProvider: SkinProvider
@@ -274,7 +274,7 @@ class ActionsFragment : DaggerFragment() {
                 pump.isInitialized() &&
                 !pump.isSuspended()).toVisibility()
 
-        if (!pump.pumpDescription.isExtendedBolusCapable || !pump.isInitialized() || pump.isSuspended() || pump.isFakingTempsByExtendedBoluses) {
+        if (!pump.pumpDescription.isExtendedBolusCapable || !pump.isInitialized() || pump.isSuspended() || pump.isFakingTempsByExtendedBoluses || config.NSCLIENT) {
             extendedBolus?.visibility = View.GONE
             extendedBolusCancel?.visibility = View.GONE
         } else {
@@ -290,7 +290,7 @@ class ActionsFragment : DaggerFragment() {
             }
         }
 
-        if (!pump.pumpDescription.isTempBasalCapable || !pump.isInitialized() || pump.isSuspended()) {
+        if (!pump.pumpDescription.isTempBasalCapable || !pump.isInitialized() || pump.isSuspended() || config.NSCLIENT) {
             setTempBasal?.visibility = View.GONE
             cancelTempBasal?.visibility = View.GONE
         } else {
