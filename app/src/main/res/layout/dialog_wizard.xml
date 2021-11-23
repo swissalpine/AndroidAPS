@@ -265,8 +265,8 @@
                 android:id="@+id/percent_used"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
                 android:background="@drawable/background_darkgray"
+                android:layout_marginTop="10dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:text="50%"
@@ -335,6 +335,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:text="@string/mdtp_cancel"
+                android:textSize="18dp"
                 android:textAlignment="textEnd" />
 
             <Button
@@ -343,6 +344,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:textSize="18dp"
+
                 android:text="@string/mdtp_ok" />
         </LinearLayout>
 
