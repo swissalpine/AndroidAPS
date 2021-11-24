@@ -271,7 +271,7 @@
                 android:paddingRight="10dp"
                 android:text="50%"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/iob" />
+                android:textColor="@color/colorAccent" />
 
         </LinearLayout>
 
