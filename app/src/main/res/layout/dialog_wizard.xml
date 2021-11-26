@@ -271,7 +271,7 @@
                 android:paddingRight="10dp"
                 android:text="50%"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/colorAccent" />
+                android:textColor="@color/white_alpha_70" />
 
         </LinearLayout>
 
