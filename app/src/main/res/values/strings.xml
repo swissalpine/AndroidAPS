@@ -698,7 +698,6 @@
     <string name="no_action_selected">No action selected, nothing will happen</string>
     <string name="start_hypo_tt">Start Hypo TT</string>
     <string name="closed_loop_disabled_on_dev_branch">Running dev version. Closed loop is disabled.</string>
-    <string name="key_fromNSAreCommingFakedExtendedBoluses" translatable="false">fromNSAreCommingFakedExtendedBoluses</string>
     <string name="engineering_mode_enabled">Engineering mode enabled</string>
     <string name="profileswitch_ismissing">ProfileSwitch missing. Please do a profile switch or press \"Activate Profile\" in the LocalProfile.</string>
     <string name="pumpisnottempbasalcapable">Pump is not temp basal capable</string>
@@ -1083,7 +1082,7 @@
     <string name="cannula">Cannula</string>
     <string name="userentry">User entry</string>
     <string name="common_values">Use values of your largest food you usually eat\n</string>
-    <string name="summary_email_for_crash_report">This email address will attached to crash reports so we can contact you in urgent cases. It\'s optional.</string>
+    <string name="summary_email_for_crash_report">This identification will attached to crash reports so we can contact you in urgent cases. It\'s optional.</string>
     <string name="email_address">Email address</string>
     <string name="privacy_settings">Privacy setting</string>
     <string name="privacy_summary">You can provide optional email address if you want to be notified about app crashes. This is not an automated service. You will be contacted by developers in dangerous situations.</string>
@@ -1135,6 +1134,8 @@
     <string name="recalculated_data_used">Recalculated data used</string>
     <string name="bg_too_close">BG too close:\n%1$s\n%2$s</string>
     <string name="key_last_processed_glunovo_timestamp" translatable="false">last_processed_glunovo_timestamp</string>
+    <string name="identification">Identification (email, FB or Discord nick etc)</string>
+    <string name="identification_not_set">Identification not set in dev mode</string>
 
     <string name="key_keto_protect" translatable="false">keto_protect</string>
     <string name="key_variable_keto_protect_strategy" translatable="false">variable_keto_protect_strategy</string>
