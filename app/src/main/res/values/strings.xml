@@ -1136,6 +1136,7 @@
     <string name="key_last_processed_glunovo_timestamp" translatable="false">last_processed_glunovo_timestamp</string>
     <string name="identification">Identification (email, FB or Discord nick etc)</string>
     <string name="identification_not_set">Identification not set in dev mode</string>
+    <string name="not_available_full">Not available</string>
 
     <string name="key_keto_protect" translatable="false">keto_protect</string>
     <string name="key_variable_keto_protect_strategy" translatable="false">variable_keto_protect_strategy</string>
