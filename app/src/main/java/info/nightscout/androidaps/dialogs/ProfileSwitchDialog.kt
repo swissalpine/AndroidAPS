@@ -65,8 +65,10 @@ class ProfileSwitchDialog : DialogFragmentWithDate() {
     private val textWatcher: TextWatcher = object : TextWatcher {
         override fun afterTextChanged(s: Editable) {
             val isDuration = binding.duration.value > 0
-            val isLowerPercentage = binding.percentage.value < 100
-            binding.ttLayout.visibility = (isDuration && isLowerPercentage).toVisibility()
+            // Anpassung: TempTarget-Möglichkeit anzeigen, sobald eine Dauer eingegeben wurde
+            // val isLowerPercentage = binding.percentage.value < 100
+            // binding.ttLayout.visibility = (isDuration && isLowerPercentage).toVisibility()
+            binding.ttLayout.visibility = (isDuration).toVisibility()
         }
 
         override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
