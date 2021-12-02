@@ -181,7 +181,9 @@ class ProfileSwitchDialog : DialogFragmentWithDate() {
         if (eventTimeChanged)
             actions.add(rh.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
-        val isTT = binding.duration.value > 0 && binding.percentage.value < 100 && binding.tt.isChecked
+        // Anpassung 2: TempTarget wenn Dauer
+        // val isTT = binding.duration.value > 0 && binding.percentage.value < 100 && binding.tt.isChecked
+        val isTT = binding.duration.value > 0 && binding.tt.isChecked
         val target = defaultValueHelper.determineActivityTT()
         val units = profileFunction.getUnits()
         if (isTT)
