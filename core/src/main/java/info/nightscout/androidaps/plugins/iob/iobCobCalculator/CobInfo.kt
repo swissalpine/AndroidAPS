@@ -21,8 +21,10 @@ class CobInfo(val timestamp: Long, val displayCob: Double?, val futureCarbs: Dou
 
     fun displayText(rh: ResourceHelper, dateUtil: DateUtil, isDev: Boolean): String? =
         if (displayCob != null) {
-            var cobText = rh.gs(R.string.format_carbs, displayCob.toInt())
-            if (futureCarbs > 0) cobText += "(" + DecimalFormatter.to0Decimal(futureCarbs) + ")"
+            // Anpassung cob Text Overview, string in core/.../strings.xml
+            var cobText = rh.gs(R.string.format_carbs_overview, displayCob.toInt())
+            if (futureCarbs > 0) cobText += " (" + DecimalFormatter.to0Decimal(futureCarbs) + ")"
+            cobText += " g"
             // This is only temporary for debugging
             //if (isDev) cobText += "\n" + dateUtil.timeString(timestamp)
             cobText
