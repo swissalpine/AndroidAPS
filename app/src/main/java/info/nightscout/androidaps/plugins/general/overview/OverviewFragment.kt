@@ -362,8 +362,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) CarbsDialog().show(childFragmentManager, "Overview") })
                 R.id.temp_target         ->
-                    if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pumpdisconnected))
-                    else
+                    // Anpassung TempTarget immer möglich
+                    // if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pumpdisconnected))
+                    //    else
                         protectionCheck.queryProtection(
                             activity,
                             ProtectionCheck.Protection.BOLUS,
