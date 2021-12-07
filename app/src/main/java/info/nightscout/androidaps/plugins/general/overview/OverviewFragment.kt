@@ -361,13 +361,10 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     activity,
                     ProtectionCheck.Protection.BOLUS,
                     UIRunnable { if (isAdded) CarbsDialog().show(childFragmentManager, "Overview") })
-                R.id.temp_target         ->
-                    if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pumpdisconnected))
-                    else
-                        protectionCheck.queryProtection(
-                            activity,
-                            ProtectionCheck.Protection.BOLUS,
-                            UIRunnable { if (isAdded) TempTargetDialog().show(childFragmentManager, "Overview") })
+                R.id.temp_target         -> protectionCheck.queryProtection(
+                    activity,
+                    ProtectionCheck.Protection.BOLUS,
+                    UIRunnable { if (isAdded) TempTargetDialog().show(childFragmentManager, "Overview") })
 
                 R.id.active_profile      -> {
                     ProfileViewerDialog().also { pvd ->
@@ -557,6 +554,13 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         val xDripIsBgSource = xdripPlugin.isEnabled()
         val dexcomIsSource = dexcomPlugin.isEnabled()
         binding.buttonsLayout.calibrationButton.visibility = ((xDripIsBgSource || dexcomIsSource) && actualBG != null && sp.getBoolean(R.string.key_show_calibration_button, true)).toVisibility()
+        if (dexcomIsSource) {
+            binding.buttonsLayout.cgmButton.setCompoundDrawablesWithIntrinsicBounds(null, rh.gd(R.drawable.ic_byoda), null, null)
+            binding.buttonsLayout.cgmButton.setTextColor(rh.gc(R.color.white))
+        } else if (xDripIsBgSource) {
+            binding.buttonsLayout.cgmButton.setCompoundDrawablesWithIntrinsicBounds(null, rh.gd(R.drawable.ic_xdrip), null, null)
+            binding.buttonsLayout.cgmButton.setTextColor(rh.gc(R.color.colorCalibrationButton))
+        }
         binding.buttonsLayout.cgmButton.visibility = (sp.getBoolean(R.string.key_show_cgm_button, false) && (xDripIsBgSource || dexcomIsSource)).toVisibility()
 
         // Automation buttons
