@@ -311,7 +311,8 @@
             android:layout_gravity="center_vertical"
             android:background="@android:color/transparent"
             android:orientation="horizontal"
-            android:padding="5dp">
+            android:layout_marginTop="-5dp"
+            android:padding="0dp">
 
             <CheckBox
                 android:id="@+id/calculationcheckbox"
@@ -343,7 +344,7 @@
                 style="@style/mdtp_ActionButton.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="14dp"
                 android:textSize="18dp"
 
                 android:text="@string/mdtp_ok" />
@@ -354,7 +355,7 @@
             android:layout_width="fill_parent"
             android:layout_height="2dip"
             android:layout_marginStart="20dp"
-            android:layout_marginTop="-15dp"
+            android:layout_marginTop="0dp"
             android:layout_marginBottom="5dp"
             android:background="@color/list_delimiter" />
 
