@@ -4,7 +4,7 @@ import info.nightscout.androidaps.R
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.events.Event
 import info.nightscout.androidaps.interfaces.IobCobCalculator
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.aps.loop.APSResult
 import org.json.JSONException
 import org.json.JSONObject
