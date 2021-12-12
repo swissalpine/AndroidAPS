@@ -152,7 +152,7 @@ class WizardDialog : DaggerDialogFragment() {
             ?: 0.0, -60.0, 60.0, 5.0, DecimalFormat("0"), false, binding.ok, timeTextWatcher)
         initDialog()
         calculatedPercentage = sp.getInt(R.string.key_boluswizard_percentage, 100).toDouble()
-        binding.percentUsed.text = rh.gs(R.string.format_percent, sp.getInt(R.string.key_boluswizard_percentage, 100))
+        binding.percentUsed.text = "(" + rh.gs(R.string.format_percent, sp.getInt(R.string.key_boluswizard_percentage, 100)) + ")"
         // ok button
         binding.ok.setOnClickListener {
             if (okClicked) {
@@ -416,7 +416,7 @@ class WizardDialog : DaggerDialogFragment() {
                 binding.total.text = HtmlHelper.fromHtml(rh.gs(R.string.missing_carbs, wizard.carbsEquivalent.toInt()).formatColor(rh, R.color.carbs))
                 binding.ok.visibility = View.INVISIBLE
             }
-            binding.percentUsed.text = rh.gs(R.string.format_percent, wizard.percentageCorrection)
+            binding.percentUsed.text = "(" + rh.gs(R.string.format_percent, wizard.percentageCorrection) + ")"
             calculatedPercentage = wizard.calculatedPercentage
             calculatedCorrection = wizard.calculatedCorrection
         }
