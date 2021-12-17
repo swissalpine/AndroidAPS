@@ -67,7 +67,8 @@ class BgQualityCheckPlugin @Inject constructor(
     @Suppress("ReplaceGetOrSet")
     override fun isLoopInvocationAllowed(value: Constraint<Boolean>): Constraint<Boolean> {
         if (state == State.DOUBLED)
-            value.set(aapsLogger, false, "Doubled values in BGSource", this)
+            //value.set(aapsLogger, false, "Doubled values in BGSource", this)
+            value.set(aapsLogger, true, "Doubled values in BGSource", this)
         return value
     }
 
