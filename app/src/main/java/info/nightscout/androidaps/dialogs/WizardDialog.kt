@@ -138,12 +138,12 @@ class WizardDialog : DaggerDialogFragment() {
 
         if (profileFunction.getUnits() == GlucoseUnit.MGDL)
             binding.bgInput.setParams(savedInstanceState?.getDouble("bg_input")
-                ?: 0.0, 0.0, 500.0, 1.0, DecimalFormat("0"), false, binding.ok, timeTextWatcher)
+                                          ?: 0.0, 0.0, 500.0, 1.0, DecimalFormat("0"), false, binding.ok, timeTextWatcher)
         else
             binding.bgInput.setParams(savedInstanceState?.getDouble("bg_input")
-                ?: 0.0, 0.0, 30.0, 0.1, DecimalFormat("0.0"), false, binding.ok, textWatcher)
+                                          ?: 0.0, 0.0, 30.0, 0.1, DecimalFormat("0.0"), false, binding.ok, textWatcher)
         binding.carbsInput.setParams(savedInstanceState?.getDouble("carbs_input")
-            ?: 0.0, 0.0, maxCarbs.toDouble(), 1.0, DecimalFormat("0"), false, binding.ok, textWatcher)
+                                         ?: 0.0, 0.0, maxCarbs.toDouble(), 1.0, DecimalFormat("0"), false, binding.ok, textWatcher)
 
         if (correctionPercent) {
             calculatedPercentage = sp.getInt(R.string.key_boluswizard_percentage, 100).toDouble()
@@ -157,7 +157,7 @@ class WizardDialog : DaggerDialogFragment() {
             binding.correctionUnit.text = rh.gs(R.string.insulin_unit_shortname)
         }
         binding.carbTimeInput.setParams(savedInstanceState?.getDouble("carb_time_input")
-            ?: 0.0, -60.0, 60.0, 5.0, DecimalFormat("0"), false, binding.ok, timeTextWatcher)
+                                            ?: 0.0, -60.0, 60.0, 5.0, DecimalFormat("0"), false, binding.ok, timeTextWatcher)
         initDialog()
         calculatedPercentage = sp.getInt(R.string.key_boluswizard_percentage, 100).toDouble()
         binding.percentUsed.text = "(" + rh.gs(R.string.format_percent, sp.getInt(R.string.key_boluswizard_percentage, 100)) + ")"
@@ -216,7 +216,7 @@ class WizardDialog : DaggerDialogFragment() {
                     binding.correctionInput.setParams(calculatedPercentage, 10.0, 200.0, 1.0, DecimalFormat("0"), false, binding.ok, textWatcher)
                 else
                     binding.correctionInput.setParams(savedInstanceState?.getDouble("correction_input")
-                                                      ?: 0.0, -maxCorrection, maxCorrection, bolusStep, DecimalFormatter.pumpSupportedBolusFormat(activePlugin.activePump), false, binding.ok, textWatcher)
+                                                          ?: 0.0, -maxCorrection, maxCorrection, bolusStep, DecimalFormatter.pumpSupportedBolusFormat(activePlugin.activePump), false, binding.ok, textWatcher)
                 binding.correctionInput.value = if (correctionPercent) calculatedPercentage else Round.roundTo(calculatedCorrection, bolusStep)
             }
         }
@@ -234,11 +234,11 @@ class WizardDialog : DaggerDialogFragment() {
         }
         // bus
         disposable.add(rxBus
-            .toObservable(EventAutosensCalculationFinished::class.java)
-            .observeOn(aapsSchedulers.main)
-            .subscribe({
-                activity?.runOnUiThread { calculateInsulin() }
-            }, fabricPrivacy::logException)
+                           .toObservable(EventAutosensCalculationFinished::class.java)
+                           .observeOn(aapsSchedulers.main)
+                           .subscribe({
+                                          activity?.runOnUiThread { calculateInsulin() }
+                                      }, fabricPrivacy::logException)
         )
 
     }
@@ -268,14 +268,14 @@ class WizardDialog : DaggerDialogFragment() {
     }
 
     private fun processEnabledIcons() {
-        binding.bgEnabledIcon.alpha = if (binding.bgCheckbox.isChecked) 1.0f else 0.2f
-        binding.trendEnabledIcon.alpha = if (binding.bgTrendCheckbox.isChecked) 1.0f else 0.2f
-        binding.iobEnabledIcon.alpha = if (binding.iobCheckbox.isChecked) 1.0f else 0.2f
-        binding.cobEnabledIcon.alpha = if (binding.cobCheckbox.isChecked) 1.0f else 0.2f
-        binding.bgEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
-        binding.trendEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
-        binding.iobEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
-        binding.cobEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
+        binding.bgEnabledIcon.alpha = if (binding.bgCheckbox.isChecked) 1.0f else 0.4f
+        binding.trendEnabledIcon.alpha = if (binding.bgTrendCheckbox.isChecked) 1.0f else 0.4f
+        binding.iobEnabledIcon.alpha = if (binding.iobCheckbox.isChecked) 1.0f else 0.4f
+        binding.cobEnabledIcon.alpha = if (binding.cobCheckbox.isChecked) 1.0f else 0.4f
+        //binding.bgEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
+        //binding.trendEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
+        //binding.iobEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
+        //binding.cobEnabledIcon.visibility = binding.calculationCheckbox.isChecked.not().toVisibility()
     }
 
     private fun saveCheckedStates() {
@@ -390,18 +390,18 @@ class WizardDialog : DaggerDialogFragment() {
         val carbTime = SafeParse.stringToInt(binding.carbTimeInput.text)
 
         wizard = BolusWizard(injector).doCalc(specificProfile, profileName, tempTarget, carbsAfterConstraint, cob, bg, correction, sp.getInt(R.string.key_boluswizard_percentage, 100),
-            binding.bgCheckbox.isChecked,
-            binding.cobCheckbox.isChecked,
-            binding.iobCheckbox.isChecked,
-            binding.iobCheckbox.isChecked,
-            binding.sbCheckbox.isChecked,
-            binding.ttCheckbox.isChecked,
-            binding.bgTrendCheckbox.isChecked,
-            binding.alarm.isChecked,
-            binding.notes.text.toString(),
-            carbTime,
-            usePercentage = usePercentage,
-            totalPercentage = percentageCorrection
+                                              binding.bgCheckbox.isChecked,
+                                              binding.cobCheckbox.isChecked,
+                                              binding.iobCheckbox.isChecked,
+                                              binding.iobCheckbox.isChecked,
+                                              binding.sbCheckbox.isChecked,
+                                              binding.ttCheckbox.isChecked,
+                                              binding.bgTrendCheckbox.isChecked,
+                                              binding.alarm.isChecked,
+                                              binding.notes.text.toString(),
+                                              carbTime,
+                                              usePercentage = usePercentage,
+                                              totalPercentage = percentageCorrection
         )
 
         wizard?.let { wizard ->
