@@ -471,8 +471,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
             R.id.temp_target         -> v.performClick()
             R.id.active_profile      -> activity?.let { activity ->
-                if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pumpdisconnected))
-                else
+                //if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pumpdisconnected))
+                //else
                     protectionCheck.queryProtection(
                         activity,
                         ProtectionCheck.Protection.BOLUS,
