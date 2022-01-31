@@ -109,6 +109,12 @@ class CarbsDialog : DialogFragmentWithDate() {
     ): View {
         onCreateViewGeneral()
         _binding = DialogCarbsBinding.inflate(inflater, container, false)
+        binding.time.setOnValueChangedListener { timeOffset: Double ->
+            run {
+                val newTime = eventTimeOriginal + timeOffset.toLong() * 1000 * 60
+                updateDateTime(newTime)
+            }
+        }
         return binding.root
     }
 
@@ -161,6 +167,13 @@ class CarbsDialog : DialogFragmentWithDate() {
                     + sp.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)
             )
             validateInputs()
+        }
+
+        setOnValueChangedListener { eventTime: Long ->
+            run {
+                val timeOffset = ((eventTime - eventTimeOriginal) / (1000 * 60)).toDouble()
+                binding.time.value = timeOffset
+            }
         }
 
         iobCobCalculator.ads.actualBg()?.let { bgReading ->
@@ -247,10 +260,6 @@ class CarbsDialog : DialogFragmentWithDate() {
                             " (" + hypoTTDuration + " " + rh.gs(R.string.unit_minute_short) + ")  + TBR: 50% (60 min)</font>")
         // Ende Anpassung
         val timeOffset = binding.time.value.toInt()
-        eventTime -= eventTime % 1000
-        val time = eventTime + timeOffset * 1000 * 60
-        if (timeOffset != 0)
-            actions.add(rh.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(time))
         if (useAlarm && carbs > 0 && timeOffset > 0)
             actions.add(rh.gs(R.string.alarminxmin, timeOffset).formatColor(rh, R.color.info))
         val duration = binding.duration.value.toInt()
@@ -382,7 +391,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                         detailedBolusInfo.context = context
                         detailedBolusInfo.notes = notes
                         detailedBolusInfo.carbsDuration = T.hours(duration.toLong()).msecs()
-                        detailedBolusInfo.carbsTimestamp = time
+                        detailedBolusInfo.carbsTimestamp = eventTime
                         uel.log(if (duration == 0) Action.CARBS else Action.EXTENDED_CARBS, Sources.CarbDialog,
                                 notes,
                                 ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged },
