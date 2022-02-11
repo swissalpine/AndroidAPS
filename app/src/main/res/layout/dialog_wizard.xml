@@ -140,23 +140,17 @@
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
                         android:textStyle="bold" />
 
-
-                    <TextView
-                        android:layout_width="24dp"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text=" %"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                        android:textStyle="bold"
-                        tools:ignore="HardcodedText" />
-
                     <CheckBox
                         android:id="@+id/correction_percent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:checked="false"
-                        android:padding="2dp" />
+                        android:layoutDirection="rtl"
+                        android:padding="2dp"
+                        android:text="%"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 
@@ -191,6 +185,7 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/carb_time_input_label"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -201,20 +196,17 @@
                         android:textAppearance="@style/TextAppearance.AppCompat.Small"
                         android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:contentDescription="@string/alarm"
-                        android:src="@drawable/ic_access_alarm_24dp" />
-
                     <CheckBox
                         android:id="@+id/alarm"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:checked="false"
+                        android:contentDescription="set carb timer alarm"
+                        android:drawableEnd="@drawable/ic_access_alarm_24dp"
+                        android:layoutDirection="rtl"
                         android:padding="2dp" />
+
 
                 </LinearLayout>
 
@@ -222,7 +214,8 @@
                     android:id="@+id/carb_time_input"
                     android:layout_width="130dp"
                     android:layout_height="40dp"
-                    android:layout_gravity="center" />
+                    android:layout_gravity="center"
+                    app:contentDescription="carb time" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -314,7 +307,7 @@
             android:padding="0dp">
 
             <ImageView
-                android:id="@+id/bg_enabled_icon"
+                android:id="@+id/bg_checkbox_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -325,7 +318,7 @@
                 app:srcCompat="@drawable/ic_xdrip" />
 
             <ImageView
-                android:id="@+id/trend_enabled_icon"
+                android:id="@+id/trend_checkbox_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -336,7 +329,7 @@
                 app:srcCompat="@drawable/ic_fortyfiveup" />
 
             <ImageView
-                android:id="@+id/cob_enabled_icon"
+                android:id="@+id/cob_checkbox_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -347,7 +340,7 @@
                 app:srcCompat="@drawable/ic_cp_bolus_carbs" />
 
             <ImageView
-                android:id="@+id/iob_enabled_icon"
+                android:id="@+id/iob_checkbox_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -374,33 +367,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:checked="false" />
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:checked="false"
                 android:contentDescription="@string/show_calculation"
-                app:srcCompat="@drawable/ic_visibility" />
+                android:drawableEnd="@drawable/ic_visibility" />
 
-            <Button
-                android:id="@+id/cancel"
-                style="@style/mdtp_ActionButton.Text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/mdtp_cancel"
-                android:textAlignment="textEnd"
-                android:textSize="22dp" />
+            <include
+                android:id="@+id/okcancel"
+                layout="@layout/okcancel" />
 
-            <Button
-                android:id="@+id/ok"
-                style="@style/mdtp_ActionButton.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="1dp"
-                android:textSize="22dp"
-                android:text="@string/mdtp_ok" />
         </LinearLayout>
 
         <View

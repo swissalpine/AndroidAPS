@@ -239,11 +239,11 @@ class WizardDialog : DaggerDialogFragment() {
         }
         // bus
         disposable.add(rxBus
-                           .toObservable(EventAutosensCalculationFinished::class.java)
-                           .observeOn(aapsSchedulers.main)
-                           .subscribe({
-                                          activity?.runOnUiThread { calculateInsulin() }
-                                      }, fabricPrivacy::logException)
+            .toObservable(EventAutosensCalculationFinished::class.java)
+            .observeOn(aapsSchedulers.main)
+            .subscribe({
+                activity?.runOnUiThread { calculateInsulin() }
+            }, fabricPrivacy::logException)
         )
 
         setA11yLabels()
@@ -283,10 +283,10 @@ class WizardDialog : DaggerDialogFragment() {
     }
 
     private fun processEnabledIcons() {
-        binding.bgCheckboxIcon.isChecked = binding.bgCheckbox.isChecked
-        binding.trendCheckboxIcon.isChecked = binding.bgTrendCheckbox.isChecked
-        binding.iobCheckboxIcon.isChecked = binding.iobCheckbox.isChecked
-        binding.cobCheckboxIcon.isChecked = binding.cobCheckbox.isChecked
+        binding.bgCheckbox.isChecked = binding.bgCheckbox.isChecked
+        binding.bgTrendCheckbox.isChecked = binding.bgTrendCheckbox.isChecked
+        binding.iobCheckbox.isChecked = binding.iobCheckbox.isChecked
+        binding.cobCheckbox.isChecked = binding.cobCheckbox.isChecked
 
         binding.bgCheckboxIcon.alpha = if (binding.bgCheckbox.isChecked) 1.0f else 0.2f
         binding.trendCheckboxIcon.alpha = if (binding.bgTrendCheckbox.isChecked) 1.0f else 0.2f
