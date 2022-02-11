@@ -25,7 +25,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:contentDescription="@string/boluswizard"
+                android:importantForAccessibility="no"
                 app:srcCompat="@drawable/ic_calculator" />
 
             <TextView
@@ -59,6 +59,7 @@
                 android:layout_height="match_parent">
 
                 <TextView
+                    android:id="@+id/bg_input_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -70,7 +71,8 @@
                 <info.nightscout.androidaps.utils.ui.NumberPicker
                     android:id="@+id/bg_input"
                     android:layout_width="130dp"
-                    android:layout_height="40dp" />
+                    android:layout_height="40dp"
+                    app:customContentDescription="@string/a11y_current_bg" />
 
                 <TextView
                     android:id="@+id/bg_units"
@@ -89,9 +91,11 @@
                 android:layout_height="match_parent">
 
                 <TextView
+                    android:id="@+id/carbs_input_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:labelFor="@id/carbs_input"
                     android:padding="10dp"
                     android:text="@string/treatments_wizard_carbs_label"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
@@ -101,8 +105,8 @@
                     android:id="@+id/carbs_input"
                     android:layout_width="130dp"
                     android:layout_height="40dp"
-                    android:layout_gravity="center_horizontal" />
-
+                    android:layout_gravity="center_horizontal"
+                    app:customContentDescription="@string/treatments_wizard_carbs_label" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -127,6 +131,7 @@
                     android:orientation="horizontal">
 
                     <TextView
+                        android:id="@+id/correction_input_label"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -155,12 +160,12 @@
 
                 </LinearLayout>
 
-
                 <info.nightscout.androidaps.utils.ui.NumberPicker
                     android:id="@+id/correction_input"
                     android:layout_width="130dp"
                     android:layout_height="40dp"
-                    android:layout_gravity="center_horizontal" />
+                    android:layout_gravity="center_horizontal"
+                    app:customContentDescription="@string/a11_correction_units" />
 
                 <TextView
                     android:id="@+id/correction_unit"
@@ -422,6 +427,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:labelFor="@id/profile"
                     android:padding="10dp"
                     android:text="@string/profile_label"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
@@ -433,7 +439,6 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical|center_horizontal"
                     android:layout_weight="0.5" />
-
 
                 <CheckBox
                     android:id="@+id/sb_checkbox"
@@ -465,38 +470,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <CheckBox
-                        android:id="@+id/bg_checkbox"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="32dp"
-                        android:checked="true" />
-
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:orientation="horizontal">
 
-                        <TextView
+                        <CheckBox
+                            android:id="@+id/bg_checkbox"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:width="24dp"
-                            android:text="@string/treatments_wizard_bg_label"
-                            android:textAppearance="?android:attr/textAppearanceSmall" />
+                            android:checked="true"
+                            android:text="@string/treatments_wizard_bg_label" />
 
                         <CheckBox
                             android:id="@+id/tt_checkbox"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:width="32dp"
-                            android:checked="false" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:width="30dp"
-                            android:text="@string/treatments_wizard_tt_label"
-                            android:textAppearance="?android:attr/textAppearanceSmall" />
+                            android:checked="false"
+                            android:text="@string/treatments_wizard_tt_label" />
 
                     </LinearLayout>
 
@@ -526,15 +517,9 @@
                         android:id="@+id/bg_trend_checkbox"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:width="32dp"
-                        android:checked="false" />
+                        android:checked="false"
+                        android:text="@string/bg_trend_label" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="86dp"
-                        android:text="@string/bg_trend_label"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
 
                     <TextView
                         android:id="@+id/bg_trend"
@@ -562,15 +547,8 @@
                         android:id="@+id/iob_checkbox"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:width="32dp"
-                        android:checked="true" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="130dp"
-                        android:text="@string/iob"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
+                        android:checked="true"
+                        android:text="@string/iob" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -598,14 +576,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:width="32dp"
-                        android:checked="false" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="86dp"
-                        android:text="@string/treatments_wizard_cob_label"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
+                        android:checked="false"
+                        android:text="@string/treatments_wizard_cob_label" />
 
                     <TextView
                         android:id="@+id/cob"
@@ -627,19 +599,27 @@
 
                 <TableRow
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:focusable="true">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="32dp" />
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="86dp"
-                        android:text="@string/treatments_wizard_carbs_label"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:width="32dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:width="86dp"
+                            android:text="@string/treatments_wizard_carbs_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/carbs"
@@ -662,19 +642,27 @@
 
                 <TableRow
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:focusable="true">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="32dp" />
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="86dp"
-                        android:text="@string/superbolus"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:width="32dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:width="86dp"
+                            android:text="@string/superbolus"
+                            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/sb"
@@ -696,19 +684,27 @@
 
                 <TableRow
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:focusable="true">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="32dp" />
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:width="86dp"
-                        android:text="@string/treatments_wizard_correction_label"
-                        android:textAppearance="?android:attr/textAppearanceSmall" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:width="32dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:width="86dp"
+                            android:text="@string/treatments_wizard_correction_label"
+                            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -724,6 +720,7 @@
                         android:width="50dp"
                         android:gravity="end"
                         android:textAppearance="?android:attr/textAppearanceSmall" />
+
                 </TableRow>
 
             </TableLayout>
