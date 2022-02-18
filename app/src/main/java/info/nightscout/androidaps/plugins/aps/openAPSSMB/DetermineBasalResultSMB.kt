@@ -16,6 +16,7 @@ class DetermineBasalResultSMB private constructor(injector: HasAndroidInjector) 
 
     private var eventualBG = 0.0
     private var snoozeBG = 0.0
+    var variableSens: Double? = null
 
     internal constructor(injector: HasAndroidInjector, result: JSONObject) : this(injector) {
         date = dateUtil.now()
@@ -75,6 +76,7 @@ class DetermineBasalResultSMB private constructor(injector: HasAndroidInjector) 
                     aapsLogger.error(LTag.APS, "Error parsing 'deliverAt' date: $date", e)
                 }
             }
+            if (result.has("variable_sens")) variableSens = result.getDouble("variable_sens");
         } catch (e: JSONException) {
             aapsLogger.error(LTag.APS, "Error parsing determine-basal result JSON", e)
         }

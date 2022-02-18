@@ -301,6 +301,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
           rT.reason += "TDD: " +TDD+ " due to low or high tdd from pump; ";
           }
 
+        else if (tdd_pump > (1.75 * tdd7)) {
+              TDD = tdd7;
+              console.error("TDD set to TDD7 due to high pump usage reported. TDD = "+TDD+"; ");
+              rT.reason += "TDD set to TDD7 due to high pump usage reported. TDD = "+TDD+"; ";
+              }
+
         else if (tdd_pump < (0.33 * tdd7)){
            TDD = (tdd7 * 0.25) + (tdd_pump * 0.75);
            console.error("TDD weighted to pump due to low insulin usage. TDD = "+TDD+"; ");
@@ -452,6 +458,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         , 'reservoir' : reservoir_data // The expected reservoir volume at which to deliver the microbolus (the reservoir volume from right before the last pumphistory run)
         , 'deliverAt' : deliverAt // The time at which the microbolus should be delivered
         , 'sensitivityRatio' : sensitivityRatio // autosens ratio (fraction of normal basal)
+        , 'variable_sens' : variable_sens
     };
 
     // generate predicted future BGs based on IOB, COB, and current absorption rate
