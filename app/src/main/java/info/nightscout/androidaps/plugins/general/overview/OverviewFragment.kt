@@ -22,6 +22,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.text.toSpanned
+import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
@@ -680,11 +681,12 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
                     binding.infoLayout.variableSensitivity.text =
                         String.format(
-                            Locale.getDefault(), "%1$.1f→%2$.1f",
+                            Locale.getDefault(), "%1$.0f→%2$.0f",
                             Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
                             Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
                         )
                     binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+                    binding.infoLayout.sensitivity.visibility = View.GONE
                 } else binding.infoLayout.variableSensitivity.visibility = View.GONE
             } else binding.infoLayout.variableSensitivity.visibility = View.GONE
         } else {

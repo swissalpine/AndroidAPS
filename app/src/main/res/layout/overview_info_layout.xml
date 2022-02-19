@@ -438,11 +438,12 @@
             android:id="@+id/variable_sensitivity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="-9dp"
             android:gravity="center_horizontal"
+            android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textSize="20dp"
             android:textStyle="bold"
             android:visibility="visible"
             tools:ignore="HardcodedText" />
