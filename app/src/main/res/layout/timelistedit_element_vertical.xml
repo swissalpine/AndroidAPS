@@ -20,13 +20,13 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <info.nightscout.androidaps.utils.NumberPickerVertical
+        <info.nightscout.androidaps.utils.ui.NumberPickerVertical
             android:id="@+id/timelistedit_edit1"
             android:layout_width="60dp"
             android:layout_height="100dp"
             android:layout_marginRight="5dp" />
 
-        <info.nightscout.androidaps.utils.NumberPickerVertical
+        <info.nightscout.androidaps.utils.ui.NumberPickerVertical
             android:id="@+id/timelistedit_edit2"
             android:layout_width="60dp"
             android:layout_height="100dp" />
@@ -38,6 +38,7 @@
         android:layout_height="35dp"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="15dp"
+        android:contentDescription="@string/addnew_above"
         app:srcCompat="@drawable/ic_add" />
 
     <ImageView
@@ -46,5 +47,6 @@
         android:layout_height="35dp"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="15dp"
+        android:contentDescription="@string/remove_label"
         app:srcCompat="@drawable/ic_remove" />
 </LinearLayout>

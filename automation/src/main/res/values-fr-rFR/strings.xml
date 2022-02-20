@@ -3,9 +3,9 @@
     <string name="automation_short">Auto</string>
     <string name="automation">Automatisation</string>
     <string name="automation_description">Tâches d\'automatisation définies par l\'utilisateur</string>
-    <string name="automation_missing_task_name">Merci d\'entrer le nom de la tâche.</string>
-    <string name="automation_missing_trigger">Merci de spécifier au moins un déclencheur.</string>
-    <string name="automation_missing_action">Merci de spécifier au moins une action.</string>
+    <string name="automation_missing_task_name">Veuillez entrer un nom pour la tâche.</string>
+    <string name="automation_missing_trigger">Veuillez spécifier au moins un déclencheur.</string>
+    <string name="automation_missing_action">Veuillez spécifier au moins une action.</string>
     <string name="alarm_message">Alarme: %1$s</string>
     <string name="alarm_short">Alarme:</string>
     <string name="message_short">Mess :</string>
@@ -22,8 +22,7 @@
     <string name="automation_trigger_pump_last_connection_compared">Dernière connexion pompe %1$s il y a %2$s min</string>
     <string name="alreadyset">Déjà configuré</string>
     <string name="profilepercentage">Pourcentage du profil</string>
-    <string name="startprofileforever">Début du profil %1$d%%</string>
-    <string name="startprofile">Début du profil %1$d%% pour %2$d min</string>
+    <string name="startprofileforever">Changer le profil à %1$d%%</string>
     <string name="percent_u">Pourcentage [%]:</string>
     <string name="sendsmsactionlabel">Envoyer SMS : %1$s</string>
     <string name="sendsmsactiondescription">Envoyer SMS à tous les numéros</string>
@@ -39,7 +38,10 @@
     <string name="glucoseisnotavailable">La glycémie n\'est pas disponible</string>
     <string name="glucosecomparedmgdl">Glycémie %1$s %2$.0f %3$s</string>
     <string name="glucosecomparedmmol">Glycémie %1$s %2$.1f %3$s</string>
-    <string name="percentagecompared">Profil %% %1$s %2$d</string>
+    <string name="notemptarget">Il n\'y a pas de Cible Temp.</string>
+    <string name="temptargetcomparedmgdl">Cible Temp. %1$s %2$.0f %3$s</string>
+    <string name="temptargetcomparedmmol">Cible Temp. %1$s %2$.1f %3$s</string>
+    <string name="percentagecompared">Pourcentage profil %1$s %2$d%%</string>
     <string name="iobcompared">IA %1$s %2$.1f</string>
     <string name="and">Et</string>
     <string name="or">Ou</string>
@@ -87,6 +89,7 @@
     <string name="latitude_short">Lat :</string>
     <string name="longitude_short">Long :</string>
     <string name="glucose_u">Glycémie [%1$s] :</string>
+    <string name="target_u">Cible [%1$s]:</string>
     <string name="lastboluslabel">Lors du dernier Bolus</string>
     <string name="lastboluscompared">Heure du dernier bolus %1$s il y a %2$s min</string>
     <string name="triggercoblabel">GA</string>
@@ -102,9 +105,11 @@
     <string name="edit_short">ÉDITER</string>
     <string name="please_choose_an_action_type">Choisir un type d\'action</string>
     <string name="please_choose_a_trigger_type">Choisir un type de déclencheur</string>
+    <string name="please_choose_a_operation_type">Choisissez un type d\'opération</string>
     <string name="triggers">Déclencheurs :</string>
     <string name="remove_label">SUPPRIMER</string>
     <string name="preconditions">Conditions préalables :</string>
     <string name="automation_event">Evénement auto.</string>
     <string name="reorder_label">Réordonner</string>
+    <string name="user_action">Actions utilisateur</string>
 </resources>

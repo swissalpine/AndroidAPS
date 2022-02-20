@@ -1,19 +1,16 @@
 package info.nightscout.androidaps.plugins.general.automation.elements
 
+import android.view.Gravity
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.Spinner
 import androidx.annotation.StringRes
-import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import java.util.*
-import javax.inject.Inject
 
-class InputLocationMode(injector: HasAndroidInjector) : Element(injector) {
-    @Inject lateinit var resourceHelper: ResourceHelper
+class InputLocationMode(private val rh: ResourceHelper) : Element() {
 
     enum class Mode {
         INSIDE, OUTSIDE, GOING_IN, GOING_OUT;
@@ -34,10 +31,11 @@ class InputLocationMode(injector: HasAndroidInjector) : Element(injector) {
         }
 
         companion object {
-            fun labels(resourceHelper: ResourceHelper): List<String> {
+
+            fun labels(rh: ResourceHelper): List<String> {
                 val list: MutableList<String> = ArrayList()
                 for (c in values()) {
-                    list.add(resourceHelper.gs(c.stringRes))
+                    list.add(rh.gs(c.stringRes))
                 }
                 return list
             }
@@ -46,29 +44,29 @@ class InputLocationMode(injector: HasAndroidInjector) : Element(injector) {
 
     var value: Mode = Mode.INSIDE
 
-    constructor(injector: HasAndroidInjector, value: InputLocationMode.Mode) : this(injector) {
+    constructor(rh: ResourceHelper, value: InputLocationMode.Mode) : this(rh) {
         this.value = value
     }
 
     override fun addToLayout(root: LinearLayout) {
-        val adapter = ArrayAdapter(root.context, R.layout.spinner_centered, Mode.labels(resourceHelper))
-        val spinner = Spinner(root.context)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = adapter
-        val spinnerParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        spinnerParams.setMargins(0, resourceHelper.dpToPx(4), 0, resourceHelper.dpToPx(4))
-        spinner.layoutParams = spinnerParams
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                value = Mode.values()[position]
-            }
+        root.addView(
+            Spinner(root.context).apply {
+                adapter = ArrayAdapter(root.context, R.layout.spinner_centered, Mode.labels(rh)).apply {
+                    setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                }
+                val spinnerParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                    setMargins(0, rh.dpToPx(4), 0, rh.dpToPx(4))
+                }
+                layoutParams = spinnerParams
+                onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                        value = Mode.values()[position]
+                    }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-        spinner.setSelection(value.ordinal)
-        root.addView(spinner)
+                    override fun onNothingSelected(parent: AdapterView<*>?) {}
+                }
+                setSelection(value.ordinal)
+                gravity = Gravity.CENTER_HORIZONTAL
+            })
     }
 }

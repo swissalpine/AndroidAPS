@@ -2,50 +2,59 @@ package info.nightscout.androidaps.plugins.general.automation.actions
 
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.Constants
-import info.nightscout.androidaps.TestBaseWithProfile
 import info.nightscout.androidaps.TestPumpPlugin
+import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.data.PumpEnactResult
-import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.entities.OfflineEvent
 import info.nightscout.androidaps.interfaces.*
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
-import info.nightscout.androidaps.plugins.general.automation.elements.InputTempTarget
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.androidaps.logging.UserEntryLogger
+import info.nightscout.androidaps.plugins.general.automation.TestBaseWithProfile
+import info.nightscout.androidaps.plugins.general.automation.triggers.Trigger
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import org.junit.Before
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.powermock.core.classloader.annotations.PrepareForTest
 
-@PrepareForTest(RxBusWrapper::class, ActionsTestBase.TestLoopPlugin::class, AppRepository::class)
-open class ActionsTestBase : TestBaseWithProfile() {
+open class
+ActionsTestBase : TestBaseWithProfile() {
 
     open class TestLoopPlugin(
         aapsLogger: AAPSLogger,
-        resourceHelper: ResourceHelper,
+        rh: ResourceHelper,
         injector: HasAndroidInjector,
         pluginDescription: PluginDescription
     ) : PluginBase(
-        pluginDescription, aapsLogger, resourceHelper, injector
-    ), LoopInterface {
+        pluginDescription, aapsLogger, rh, injector
+    ), Loop {
 
-        var suspended = false
-        override var lastRun: LoopInterface.LastRun? = LoopInterface.LastRun()
+        private var suspended = false
+        override var lastRun: Loop.LastRun? = Loop.LastRun()
         override val isSuspended: Boolean = suspended
-        override fun suspendTo(endTime: Long) {}
-        override fun createOfflineEvent(durationInMinutes: Int) {}
+        override val isLGS: Boolean = false
+        override val isSuperBolus: Boolean = false
+        override val isDisconnected: Boolean = false
+        override var enabled: Boolean
+            get() = true
+            set(_) {}
+
+        override fun invoke(initiator: String, allowNotification: Boolean, tempBasalFallback: Boolean) {}
+        override fun acceptChangeRequest() {}
+        override fun minutesToEndOfSuspend(): Int = 0
+        override fun goToZeroTemp(durationInMinutes: Int, profile: Profile, reason: OfflineEvent.Reason) {}
         override fun suspendLoop(durationInMinutes: Int) {}
+        override fun disableCarbSuggestions(durationMinutes: Int) {}
     }
 
     @Mock lateinit var sp: SP
-    @Mock lateinit var commandQueue: CommandQueueProvider
-    @Mock lateinit var configBuilderPlugin: ConfigBuilderInterface
-    @Mock lateinit var activePlugin: ActivePluginProvider
-    @Mock lateinit var profilePlugin: ProfileInterface
-    @Mock lateinit var smsCommunicatorPlugin: SmsCommunicatorInterface
+    @Mock lateinit var commandQueue: CommandQueue
+    @Mock lateinit var configBuilder: ConfigBuilder
+    @Mock lateinit var activePlugin: ActivePlugin
+    @Mock lateinit var profilePlugin: ProfileSource
+    @Mock lateinit var smsCommunicatorPlugin: SmsCommunicator
     @Mock lateinit var loopPlugin: TestLoopPlugin
-    @Mock lateinit var repository: AppRepository
+    @Mock lateinit var uel: UserEntryLogger
 
     private val pluginDescription = PluginDescription()
     lateinit var testPumpPlugin: TestPumpPlugin
@@ -54,64 +63,91 @@ open class ActionsTestBase : TestBaseWithProfile() {
         AndroidInjector {
             if (it is ActionStopTempTarget) {
                 it.aapsLogger = aapsLogger
-                it.resourceHelper = resourceHelper
-                it.activePlugin = activePlugin
+                it.rh = rh
+                it.dateUtil = dateUtil
                 it.repository = repository
+                it.uel = uel
             }
             if (it is ActionStartTempTarget) {
                 it.aapsLogger = aapsLogger
-                it.resourceHelper = resourceHelper
+                it.rh = rh
                 it.activePlugin = activePlugin
                 it.repository = repository
+                it.profileFunction = profileFunction
+                it.uel = uel
+                it.dateUtil = dateUtil
             }
             if (it is ActionSendSMS) {
                 it.aapsLogger = aapsLogger
-                it.resourceHelper = resourceHelper
+                it.rh = rh
                 it.smsCommunicatorPlugin = smsCommunicatorPlugin
             }
             if (it is ActionProfileSwitch) {
                 it.aapsLogger = aapsLogger
-                it.resourceHelper = resourceHelper
+                it.rh = rh
                 it.activePlugin = activePlugin
                 it.profileFunction = profileFunction
+                it.uel = uel
+                it.dateUtil = dateUtil
             }
             if (it is ActionProfileSwitchPercent) {
-                it.resourceHelper = resourceHelper
-                it.activePlugin = activePlugin
+                it.aapsLogger = aapsLogger
+                it.rh = rh
+                it.profileFunction = profileFunction
+                it.uel = uel
             }
             if (it is ActionNotification) {
-                it.resourceHelper = resourceHelper
+                it.aapsLogger = aapsLogger
+                it.rh = rh
                 it.rxBus = rxBus
             }
             if (it is ActionLoopSuspend) {
-                it.loopPlugin = loopPlugin
-                it.resourceHelper = resourceHelper
+                it.aapsLogger = aapsLogger
+                it.loop = loopPlugin
+                it.rh = rh
                 it.rxBus = rxBus
+                it.uel = uel
             }
             if (it is ActionLoopResume) {
+                it.aapsLogger = aapsLogger
                 it.loopPlugin = loopPlugin
-                it.resourceHelper = resourceHelper
-                it.configBuilderPlugin = configBuilderPlugin
+                it.rh = rh
+                it.configBuilder = configBuilder
                 it.rxBus = rxBus
+                it.repository = repository
+                it.dateUtil = dateUtil
+                it.uel = uel
             }
             if (it is ActionLoopEnable) {
+                it.aapsLogger = aapsLogger
                 it.loopPlugin = loopPlugin
-                it.resourceHelper = resourceHelper
-                it.configBuilderPlugin = configBuilderPlugin
+                it.rh = rh
+                it.configBuilder = configBuilder
                 it.rxBus = rxBus
+                it.uel = uel
             }
             if (it is ActionLoopDisable) {
+                it.aapsLogger = aapsLogger
                 it.loopPlugin = loopPlugin
-                it.resourceHelper = resourceHelper
-                it.configBuilderPlugin = configBuilderPlugin
+                it.rh = rh
+                it.configBuilder = configBuilder
                 it.commandQueue = commandQueue
                 it.rxBus = rxBus
+                it.uel = uel
+            }
+            if (it is ActionCarePortalEvent) {
+                it.rh = rh
+                it.repository = repository
+                it.sp = sp
+                it.dateUtil = dateUtil
+                it.profileFunction = profileFunction
+                it.uel = uel
             }
             if (it is PumpEnactResult) {
-                it.aapsLogger = aapsLogger
-                it.resourceHelper = resourceHelper
+                it.rh = rh
             }
-            if (it is InputTempTarget) {
+            if (it is Trigger) {
+                it.rh = rh
                 it.profileFunction = profileFunction
             }
         }
@@ -119,10 +155,13 @@ open class ActionsTestBase : TestBaseWithProfile() {
 
     @Before
     fun mock() {
-        testPumpPlugin = TestPumpPlugin(pluginDescription, aapsLogger, resourceHelper, injector)
+        testPumpPlugin = TestPumpPlugin(pluginDescription, aapsLogger, rh, injector)
         `when`(activePlugin.activePump).thenReturn(testPumpPlugin)
-        `when`(profileFunction.getUnits()).thenReturn(Constants.MGDL)
-        `when`(activePlugin.activeProfileInterface).thenReturn(profilePlugin)
+        `when`(profileFunction.getUnits()).thenReturn(GlucoseUnit.MGDL)
+        `when`(activePlugin.activeProfileSource).thenReturn(profilePlugin)
         `when`(profilePlugin.profile).thenReturn(getValidProfileStore())
+
+        `when`(rh.gs(R.string.ok)).thenReturn("OK")
+        `when`(rh.gs(R.string.error)).thenReturn("Error")
     }
 }

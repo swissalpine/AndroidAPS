@@ -17,7 +17,6 @@
     <string name="objectives_maxiob_gate">Utilisez pendant plusieurs jours, et au moins une nuit sans alarme d’hypoglycémie, avant d\'abaisser les cibles glycémiques</string>
     <string name="objectives_autosens_objective">Ajustement des débits Basal et des ratios si nécessaire, puis activation de la fonction auto-sens</string>
     <string name="objectives_autosens_gate">1 semaine de Boucle Fermée en journée en saisissant régulièrement les glucides</string>
-    <string name="objectives_ama_objective">Activation de fonctionnalités supplémentaires en journée, comme l\'Aide au Repas Améliorée ARA (AMA)</string>
     <string name="objectives_smb_objective">Activation de fonctionnalités supplémentaires pour l\'utilisation en journée, telles que la fonction SMB</string>
     <string name="objectives_auto_objective">Activation de l\'automatisation</string>
     <string name="objectives_smb_gate">Lisez le wiki et augmentez le maxIA pour que les SMBs fonctionnent correctement ! Un bon début est maxIA = moyenne des Bolus Repas + 3 x maximum débit Basal quotidien</string>
@@ -32,7 +31,7 @@
     <string name="objectives_usedisconnectpump">Simulation d\'une douche. Déconnectez la pompe pendant 1h (Appui long sur Boucle Ouverte)</string>
     <string name="objectives_usereconnectpump">... et reconnectez la pompe de la même façon</string>
     <string name="objectives_usetemptarget">Créer une cible temporaire personnalisée avec une durée de 10 min (Appui long sur votre cible actuelle)</string>
-    <string name="objectives_useactions">Dans le Générateur de configuration, activez le plugin Actions, rendez le visible et affichez son contenu dans le menu supérieur</string>
+    <string name="objectives_useactions">Dans la Configuration, activez le plugin Actions, rendez le visible et affichez son contenu dans le menu supérieur</string>
     <string name="objectives_useloop">Affichage du contenu du plugin Boucle</string>
     <string name="objectives_usescale">Modification de l\'échelle du graphique par un appui long sur la courbe de glycémie</string>
     <string name="objectives_button_enter">Entrer</string>

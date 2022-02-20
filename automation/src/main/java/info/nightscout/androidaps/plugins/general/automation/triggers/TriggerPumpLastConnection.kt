@@ -4,30 +4,30 @@ import android.widget.LinearLayout
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.general.automation.elements.Comparator
 import info.nightscout.androidaps.plugins.general.automation.elements.InputDuration
 import info.nightscout.androidaps.plugins.general.automation.elements.LabelWithElement
 import info.nightscout.androidaps.plugins.general.automation.elements.LayoutBuilder
 import info.nightscout.androidaps.plugins.general.automation.elements.StaticLabel
-import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.JsonHelper.safeGetInt
 import info.nightscout.androidaps.utils.JsonHelper.safeGetString
 import org.json.JSONObject
 
 class TriggerPumpLastConnection(injector: HasAndroidInjector) : Trigger(injector) {
-    var minutesAgo = InputDuration(injector)
-    var comparator = Comparator(injector)
+
+    var minutesAgo = InputDuration()
+    var comparator = Comparator(rh)
 
     @Suppress("unused")
     constructor(injector: HasAndroidInjector, value: Int, unit: InputDuration.TimeUnit, compare: Comparator.Compare) : this(injector) {
-        minutesAgo = InputDuration(injector, value, unit)
-        comparator = Comparator(injector, compare)
+        minutesAgo = InputDuration(value, unit)
+        comparator = Comparator(rh, compare)
     }
 
     constructor(injector: HasAndroidInjector, triggerPumpLastConnection: TriggerPumpLastConnection) : this(injector) {
-        minutesAgo = InputDuration(injector, triggerPumpLastConnection.minutesAgo.value, triggerPumpLastConnection.minutesAgo.unit)
-        comparator = Comparator(injector, triggerPumpLastConnection.comparator.value)
+        minutesAgo = InputDuration(triggerPumpLastConnection.minutesAgo.value, triggerPumpLastConnection.minutesAgo.unit)
+        comparator = Comparator(rh, triggerPumpLastConnection.comparator.value)
     }
 
     fun setValue(value: Int): TriggerPumpLastConnection {
@@ -46,7 +46,7 @@ class TriggerPumpLastConnection(injector: HasAndroidInjector) : Trigger(injector
             aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
             return true
         }
-        val connectionAgo = (DateUtil.now() - lastConnection) / (60 * 1000)
+        val connectionAgo = (dateUtil.now() - lastConnection) / (60 * 1000)
         aapsLogger.debug(LTag.AUTOMATION, "Last connection min ago: $connectionAgo")
         if (comparator.value.check(connectionAgo.toInt(), minutesAgo.value)) {
             aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
@@ -56,15 +56,10 @@ class TriggerPumpLastConnection(injector: HasAndroidInjector) : Trigger(injector
         return false
     }
 
-    override fun toJSON(): String {
-        val data = JSONObject()
+    override fun dataJSON(): JSONObject =
+        JSONObject()
             .put("minutesAgo", minutesAgo.value)
             .put("comparator", comparator.value.toString())
-        return JSONObject()
-            .put("type", this::class.java.name)
-            .put("data", data)
-            .toString()
-    }
 
     override fun fromJSON(data: String): Trigger {
         val d = JSONObject(data)
@@ -76,7 +71,7 @@ class TriggerPumpLastConnection(injector: HasAndroidInjector) : Trigger(injector
     override fun friendlyName(): Int = R.string.automation_trigger_pump_last_connection_label
 
     override fun friendlyDescription(): String =
-        resourceHelper.gs(R.string.automation_trigger_pump_last_connection_compared, resourceHelper.gs(comparator.value.stringRes), minutesAgo.value)
+        rh.gs(R.string.automation_trigger_pump_last_connection_compared, rh.gs(comparator.value.stringRes), minutesAgo.value)
 
     override fun icon(): Optional<Int?> = Optional.of(R.drawable.ic_remove)
 
@@ -84,9 +79,9 @@ class TriggerPumpLastConnection(injector: HasAndroidInjector) : Trigger(injector
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
-            .add(StaticLabel(injector, R.string.automation_trigger_pump_last_connection_label, this))
+            .add(StaticLabel(rh, R.string.automation_trigger_pump_last_connection_label, this))
             .add(comparator)
-            .add(LabelWithElement(injector, resourceHelper.gs(R.string.automation_trigger_pump_last_connection_description) + ": ", "", minutesAgo))
+            .add(LabelWithElement(rh, rh.gs(R.string.automation_trigger_pump_last_connection_description) + ": ", "", minutesAgo))
             .build(root)
     }
 }

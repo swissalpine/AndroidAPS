@@ -6,16 +6,13 @@ import info.nightscout.androidaps.plugins.general.automation.elements.Comparator
 import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.powermock.modules.junit4.PowerMockRunner
 
 @Suppress("SpellCheckingInspection")
-@RunWith(PowerMockRunner::class)
 class TriggerBTDeviceTest : TriggerTestBase() {
 
     var now = 1514766900000L
     private var someName = "Headset"
-    private var btJson = "{\"data\":{\"comparator\":\"ON_CONNECT\",\"name\":\"Headset\"},\"type\":\"info.nightscout.androidaps.plugins.general.automation.triggers.TriggerBTDevice\"}"
+    private var btJson = "{\"data\":{\"comparator\":\"ON_CONNECT\",\"name\":\"Headset\"},\"type\":\"TriggerBTDevice\"}"
 
     @Test fun shouldRun() {
         @Suppress("UNUSED_VARIABLE")

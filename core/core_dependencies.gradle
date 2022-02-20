@@ -3,31 +3,25 @@ dependencies {
 
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
-    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
-    api "androidx.core:core-ktx:$coreVersion"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
+    api "androidx.core:core-ktx:$core_version"
     api 'androidx.legacy:legacy-support-v13:1.0.0'
     api 'androidx.legacy:legacy-support-v4:1.0.0'
     api "androidx.appcompat:appcompat:$appcompat_version"
     api "androidx.preference:preference-ktx:$preferencektx_version"
     api 'androidx.biometric:biometric:1.1.0'
     api "androidx.browser:browser:1.3.0"
-    api "androidx.activity:activity-ktx:${activityVersion}"
+    api "androidx.activity:activity-ktx:${activity_version}"
     api "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     api 'androidx.cardview:cardview:1.0.0'
-    api 'androidx.recyclerview:recyclerview:1.1.0'
+    api 'androidx.recyclerview:recyclerview:1.2.1'
     api 'androidx.gridlayout:gridlayout:1.0.0'
     api 'androidx.percentlayout:percentlayout:1.0.0'
     api "com.google.android.material:material:$material_version"
 
     api "com.google.dagger:dagger-android:$dagger_version"
     api "com.google.dagger:dagger-android-support:$dagger_version"
-
-    //Logger
-    api 'org.slf4j:slf4j-api:1.7.30'
-    api("com.github.tony19:logback-android-classic:1.1.1-6") {
-        exclude group: "com.google.android", module: "android"
-    }
 
     //Firebase
     api platform('com.google.firebase:firebase-bom:25.12.0')
@@ -43,19 +37,21 @@ dependencies {
     api "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
     api "org.apache.commons:commons-lang3:$commonslang3_version"
     api "commons-codec:commons-codec:$commonscodec_version"
+    api "com.uber.rxdogtag:rxdogtag:1.0.1"
 
     //CryptoUtil
     api 'com.madgag.spongycastle:core:1.58.0.0'
+    api "com.google.crypto.tink:tink-android:$tink_version"
 
     // Graphview cannot be upgraded
     api "com.jjoe64:graphview:4.0.1"
 
     //db
-    api "com.j256.ormlite:ormlite-core:${ormLiteVersion}"
-    api "com.j256.ormlite:ormlite-android:${ormLiteVersion}"
+    api "com.j256.ormlite:ormlite-core:${ormLite_version}"
+    api "com.j256.ormlite:ormlite-android:${ormLite_version}"
 
     // pumpCommon
-    api "com.google.code.gson:gson:2.8.6"
+    api "com.google.code.gson:gson:2.8.7"
 
     // don't kill my app
     api('dev.doubledot.doki:library:0.0.1@aar') {
@@ -69,11 +65,11 @@ dependencies {
     api 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
 
     // new for tidepool
-    api "com.squareup.okhttp3:okhttp:$okhttp3Version"
-    api "com.squareup.okhttp3:logging-interceptor:$okhttp3Version"
-    api "com.squareup.retrofit2:retrofit:$retrofit2Version"
-    api "com.squareup.retrofit2:adapter-rxjava2:$retrofit2Version"
-    api "com.squareup.retrofit2:converter-gson:$retrofit2Version"
+    api "com.squareup.okhttp3:okhttp:$okhttp3_version"
+    api "com.squareup.okhttp3:logging-interceptor:$okhttp3_version"
+    api "com.squareup.retrofit2:retrofit:$retrofit2_version"
+    api "com.squareup.retrofit2:adapter-rxjava2:$retrofit2_version"
+    api "com.squareup.retrofit2:converter-gson:$retrofit2_version"
 
     api "com.joanzapata.iconify:android-iconify-fontawesome:2.2.2"
     api 'net.danlew:android.joda:2.10.6'
@@ -87,9 +83,7 @@ dependencies {
     api 'com.google.android.gms:play-services-wearable:17.0.0'
     api 'com.google.android.gms:play-services-location:17.1.0'
 
-    api("com.google.android:flexbox:0.3.0") {
-        exclude group: "com.android.support"
-    }
+    api 'com.google.android.flexbox:flexbox:3.0.0'
     api("io.socket:socket.io-client:1.0.0") {
         // excluding org.json which is provided by Android
         exclude group: "org.json", module: "json"
@@ -105,5 +99,6 @@ dependencies {
     api "commons-codec:commons-codec:$commonscodec_version"
 
     // Phone checker
+    // updating to 0.0.9 prevents AAPS from build
     api 'com.scottyab:rootbeer-lib:0.0.8'
 }

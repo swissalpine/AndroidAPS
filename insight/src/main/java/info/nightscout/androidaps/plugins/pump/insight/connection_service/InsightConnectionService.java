@@ -2,7 +2,9 @@ package info.nightscout.androidaps.plugins.pump.insight.connection_service;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
@@ -20,8 +22,9 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.android.DaggerService;
-import info.nightscout.androidaps.logging.AAPSLogger;
-import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.androidaps.insight.R;
+import info.nightscout.shared.logging.AAPSLogger;
+import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.pump.insight.app_layer.AppLayerMessage;
 import info.nightscout.androidaps.plugins.pump.insight.app_layer.ReadParameterBlockMessage;
 import info.nightscout.androidaps.plugins.pump.insight.app_layer.configuration.CloseConfigurationWriteSessionMessage;
@@ -84,7 +87,7 @@ import info.nightscout.androidaps.plugins.pump.insight.utils.PairingDataStorage;
 import info.nightscout.androidaps.plugins.pump.insight.utils.crypto.Cryptograph;
 import info.nightscout.androidaps.plugins.pump.insight.utils.crypto.DerivedKeys;
 import info.nightscout.androidaps.plugins.pump.insight.utils.crypto.KeyPair;
-import info.nightscout.androidaps.utils.sharedPreferences.SP;
+import info.nightscout.shared.sharedPreferences.SP;
 
 public class InsightConnectionService extends DaggerService implements ConnectionEstablisher.Callback, InputStreamReader.Callback, OutputStreamWriter.Callback {
 
@@ -105,7 +108,7 @@ public class InsightConnectionService extends DaggerService implements Connectio
     private DelayedActionThread disconnectTimer;
     private DelayedActionThread recoveryTimer;
     private DelayedActionThread timeoutTimer;
-    private final BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private BluetoothAdapter bluetoothAdapter;
     private BluetoothDevice bluetoothDevice;
     private BluetoothSocket bluetoothSocket;
     private ConnectionEstablisher connectionEstablisher;
@@ -141,10 +144,10 @@ public class InsightConnectionService extends DaggerService implements Connectio
     }
 
     private void increaseRecoveryDuration() {
-        long maxRecoveryDuration = sp.getInt("insight_max_recovery_duration", 20);
+        long maxRecoveryDuration = sp.getInt(R.string.key_insight_max_recovery_duration, 20);
         maxRecoveryDuration = Math.min(maxRecoveryDuration, 20);
         maxRecoveryDuration = Math.max(maxRecoveryDuration, 0);
-        long minRecoveryDuration = sp.getInt("insight_min_recovery_duration", 5);
+        long minRecoveryDuration = sp.getInt(R.string.key_insight_min_recovery_duration, 5);
         minRecoveryDuration = Math.min(minRecoveryDuration, 20);
         minRecoveryDuration = Math.max(minRecoveryDuration, 0);
         recoveryDuration += 1000;
@@ -255,6 +258,7 @@ public class InsightConnectionService extends DaggerService implements Connectio
     @Override
     public synchronized void onCreate() {
         super.onCreate();
+        bluetoothAdapter = ((BluetoothManager)getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
         pairingDataStorage = new PairingDataStorage(this);
         state = pairingDataStorage.isPaired() ? InsightState.DISCONNECTED : InsightState.NOT_PAIRED;
         wakeLock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AndroidAPS:InsightConnectionService");
@@ -295,7 +299,7 @@ public class InsightConnectionService extends DaggerService implements Connectio
                 setState(InsightState.DISCONNECTED);
                 cleanup(true);
             } else if (state != InsightState.DISCONNECTED) {
-                long disconnectTimeout = sp.getInt("insight_disconnect_delay", 5);
+                long disconnectTimeout = sp.getInt(R.string.key_insight_disconnect_delay, 5);
                 disconnectTimeout = Math.min(disconnectTimeout, 15);
                 disconnectTimeout = Math.max(disconnectTimeout, 0);
                 aapsLogger.info(LTag.PUMP, "Last connection lock released, will disconnect in " + disconnectTimeout + " seconds");

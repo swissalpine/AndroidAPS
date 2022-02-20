@@ -2,41 +2,39 @@ package info.nightscout.androidaps.plugins.general.maintenance
 
 import android.content.Context
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.Config
 import info.nightscout.androidaps.TestBase
+import info.nightscout.androidaps.interfaces.Config
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSSettingsStatus
 import info.nightscout.androidaps.utils.buildHelper.BuildHelper
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
 import java.io.File
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(NSSettingsStatus::class, BuildHelper::class, LoggerUtils::class)
 class MaintenancePluginTest : TestBase() {
 
     @Mock lateinit var injector: HasAndroidInjector
     @Mock lateinit var context: Context
-    @Mock lateinit var resourceHelper: ResourceHelper
+    @Mock lateinit var rh: ResourceHelper
     @Mock lateinit var sp: SP
     @Mock lateinit var nsSettingsStatus: NSSettingsStatus
     @Mock lateinit var buildHelper: BuildHelper
     @Mock lateinit var loggerUtils: LoggerUtils
+    @Mock lateinit var fileListProvider: PrefFileListProvider
+    @Mock lateinit var config: Config
 
     lateinit var sut: MaintenancePlugin
 
     @Before
     fun mock() {
-        sut = MaintenancePlugin(injector, context, resourceHelper, sp, nsSettingsStatus, aapsLogger, buildHelper, Config(), loggerUtils)
+        sut = MaintenancePlugin(injector, context, rh, sp, nsSettingsStatus, aapsLogger, buildHelper, config, fileListProvider, loggerUtils)
         `when`(loggerUtils.suffix).thenReturn(".log.zip")
         `when`(loggerUtils.logDirectory).thenReturn("src/test/res/logger")
+        `when`(fileListProvider.ensureTempDirExists()).thenReturn(File("src/test/res/logger"))
     }
 
     @Test fun logFilesTest() {

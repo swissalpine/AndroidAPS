@@ -29,10 +29,32 @@
 
     <string name="key_email_for_crash_report" translatable="false">email_for_crash_report</string>
     <string name="key_smscommunicator_settings" translatable="false">smscommunicator</string>
-    <string name="key_open_humans_settings" translatable="false">open_humans</string>
     <string name="key_protection_settings" translatable="false">protection</string>
     <string name="key_absorption_category_settings" translatable="false">absorption_category_settings</string>
     <string name="key_insulin_oref_peak_settings" translatable="false">insulin_oref_peak_settings</string>
+    <string name="key_ns_temporary_target_last_synced_id" translatable="false">ns_temporary_target_last_sync</string>
+    <string name="key_ns_temporary_target_new_data_id" translatable="false">temporary_target_new_data_id</string>
+    <string name="key_ns_glucose_value_last_synced_id" translatable="false">ns_glucose_value_last_sync</string>
+    <string name="key_ns_glucose_value_new_data_id" translatable="false">ns_glucose_value_new_data_id</string>
+    <string name="key_ns_food_last_synced_id" translatable="false">ns_food_last_sync</string>
+    <string name="key_ns_therapy_event_last_synced_id" translatable="false">ns_therapy_event_last_sync</string>
+    <string name="key_smscommunicator_remotebolusmindistance" translatable="false">smscommunicator_remotebolusmindistance</string>
+    <string name="key_openapsama_bolussnooze_dia_divisor" translatable="false">bolussnooze_dia_divisor</string>
+    <string name="key_openapsama_autosens_adjusttargets" translatable="false">autosens_adjust_targets</string>
+    <string name="key_ns_bolus_calculator_result_last_synced_id" translatable="false">ns_bolus_calculator_result_last_synced_id</string>
+    <string name="key_ns_carbs_last_synced_id" translatable="false">ns_carbs_last_synced_id</string>
+    <string name="key_ns_bolus_last_synced_id" translatable="false">ns_bolus_last_synced_id</string>
+    <string name="key_ns_device_status_last_synced_id" translatable="false">ns_device_status_last_synced_id</string>
+    <string name="key_ns_temporary_basal_last_synced_id" translatable="false">ns_temporary_basal_last_synced_id</string>
+    <string name="key_ns_temporary_basal_new_data_id" translatable="false">ns_temporary_basal_new_data_id</string>
+    <string name="key_ns_extended_bolus_last_synced_id" translatable="false">ns_extended_bolus_last_synced_id</string>
+    <string name="key_ns_extended_bolus_new_data_id" translatable="false">ns_extended_bolus_new_data_id</string>
+    <string name="key_ns_profile_switch_last_synced_id" translatable="false">profile_switch_last_synced_id</string>
+    <string name="key_ns_effective_profile_switch_last_synced_id" translatable="false">ns_effective_profile_switch_last_synced_id</string>
+    <string name="key_ns_offline_event_last_synced_id" translatable="false">ns_offline_event_last_synced_id</string>
+    <string name="key_ns_profile_store_last_synced_timestamp" translatable="false">ns_profile_store_last_synced_timestamp</string>
+    <string name="key_local_profile_last_change" translatable="false">local_profile_last_change</string>
+    <string name="key_ns_sync_slow" translatable="false">ns_sync_slow</string>
 
     <string name="treatmentssafety_title">Treatments safety</string>
     <string name="treatmentssafety_maxbolus_title">Max allowed bolus [U]</string>
@@ -44,7 +66,6 @@
     <string name="nav_resetdb">Reset Databases</string>
     <string name="reset_db_confirm">Do you really want to reset the databases?</string>
     <string name="nav_exit">Exit</string>
-    <string name="ns_sync_use_absolute_title">Always use basal absolute values</string>
     <string name="alert_dialog_permission_battery_optimization_failed">This device does not appear to support battery optimization whitelisting - you may experience performance issues.</string>
 
     <string name="description_actions">Some buttons to quickly access common features</string>
@@ -59,10 +80,10 @@
     <string name="description_ns_client">Synchronizes your data with Nightscout</string>
     <string name="description_ama">State of the algorithm in 2017</string>
     <string name="description_smb">Most recent algorithm for advanced users</string>
+    <string name="description_smb_dynamic_isf">Most recent algorithm for advanced users with dynamic/automatic ISF</string>
     <string name="description_overview">Displays the current state of your loop and buttons for most common actions</string>
     <string name="description_persistent_notification">Shows an ongoing notification with a short overview of what your loop is doing</string>
     <string name="description_profile_local">Define a profile which is available offline.</string>
-    <string name="description_profile_nightscout">Provides the profile you have defined in Nightscout</string>
     <string name="description_pump_mdi">Pump integration for people who do multiple daily injections for their diabetes therapy</string>
     <string name="description_pump_virtual">Pump integration for pumps which don\'t have any driver yet (Open Loop)</string>
     <string name="description_sensitivity_aaps">Sensitivity is calculated the same way like Oref0, but you can specify timeframe to the past. Minimal carb absorption is calculated from max carb absorption time from preferences.</string>
@@ -93,7 +114,7 @@
     <string name="treatments_wizard_tt_label">TT</string>
     <string name="treatments_wizard_carbs_label">Carbs</string>
     <string name="treatments_wizard_correction_label">Corr</string>
-    <string name="treatments_wizard_bolusiob_label">Bolus IOB</string>
+    <string name="bolus_iob_label">Bolus IOB</string>
     <string name="openapsma_run">Run now</string>
     <string name="vitualpump_label">VIRTUAL PUMP</string>
     <string name="openapsma_lastrun_label">Last run</string>
@@ -112,16 +133,12 @@
 
     <string name="configbuilder">Config Builder</string>
     <string name="overview">Overview</string>
-    <string name="nsprofile">NS Profile</string>
     <string name="treatments">Treatments</string>
     <string name="virtualpump">Virtual Pump</string>
-    <string name="careportal">Careportal</string>
 
 
     <string name="configbuilder_pump">Pump</string>
     <string name="configbuilder_pump_description">Which pump would you like to use with AndroidAPS?</string>
-    <string name="configbuilder_treatments">Treatments</string>
-    <string name="configbuilder_treatments_description">Which plugin should be used for treatment handling?</string>
     <string name="configbuilder_profile">Profile</string>
     <string name="configbuilder_profile_description">Which profile should AndroidAPS use?</string>
     <string name="configbuilder_aps">APS</string>
@@ -131,7 +148,6 @@
     <string name="configbuilder_constraints_description">Which constraints are applied?</string>
     <string name="constraints">Constraints</string>
 
-    <string name="loop">Loop</string>
     <string name="configbuilder_loop">Loop</string>
     <string name="configbuilder_loop_description">Use this to activate AndroidAPS\' loop integration.</string>
     <string name="loop_aps_label">APS</string>
@@ -141,7 +157,7 @@
     <string name="safety">Safety</string>
     <string name="openapsma_disabled">Plugin is disabled</string>
     <string name="constraints_violation">Constraints violation</string>
-    <string name="treatmentdeliveryerror">Bolus delivery error</string>
+    <string name="treatmentdeliveryerror">Bolus reported an error. Manually check real delivered amount</string>
     <string name="setbasalquestion">Accept new temp basal:</string>
     <string name="overview_treatment_label">Treatment</string>
     <string name="overview_calculator_label">Calculator</string>
@@ -154,7 +170,6 @@
     <string name="configbuilder_bgsource_description">Where should AndroidAPS gain  it\'s data from?</string>
     <string name="xdrip">xDrip+</string>
     <string name="apsmode_title">APS Mode</string>
-
     <string name="closedloop">Closed Loop</string>
     <string name="openloop">Open Loop</string>
     <string name="lowglucosesuspend">Low Glucose Suspend</string>
@@ -170,15 +185,16 @@
     <string name="careportal_newnstreatment_other">Other</string>
     <string name="careportal_newnstreatment_meter">Meter</string>
     <string name="careportal_newnstreatment_sensor">Sensor</string>
-    <string name="careportal_newnstreatment_carbtime_label">Carb time</string>
+    <string name="carb_time_label">Carb time</string>
     <string name="careportal_newnstreatment_duration_label">Duration</string>
-    <string name="careportal_newnstreatment_profile_label">Profile</string>
+    <string name="profile_label">Profile</string>
     <string name="careportal_newnstreatment_glucosetype">Glucose type</string>
     <string name="overview_tempbasal_button">TempBasal</string>
     <string name="overview_extendedbolus_button">Extended Bolus</string>
     <string name="configbuilder_nightscoutversion_label">Nightscout version:</string>
     <string name="missing_carbs">Missing %1$d g</string>
     <string name="exported">Preferences exported</string>
+    <string name="ue_exported">User Entries exported</string>
     <string name="export_to">Export settings to</string>
     <string name="import_from">Import settings from</string>
     <string name="setting_imported">Settings imported</string>
@@ -225,7 +241,6 @@
     <string name="smscommunicator_stoppedsms">SMS Remote Service stopped. To reactivate it, use AAPS on master smartphone.</string>
     <string name="smscommunicator_calibrationreplywithcode">To send calibration %1$.2f reply with code %2$s</string>
     <string name="smscommunicator_bolusfailed">Bolus failed</string>
-    <string name="key_smscommunicator_remotebolusmindistance" translatable="false">smscommunicator_remotebolusmindistance</string>
     <string name="smscommunicator_remotebolusmindistance_summary">Minimum number of minutes that must elapse between one remote bolus and the next</string>
     <string name="smscommunicator_remotebolusmindistance">How many minutes must elapse, at least, between one bolus and the next</string>
     <string name="smscommunicator_remotebolusmindistance_caveat">For your safety, to edit this preference you need to add at least 2 phone numbers.</string>
@@ -239,8 +254,6 @@
     <string name="smscommunicator_loophasbeendisabled">Loop has been disabled</string>
     <string name="smscommunicator_loophasbeenenabled">Loop has been enabled</string>
     <string name="smscommunicator_loopisenabled">Loop is enabled</string>
-    <string name="valuelimitedto">%1$.2f limited to %2$.2f</string>
-    <string name="valueoutofrange">»%1$s« is out of hard limits</string>
     <string name="smscommunicator_pumpconnectwithcode">To connect pump reply with code %1$s</string>
     <string name="smscommunicator_pumpconnectfail">Connection to pump failed</string>
     <string name="smscommunicator_pumpdisconnectwithcode">To disconnect pump for %1$d minutes reply with code %2$s</string>
@@ -301,7 +314,7 @@
     <string name="wear">Wear</string>
     <string name="resend_all_data">Resend All Data</string>
     <string name="open_settings_on_wear">Open Settings on Wear</string>
-    <string name="basal_rate">Basal rate:</string>
+    <string name="basal_rate">Basal rate</string>
     <string name="basalvaluebelowminimum">Basal value below minimum. Profile not set!</string>
     <string name="sms_actualbg">BG:</string>
     <string name="sms_lastbg">Last BG:</string>
@@ -310,17 +323,14 @@
     <string name="ongoingnotificaction">Ongoing Notification</string>
     <string name="old_data">OLD DATA</string>
     <string name="sms_minago">%1$dmin ago</string>
-    <string name="localprofile">Local Profile</string>
+    <string name="localprofile">Profile</string>
     <string name="openapsama">OpenAPS AMA</string>
     <string name="array_of_elements">Array of %1$d elements.\nActual value:</string>
     <string name="openapsma_autosensdata_label">Autosens data</string>
     <string name="openapsma_scriptdebugdata_label">Script debug</string>
     <string name="openapsama_useautosens">Use Autosens feature</string>
-    <string name="refresheventsfromnightscout">Refresh events from NS</string>
+    <string name="refresheventsfromnightscout">Refresh from NS</string>
     <string name="deletefuturetreatments">Delete treatments in the future</string>
-    <string name="eatingsoon">Eating Soon</string>
-    <string name="hypo">Hypo</string>
-    <string name="activity">Activity</string>
     <string name="actions_shortname">ACT</string>
     <string name="configbuilder_shortname">CONF</string>
     <string name="loop_shortname">LOOP</string>
@@ -328,7 +338,6 @@
     <string name="localprofile_shortname">LP</string>
     <string name="overview_shortname">HOME</string>
     <string name="virtualpump_shortname">VPUMP</string>
-    <string name="profileviewer_shortname">NSPROFILE</string>
     <string name="treatments_shortname">TREAT</string>
     <string name="objectives_shortname">OBJ</string>
     <string name="wear_shortname">WEAR</string>
@@ -341,10 +350,8 @@
     <string name="openapsama_current_basal_safety_multiplier_summary">Default value: 4 This is the other half of the key OpenAPS safety caps, and the other half of “3x max daily; 4x current” of the safety caps. This means your basal, regardless of max basal set on your pump, cannot be any higher than this number times the current level of your basal. This is to prevent people from getting into dangerous territory by setting excessively high max basals before understanding how the algorithm works. Again, the default is 4x; most people will never need to adjust this and are instead more likely to need to adjust other settings if they feel like they are “running into” this safety cap.</string>
     <string name="openapsama_autosens_max_summary">Default value: 1.2\nThis is a multiplier cap for autosens (and soon autotune) to set a 20%% max limit on how high the autosens ratio can be, which in turn determines how high autosens can adjust basals, how low it can adjust ISF, and how low it can set the BG target.</string>
     <string name="openapsama_autosens_min_summary">Default value: 0.7\nThe other side of the autosens safety limits, putting a cap on how low autosens can adjust basals, and how high it can adjust ISF and BG targets.</string>
-    <string name="key_openapsama_autosens_adjusttargets" translatable="false">autosens_adjust_targets</string>
     <string name="openapsama_autosens_adjusttargets">Autosens adjust targets, too</string>
     <string name="openapsama_autosens_adjusttargets_summary">Default value: true\nThis is used to allow autosens to adjust BG targets, in addition to ISF and basals.</string>
-    <string name="key_openapsama_bolussnooze_dia_divisor" translatable="false">bolussnooze_dia_divisor</string>
     <string name="openapsama_bolussnooze_dia_divisor_summary">Default value: 2\nBolus snooze is enacted after you do a meal bolus, so the loop won’t counteract with low temps when you’ve just eaten. The example here and default is 2; so a 3 hour DIA means that bolus snooze will be gradually phased out over 1.5 hours (3DIA/2).</string>
     <string name="openapsama_min_5m_carbimpact" translatable="false">min_5m_carbimpact</string>
     <string name="openapsama_min_5m_carbimpact_summary">Default value: 3.0 (AMA) or 8.0 (SMB). This is a setting for default carb absorption impact per 5 minutes. The default is an expected 3mg/dl/5min. This affects how fast COB are decayed, and how much carb absorption is assumed in calculating future predicted BG, when BG is falling more than expected, or not rising as much as expected.</string>
@@ -395,12 +402,6 @@
     <string name="adult">Adult</string>
     <string name="resistantadult">Insulin resistant adult</string>
     <string name="pregnant">Pregnancy</string>
-    <string name="key_age" translatable="false">age</string>
-    <string name="key_child" translatable="false">child</string>
-    <string name="key_teenage" translatable="false">teenage</string>
-    <string name="key_adult" translatable="false">adult</string>
-    <string name="key_resistantadult" translatable="false">resistantadult</string>
-    <string name="key_pregnant" translatable="false">pregnant</string>
     <string name="patientage_summary">Please select patient type to setup safety limits</string>
     <string name="patient_name">Patient name</string>
     <string name="patient_name_summary">Please provide patient name or nickname to differentiate among multiple setups</string>
@@ -432,7 +433,7 @@
     <string name="smscommunicator_wrongduration">Wrong duration</string>
     <string name="smscommunicator_loopsuspended">Loop suspended</string>
     <string name="smscommunicator_loopresumed">Loop resumed</string>
-    <string name="treatments_wizard_bgtrend_label">15min trend</string>
+    <string name="bg_trend_label">15min trend</string>
     <string name="treatments_wizard_cob_label">COB</string>
     <string name="superbolus">Superbolus</string>
     <string name="ns_logappstartedevent">Log app start to NS</string>
@@ -489,10 +490,6 @@
     <string name="xdripstatus_shortname">xds</string>
     <string name="wear_showbgi_title">Show BGI</string>
     <string name="wear_showbgi_summary">Add BGI to status line</string>
-    <string name="ns_noupload">No upload to NS</string>
-    <string name="ns_noupload_summary">All data sent to NS are dropped. AAPS is connected to NS but no change in NS is done</string>
-    <string name="key_ns_upload_only" translatable="false">ns_upload_only2</string>
-    <string name="key_ns_noupload" translatable="false">ns_noupload</string>
     <string name="overview_extendedbolus_cancel_button">Cancel Extended Bolus</string>
     <string name="doprofileswitch">Do Profile Switch</string>
     <string name="careportal_sensor_label">Sensor</string>
@@ -513,7 +510,6 @@
     <string name="openapsama_autosens_period_summary">Amount of hours in the past for sensitivity detection (carbs absorption time is excluded)</string>
     <string name="key_openapsama_autosens_period" translatable="false">openapsama_autosens_period</string>
     <string name="key_nsclient_localbroadcasts" translatable="false">nsclient_localbroadcasts</string>
-    <string name="pump">Pump</string>
     <string name="openaps">OpenAPS</string>
     <string name="uploader">Uploader</string>
     <string name="configbuilder_sensitivity">Sensitivity detection</string>
@@ -540,6 +536,7 @@
     <string name="ns_localbroadcasts">Enable broadcasts to other apps (like xDrip+). Do not enable if you have more than one instance of AAPS or NSClient installed!</string>
     <string name="ns_localbroadcasts_title">Enable local Broadcasts.</string>
     <string name="openapssmb">OpenAPS SMB</string>
+    <string name="openaps_smb_dynamic_isf">OpenAPS SMB Dynamic ISF</string>
     <string name="key_use_smb" translatable="false">use_smb</string>
     <string name="key_use_uam" translatable="false">use_uam</string>
     <string name="key_smb_enable_carbs_suggestions_threshold" translatable="false">smb_enable_carbs_suggestions_threshold</string>
@@ -612,6 +609,7 @@
     <string name="key_dexcomg5_xdripupload" translatable="false">dexcomg5_xdripupload</string>
     <string name="dexcomg5_xdripupload_summary">In xDrip+ select 640g/Eversense data source</string>
     <string name="nsclientbg">NSClient BG</string>
+    <string name="nsclientbgshort">NS BG</string>
     <string name="overview_editquickwizard_usebg">BG calculation</string>
     <string name="overview_editquickwizard_usebolusiob">Bolus IOB calculation</string>
     <string name="overview_editquickwizard_usebasaliob">Basal IOB calculation</string>
@@ -621,6 +619,7 @@
     <string name="negativeonly">Negative only</string>
     <string name="overview_editquickwizard_usecob">COB calculation</string>
     <string name="overview_editquickwizard_usetemptarget">Temporary target calculation</string>
+    <string name="overview_editquickwizard_usepercentage">Percentage calculation</string>
     <string name="loopenabled">Loop enabled</string>
     <string name="apsselected">APS selected</string>
     <string name="nsclienthaswritepermission">NSClient has write permission</string>
@@ -651,8 +650,8 @@
     <string name="key_show_wizard_button" translatable="false">show_wizard_button</string>
     <string name="key_show_insulin_button" translatable="false">show_insulin_button</string>
     <string name="key_show_treatment_button" translatable="false">show_treatment_button</string>
-    <string name="show_calibration_button_summary">Sends a calibration to xDrip+ or open G5 calibration dialog</string>
-    <string name="show_cgm_button_summary">Opens xDrip+, back buttons returns to AAPS</string>
+    <string name="show_calibration_button_summary">Sends a calibration to xDrip+ or open BYODA calibration dialog</string>
+    <string name="show_cgm_button_summary">Opens xDrip+ or BYODA, back buttons returns to AAPS</string>
     <string name="key_insulin_button_increment_1" translatable="false">insulin_button_increment_1</string>
     <string name="key_insulin_button_increment_2" translatable="false">insulin_button_increment_2</string>
     <string name="key_insulin_button_increment_3" translatable="false">insulin_button_increment_3</string>
@@ -690,8 +689,6 @@
     <string name="category">Category</string>
     <string name="subcategory">Subcategory</string>
     <string name="bolusrecordedonly">Bolus will be recorded only (not delivered by pump)</string>
-    <string name="ns_autobackfill_summary">Autobackfill missig BGs from NS</string>
-    <string name="key_ns_autobackfill" translatable="false">ns_autobackfill</string>
     <string name="loop_smbsetbypump_label">SMB set by pump</string>
     <string name="overview_show_activity">Activity</string>
     <string name="overview_show_bgi">Blood Glucose Impact</string>
@@ -703,7 +700,6 @@
     <string name="no_action_selected">No action selected, nothing will happen</string>
     <string name="start_hypo_tt">Start Hypo TT</string>
     <string name="closed_loop_disabled_on_dev_branch">Running dev version. Closed loop is disabled.</string>
-    <string name="key_fromNSAreCommingFakedExtendedBoluses" translatable="false">fromNSAreCommingFakedExtendedBoluses</string>
     <string name="engineering_mode_enabled">Engineering mode enabled</string>
     <string name="profileswitch_ismissing">ProfileSwitch missing. Please do a profile switch or press \"Activate Profile\" in the LocalProfile.</string>
     <string name="pumpisnottempbasalcapable">Pump is not temp basal capable</string>
@@ -774,7 +770,6 @@
     <string name="virtualpump_type">Virtual Pump Type</string>
     <string name="virtualpump_definition">Pump Definition</string>
     <string name="virtualpump_pump_def">Bolus: Step=%1$s\nExtended Bolus: [Step=%2$s, Duration=%3$smin-%4$sh]\nBasal: Step=%5$s\nTBR: %6$s (by %7$s), Duration=%8$smin-%9$sh\n%10$s</string>
-    <string name="ns_autobackfill_title">Autobackfill BG</string>
     <string name="wear_wizard_settings">Wizard Settings</string>
     <string name="key_wearwizard_bg" translatable="false">wearwizard_bg</string>
     <string name="key_wearwizard_tt" translatable="false">wearwizard_tt</string>
@@ -788,15 +783,13 @@
     <string name="enable_nsclient">Enable NSClient</string>
     <string name="welcometosetupwizard">Welcome to setup wizard. It will guide you through the setup process\n</string>
     <string name="readstatus">Read status</string>
-    <string name="adjustprofileinns">Changes must be done in NS</string>
     <string name="exitwizard">Skip setup wizard</string>
     <string name="setupwizard_loop_description">Press the button below to enable AndroidAPS to suggest/make basal changes</string>
     <string name="key_setupwizard_processed" translatable="false">startupwizard_processed</string>
     <string name="setupwizard_sensitivity_description">Sensitivity plugin is used for sensitivity detection and COB calculation. For more info visit:</string>
-    <string name="setupwizard_sensitivity_url">https://github.com/MilosKozak/AndroidAPS/wiki/Sensitivity-detection-and-COB</string>
+    <string name="setupwizard_sensitivity_url">https://androidaps.readthedocs.io/en/latest/Configuration/Sensitivity-detection-and-COB.html</string>
     <string name="nsclientinfotext">NSClient handles connection to Nightscout. You can skip this part now but you will not be able to pass objectives until you set it up.</string>
     <string name="diawarning">Please remember: new insulin profiles require DIA at least 5h. DIA 5–6h on new profile is equal to DIA 3h on old insulin profiles.</string>
-    <string name="setupwizard_profile_description">Please select source of profile. If patient is a child you should use NS profile. If there is nobody following you on Nightscout you will probably prefer Local profile. Please remember that you are only selecting the profile source. To use it you must activate it by executing \"Profile switch\"</string>
     <string name="setupwizard_aps_description">Select one from availables algorithms. They are sorted from oldest to newest. Newer algorithm is usually more powerful and more aggressive. Thus if you are new looper you may probably start with AMA and not with latest one. Do not forget to read the OpenAPS documentation and configure it before use.</string>
     <string name="setupwizard_pump_waiting_for_riley_link_connection">Please configure your RileyLink below. After selecting a RileyLink, it will be possible to continue setup once the RileyLink status is \"Connected\". This might take a minute.\n</string>
     <string name="setupwizard_pump_pump_not_initialized"><b>Note:</b> You can continue setup once the pump has been set up.\n</string>
@@ -806,6 +799,7 @@
     <string name="needsystemwindowpermission">Application needs system window permission for notifications</string>
     <string name="needlocationpermission">Application needs location permission for BT scan and WiFi identification</string>
     <string name="needstoragepermission">Application needs storage permission to be able store log files and export settings</string>
+    <string name="needconnectpermission">Application needs bluetooth permission</string>
     <string name="request">Request</string>
     <string name="open_navigation">Open navigation</string>
     <string name="close_navigation">Close navigation</string>
@@ -815,6 +809,8 @@
     <string name="time_elapsed">Time elapsed</string>
     <string name="poctech">Poctech</string>
     <string name="description_source_poctech">Receive BG values from Poctech app</string>
+    <string name="glunovo">Glunovo</string>
+    <string name="description_source_glunovo">Receive values from Glunovo app</string>
     <string name="description_source_tomato">Receive BG values from Tomato app (MiaoMiao device)</string>
     <string name="key_high_temptarget_raises_sensitivity" translatable="false">high_temptarget_raises_sensitivity</string>
     <string name="key_low_temptarget_lowers_sensitivity" translatable="false">low_temptarget_lowers_sensitivity</string>
@@ -835,8 +831,6 @@
     <string name="error_adding_treatment_title">Treatment data incomplete</string>
     <string name="maintenance_settings">Maintenance Settings</string>
     <string name="maintenance_email">Email recipient</string>
-    <string name="key_maintenance_encrypt_exported_prefs" translatable="false">maintenance_encrypt_exported_prefs</string>
-    <string name="maintenance_encrypt_exported_prefs">Encrypt exported settings</string>
     <string name="key_maintenance_logs_email" translatable="false">maintenance_logs_email</string>
     <string name="key_maintenance_logs_amount" translatable="false">maintenance_logs_amount</string>
     <string name="key_logshipper_amount" translatable="false">logshipper_amount</string>
@@ -854,6 +848,7 @@
     <string name="resettodefaults">Reset to defaults</string>
     <string name="nsmalfunction">NSClient malfunction. Consider NS and NSClient restart.</string>
     <string name="time_offset">Time offset</string>
+    <string name="bolus_reminder">Remind to bolus later</string>
     <string name="key_aps_mode" translatable="false">aps_mode</string>
     <string name="setupwizard_preferred_aps_mode">Preferred APS mode</string>
     <string name="treatments_wizard_total_label">Total</string>
@@ -914,12 +909,13 @@
 
     <string name="old_version">old version</string>
     <string name="very_old_version">very old version</string>
+    <string name="application_expired">Application expired</string>
     <string name="new_version_warning">New version for at least %1$d days available! Fallback to LGS after %2$d days, loop will be disabled after %3$d days</string>
     <string name="twohours">2h</string>
 
-    <string name="dexcom_app_patched">Dexcom App (patched)</string>
-    <string name="dexcom_short">DXCM</string>
-    <string name="description_source_dexcom">Receive BG values from the patched Dexcom app.</string>
+    <string name="dexcom_app_patched">BYODA</string>
+    <string name="dexcom_short">BYODA</string>
+    <string name="description_source_dexcom">Receive BG values from the \'Build Your Own Dexcom App\'.</string>
 
     <string name="cobvsiob">COB vs IOB</string>
     <string name="bolusconstraintappliedwarn">Bolus constraint applied: %1$.2f U to %2$.2f U</string>
@@ -935,18 +931,17 @@
     <string name="format_carbs_ic">%1$.0fg IC: %2$.1f</string>
     <string name="format_cob_ic">%1$.1fg IC: %2$.1f</string>
     <string name="format_percent">%1$d%%</string>
-    <string name="boluswizard">Bolus wizard</string>
     <string name="unit_minute_short">min</string>
     <string name="profile_name">Profile name:</string>
     <string name="selected_profile">Selected:</string>
     <string name="unitsnosemicolon">Units</string>
     <string name="doyouwantswitchprofile">Do you want to switch profile and discard changes made to current profile?</string>
     <string name="key_wizard_calculation_visible" translatable="false">wizard_calculation_visible</string>
+    <string name="key_wizard_correction_percent" translatable="false">wizard_correction_percent</string>
     <string name="objectives_button_unfinish">Clear finished</string>
     <string name="objectives_button_unstart">Clear started</string>
     <string name="doyouwantresetstart">Do you want reset objective start? You may lose your progress.</string>
     <string name="setupwizard_units_prompt">Select units you want to display values in</string>
-    <string name="ns_ploadlocalprofile">Upload local profile changes to NS</string>
     <string name="key_wear_detailediob" translatable="false">wear_detailediob</string>
     <string name="key_wear_showbgi" translatable="false">wear_showbgi</string>
     <string name="dia_short">DIA</string>
@@ -956,13 +951,13 @@
     <string name="clone_label">Clone</string>
     <string name="saveorresetchangesfirst">Save or reset current changes first</string>
     <string name="deletecurrentprofile">Delete current profile?</string>
-    <string name="copytolocalprofile">Create new local profile from this profile?</string>
+    <string name="copytolocalprofile">Create new profile from this profile?</string>
     <string name="profilenamecontainsdot">Profile name contains dots.\nThis is not supported by NS.\nProfile is not uploaded to NS.</string>
     <string name="low_mark_comment">Lower value of in range area (display only)</string>
     <string name="high_mark_comment">Higher value of in range area (display only)</string>
 
-    <string name="age">Age:</string>
-    <string name="weight_label">Weight:</string>
+    <string name="age">Age</string>
+    <string name="weight_label">Weight</string>
     <string name="id">ID:</string>
     <string name="submit">Submit</string>
     <string name="mostcommonprofile">Most common profile:</string>
@@ -981,6 +976,7 @@
     <string name="randombg_short">BG</string>
     <string name="tools">Tools</string>
     <string name="show_calculation">Show calcuation</string>
+    <string name="show_removed">Show removed</string>
     <string name="clearqueueconfirm">Clear queue? All data in queue will be lost!</string>
     <string name="key_xdripstatus_detailediob" translatable="false">xdripstatus_detailediob</string>
     <string name="key_xdripstatus_showbgi" translatable="false">xdripstatus_showbgi</string>
@@ -1060,39 +1056,9 @@
     <string name="basalpctfromtdd_label">% of basal</string>
     <string name="dpvdefaultprofile">DPV Default profile</string>
 
-    <string name="open_humans">Open Humans</string>
-    <string name="finishing_open_humans_setup">Finishing Open Humans setup…</string>
-    <string name="this_may_take_a_while">This may take a while. Do not turn your phone or this plugin off.</string>
-    <string name="setup_finished">Setup finished</string>
-    <string name="your_phone_will_upload_data">Your phone will upload data to Open Humans soon.</string>
-    <string name="your_phone_is_upload_data">Your phone is uploading data to Open Humans now.</string>
-    <string name="setup_failed">Setup failed</string>
-    <string name="there_was_an_error">There was an error. Please try to log in again in order to proceed. Sorry &amp; Thank you!</string>
-    <string name="open_humans_terms">This is an open source tool that will copy your data to Open Humans. We retain no rights to share your data with third parties without your explicit authorization. The data the project and app receive are identified via a random user ID and will only be securely transmitted to an Open Humans account with your authorization of that process. You can stop uploading and delete your upload data at any time via www.openhumans.org.</string>
-    <string name="i_understand_and_agree">I understand and agree.</string>
-    <string name="login">Login</string>
-    <string name="logout">Logout</string>
-    <string name="oh_logout_confirmation">Do you really want to log out and stop donating data to science?</string>
-    <string name="project_member_id">Project Member ID: %s</string>
-    <string name="queue_size">Queue Size: %d</string>
-    <string name="terms_of_use">Terms of Use</string>
-    <string name="not_logged_in">Not logged in</string>
-    <string name="you_need_to_accept_the_of_use_first">You need to accept the terms of use first.</string>
-    <string name="successfully_logged_in">Successfully logged in</string>
-    <string name="setup_will_continue_in_background">The setup will be completed in background now. Thanks for uploading your data.\n\nPlease keep this plugin and your phone turned on for a short while for the setup to complete.</string>
-    <string name="completing_login">Completing login…</string>
-    <string name="donate_your_data_to_science">Donate your data to science</string>
-    <string name="open_humans_short">OH</string>
-    <string name="you_have_been_signed_out_of_open_humans">You have been signed out of Open Humans</string>
-    <string name="click_here_to_sign_in_again_if_this_wasnt_on_purpose">Click here to sign in again if this wasn\'t on purpose.</string>
-    <string name="only_upload_if_connected_to_wifi">Only upload if connected to WiFi</string>
-    <string name="only_upload_if_charging">Only upload if charging</string>
-    <string name="worker_state">Worker State: %s</string>
-    <string name="uploaded_data">Uploaded Data</string>
-    <string name="the_following_data_will_be_uploaded_to_your_open_humans_account">The following data will be uploaded to your Open Humans account: Glucose values, boluses, carbs, careportal events (except notes), extended boluses, profile switches, total daily doses, temporary basals, temp targets, preferences, application version, device model and screen dimensions. Secret or private information such as your Nightscout URL or API secret will not be uploaded.</string>
     <string name="setupwizard_pump_riley_link_status">RileyLink status:</string>
     <string name="filter">Filter</string>
-    <string name="copytolocalprofile_invalid">Unable to create local profile. Profile is invalid.</string>
+    <string name="copytolocalprofile_invalid">Unable to create profile. Profile is invalid.</string>
     <string name="cta_dont_kill_my_app_info">Don\'t kill my app?</string>
     <string name="key_smscommunicator_report_pump_ureachable" translatable="false">smscommunicator_report_pump_ureachable</string>
     <string name="smscommunicator_report_pump_ureachable_summary">Send SMS if unreachable pump event is triggered</string>
@@ -1106,6 +1072,12 @@
     <string name="enablebolusadvisor_summary">Use reminder to start eating later instead of wizard result during high glycemia ("pre-bolus")</string>
     <string name="time_to_eat">Time to eat!\nRun Bolus wizard and do calculation again.</string>
     <string name="timetoeat">Time to eat</string>
+    <string name="bolusreminder">Bolus reminder</string>
+    <string name="key_usebolusreminder" translatable="false">use_bolus_reminder</string>
+    <string name="enablebolusreminder">Enable bolus reminder</string>
+    <string name="enablebolusreminder_summary">Use reminder to bolus later with wizard
+        ("post-bolus")</string>
+    <string name="time_to_bolus">Time to bolus!\nRun Bolus wizard and do calculation again.</string>
     <string name="fabric_upload_disabled">Crash logs upload disabled!</string>
     <string name="graph_menu_divider_header">Graph</string>
     <string name="chart_menu">Chart menu</string>
@@ -1114,19 +1086,125 @@
     <string name="cannula">Cannula</string>
     <string name="userentry">User entry</string>
     <string name="common_values">Use values of your largest food you usually eat\n</string>
-    <string name="summary_email_for_crash_report">This email address will attached to crash reports so we can contact you in urgent cases. It\'s optional.</string>
+    <string name="summary_email_for_crash_report">This identification will attached to crash reports so we can contact you in urgent cases. It\'s optional.</string>
     <string name="email_address">Email address</string>
     <string name="privacy_settings">Privacy setting</string>
     <string name="privacy_summary">You can provide optional email address if you want to be notified about app crashes. This is not an automated service. You will be contacted by developers in dangerous situations.</string>
-    <string name="profile_low_target">Profile low target</string>
-    <string name="profile_high_target">Profile high target</string>
-    <string name="temp_target_low_target">Temporary target bottom value</string>
-    <string name="temp_target_high_target">Temporary target top value</string>
-    <string name="temp_target_value">Temporary target value</string>
-    <string name="profile_dia">Profile DIA value</string>
-    <string name="profile_sensitivity_value">Profile sensitivity value</string>
-    <string name="profile_max_daily_basal_value">Maximal profile basal value</string>
-    <string name="current_basal_value">Current basal value</string>
-    <string name="profile_carbs_ratio_value">Profile carbs ratio value</string>
+    <string name="full_sync">Full synchronization</string>
+    <string name="full_sync_comment">Full synchronization? It may take many hours and until finish you\'ll not see new data in NS.</string>
+    <string name="prime">Prime</string>
+    <string name="ns_sync_options">Synchronization</string>
+    <string name="key_ns_upload" translatable="false">ns_upload</string>
+    <string name="ns_upload_summary">Profiles, boluses, carbs, temporary basals are uploaded to NS</string>
+    <string name="ns_upload">Upload data to NS</string>
+    <string name="key_ns_receive_profile_store" translatable="false">ns_receive_profile_store</string>
+    <string name="ns_receive_profile_store">Receive profile store</string>
+    <string name="ns_receive_profile_store_summary">Synchronize profiles from NS profile editor</string>
+    <string name="key_ns_receive_temp_target" translatable="false">ns_receive_temp_target</string>
+    <string name="ns_receive_temp_target">Receive temporary targets</string>
+    <string name="ns_receive_temp_target_summary">Accept temporary targets entered through NS or NSClient</string>
+    <string name="key_ns_receive_profile_switch" translatable="false">ns_receive_profile_switch</string>
+    <string name="key_ns_receive_offline_event" translatable="false">ns_receive_offline_event</string>
+    <string name="ns_receive_profile_switch">Receive profile switches</string>
+    <string name="ns_receive_profile_switch_summary">Accept profile switches entered through NS or NSClient</string>
+    <string name="ns_receive_offline_event">Receive APS offline events</string>
+    <string name="ns_receive_offline_event_summary">Accept APS Offline events entered through NS or NSClient</string>
+    <string name="key_ns_receive_insulin" translatable="false">ns_receive_insulin</string>
+    <string name="ns_receive_insulin">Receive insulin</string>
+    <string name="ns_receive_insulin_summary">Accept insulin entered through NS or NSClient (it\'s not delivered, only calculated towards IOB)</string>
+    <string name="key_ns_receive_carbs" translatable="false">ns_receive_carbs</string>
+    <string name="ns_receive_carbs">Receive carbs</string>
+    <string name="ns_receive_carbs_summary">Accept carbs entered through NS or NSClient</string>
+    <string name="key_ns_receive_therapy_events" translatable="false">ns_receive_therapy_events</string>
+    <string name="ns_receive_therapy_events">Receive therapy events</string>
+    <string name="ns_receive_therapy_events_summary">Accept therapy events (cannula, insulin, battery change etc) entered through NS or NSClient</string>
+    <string name="key_ns_receive_cgm" translatable="false">ns_receive_cgm</string>
+    <string name="ns_receive_cgm">Receive/backfill CGM data</string>
+    <string name="ns_receive_cgm_summary">Accept CGM data from NS</string>
+    <string name="sms_timeout_while_wating">Timeout while waiting for finish of previous pump communication</string>
+    <string name="smscommunicator_another_bolus_in_queue">There is another bolus in queue. Try again later.</string>
+    <string name="calculation_in_progress">Calculation in progress</string>
+    <string name="missing_profile_name">Missing profile name</string>
+    <string name="error_in_ic_values">Error in IC values</string>
+    <string name="error_in_basal_values">Error in basal values</string>
+    <string name="error_in_target_values">Error in target values</string>
+    <string name="error_in_isf_values">Error in ISF values</string>
+    <string name="run_question">Run %s?</string>
+    <string name="invalid_profile_not_accepted">Invalid profile %1$s not accepted from NS</string>
+    <string name="view">View</string>
+    <string name="errors">Errors</string>
+    <string name="ns_sync_slow">Slow down uploads</string>
+    <string name="data_status">BG data status</string>
+    <string name="statuslights_cannula_age">cannula age</string>
+    <string name="statuslights_patch_pump_age">patch pump age</string>
+    <string name="patch_pump">Patch pump</string>
+    <string name="recalculated_data_used">Recalculated data used</string>
+    <string name="bg_too_close">BG too close:\n%1$s\n%2$s</string>
+    <string name="key_last_processed_glunovo_timestamp" translatable="false">last_processed_glunovo_timestamp</string>
+    <string name="identification">Identification (email, FB or Discord nick etc)</string>
+    <string name="identification_not_set">Identification not set in dev mode</string>
+    <string name="a11y_dialog">dialog</string>
+    <string name="a11y_current_bg">current blood glucose</string>
+    <string name="a11_correction_percentage">correct outcome with %</string>
+    <string name="a11_correction_units">correct outcome with units</string>
+    <string name="not_available_full">Not available</string>
+    <string name="a11y_high">high</string>
+    <string name="a11y_inrange">in range</string>
+    <string name="a11y_low">low</string>
+    <string name="a11y_arrow_double_down">falling rapidly</string>
+    <string name="a11y_arrow_single_down">falling</string>
+    <string name="a11y_arrow_forty_five_down">falling slowly</string>
+    <string name="a11y_arrow_flat">stable</string>
+    <string name="a11y_arrow_forty_five_up">rising slowly</string>
+    <string name="a11y_arrow_single_up">rising</string>
+    <string name="a11y_arrow_double_up">rising rapidly</string>
+    <string name="a11y_arrow_none">none</string>
+    <string name="a11y_arrow_unknown">unknown</string>
+    <string name="a11y_graph">graph</string>
+    <string name="a11y_bg_quality">blood glucose quality</string>
+    <string name="a11y_bg_quality_recalculated">recalculated</string>
+    <string name="a11y_bg_quality_doubles">double entries</string>
+    <string name="a11y_insulin_label">insulin</string>
+    <string name="a11y_blood_glucose">blood glucose</string>
+    <string name="a11y_bg_outdated">outdated</string>
+    <string name="a11y_carb_reminder">set reminder</string>
+    <string name="a11y_add_new_profile">add new profile</string>
+    <string name="a11y_clone_profile">clone current profile</string>
+    <string name="a11y_delete_current_profile">delete current profile</string>
+    <string name="a11y_add_new_to_list">add new to list</string>
 
+    <!-- WEAR OS-->
+    <string name="wear_action_tempt_preset_error">Temptarget unknown preset: %1$s</string>
+    <string name="wear_action_tempt_cancel_message">Cancelling running Temp-Targets?</string>
+    <string name="wear_action_tempt_unit_error">Different units used on watch and phone!</string>
+    <string name="wear_action_tempt_zero_message">Zero-Temp-Target - cancelling running Temp-Targets?</string>
+    <string name="wear_action_tempt_min_bg_error">Min-BG out of range!</string>
+    <string name="wear_action_tempt_max_bg_error">Max-BG out of range!</string>
+    <string name="wear_action_tempt_manual_range_message">Temptarget:\nMin: %1$s\nMax: %2$s\nDuration: %3$s</string>
+    <string name="wear_action_tempt_manual_message">Temptarget:\nTarget: %1$s\nDuration: %2$s</string>
+    <string name="wear_action_tempt_preset_message">Temptarget:\Reason: %1$s\nTarget: %2$s\nDuration: %3$s</string>
+    <string name="quick_wizard_message">QuickWizard: %1$s\nInsulin: %2$.2fU\nCarbs: %3$dg</string>
+    <string name="wizard_result">Calc. Wizard:\nInsulin: %1$.2fU\nCarbs: %2$dg</string>
+    <string name="overview_editquickwizard_show_on_device">Show entry on device:</string>
+    <string name="quick_wizard_not_available">Selected quickwizard no longer available, please refresh your tile</string>
+    <string name="wizard_no_actual_bg">No recent BG to base calculation on!</string>
+    <string name="wizard_no_active_profile">No active profile set!</string>
+    <string name="wizard_no_cob">Unknown COB! BG reading missing or recent app restart?</string>
+    <string name="wizard_carbs_constraint">Carb constraint violation!</string>
+    <string name="wizard_explain_calc">Calc (IC: %2$.1f, ISF: %2$.1f) from:"</string>
+    <string name="wizard_explain_carbs">Carbs: %1$.2fU</string>
+    <string name="wizard_explain_cob">COB: %1$.0fg %2$.2fU</string>
+    <string name="wizard_explain_bg">BG: %1$.2fU</string>
+    <string name="wizard_explain_basal_iob">Basal IOB: %1$.2fU</string>
+    <string name="wizard_explain_bolus_iob">Bolus IOB: %1$.2fU</string>
+    <string name="wizard_explain_superbolus">Superbolus: %1$.2fU</string>
+    <string name="wizard_explain_trend">15\' trend: %1$.2fU</string>
+    <string name="wizard_explain_percent">Percentage: %1$.2fU x %2$d%% ≈ %3$.2fU</string>
+    <string name="wizard_constraint_bolus_size">Insulin constraint violation!\nCannot deliver %1$.2fU</string>
+    <string name="wizard_explain_tt">TempT: %1$s</string>
+    <string name="wizard_explain_tt_to">%1$s to %2$s</string>
+    <string name="wizard_pump_not_available">No pump available!</string>
+    <string name="wear_unknown_action_string">Unknown action command:</string>
+    <string name="overview_editquickwizard_percentage">Percentage</string>
+    <string name="app_default">Application default</string>
 </resources>

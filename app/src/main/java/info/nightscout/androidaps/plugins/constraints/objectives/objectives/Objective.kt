@@ -12,7 +12,7 @@ import info.nightscout.androidaps.R
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.T
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.floor
@@ -20,7 +20,8 @@ import kotlin.math.floor
 abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRes objective: Int, @StringRes gate: Int) {
 
     @Inject lateinit var sp: SP
-    @Inject lateinit var resourceHelper: ResourceHelper
+    @Inject lateinit var rh: ResourceHelper
+    @Inject lateinit var dateUtil: DateUtil
 
     private val spName: String
     @StringRes val objective: Int
@@ -55,7 +56,7 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
         this.gate = gate
         startedOn = sp.getLong("Objectives_" + spName + "_started", 0L)
         accomplishedOn = sp.getLong("Objectives_" + spName + "_accomplished", 0L)
-        if (accomplishedOn - DateUtil.now() > T.hours(3).msecs() || startedOn - DateUtil.now() > T.hours(3).msecs()) { // more than 3 hours in the future
+        if (accomplishedOn - dateUtil.now() > T.hours(3).msecs() || startedOn - dateUtil.now() > T.hours(3).msecs()) { // more than 3 hours in the future
             startedOn = 0
             accomplishedOn = 0
         }
@@ -69,7 +70,7 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
     }
 
     val isAccomplished: Boolean
-        get() = accomplishedOn != 0L && accomplishedOn < DateUtil.now()
+        get() = accomplishedOn != 0L && accomplishedOn < dateUtil.now()
     val isStarted: Boolean
         get() = startedOn != 0L
 
@@ -85,10 +86,10 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
 
         abstract fun isCompleted(): Boolean
 
-        open fun isCompleted(trueTime: Long): Boolean = isCompleted
+        open fun isCompleted(trueTime: Long): Boolean = isCompleted()
 
         open val progress: String
-            get() = resourceHelper.gs(if (isCompleted) R.string.completed_well_done else R.string.not_completed_yet)
+            get() = rh.gs(if (isCompleted()) R.string.completed_well_done else R.string.not_completed_yet)
 
         fun hint(hint: Hint): Task {
             hints.add(hint)
@@ -116,9 +117,9 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
             val hours = floor(duration.toDouble() / T.hours(1).msecs()).toInt()
             val minutes = floor(duration.toDouble() / T.mins(1).msecs()).toInt()
             return when {
-                days > 0  -> resourceHelper.gq(R.plurals.days, days, days)
-                hours > 0 -> resourceHelper.gq(R.plurals.hours, hours, hours)
-                else      -> resourceHelper.gq(R.plurals.minutes, minutes, minutes)
+                days > 0  -> rh.gq(R.plurals.days, days, days)
+                hours > 0 -> rh.gq(R.plurals.hours, hours, hours)
+                else      -> rh.gq(R.plurals.minutes, minutes, minutes)
             }
         }
     }
@@ -144,7 +145,7 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
 
         override fun isCompleted(): Boolean = answered
 
-        fun isEnabledAnswer(): Boolean = disabledTo < DateUtil.now()
+        fun isEnabledAnswer(): Boolean = disabledTo < dateUtil.now()
 
         fun option(option: Option): ExamTask {
             options.add(option)

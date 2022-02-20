@@ -8,28 +8,28 @@ import info.nightscout.androidaps.TestBaseWithProfile
 import info.nightscout.androidaps.dana.DanaPump
 import info.nightscout.androidaps.danaRv2.DanaRv2Plugin
 import info.nightscout.androidaps.danar.R
-import info.nightscout.androidaps.interfaces.CommandQueueProvider
+import info.nightscout.androidaps.interfaces.CommandQueue
 import info.nightscout.androidaps.interfaces.Constraint
 import info.nightscout.androidaps.interfaces.PluginType
+import info.nightscout.androidaps.interfaces.PumpSync
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.pump.common.bolusInfo.DetailedBolusInfoStorage
+import info.nightscout.androidaps.plugins.pump.common.bolusInfo.TemporaryBasalStorage
+import info.nightscout.shared.sharedPreferences.SP
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(ConstraintChecker::class, DetailedBolusInfoStorage::class)
 class DanaRv2PluginTest : TestBaseWithProfile() {
 
     @Mock lateinit var context: Context
     @Mock lateinit var constraintChecker: ConstraintChecker
-    @Mock lateinit var sp: info.nightscout.androidaps.utils.sharedPreferences.SP
-    @Mock lateinit var commandQueue: CommandQueueProvider
+    @Mock lateinit var sp: SP
+    @Mock lateinit var commandQueue: CommandQueue
     @Mock lateinit var detailedBolusInfoStorage: DetailedBolusInfoStorage
+    @Mock lateinit var temporaryBasalStorage: TemporaryBasalStorage
+    @Mock lateinit var pumpSync: PumpSync
 
     lateinit var danaPump: DanaPump
 
@@ -42,11 +42,11 @@ class DanaRv2PluginTest : TestBaseWithProfile() {
     @Before
     fun prepareMocks() {
         `when`(sp.getString(R.string.key_danars_address, "")).thenReturn("")
-        `when`(resourceHelper.gs(R.string.pumplimit)).thenReturn("pump limit")
-        `when`(resourceHelper.gs(R.string.limitingbasalratio)).thenReturn("Limiting max basal rate to %1\$.2f U/h because of %2\$s")
-        `when`(resourceHelper.gs(R.string.limitingpercentrate)).thenReturn("Limiting max percent rate to %1\$d%% because of %2\$s")
-        danaPump = DanaPump(aapsLogger, sp, injector)
-        danaRv2Plugin = DanaRv2Plugin(injector, aapsLogger, aapsSchedulers, rxBus, context, danaPump, resourceHelper, constraintChecker, activePluginProvider, sp, commandQueue, detailedBolusInfoStorage, dateUtil, fabricPrivacy)
+        `when`(rh.gs(R.string.pumplimit)).thenReturn("pump limit")
+        `when`(rh.gs(R.string.limitingbasalratio)).thenReturn("Limiting max basal rate to %1\$.2f U/h because of %2\$s")
+        `when`(rh.gs(R.string.limitingpercentrate)).thenReturn("Limiting max percent rate to %1\$d%% because of %2\$s")
+        danaPump = DanaPump(aapsLogger, sp, dateUtil, injector)
+        danaRv2Plugin = DanaRv2Plugin(injector, aapsLogger, aapsSchedulers, rxBus, context, rh, constraintChecker, activePluginProvider, sp, commandQueue, danaPump,detailedBolusInfoStorage, temporaryBasalStorage, dateUtil, fabricPrivacy, pumpSync)
     }
 
     @Test

@@ -4,20 +4,18 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SwitchPreference
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.BuildConfig
-import info.nightscout.androidaps.Config
 import info.nightscout.androidaps.R
+import info.nightscout.androidaps.interfaces.Config
 import info.nightscout.androidaps.interfaces.PluginBase
 import info.nightscout.androidaps.interfaces.PluginDescription
 import info.nightscout.androidaps.interfaces.PluginType
-import info.nightscout.androidaps.logging.AAPSLogger
+import info.nightscout.shared.logging.AAPSLogger
 import info.nightscout.androidaps.plugins.general.nsclient.data.NSSettingsStatus
 import info.nightscout.androidaps.utils.buildHelper.BuildHelper
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import java.io.*
 import java.util.*
 import java.util.zip.ZipEntry
@@ -29,35 +27,38 @@ import javax.inject.Singleton
 class MaintenancePlugin @Inject constructor(
     injector: HasAndroidInjector,
     private val context: Context,
-    resourceHelper: ResourceHelper,
+    rh: ResourceHelper,
     private val sp: SP,
     private val nsSettingsStatus: NSSettingsStatus,
     aapsLogger: AAPSLogger,
     private val buildHelper: BuildHelper,
     private val config: Config,
+    private val fileListProvider: PrefFileListProvider,
     private val loggerUtils: LoggerUtils
-) : PluginBase(PluginDescription()
-    .mainType(PluginType.GENERAL)
-    .fragmentClass(MaintenanceFragment::class.java.name)
-    .alwaysVisible(false)
-    .alwaysEnabled(true)
-    .pluginIcon(R.drawable.ic_maintenance)
-    .pluginName(R.string.maintenance)
-    .shortName(R.string.maintenance_shortname)
-    .preferencesId(R.xml.pref_maintenance)
-    .description(R.string.description_maintenance),
-    aapsLogger, resourceHelper, injector
+) : PluginBase(
+    PluginDescription()
+        .mainType(PluginType.GENERAL)
+        .fragmentClass(MaintenanceFragment::class.java.name)
+        .alwaysVisible(false)
+        .alwaysEnabled(true)
+        .pluginIcon(R.drawable.ic_maintenance)
+        .pluginName(R.string.maintenance)
+        .shortName(R.string.maintenance_shortname)
+        .preferencesId(R.xml.pref_maintenance)
+        .description(R.string.description_maintenance),
+    aapsLogger, rh, injector
 ) {
 
     fun sendLogs() {
         val recipient = sp.getString(R.string.key_maintenance_logs_email, "logs@androidaps.org")
         val amount = sp.getInt(R.string.key_maintenance_logs_amount, 2)
         val logs = getLogFiles(amount)
-        val zipDir = context.getExternalFilesDir("exports")
+        val zipDir = fileListProvider.ensureTempDirExists()
         val zipFile = File(zipDir, constructName())
         aapsLogger.debug("zipFile: ${zipFile.absolutePath}")
         val zip = zipLogs(zipFile, logs)
-        val attachmentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", zip)
+        val attachmentUri =
+            FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", zip)
         val emailIntent: Intent = this.sendMail(attachmentUri, recipient, "Log Export")
         aapsLogger.debug("sending emailIntent")
         context.startActivity(emailIntent)
@@ -65,14 +66,15 @@ class MaintenancePlugin @Inject constructor(
 
     //todo replace this with a call on startup of the application, specifically to remove
     // unnecessary garbage from the log exports
-    fun deleteLogs() {
+    fun deleteLogs(keep: Int) {
         val logDir = File(loggerUtils.logDirectory)
         val files = logDir.listFiles { _: File?, name: String ->
             (name.startsWith("AndroidAPS") && name.endsWith(".zip"))
         }
-        Arrays.sort(files) { f1: File, f2: File -> f1.name.compareTo(f2.name) }
+        if (files == null || files.isEmpty()) return
+        Arrays.sort(files) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
         var delFiles = listOf(*files)
-        val amount = sp.getInt(R.string.key_logshipper_amount, 2)
+        val amount = sp.getInt(R.string.key_logshipper_amount, keep)
         val keepIndex = amount - 1
         if (keepIndex < delFiles.size) {
             delFiles = delFiles.subList(keepIndex, delFiles.size)
@@ -80,11 +82,10 @@ class MaintenancePlugin @Inject constructor(
                 file.delete()
             }
         }
-        val exportDir = File(loggerUtils.logDirectory, "exports")
+        val exportDir = fileListProvider.ensureTempDirExists()
         if (exportDir.exists()) {
-            val expFiles = exportDir.listFiles()
-            for (file in expFiles) {
-                file.delete()
+            exportDir.listFiles()?.let { expFiles ->
+                for (file in expFiles) file.delete()
             }
             exportDir.delete()
         }
@@ -106,7 +107,7 @@ class MaintenancePlugin @Inject constructor(
             (name.startsWith("AndroidAPS")
                 && (name.endsWith(".log")
                 || name.endsWith(".zip") && !name.endsWith(loggerUtils.suffix)))
-        }
+        } ?: emptyArray()
         Arrays.sort(files) { f1: File, f2: File -> f2.name.compareTo(f1.name) }
         val result = listOf(*files)
         var toIndex = amount
@@ -168,13 +169,13 @@ class MaintenancePlugin @Inject constructor(
         builder.append("If you want to provide logs for event older than a few hours," + System.lineSeparator())
         builder.append("you have to do it manually)" + System.lineSeparator())
         builder.append("-------------------------------------------------------" + System.lineSeparator())
-        builder.append(resourceHelper.gs(R.string.app_name) + " " + BuildConfig.VERSION + System.lineSeparator())
+        builder.append(rh.gs(R.string.app_name) + " " + BuildConfig.VERSION + System.lineSeparator())
         if (config.NSCLIENT) builder.append("NSCLIENT" + System.lineSeparator())
         builder.append("Build: " + BuildConfig.BUILDVERSION + System.lineSeparator())
         builder.append("Remote: " + BuildConfig.REMOTE + System.lineSeparator())
         builder.append("Flavor: " + BuildConfig.FLAVOR + BuildConfig.BUILD_TYPE + System.lineSeparator())
-        builder.append(resourceHelper.gs(R.string.configbuilder_nightscoutversion_label) + " " + nsSettingsStatus.nightscoutVersionName + System.lineSeparator())
-        if (buildHelper.isEngineeringMode()) builder.append(resourceHelper.gs(R.string.engineering_mode_enabled))
+        builder.append(rh.gs(R.string.configbuilder_nightscoutversion_label) + " " + nsSettingsStatus.getVersion() + System.lineSeparator())
+        if (buildHelper.isEngineeringMode()) builder.append(rh.gs(R.string.engineering_mode_enabled))
         return sendMail(attachmentUri, recipient, subject, builder.toString())
     }
 
@@ -192,7 +193,12 @@ class MaintenancePlugin @Inject constructor(
      *
      * @return
      */
-    private fun sendMail(attachmentUri: Uri, recipient: String, subject: String, body: String): Intent {
+    private fun sendMail(
+        attachmentUri: Uri,
+        recipient: String,
+        subject: String,
+        body: String
+    ): Intent {
         aapsLogger.debug("sending email to $recipient with subject $subject")
         val emailIntent = Intent(Intent.ACTION_SEND)
         emailIntent.type = "text/plain"
@@ -204,13 +210,4 @@ class MaintenancePlugin @Inject constructor(
         emailIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return emailIntent
     }
-
-    override fun preprocessPreferences(preferenceFragment: PreferenceFragmentCompat) {
-        super.preprocessPreferences(preferenceFragment)
-        val encryptSwitch = preferenceFragment.findPreference(resourceHelper.gs(R.string.key_maintenance_encrypt_exported_prefs)) as SwitchPreference?
-            ?: return
-        encryptSwitch.isVisible = buildHelper.isEngineeringMode()
-        encryptSwitch.isEnabled = buildHelper.isEngineeringMode()
-    }
-
 }

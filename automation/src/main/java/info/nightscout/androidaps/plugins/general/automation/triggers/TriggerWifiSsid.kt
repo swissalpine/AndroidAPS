@@ -4,7 +4,7 @@ import android.widget.LinearLayout
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.general.automation.elements.Comparator
 import info.nightscout.androidaps.plugins.general.automation.elements.InputString
 import info.nightscout.androidaps.plugins.general.automation.elements.LabelWithElement
@@ -16,19 +16,21 @@ import org.json.JSONObject
 import javax.inject.Inject
 
 class TriggerWifiSsid(injector: HasAndroidInjector) : Trigger(injector) {
+
     @Inject lateinit var receiverStatusStore: ReceiverStatusStore
 
-    var ssid = InputString(injector)
-    var comparator = Comparator(injector)
+    var ssid = InputString()
+    var comparator = Comparator(rh)
 
-    @Suppress("unused") constructor(injector: HasAndroidInjector, ssid: String, compare: Comparator.Compare) : this(injector) {
-        this.ssid = InputString(injector, ssid)
-        comparator = Comparator(injector, compare)
+    @Suppress("unused")
+    constructor(injector: HasAndroidInjector, ssid: String, compare: Comparator.Compare) : this(injector) {
+        this.ssid = InputString(ssid)
+        comparator = Comparator(rh, compare)
     }
 
     constructor(injector: HasAndroidInjector, triggerWifiSsid: TriggerWifiSsid) : this(injector) {
-        this.ssid = InputString(injector, triggerWifiSsid.ssid.value)
-        comparator = Comparator(injector, triggerWifiSsid.comparator.value)
+        this.ssid = InputString(triggerWifiSsid.ssid.value)
+        comparator = Comparator(rh, triggerWifiSsid.comparator.value)
     }
 
     fun setValue(ssid: String): TriggerWifiSsid {
@@ -55,15 +57,10 @@ class TriggerWifiSsid(injector: HasAndroidInjector) : Trigger(injector) {
         return false
     }
 
-    override fun toJSON(): String {
-        val data = JSONObject()
+    override fun dataJSON(): JSONObject =
+        JSONObject()
             .put("ssid", ssid.value)
             .put("comparator", comparator.value.toString())
-        return JSONObject()
-            .put("type", this::class.java.name)
-            .put("data", data)
-            .toString()
-    }
 
     override fun fromJSON(data: String): Trigger {
         val d = JSONObject(data)
@@ -75,7 +72,7 @@ class TriggerWifiSsid(injector: HasAndroidInjector) : Trigger(injector) {
     override fun friendlyName(): Int = R.string.ns_wifi_ssids
 
     override fun friendlyDescription(): String =
-        resourceHelper.gs(R.string.wifissidcompared, resourceHelper.gs(comparator.value.stringRes), ssid.value)
+        rh.gs(R.string.wifissidcompared, rh.gs(comparator.value.stringRes), ssid.value)
 
     override fun icon(): Optional<Int?> = Optional.of(R.drawable.ic_network_wifi)
 
@@ -83,9 +80,9 @@ class TriggerWifiSsid(injector: HasAndroidInjector) : Trigger(injector) {
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
-            .add(StaticLabel(injector, R.string.ns_wifi_ssids, this))
+            .add(StaticLabel(rh, R.string.ns_wifi_ssids, this))
             .add(comparator)
-            .add(LabelWithElement(injector, resourceHelper.gs(R.string.ns_wifi_ssids) + ": ", "", ssid))
+            .add(LabelWithElement(rh, rh.gs(R.string.ns_wifi_ssids) + ": ", "", ssid))
             .build(root)
     }
 }

@@ -1,35 +1,35 @@
 package info.nightscout.androidaps.plugins.general.automation.elements
 
+import android.view.Gravity
 import android.widget.LinearLayout
-import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.automation.R
+import info.nightscout.androidaps.interfaces.GlucoseUnit
 import info.nightscout.androidaps.interfaces.ProfileFunction
 import info.nightscout.androidaps.utils.ui.NumberPicker
 import java.text.DecimalFormat
-import javax.inject.Inject
 
-class InputTempTarget(injector: HasAndroidInjector) : Element(injector) {
-    var units = Constants.MGDL
+class InputTempTarget(profileFunction: ProfileFunction) : Element() {
+
+    var units: GlucoseUnit = GlucoseUnit.MGDL
     var value = 0.0
-    @Inject lateinit var profileFunction: ProfileFunction
 
     init {
         units = profileFunction.getUnits()
-        value = if (units == Constants.MMOL) 6.0 else 110.0
+        value = if (units == GlucoseUnit.MMOL) 6.0 else 110.0
     }
 
-    constructor(injector: HasAndroidInjector, inputTempTarget: InputTempTarget) : this(injector) {
+    constructor(profileFunction: ProfileFunction, inputTempTarget: InputTempTarget) : this(profileFunction) {
         value = inputTempTarget.value
         units = inputTempTarget.units
     }
 
     override fun addToLayout(root: LinearLayout) {
-        var minValue: Double
-        var maxValue: Double
-        var step: Double
-        var decimalFormat: DecimalFormat?
-        if (units == Constants.MMOL) { // mmol
+        val minValue: Double
+        val maxValue: Double
+        val step: Double
+        val decimalFormat: DecimalFormat?
+        if (units == GlucoseUnit.MMOL) { // mmol
             minValue = Constants.MIN_TT_MMOL
             maxValue = Constants.MAX_TT_MMOL
             step = 0.1
@@ -40,9 +40,12 @@ class InputTempTarget(injector: HasAndroidInjector) : Element(injector) {
             step = 1.0
             decimalFormat = DecimalFormat("0")
         }
-        val numberPicker = NumberPicker(root.context, null)
-        numberPicker.setParams(value, minValue, maxValue, step, decimalFormat, true, root.findViewById(R.id.ok))
-        numberPicker.setOnValueChangedListener { value: Double -> this.value = value }
-        root.addView(numberPicker)
+        root.addView(
+            NumberPicker(root.context, null).also {
+                it.setParams(value, minValue, maxValue, step, decimalFormat, true, root.findViewById(R.id.ok))
+                it.setOnValueChangedListener { v: Double -> value = v }
+                it.gravity = Gravity.CENTER_HORIZONTAL
+
+            })
     }
 }

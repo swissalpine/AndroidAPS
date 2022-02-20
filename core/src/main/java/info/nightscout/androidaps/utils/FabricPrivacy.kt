@@ -5,10 +5,11 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.ktx.Firebase
+import info.nightscout.androidaps.annotations.OpenForTesting
 import info.nightscout.androidaps.core.R
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.logging.LTag
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
+import info.nightscout.shared.sharedPreferences.SP
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,6 +18,7 @@ import javax.inject.Singleton
  * to disable them and make calls from a potentially invalid singleton reference. This wrapper
  * emulates the methods but ignores the request if the instance is null or invalid.
  */
+@OpenForTesting
 @Singleton
 class FabricPrivacy @Inject constructor(
     private val aapsLogger: AAPSLogger,
@@ -75,10 +77,16 @@ class FabricPrivacy @Inject constructor(
         }
     }
 
+    // Crashlytics log message
+    fun logMessage(message: String) {
+        aapsLogger.info(LTag.CORE,"Crashlytics log message: $message")
+        FirebaseCrashlytics.getInstance().log(message)
+    }
+
     // Crashlytics logException
     fun logException(throwable: Throwable) {
+        aapsLogger.error("Crashlytics log exception: ", throwable)
         FirebaseCrashlytics.getInstance().recordException(throwable)
-        aapsLogger.error("Exception: ", throwable)
     }
 
     fun fabricEnabled(): Boolean {

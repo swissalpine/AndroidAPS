@@ -25,7 +25,6 @@
     <string name="alreadyset">Already set</string>
     <string name="profilepercentage">Profile percentage</string>
     <string name="startprofileforever">Start profile %1$d%%</string>
-    <string name="startprofile">Start profile %1$d%% for %2$d min</string>
     <string name="percent_u">Percent [%]:</string>
     <string name="sendsmsactionlabel">Send SMS: %1$s</string>
     <string name="sendsmsactiondescription">Send SMS to all numbers</string>
@@ -41,6 +40,9 @@
     <string name="glucoseisnotavailable">Glucose is not available</string>
     <string name="glucosecomparedmgdl">Glucose %1$s %2$.0f %3$s</string>
     <string name="glucosecomparedmmol">Glucose %1$s %2$.1f %3$s</string>
+    <string name="notemptarget">Temp Target does not exist</string>
+    <string name="temptargetcomparedmgdl">Temp Target %1$s %2$.0f %3$s</string>
+    <string name="temptargetcomparedmmol">Temp Target %1$s %2$.1f %3$s</string>
     <string name="percentagecompared">Profile pct %1$s %2$d</string>
     <string name="iobcompared">IOB %1$s %2$.1f</string>
     <string name="and">And</string>
@@ -81,6 +83,7 @@
     <string name="wifissidcompared">WiFi SSID %1$s %2$s</string>
     <string name="autosenscompared">Autosens %1$s %2$s %%</string>
     <string name="autosenslabel">Autosens %</string>
+    <string name="a11y_autosenslabel">Auto sens</string>
     <string name="deltacompared">%3$s %1$s %2$s</string>
     <string name="deltalabel">BG difference</string>
     <string name="deltalabel_u">BG difference [%1$s]</string>
@@ -89,6 +92,7 @@
     <string name="latitude_short">Lat:</string>
     <string name="longitude_short">Lon:</string>
     <string name="glucose_u">Glucose [%1$s]:</string>
+    <string name="target_u">Target [%1$s]:</string>
     <string name="lastboluslabel">Last bolus ago</string>
     <string name="lastboluscompared">Last bolus time %1$s %2$s min ago</string>
     <string name="triggercoblabel">COB</string>
@@ -104,12 +108,13 @@
     <string name="edit_short">EDIT</string>
     <string name="please_choose_an_action_type">Choose an action type</string>
     <string name="please_choose_a_trigger_type">Choose a trigger type</string>
+    <string name="please_choose_a_operation_type">Choose a operation type</string>
     <string name="triggers">Triggers:</string>
     <string name="remove_label">REMOVE</string>
     <string name="preconditions">Preconditions:</string>
     <string name="automation_event">Automation event</string>
     <string name="reorder_label">Reorder</string>
     <string name="key_automation_settings" translatable="false">automation_settings</string>
-
+    <string name="user_action">User action</string>
 
 </resources>

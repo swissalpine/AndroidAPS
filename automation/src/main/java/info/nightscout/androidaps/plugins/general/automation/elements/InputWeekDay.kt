@@ -2,12 +2,11 @@ package info.nightscout.androidaps.plugins.general.automation.elements
 
 import android.widget.LinearLayout
 import androidx.annotation.StringRes
-import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.utils.ui.WeekdayPicker
 import java.util.*
 
-class InputWeekDay(injector: HasAndroidInjector) : Element(injector) {
+class InputWeekDay : Element() {
 
     enum class DayOfWeek {
         MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
@@ -20,6 +19,7 @@ class InputWeekDay(injector: HasAndroidInjector) : Element(injector) {
             get() = shortNames[ordinal]
 
         companion object {
+
             private val calendarInts = intArrayOf(
                 Calendar.MONDAY,
                 Calendar.TUESDAY,
@@ -76,10 +76,11 @@ class InputWeekDay(injector: HasAndroidInjector) : Element(injector) {
     }
 
     override fun addToLayout(root: LinearLayout) {
-        WeekdayPicker(root.context).apply {
-            setSelectedDays(getSelectedDays())
-            setOnWeekdaysChangeListener { i: Int, selected: Boolean -> set(DayOfWeek.fromCalendarInt(i), selected) }
-            root.addView(this)
-        }
+        root.addView(
+            WeekdayPicker(root.context).apply {
+                setSelectedDays(getSelectedDays())
+                setOnWeekdaysChangeListener { i: Int, selected: Boolean -> set(DayOfWeek.fromCalendarInt(i), selected) }
+            }
+        )
     }
 }

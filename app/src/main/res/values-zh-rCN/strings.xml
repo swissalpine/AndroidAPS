@@ -11,7 +11,6 @@
     <string name="nav_resetdb">重置数据库</string>
     <string name="reset_db_confirm">你真的想重置数据库吗?</string>
     <string name="nav_exit">退出</string>
-    <string name="ns_sync_use_absolute_title">总是使用基础率的绝对值</string>
     <string name="description_actions">一些快速访问常用功能的按钮</string>
     <string name="description_config_builder">用于配置活动插件</string>
     <string name="description_objectives">学习计划</string>
@@ -25,7 +24,6 @@
     <string name="description_smb">最新的适合高级用户的算法</string>
     <string name="description_overview">显示闭环的当前状态和大多数常用操作的按钮</string>
     <string name="description_persistent_notification">显示持续的通知, 其中简要概述了您的闭环正在做什么</string>
-    <string name="description_profile_nightscout">提供您在 Nightscout 中已经定义的配置文件</string>
     <string name="description_pump_mdi">与用于糖尿病治疗的多次每日注射的泵集成</string>
     <string name="description_pump_virtual">与我们还没有其驱动的泵集成（开环）</string>
     <string name="description_sensitivity_aaps">灵敏度的计算方式与 Oref0 相同, 但可以指定过去的时间范围。碳水化合物吸收最小值是根据参数选项里的碳水化合物吸收时间最大值计算得来的</string>
@@ -53,7 +51,6 @@
     <string name="treatments_wizard_tt_label">临时目标</string>
     <string name="treatments_wizard_carbs_label">碳水化合物</string>
     <string name="treatments_wizard_correction_label">矫正值</string>
-    <string name="treatments_wizard_bolusiob_label">大剂量活性胰岛素IOB</string>
     <string name="openapsma_run">现在运行</string>
     <string name="vitualpump_label">虚拟泵</string>
     <string name="openapsma_lastrun_label">上一次运行</string>
@@ -70,14 +67,10 @@
     <string name="sms_delta">增量:</string>
     <string name="configbuilder">配置生成器</string>
     <string name="overview">首页概览</string>
-    <string name="nsprofile">NS 配置文件</string>
     <string name="treatments">治疗</string>
     <string name="virtualpump">虚拟泵</string>
-    <string name="careportal">护理记录</string>
     <string name="configbuilder_pump">胰岛素泵</string>
     <string name="configbuilder_pump_description">你想用 AndroidAPS连接哪个胰岛素泵？</string>
-    <string name="configbuilder_treatments">治疗</string>
-    <string name="configbuilder_treatments_description">什么插件应该用于治疗处理？</string>
     <string name="configbuilder_profile">配置文件</string>
     <string name="configbuilder_profile_description">AndroidAPS 应该使用哪个配置文件？</string>
     <string name="configbuilder_aps">APS</string>
@@ -86,7 +79,6 @@
     <string name="configbuilder_general_description">这些是一些一般的插件, 你可能会觉得有用。</string>
     <string name="configbuilder_constraints_description">应用了哪些约束条件？</string>
     <string name="constraints">约束条件</string>
-    <string name="loop">闭环</string>
     <string name="configbuilder_loop">闭环</string>
     <string name="configbuilder_loop_description">使用此激活 AndroidAPS 的闭环集成。</string>
     <string name="loop_aps_label">APS</string>
@@ -96,7 +88,6 @@
     <string name="safety">安全性</string>
     <string name="openapsma_disabled">插件已禁用</string>
     <string name="constraints_violation">违反约束条件</string>
-    <string name="treatmentdeliveryerror">大剂量输注错误</string>
     <string name="setbasalquestion">接受新的临时基础率</string>
     <string name="overview_treatment_label">治疗</string>
     <string name="overview_calculator_label">计算器</string>
@@ -119,9 +110,7 @@
     <string name="careportal_newnstreatment_other">其他</string>
     <string name="careportal_newnstreatment_meter">血糖仪</string>
     <string name="careportal_newnstreatment_sensor">传感器</string>
-    <string name="careportal_newnstreatment_carbtime_label">碳水化合物时间</string>
     <string name="careportal_newnstreatment_duration_label">持续时间</string>
-    <string name="careportal_newnstreatment_profile_label">配置文件</string>
     <string name="careportal_newnstreatment_glucosetype">血糖类型</string>
     <string name="overview_tempbasal_button">临时基础</string>
     <string name="overview_extendedbolus_button">扩展大剂量</string>
@@ -151,8 +140,6 @@
     <string name="smscommunicator_loophasbeendisabled">闭环已经被禁用</string>
     <string name="smscommunicator_loophasbeenenabled">闭环已经被启用</string>
     <string name="smscommunicator_loopisenabled">闭环被启用</string>
-    <string name="valuelimitedto">%1$.2f 超过 %2$.2f的限制</string>
-    <string name="valueoutofrange">值 %1$s 超过了硬限制</string>
     <string name="smscommunicator_remotecommandnotallowed">远程命令没有被允许</string>
     <string name="smscommunicator_remotebolusnotallowed">远程大剂量不可用。请稍后再试。</string>
     <string name="smscommunicator_profilereplywithcode">要切换配置文件到 %1$s %2$d%% 请回复代码 %3$s</string>
@@ -202,17 +189,12 @@
     <string name="ongoingnotificaction">持续的的通知</string>
     <string name="old_data">旧数据</string>
     <string name="sms_minago">%1$d分钟前</string>
-    <string name="localprofile">本地配置文件</string>
     <string name="openapsama">OpenAPS AMA</string>
     <string name="array_of_elements">%1$d 元素的数组. \n 实际值:</string>
     <string name="openapsma_autosensdata_label">Autosens 数据</string>
     <string name="openapsma_scriptdebugdata_label">脚本调试</string>
     <string name="openapsama_useautosens">使用Autosens功能</string>
-    <string name="refresheventsfromnightscout">从 NS 刷新事件</string>
     <string name="deletefuturetreatments">删除未来的治疗项</string>
-    <string name="eatingsoon">很快吃饭</string>
-    <string name="hypo">低</string>
-    <string name="activity">活动</string>
     <string name="actions_shortname">操作</string>
     <string name="configbuilder_shortname">配置</string>
     <string name="loop_shortname">闭环</string>
@@ -220,7 +202,6 @@
     <string name="localprofile_shortname">本地配置文件</string>
     <string name="overview_shortname">主页</string>
     <string name="virtualpump_shortname">虚拟泵</string>
-    <string name="profileviewer_shortname">NS配置文件</string>
     <string name="treatments_shortname">治疗</string>
     <string name="objectives_shortname">目标</string>
     <string name="wear_shortname">手表</string>
@@ -287,7 +268,6 @@
     <string name="smscommunicator_wrongduration">错误的持续时间</string>
     <string name="smscommunicator_loopsuspended">闭环暂停了</string>
     <string name="smscommunicator_loopresumed">闭环恢复了</string>
-    <string name="treatments_wizard_bgtrend_label">15分钟 趋势</string>
     <string name="treatments_wizard_cob_label">碳水</string>
     <string name="superbolus">超级大剂量Superbolus</string>
     <string name="ns_logappstartedevent">记录app启动事件到NS服务器</string>
@@ -307,15 +287,12 @@
     <string name="xdripstatus_shortname">xdrip</string>
     <string name="wear_showbgi_title">显示血糖线</string>
     <string name="wear_showbgi_summary">添加血糖线到状态线</string>
-    <string name="ns_noupload">没有上传到NS服务器</string>
-    <string name="ns_noupload_summary">所有发送到 NS 的数据都将被丢弃。AAPS 已连接到 NS, 但 NS中没有进行任何更改</string>
     <string name="overview_extendedbolus_cancel_button">取消扩展大剂量</string>
     <string name="ns_alarmoptions">报警选项</string>
     <string name="nsalarm_staledatavalue_label">陈旧数据阈值 [min]</string>
     <string name="nsalarm_urgent_staledatavalue_label">紧急陈旧数据阈值 [min]</string>
     <string name="openapsama_autosens_period">Autosens间隔的 [h]</string>
     <string name="openapsama_autosens_period_summary">灵敏度检测过去的小时数 (排除碳水化合物吸收时间)</string>
-    <string name="pump">胰岛素泵</string>
     <string name="openaps">OpenAPS</string>
     <string name="uploader">上传者</string>
     <string name="configbuilder_sensitivity">灵敏度检测</string>
@@ -415,8 +392,6 @@
     <string name="enablesmbwithhightemptarget">启用具有高临时目标的 SMB</string>
     <string name="overview_insulin_label">胰岛素</string>
     <string name="overview_buttons_selection">按钮</string>
-    <string name="show_calibration_button_summary">向 xDrip + 发送校准请求或打开 G5 校准对话框</string>
-    <string name="show_cgm_button_summary">打开 xDrip +, 后退按钮返回到 AAPS</string>
     <string name="carb_increment_button_message">按下按钮时添加的碳水化合物数量</string>
     <string name="insulin_increment_button_message">按下按钮时添加的胰岛素量</string>
     <string name="error_starting_cgm">无法启动 CGM 应用程序。 请确保已安装。</string>
@@ -439,7 +414,6 @@
     <string name="do_not_bolus_record_only">不打大剂量，只记录</string>
     <string name="category">类别</string>
     <string name="subcategory">子类别</string>
-    <string name="ns_autobackfill_summary">Autobackfill 现在无法从NS获取血糖</string>
     <string name="loop_smbsetbypump_label">通过泵设置SMB微型大剂量</string>
     <string name="overview_show_activity">活动</string>
     <string name="overview_show_sensitivity">灵敏度</string>
@@ -505,7 +479,6 @@
     <string name="virtualpump_type">虚拟泵类型</string>
     <string name="virtualpump_definition">泵定义</string>
     <string name="virtualpump_pump_def">大剂量: Step=%1$s\n扩展大剂量: [Step=%2$s, 持续时间=%3$smin-%4$sh]\n基础率: Step=%5$s\nTBR临时基础率: %6$s (by %7$s), 持续时间=%8$smin-%9$sh\n%10$s</string>
-    <string name="ns_autobackfill_title">Autobackfill 血糖</string>
     <string name="wear_wizard_settings">向导设置</string>
     <string name="wear_wizard_settings_summary">包含在向导中的计算结果：</string>
     <string name="wear_display_settings">显示设置</string>
@@ -513,13 +486,10 @@
     <string name="enable_nsclient">启用 NSClient</string>
     <string name="welcometosetupwizard">欢迎使用设置向导。它将指导您完成设置过程 \n</string>
     <string name="readstatus">读取状态</string>
-    <string name="adjustprofileinns">更改必须在 NS 中完成</string>
     <string name="exitwizard">跳过设置向导</string>
     <string name="setupwizard_loop_description">按下下面的按钮, 以使 AndroidAPS 建议或者更改基础率</string>
     <string name="setupwizard_sensitivity_description">灵敏度插件用于灵敏度检测和碳水化合物计算。有关详细信息, 请访问:</string>
-    <string name="setupwizard_sensitivity_url">https://github.com/MilosKozak/AndroidAPS/wiki/Sensitivity-detection-and-COB</string>
     <string name="diawarning">请记住：新的胰岛素分布需要DIA至少5小时。 对于新的配置文件，DIA 5-6小时相当于旧胰岛素配置文件中的DIA 3小时</string>
-    <string name="setupwizard_profile_description">请选择配置文件的来源。如果病人是孩子, 你应该使用 NS 配置文件。如果没有人通过 Nightscout关注你， 你可能会更喜欢本地配置文件。请记住, 您只选择配置文件源。要使用它, 您必须通过执行 \"配置文件切换\" 来激活它。</string>
     <string name="setupwizard_aps_description">从可用算法中选择一个。 他们从最旧到最新排序。 较新的算法通常更强大，更冒险。 因此，如果你是新的闭环使用者，你可能会从AMA算法开始，而不是最新的。 不要忘记在使用之前阅读OpenAPS文档并对其进行配置。</string>
     <string name="startobjective">开始你的第一个目标</string>
     <string name="permission">权限</string>
@@ -591,8 +561,5 @@
     <string name="old_version">旧版本</string>
     <string name="very_old_version">非常旧版本</string>
     <string name="twohours">2小时</string>
-    <string name="dexcom_app_patched">德康app（补丁版）</string>
-    <string name="dexcom_short">DXCM</string>
-    <string name="description_source_dexcom">从补丁版的德康APP收到血糖值</string>
     <!-- SMS Communicator & OTP Authenticator -->
 </resources>

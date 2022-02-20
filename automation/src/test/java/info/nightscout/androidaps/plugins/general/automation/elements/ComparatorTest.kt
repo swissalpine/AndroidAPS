@@ -3,10 +3,7 @@ package info.nightscout.androidaps.plugins.general.automation.elements
 import info.nightscout.androidaps.plugins.general.automation.triggers.TriggerTestBase
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
 class ComparatorTest : TriggerTestBase() {
 
     @Test
@@ -27,12 +24,12 @@ class ComparatorTest : TriggerTestBase() {
 
     @Test
     fun labelsTest() {
-        Assert.assertEquals(6, Comparator.Compare.labels(resourceHelper).size)
+        Assert.assertEquals(6, Comparator.Compare.labels(rh).size)
     }
 
     @Test
     fun setValueTest() {
-        val c: Comparator = Comparator(injector).setValue(Comparator.Compare.IS_EQUAL_OR_GREATER)
+        val c: Comparator = Comparator(rh).setValue(Comparator.Compare.IS_EQUAL_OR_GREATER)
         Assert.assertEquals(Comparator.Compare.IS_EQUAL_OR_GREATER, c.value)
     }
 }

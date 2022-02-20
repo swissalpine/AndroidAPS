@@ -1,5 +1,6 @@
 package info.nightscout.androidaps.dialogs
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -7,27 +8,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.common.base.Joiner
-import info.nightscout.androidaps.Constants
-import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.Profile
+import info.nightscout.androidaps.activities.ErrorHelperActivity
+import info.nightscout.androidaps.data.DetailedBolusInfo
 import info.nightscout.androidaps.database.AppRepository
 import info.nightscout.androidaps.database.entities.TemporaryTarget
-import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
+import info.nightscout.androidaps.database.entities.UserEntry.Action
+import info.nightscout.androidaps.database.entities.UserEntry.Sources
+import info.nightscout.androidaps.database.entities.ValueWithUnit
+import info.nightscout.androidaps.database.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import info.nightscout.androidaps.databinding.DialogCarbsBinding
-import info.nightscout.androidaps.db.CareportalEvent
-import info.nightscout.androidaps.interfaces.Constraint
-import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.androidaps.extensions.formatColor
+import info.nightscout.androidaps.interfaces.*
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
-import info.nightscout.androidaps.plugins.treatments.CarbsGenerator
-import info.nightscout.androidaps.plugins.treatments.TreatmentsPlugin
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
+import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.utils.*
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
-import info.nightscout.androidaps.utils.extensions.formatColor
 import info.nightscout.androidaps.utils.resources.ResourceHelper
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -39,17 +38,17 @@ import kotlin.math.max
 
 class CarbsDialog : DialogFragmentWithDate() {
 
-    @Inject lateinit var mainApp: MainApp
-    @Inject lateinit var resourceHelper: ResourceHelper
+    @Inject lateinit var ctx: Context
+    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var constraintChecker: ConstraintChecker
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
-    @Inject lateinit var treatmentsPlugin: TreatmentsPlugin
     @Inject lateinit var profileFunction: ProfileFunction
-    @Inject lateinit var iobCobCalculatorPlugin: IobCobCalculatorPlugin
-    @Inject lateinit var nsUpload: NSUpload
-    @Inject lateinit var carbsGenerator: CarbsGenerator
+    @Inject lateinit var iobCobCalculator: IobCobCalculator
+    @Inject lateinit var glucoseStatusProvider: GlucoseStatusProvider
     @Inject lateinit var uel: UserEntryLogger
     @Inject lateinit var carbTimer: CarbTimer
+    @Inject lateinit var bolusTimer: BolusTimer
+    @Inject lateinit var commandQueue: CommandQueue
     @Inject lateinit var repository: AppRepository
 
     companion object {
@@ -75,15 +74,15 @@ class CarbsDialog : DialogFragmentWithDate() {
         val time = binding.time.value.toInt()
         if (time > 12 * 60 || time < -12 * 60) {
             binding.time.value = 0.0
-            ToastUtils.showToastInUiThread(mainApp, resourceHelper.gs(R.string.constraintapllied))
+            ToastUtils.showToastInUiThread(ctx, rh.gs(R.string.constraintapllied))
         }
         if (binding.duration.value > 10) {
             binding.duration.value = 0.0
-            ToastUtils.showToastInUiThread(mainApp, resourceHelper.gs(R.string.constraintapllied))
+            ToastUtils.showToastInUiThread(ctx, rh.gs(R.string.constraintapllied))
         }
         if (binding.carbs.value.toInt() > maxCarbs) {
             binding.carbs.value = 0.0
-            ToastUtils.showToastInUiThread(mainApp, resourceHelper.gs(R.string.carbsconstraintapplied))
+            ToastUtils.showToastInUiThread(ctx, rh.gs(R.string.carbsconstraintapplied))
         }
     }
 
@@ -100,48 +99,87 @@ class CarbsDialog : DialogFragmentWithDate() {
         savedInstanceState.putDouble("carbs", binding.carbs.value)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         onCreateViewGeneral()
         _binding = DialogCarbsBinding.inflate(inflater, container, false)
+        binding.time.setOnValueChangedListener { timeOffset: Double ->
+            run {
+                val newTime = eventTimeOriginal + timeOffset.toLong() * 1000 * 60
+                updateDateTime(newTime)
+            }
+        }
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        if (sp.getBoolean(R.string.key_usebolusreminder, false)) {
+            glucoseStatusProvider.glucoseStatusData?.let { glucoseStatus ->
+                if (glucoseStatus.glucose + 3 * glucoseStatus.delta < 70.0)
+                    binding.bolusReminder.visibility = View.VISIBLE
+            }
+        }
         val maxCarbs = constraintChecker.getMaxCarbsAllowed().value().toDouble()
-        binding.time.setParams(savedInstanceState?.getDouble("time")
-            ?: 0.0, -12 * 60.0, 12 * 60.0, 5.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher)
+        binding.time.setParams(
+            savedInstanceState?.getDouble("time")
+                ?: 0.0, -12 * 60.0, 12 * 60.0, 5.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher
+        )
 
-        binding.duration.setParams(savedInstanceState?.getDouble("duration")
-            ?: 0.0, 0.0, 10.0, 1.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher)
+        binding.duration.setParams(
+            savedInstanceState?.getDouble("duration")
+                ?: 0.0, 0.0, 10.0, 1.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher
+        )
 
-        binding.carbs.setParams(savedInstanceState?.getDouble("carbs")
-            ?: 0.0, 0.0, maxCarbs, 1.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher)
-
-        binding.plus1.text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT))
+        binding.carbs.setParams(
+            savedInstanceState?.getDouble("carbs")
+                ?: 0.0, 0.0, maxCarbs, 1.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher
+        )
+        val plus1text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT))
+        binding.plus1.text = plus1text
+        binding.plus1.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) +  " " + plus1text
         binding.plus1.setOnClickListener {
-            binding.carbs.value = max(0.0, binding.carbs.value
-                + sp.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT))
+            binding.carbs.value = max(
+                0.0, binding.carbs.value
+                    + sp.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT)
+            )
             validateInputs()
+            binding.carbs.announceValue()
         }
 
-        binding.plus2.text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT))
+        val plus2text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT))
+        binding.plus2.text = plus2text
+        binding.plus2.contentDescription =  rh.gs(R.string.treatments_wizard_carbs_label) +  " " + plus2text
         binding.plus2.setOnClickListener {
-            binding.carbs.value = max(0.0, binding.carbs.value
-                + sp.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT))
+            binding.carbs.value = max(
+                0.0, binding.carbs.value
+                    + sp.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT)
+            )
             validateInputs()
+            binding.carbs.announceValue()
         }
-
-        binding.plus3.text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT))
+        val plus3text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT))
+        binding.plus3.text = plus3text
+        binding.plus2.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) +  " " + plus3text
         binding.plus3.setOnClickListener {
-            binding.carbs.value = max(0.0, binding.carbs.value
-                + sp.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT))
+            binding.carbs.value = max(
+                0.0, binding.carbs.value
+                    + sp.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT)
+            )
             validateInputs()
+            binding.carbs.announceValue()
         }
 
-        iobCobCalculatorPlugin.actualBg()?.let { bgReading ->
+        setOnValueChangedListener { eventTime: Long ->
+            run {
+                val timeOffset = ((eventTime - eventTimeOriginal) / (1000 * 60)).toDouble()
+                binding.time.value = timeOffset
+            }
+        }
+
+        iobCobCalculator.ads.actualBg()?.let { bgReading ->
             if (bgReading.value < 72)
                 binding.hypoTt.isChecked = true
         }
@@ -157,6 +195,9 @@ class CarbsDialog : DialogFragmentWithDate() {
             binding.hypoTt.isChecked = false
             binding.activityTt.isChecked = false
         }
+        binding.duration.editText?.id?.let { binding.durationLabel.labelFor = it }
+        binding.time.editText?.id?.let { binding.timeLabel.labelFor = it }
+        binding.carbs.editText?.id?.let { binding.carbsLabel.labelFor = it }
     }
 
     override fun onDestroyView() {
@@ -171,7 +212,7 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     override fun submit(): Boolean {
         if (_binding == null) return false
-        val carbs = binding.carbs.value?.toInt() ?: return false
+        val carbs = binding.carbs.value.toInt()
         val carbsAfterConstraints = constraintChecker.applyCarbsConstraints(Constraint(carbs)).value()
         val units = profileFunction.getUnits()
         val activityTTDuration = defaultValueHelper.determineActivityTTDuration()
@@ -181,111 +222,158 @@ class CarbsDialog : DialogFragmentWithDate() {
         val hypoTTDuration = defaultValueHelper.determineHypoTTDuration()
         val hypoTT = defaultValueHelper.determineHypoTT()
         val actions: LinkedList<String?> = LinkedList()
-        val unitLabel = if (units == Constants.MMOL) resourceHelper.gs(R.string.mmol) else resourceHelper.gs(R.string.mgdl)
+        val unitLabel = if (units == GlucoseUnit.MMOL) rh.gs(R.string.mmol) else rh.gs(R.string.mgdl)
         val useAlarm = binding.alarmCheckBox.isChecked
+        val remindBolus = binding.bolusReminderCheckBox.isChecked
 
         val activitySelected = binding.activityTt.isChecked
         if (activitySelected)
-            actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + resourceHelper.gs(R.string.format_mins, activityTTDuration) + ")").formatColor(resourceHelper, R.color.tempTargetConfirmation))
+            actions.add(
+                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + rh.gs(R.string.format_mins, activityTTDuration) + ")").formatColor(
+                    rh,
+                    R.color.tempTargetConfirmation
+                )
+            )
         val eatingSoonSelected = binding.eatingSoonTt.isChecked
         if (eatingSoonSelected)
-            actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + resourceHelper.gs(R.string.format_mins, eatingSoonTTDuration) + ")").formatColor(resourceHelper, R.color.tempTargetConfirmation))
+            actions.add(
+                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + rh.gs(
+                    R.string.format_mins,
+                    eatingSoonTTDuration
+                ) + ")").formatColor(rh, R.color.tempTargetConfirmation)
+            )
         val hypoSelected = binding.hypoTt.isChecked
         if (hypoSelected)
-            actions.add(resourceHelper.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + resourceHelper.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor(resourceHelper, R.color.tempTargetConfirmation))
+            actions.add(
+                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor(
+                    rh,
+                    R.color.tempTargetConfirmation
+                )
+            )
 
         val timeOffset = binding.time.value.toInt()
-        eventTime -= eventTime % 1000
-        val time = eventTime + timeOffset * 1000 * 60
-        if (timeOffset != 0)
-            actions.add(resourceHelper.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(time))
         if (useAlarm && carbs > 0 && timeOffset > 0)
-            actions.add(resourceHelper.gs(R.string.alarminxmin, timeOffset).formatColor(resourceHelper, R.color.info))
+            actions.add(rh.gs(R.string.alarminxmin, timeOffset).formatColor(rh, R.color.info))
         val duration = binding.duration.value.toInt()
         if (duration > 0)
-            actions.add(resourceHelper.gs(R.string.duration) + ": " + duration + resourceHelper.gs(R.string.shorthour))
+            actions.add(rh.gs(R.string.duration) + ": " + duration + rh.gs(R.string.shorthour))
         if (carbsAfterConstraints > 0) {
-            actions.add(resourceHelper.gs(R.string.carbs) + ": " + "<font color='" + resourceHelper.gc(R.color.carbs) + "'>" + resourceHelper.gs(R.string.format_carbs, carbsAfterConstraints) + "</font>")
+            actions.add(rh.gs(R.string.carbs) + ": " + "<font color='" + rh.gc(R.color.carbs) + "'>" + rh.gs(R.string.format_carbs, carbsAfterConstraints) + "</font>")
             if (carbsAfterConstraints != carbs)
-                actions.add("<font color='" + resourceHelper.gc(R.color.warning) + "'>" + resourceHelper.gs(R.string.carbsconstraintapplied) + "</font>")
+                actions.add("<font color='" + rh.gc(R.color.warning) + "'>" + rh.gs(R.string.carbsconstraintapplied) + "</font>")
         }
         val notes = binding.notesLayout.notes.text.toString()
         if (notes.isNotEmpty())
-            actions.add(resourceHelper.gs(R.string.notes_label) + ": " + notes)
+            actions.add(rh.gs(R.string.notes_label) + ": " + notes)
 
         if (eventTimeChanged)
-            actions.add(resourceHelper.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
+            actions.add(rh.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
         if (carbsAfterConstraints > 0 || activitySelected || eatingSoonSelected || hypoSelected) {
             activity?.let { activity ->
-                OKDialog.showConfirmation(activity, resourceHelper.gs(R.string.carbs), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
+                OKDialog.showConfirmation(activity, rh.gs(R.string.carbs), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                     when {
-                        activitySelected   -> {
-                            uel.log("TT ACTIVITY", d1 = activityTT, i1 = activityTTDuration)
-                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
-                                timestamp = System.currentTimeMillis(),
-                                duration = TimeUnit.MINUTES.toMillis(activityTTDuration.toLong()),
-                                reason = TemporaryTarget.Reason.ACTIVITY,
-                                lowTarget = Profile.toMgdl(activityTT, profileFunction.getUnits()),
-                                highTarget = Profile.toMgdl(activityTT, profileFunction.getUnits())
-                            )).subscribe({ result ->
-                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
-                                result.updated.forEach { nsUpload.updateTempTarget(it) }
-                            }, {
-                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
-                            })
+                        activitySelected -> {
+                            uel.log(
+                                Action.TT, Sources.CarbDialog,
+                                ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.ACTIVITY),
+                                ValueWithUnit.fromGlucoseUnit(activityTT, units.asText),
+                                ValueWithUnit.Minute(activityTTDuration)
+                            )
+                            disposable += repository.runTransactionForResult(
+                                InsertAndCancelCurrentTemporaryTargetTransaction(
+                                    timestamp = System.currentTimeMillis(),
+                                    duration = TimeUnit.MINUTES.toMillis(activityTTDuration.toLong()),
+                                    reason = TemporaryTarget.Reason.ACTIVITY,
+                                    lowTarget = Profile.toMgdl(activityTT, profileFunction.getUnits()),
+                                    highTarget = Profile.toMgdl(activityTT, profileFunction.getUnits())
+                                )
+                            ).subscribe({ result ->
+                                            result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                                            result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
+                                        }, {
+                                            aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
+                                        })
                         }
 
                         eatingSoonSelected -> {
-                            uel.log("TT EATING SOON", d1 = eatingSoonTT, i1 = eatingSoonTTDuration)
-                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
-                                timestamp = System.currentTimeMillis(),
-                                duration = TimeUnit.MINUTES.toMillis(eatingSoonTTDuration.toLong()),
-                                reason = TemporaryTarget.Reason.EATING_SOON,
-                                lowTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits()),
-                                highTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits())
-                            )).subscribe({ result ->
-                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
-                                result.updated.forEach { nsUpload.updateTempTarget(it) }
-                            }, {
-                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
-                            })
+                            uel.log(
+                                Action.TT, Sources.CarbDialog,
+                                ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.EATING_SOON),
+                                ValueWithUnit.fromGlucoseUnit(eatingSoonTT, units.asText),
+                                ValueWithUnit.Minute(eatingSoonTTDuration)
+                            )
+                            disposable += repository.runTransactionForResult(
+                                InsertAndCancelCurrentTemporaryTargetTransaction(
+                                    timestamp = System.currentTimeMillis(),
+                                    duration = TimeUnit.MINUTES.toMillis(eatingSoonTTDuration.toLong()),
+                                    reason = TemporaryTarget.Reason.EATING_SOON,
+                                    lowTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits()),
+                                    highTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits())
+                                )
+                            ).subscribe({ result ->
+                                            result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                                            result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
+                                        }, {
+                                            aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
+                                        })
                         }
 
-                        hypoSelected       -> {
-                            uel.log("TT HYPO", d1 = hypoTT, i1 = hypoTTDuration)
-                            disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
-                                timestamp = System.currentTimeMillis(),
-                                duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
-                                reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
-                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
-                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
-                            )).subscribe({ result ->
-                                result.inserted.forEach { nsUpload.uploadTempTarget(it) }
-                                result.updated.forEach { nsUpload.updateTempTarget(it) }
-                            }, {
-                                aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
-                            })
+                        hypoSelected -> {
+                            uel.log(
+                                Action.TT, Sources.CarbDialog,
+                                ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.HYPOGLYCEMIA),
+                                ValueWithUnit.fromGlucoseUnit(hypoTT, units.asText),
+                                ValueWithUnit.Minute(hypoTTDuration)
+                            )
+                            disposable += repository.runTransactionForResult(
+                                InsertAndCancelCurrentTemporaryTargetTransaction(
+                                    timestamp = System.currentTimeMillis(),
+                                    duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
+                                    reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
+                                    lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
+                                    highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                                )
+                            ).subscribe({ result ->
+                                            result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                                            result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
+                                        }, {
+                                            aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
+                                        })
                         }
                     }
                     if (carbsAfterConstraints > 0) {
-                        if (duration == 0) {
-                            uel.log("CARBS", d1 = carbsAfterConstraints.toDouble(), i1 = timeOffset)
-                            carbsGenerator.createCarb(carbsAfterConstraints, time, CareportalEvent.CARBCORRECTION, notes)
-                        } else {
-                            uel.log("CARBS", d1 = carbsAfterConstraints.toDouble(), i1 = timeOffset, i2 = duration)
-                            carbsGenerator.generateCarbs(carbsAfterConstraints, time, duration, notes)
-                            nsUpload.uploadEvent(CareportalEvent.NOTE, DateUtil.now() - 2000, resourceHelper.gs(R.string.generated_ecarbs_note, carbsAfterConstraints, duration, timeOffset))
-                        }
+                        val detailedBolusInfo = DetailedBolusInfo()
+                        detailedBolusInfo.eventType = DetailedBolusInfo.EventType.CORRECTION_BOLUS
+                        detailedBolusInfo.carbs = carbsAfterConstraints.toDouble()
+                        detailedBolusInfo.context = context
+                        detailedBolusInfo.notes = notes
+                        detailedBolusInfo.carbsDuration = T.hours(duration.toLong()).msecs()
+                        detailedBolusInfo.carbsTimestamp = eventTime
+                        uel.log(if (duration == 0) Action.CARBS else Action.EXTENDED_CARBS, Sources.CarbDialog,
+                                notes,
+                                ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged },
+                                ValueWithUnit.Gram(carbsAfterConstraints),
+                                ValueWithUnit.Minute(timeOffset).takeIf { timeOffset != 0 },
+                                ValueWithUnit.Hour(duration).takeIf { duration != 0 })
+                        commandQueue.bolus(detailedBolusInfo, object : Callback() {
+                            override fun run() {
+                                carbTimer.removeEatReminder()
+                                if (!result.success) {
+                                    ErrorHelperActivity.runAlarm(ctx, result.comment, rh.gs(R.string.treatmentdeliveryerror), R.raw.boluserror)
+                                } else if (sp.getBoolean(R.string.key_usebolusreminder, false) && remindBolus)
+                                    bolusTimer.scheduleBolusReminder()
+                            }
+                        })
                     }
                     if (useAlarm && carbs > 0 && timeOffset > 0) {
-                        carbTimer.scheduleReminder(dateUtil._now() + T.mins(timeOffset.toLong()).msecs())
+                        carbTimer.scheduleReminder(T.mins(timeOffset.toLong()).secs().toInt())
                     }
                 }, null)
             }
         } else
             activity?.let { activity ->
-                OKDialog.show(activity, resourceHelper.gs(R.string.carbs), resourceHelper.gs(R.string.no_action_selected))
+                OKDialog.show(activity, rh.gs(R.string.carbs), rh.gs(R.string.no_action_selected))
             }
         return true
     }

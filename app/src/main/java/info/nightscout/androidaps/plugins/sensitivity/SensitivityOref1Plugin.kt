@@ -2,24 +2,26 @@ package info.nightscout.androidaps.plugins.sensitivity
 
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.Constants
-import info.nightscout.androidaps.MainApp
 import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.Profile
-import info.nightscout.androidaps.db.CareportalEvent
-import info.nightscout.androidaps.db.ProfileSwitch
-import info.nightscout.androidaps.interfaces.IobCobCalculatorInterface
+import info.nightscout.androidaps.annotations.OpenForTesting
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.entities.TherapyEvent
+import info.nightscout.androidaps.extensions.isPSEvent5minBack
+import info.nightscout.androidaps.extensions.isTherapyEventEvent5minBack
 import info.nightscout.androidaps.interfaces.PluginDescription
 import info.nightscout.androidaps.interfaces.PluginType
+import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.interfaces.SensitivityInterface.SensitivityType
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.androidaps.interfaces.Sensitivity.SensitivityType
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.SMBDefaults
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensDataStore
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.AutosensResult
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin.Companion.percentile
+import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
@@ -27,48 +29,50 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 
+@OpenForTesting
 @Singleton
-open class SensitivityOref1Plugin @Inject constructor(
-    injector: HasAndroidInjector?,
-    aapsLogger: AAPSLogger?,
-    resourceHelper: ResourceHelper?,
-    sp: SP?,
+class SensitivityOref1Plugin @Inject constructor(
+    injector: HasAndroidInjector,
+    aapsLogger: AAPSLogger,
+    rh: ResourceHelper,
+    sp: SP,
     private val profileFunction: ProfileFunction,
-    private val dateUtil: DateUtil
-) : AbstractSensitivityPlugin(PluginDescription()
-    .mainType(PluginType.SENSITIVITY)
-    .pluginIcon(R.drawable.ic_generic_icon)
-    .pluginName(R.string.sensitivityoref1)
-    .shortName(R.string.sensitivity_shortname)
-    .enableByDefault(true)
-    .preferencesId(R.xml.pref_absorption_oref1)
-    .description(R.string.description_sensitivity_oref1)
-    .setDefault(),
-    injector!!, aapsLogger!!, resourceHelper!!, sp!!
+    private val dateUtil: DateUtil,
+    private val repository: AppRepository
+) : AbstractSensitivityPlugin(
+    PluginDescription()
+        .mainType(PluginType.SENSITIVITY)
+        .pluginIcon(R.drawable.ic_generic_icon)
+        .pluginName(R.string.sensitivityoref1)
+        .shortName(R.string.sensitivity_shortname)
+        .enableByDefault(true)
+        .preferencesId(R.xml.pref_absorption_oref1)
+        .description(R.string.description_sensitivity_oref1)
+        .setDefault(),
+    injector, aapsLogger, rh, sp
 ) {
 
-    override fun detectSensitivity(plugin: IobCobCalculatorInterface, fromTime: Long, toTime: Long): AutosensResult {
+    override fun detectSensitivity(ads: AutosensDataStore, fromTime: Long, toTime: Long): AutosensResult {
         // todo this method is called from the IobCobCalculatorPlugin, which leads to a circular
         // dependency, this should be avoided
-        val autosensDataTable = plugin.getAutosensDataTable()
         val profile = profileFunction.getProfile()
         if (profile == null) {
             aapsLogger.error("No profile")
             return AutosensResult()
         }
-        if (autosensDataTable.size() < 4) {
-            aapsLogger.debug(LTag.AUTOSENS, "No autosens data available. lastDataTime=" + plugin.lastDataTime())
+        if (ads.autosensDataTable.size() < 4) {
+            aapsLogger.debug(LTag.AUTOSENS, "No autosens data available. lastDataTime=" + ads.lastDataTime(dateUtil))
             return AutosensResult()
         }
 
         // the current
-        val current = plugin.getAutosensData(toTime) // this is running inside lock already
+        val current = ads.getAutosensDataAtTime(toTime) // this is running inside lock already
         if (current == null) {
-            aapsLogger.debug(LTag.AUTOSENS, "No autosens data available. toTime: " + dateUtil.dateAndTimeString(toTime) + " lastDataTime: " + plugin.lastDataTime())
+            aapsLogger.debug(LTag.AUTOSENS, "No autosens data available. toTime: " + dateUtil.dateAndTimeString(toTime) + " lastDataTime: " + ads.lastDataTime(dateUtil))
             return AutosensResult()
         }
-        val siteChanges = MainApp.getDbHelper().getCareportalEventsFromTime(fromTime, CareportalEvent.SITECHANGE, true)
-        val profileSwitches = MainApp.getDbHelper().getProfileSwitchEventsFromTime(fromTime, true)
+        val siteChanges = repository.getTherapyEventDataFromTime(fromTime, TherapyEvent.Type.CANNULA_CHANGE, true).blockingGet()
+        val profileSwitches = repository.getProfileSwitchDataFromTime(fromTime, true).blockingGet()
 
         //[0] = 8 hour
         //[1] = 24 hour
@@ -81,8 +85,8 @@ open class SensitivityOref1Plugin @Inject constructor(
         val ratioLimitArray = mutableListOf("", "")
         val hoursDetection = listOf(8.0, 24.0)
         var index = 0
-        while (index < autosensDataTable.size()) {
-            val autosensData = autosensDataTable.valueAt(index)
+        while (index < ads.autosensDataTable.size()) {
+            val autosensData = ads.autosensDataTable.valueAt(index)
             if (autosensData.time < fromTime) {
                 index++
                 continue
@@ -99,13 +103,13 @@ open class SensitivityOref1Plugin @Inject constructor(
                 var pastSensitivity = pastSensitivityArray[hourSegment]
 
                 // reset deviations after site change
-                if (CareportalEvent(injector).isEvent5minBack(siteChanges, autosensData.time)) {
+                if (siteChanges.isTherapyEventEvent5minBack(autosensData.time)) {
                     deviationsArray.clear()
                     pastSensitivity += "(SITECHANGE)"
                 }
 
                 // reset deviations after profile switch
-                if (ProfileSwitch(injector).isEvent5minBack(profileSwitches, autosensData.time, true)) {
+                if (profileSwitches.isPSEvent5minBack(autosensData.time)) {
                     deviationsArray.clear()
                     pastSensitivity += "(PROFILESWITCH)"
                 }
@@ -155,11 +159,11 @@ open class SensitivityOref1Plugin @Inject constructor(
             if (hourUsed == 1) sensResult = "(24 hours) "
             val ratioLimit = ""
             val deviations: Array<Double> = Array(deviationsArray.size) { i -> deviationsArray[i] }
-            val sens = profile.isfMgdl
+            val sens = profile.getIsfMgdl()
             aapsLogger.debug(LTag.AUTOSENS, "Records: $index   $pastSensitivity")
             Arrays.sort(deviations)
-            val pSensitive = percentile(deviations, 0.50)
-            val pResistant = percentile(deviations, 0.50)
+            val pSensitive = IobCobCalculatorPlugin.percentile(deviations, 0.50)
+            val pResistant = IobCobCalculatorPlugin.percentile(deviations, 0.50)
             var basalOff = 0.0
             when {
                 pSensitive < 0 -> { // sensitive
@@ -175,7 +179,7 @@ open class SensitivityOref1Plugin @Inject constructor(
                 else           -> sensResult += "Sensitivity normal"
             }
             aapsLogger.debug(LTag.AUTOSENS, sensResult)
-            val ratio = 1 + basalOff / profile.maxDailyBasal
+            val ratio = 1 + basalOff / profile.getMaxDailyBasal()
 
             //Update the data back to the parent
             sensResultArray[hourUsed] = sensResult
@@ -192,7 +196,8 @@ open class SensitivityOref1Plugin @Inject constructor(
         }
         //String message = hoursDetection.get(key) + " of sensitivity used";
         val output = fillResult(ratioArray[key], current.cob, pastSensitivityArray[key], ratioLimitArray[key], sensResultArray[key] + comparison, deviationsHour[key].size)
-        aapsLogger.debug(LTag.AUTOSENS, "Sensitivity to: "
+        aapsLogger.debug(
+            LTag.AUTOSENS, "Sensitivity to: "
             + dateUtil.dateAndTimeString(toTime) +
             " ratio: " + output.ratio
             + " mealCOB: " + current.cob)
@@ -202,10 +207,10 @@ open class SensitivityOref1Plugin @Inject constructor(
     override fun configuration(): JSONObject {
         val c = JSONObject()
         try {
-            c.put(resourceHelper.gs(R.string.key_openapsama_min_5m_carbimpact), sp.getDouble(R.string.key_openapsama_min_5m_carbimpact, SMBDefaults.min_5m_carbimpact))
-            c.put(resourceHelper.gs(R.string.key_absorption_cutoff), sp.getDouble(R.string.key_absorption_cutoff, Constants.DEFAULT_MAX_ABSORPTION_TIME))
-            c.put(resourceHelper.gs(R.string.key_openapsama_autosens_max), sp.getDouble(R.string.key_openapsama_autosens_max, 1.2))
-            c.put(resourceHelper.gs(R.string.key_openapsama_autosens_min), sp.getDouble(R.string.key_openapsama_autosens_min, 0.7))
+            c.put(rh.gs(R.string.key_openapsama_min_5m_carbimpact), sp.getDouble(R.string.key_openapsama_min_5m_carbimpact, SMBDefaults.min_5m_carbimpact))
+            c.put(rh.gs(R.string.key_absorption_cutoff), sp.getDouble(R.string.key_absorption_cutoff, Constants.DEFAULT_MAX_ABSORPTION_TIME))
+            c.put(rh.gs(R.string.key_openapsama_autosens_max), sp.getDouble(R.string.key_openapsama_autosens_max, 1.2))
+            c.put(rh.gs(R.string.key_openapsama_autosens_min), sp.getDouble(R.string.key_openapsama_autosens_min, 0.7))
         } catch (e: JSONException) {
             e.printStackTrace()
         }
@@ -214,10 +219,10 @@ open class SensitivityOref1Plugin @Inject constructor(
 
     override fun applyConfiguration(configuration: JSONObject) {
         try {
-            if (configuration.has(resourceHelper.gs(R.string.key_openapsama_min_5m_carbimpact))) sp.putDouble(R.string.key_openapsama_min_5m_carbimpact, configuration.getDouble(resourceHelper.gs(R.string.key_openapsama_min_5m_carbimpact)))
-            if (configuration.has(resourceHelper.gs(R.string.key_absorption_cutoff))) sp.putDouble(R.string.key_absorption_cutoff, configuration.getDouble(resourceHelper.gs(R.string.key_absorption_cutoff)))
-            if (configuration.has(resourceHelper.gs(R.string.key_openapsama_autosens_max))) sp.getDouble(R.string.key_openapsama_autosens_max, configuration.getDouble(resourceHelper.gs(R.string.key_openapsama_autosens_max)))
-            if (configuration.has(resourceHelper.gs(R.string.key_openapsama_autosens_min))) sp.getDouble(R.string.key_openapsama_autosens_min, configuration.getDouble(resourceHelper.gs(R.string.key_openapsama_autosens_min)))
+            if (configuration.has(rh.gs(R.string.key_openapsama_min_5m_carbimpact))) sp.putDouble(R.string.key_openapsama_min_5m_carbimpact, configuration.getDouble(rh.gs(R.string.key_openapsama_min_5m_carbimpact)))
+            if (configuration.has(rh.gs(R.string.key_absorption_cutoff))) sp.putDouble(R.string.key_absorption_cutoff, configuration.getDouble(rh.gs(R.string.key_absorption_cutoff)))
+            if (configuration.has(rh.gs(R.string.key_openapsama_autosens_max))) sp.getDouble(R.string.key_openapsama_autosens_max, configuration.getDouble(rh.gs(R.string.key_openapsama_autosens_max)))
+            if (configuration.has(rh.gs(R.string.key_openapsama_autosens_min))) sp.getDouble(R.string.key_openapsama_autosens_min, configuration.getDouble(rh.gs(R.string.key_openapsama_autosens_min)))
         } catch (e: JSONException) {
             e.printStackTrace()
         }

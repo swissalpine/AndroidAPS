@@ -3,6 +3,7 @@ package info.nightscout.androidaps.plugins.profile.local
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,29 +12,38 @@ import android.widget.ArrayAdapter
 import dagger.android.support.DaggerFragment
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.Profile
+import info.nightscout.androidaps.data.ProfileSealed
+import info.nightscout.androidaps.database.entities.UserEntry.Action
+import info.nightscout.androidaps.database.entities.UserEntry.Sources
+import info.nightscout.androidaps.database.entities.ValueWithUnit
 import info.nightscout.androidaps.databinding.LocalprofileFragmentBinding
 import info.nightscout.androidaps.dialogs.ProfileSwitchDialog
-import info.nightscout.androidaps.interfaces.ActivePluginProvider
-import info.nightscout.androidaps.logging.AAPSLogger
+import info.nightscout.androidaps.interfaces.ActivePlugin
+import info.nightscout.androidaps.interfaces.GlucoseUnit
+import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.logging.UserEntryLogger
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.profile.local.events.EventLocalProfileChanged
 import info.nightscout.androidaps.utils.*
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
-import io.reactivex.rxkotlin.plusAssign
 import info.nightscout.androidaps.utils.resources.ResourceHelper
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
+import info.nightscout.androidaps.utils.ui.SpinnerHelper
+import info.nightscout.androidaps.utils.ui.TimeListEdit
+import info.nightscout.shared.SafeParse
+import info.nightscout.shared.logging.AAPSLogger
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
+import java.math.RoundingMode
 import java.text.DecimalFormat
 import javax.inject.Inject
 
 class LocalProfileFragment : DaggerFragment() {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var rxBus: RxBusWrapper
-    @Inject lateinit var resourceHelper: ResourceHelper
-    @Inject lateinit var activePlugin: ActivePluginProvider
+    @Inject lateinit var rxBus: RxBus
+    @Inject lateinit var rh: ResourceHelper
+    @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var fabricPrivacy: FabricPrivacy
     @Inject lateinit var localProfilePlugin: LocalProfilePlugin
     @Inject lateinit var hardLimits: HardLimits
@@ -48,23 +58,30 @@ class LocalProfileFragment : DaggerFragment() {
 
     private val save = Runnable {
         doEdit()
-        basalView?.updateLabel(resourceHelper.gs(R.string.basal_label) + ": " + sumLabel())
+        basalView?.updateLabel(rh.gs(R.string.basal_label) + ": " + sumLabel())
+        localProfilePlugin.profile?.getSpecificProfile(spinner?.selectedItem.toString())?.let {
+            binding.basalGraph.show(ProfileSealed.Pure(it))
+            binding.icGraph.show(ProfileSealed.Pure(it))
+            binding.isfGraph.show(ProfileSealed.Pure(it))
+            binding.targetGraph.show(ProfileSealed.Pure(it))
+            binding.insulinGraph.show(activePlugin.activeInsulin, SafeParse.stringToDouble(binding.dia.text))
+        }
     }
 
     private val textWatch = object : TextWatcher {
         override fun afterTextChanged(s: Editable) {}
         override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
         override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-            localProfilePlugin.currentProfile()?.dia = SafeParse.stringToDouble(binding.dia.text.toString())
+            localProfilePlugin.currentProfile()?.dia = SafeParse.stringToDouble(binding.dia.text)
             localProfilePlugin.currentProfile()?.name = binding.name.text.toString()
             doEdit()
         }
     }
 
     private fun sumLabel(): String {
-        val profile = localProfilePlugin.createProfileStore().getDefaultProfile()
-        val sum = profile?.baseBasalSum() ?: 0.0
-        return " ∑" + DecimalFormatter.to2Decimal(sum) + resourceHelper.gs(R.string.insulin_unit_shortname)
+        val profile = localProfilePlugin.getEditProfile()
+        val sum = profile?.let { ProfileSealed.Pure(profile).baseBasalSum() } ?: 0.0
+        return " ∑" + DecimalFormatter.to2Decimal(sum) + rh.gs(R.string.insulin_unit_shortname)
     }
 
     private var _binding: LocalprofileFragmentBinding? = null
@@ -73,8 +90,7 @@ class LocalProfileFragment : DaggerFragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = LocalprofileFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -105,6 +121,7 @@ class LocalProfileFragment : DaggerFragment() {
             processVisibilityOnClick(it)
             binding.target.visibility = View.VISIBLE
         }
+        binding.dia.editText?.id?.let { binding.diaLabel.labelFor = it }
     }
 
     fun build() {
@@ -116,26 +133,33 @@ class LocalProfileFragment : DaggerFragment() {
         binding.name.removeTextChangedListener(textWatch)
         binding.name.setText(currentProfile.name)
         binding.name.addTextChangedListener(textWatch)
-        binding.dia.setParams(currentProfile.dia, hardLimits.minDia(), hardLimits.maxDia(), 0.1, DecimalFormat("0.0"), false, binding.save, textWatch)
+        binding.dia.setParams(currentProfile.dia, hardLimits.minDia(), hardLimits.maxDia(), 0.1, DecimalFormat("0.0"), false, null, textWatch)
         binding.dia.tag = "LP_DIA"
-        TimeListEdit(context, aapsLogger, dateUtil, view, R.id.ic, "IC", resourceHelper.gs(R.string.ic_label), currentProfile.ic, null, hardLimits.minIC(), hardLimits.maxIC(), 0.1, DecimalFormat("0.0"), save)
-        basalView = TimeListEdit(context, aapsLogger, dateUtil, view, R.id.basal, "BASAL", resourceHelper.gs(R.string.basal_label) + ": " + sumLabel(), currentProfile.basal, null, pumpDescription.basalMinimumRate, 10.0, 0.01, DecimalFormat("0.00"), save)
+        TimeListEdit(context, aapsLogger, dateUtil, view, R.id.ic_holder, "IC", rh.gs(R.string.ic_long_label), currentProfile.ic, null, doubleArrayOf(hardLimits.minIC(), hardLimits.maxIC()), null, 0.1, DecimalFormat ("0.0"), save)
+        basalView = TimeListEdit(context, aapsLogger, dateUtil, view, R.id.basal_holder, "BASAL", rh.gs(R.string.basal_long_label) + ": " + sumLabel(), currentProfile.basal, null, doubleArrayOf(pumpDescription.basalMinimumRate, pumpDescription.basalMaximumRate), null, 0.01, DecimalFormat("0.00"), save)
         if (units == Constants.MGDL) {
-            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.isf, "ISF", resourceHelper.gs(R.string.isf_label), currentProfile.isf, null, hardLimits.MINISF, hardLimits.MAXISF, 1.0, DecimalFormat("0"), save)
-            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.target, "TARGET", resourceHelper.gs(R.string.target_label), currentProfile.targetLow, currentProfile.targetHigh, hardLimits.VERY_HARD_LIMIT_TARGET_BG[0].toDouble(), hardLimits.VERY_HARD_LIMIT_TARGET_BG[1].toDouble(), 1.0, DecimalFormat("0"), save)
+            val isfRange = doubleArrayOf(HardLimits.MIN_ISF, HardLimits.MAX_ISF)
+            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.isf_holder, "ISF", rh.gs(R.string.isf_long_label), currentProfile.isf, null, isfRange , null, 1.0, DecimalFormat("0"), save)
+            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.target_holder, "TARGET", rh.gs(R.string.target_long_label), currentProfile.targetLow, currentProfile.targetHigh, HardLimits.VERY_HARD_LIMIT_MIN_BG, HardLimits.VERY_HARD_LIMIT_TARGET_BG, 1.0, DecimalFormat("0"), save)
         } else {
-            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.isf, "ISF", resourceHelper.gs(R.string.isf_label), currentProfile.isf, null, Profile.fromMgdlToUnits(hardLimits.MINISF, Constants.MMOL), Profile.fromMgdlToUnits(hardLimits.MAXISF, Constants.MMOL), 0.1, DecimalFormat("0.0"), save)
-            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.target, "TARGET", resourceHelper.gs(R.string.target_label), currentProfile.targetLow, currentProfile.targetHigh, Profile.fromMgdlToUnits(hardLimits.VERY_HARD_LIMIT_TARGET_BG[0].toDouble(), Constants.MMOL), Profile.fromMgdlToUnits(hardLimits.VERY_HARD_LIMIT_TARGET_BG[1].toDouble(), Constants.MMOL), 0.1, DecimalFormat("0.0"), save)
+            val isfRange = doubleArrayOf(roundUp(Profile.fromMgdlToUnits(HardLimits.MIN_ISF, GlucoseUnit.MMOL)), 
+                roundDown(Profile.fromMgdlToUnits(HardLimits.MAX_ISF, GlucoseUnit.MMOL)))
+            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.isf_holder, "ISF", rh.gs(R.string.isf_long_label), currentProfile.isf, null,isfRange , null, 0.1, DecimalFormat("0.0"), save)
+            val range1 = doubleArrayOf(roundUp(Profile.fromMgdlToUnits(HardLimits.VERY_HARD_LIMIT_MIN_BG[0], GlucoseUnit.MMOL)),
+                roundDown(Profile.fromMgdlToUnits(HardLimits.VERY_HARD_LIMIT_MIN_BG[1], GlucoseUnit.MMOL)))
+            val range2 = doubleArrayOf(roundUp(Profile.fromMgdlToUnits(HardLimits.VERY_HARD_LIMIT_MAX_BG[0], GlucoseUnit.MMOL)),
+                roundDown(Profile.fromMgdlToUnits(HardLimits.VERY_HARD_LIMIT_MAX_BG[1], GlucoseUnit.MMOL)))
+            Log.i("TimeListEdit", "build: range1" + range1[0] + " " + range1[1]   + " range2" + range2[0] + " " + range2[1])
+            TimeListEdit(context, aapsLogger, dateUtil, view, R.id.target_holder, "TARGET", rh.gs(R.string.target_long_label), currentProfile.targetLow, currentProfile.targetHigh, range1 , range2, 0.1, DecimalFormat("0.0"), save)
         }
 
         // Spinner
         spinner = SpinnerHelper(binding.spinner)
-        val profileList: ArrayList<CharSequence> = localProfilePlugin.profile?.getProfileList()
-            ?: ArrayList()
         context?.let { context ->
-            val adapter = ArrayAdapter(context, R.layout.spinner_centered, profileList)
-            spinner?.adapter = adapter
-            spinner?.setSelection(localProfilePlugin.currentProfileIndex)
+            val profileList: ArrayList<CharSequence> = localProfilePlugin.profile?.getProfileList() ?: ArrayList()
+            spinner?.adapter = ArrayAdapter(context, R.layout.spinner_centered, profileList)
+            val selection = localProfilePlugin.currentProfileIndex
+            if (selection in 0 until profileList.size) spinner?.setSelection(selection)
         } ?: return
         spinner?.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: AdapterView<*>?) {
@@ -144,12 +168,15 @@ class LocalProfileFragment : DaggerFragment() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (localProfilePlugin.isEdited) {
                     activity?.let { activity ->
-                        OKDialog.showConfirmation(activity, resourceHelper.gs(R.string.doyouwantswitchprofile), {
+                        OKDialog.showConfirmation(activity, rh.gs(R.string.doyouwantswitchprofile), {
                             localProfilePlugin.currentProfileIndex = position
+                            localProfilePlugin.isEdited = false
                             build()
                         }, {
-                            spinner?.setSelection(localProfilePlugin.currentProfileIndex)
-                        })
+                            val selection = localProfilePlugin.currentProfileIndex
+                            if (selection in 0 until (spinner?.adapter?.count ?: -1)) spinner?.setSelection(selection)
+                            }
+                        )
                     }
                 } else {
                     localProfilePlugin.currentProfileIndex = position
@@ -157,12 +184,19 @@ class LocalProfileFragment : DaggerFragment() {
                 }
             }
         })
+        localProfilePlugin.profile?.getSpecificProfile(spinner?.selectedItem.toString())?.let {
+            binding.basalGraph.show(ProfileSealed.Pure(it))
+            binding.icGraph.show(ProfileSealed.Pure(it))
+            binding.isfGraph.show(ProfileSealed.Pure(it))
+            binding.targetGraph.show(ProfileSealed.Pure(it))
+            binding.insulinGraph.show(activePlugin.activeInsulin, SafeParse.stringToDouble(binding.dia.text))
+        }
 
         binding.profileAdd.setOnClickListener {
             if (localProfilePlugin.isEdited) {
-                activity?.let { OKDialog.show(it, "", resourceHelper.gs(R.string.saveorresetchangesfirst)) }
+                activity?.let { OKDialog.show(it, "", rh.gs(R.string.saveorresetchangesfirst)) }
             } else {
-                uel.log("NEW PROFILE")
+                uel.log(Action.NEW_PROFILE, Sources.LocalProfile)
                 localProfilePlugin.addNewProfile()
                 build()
             }
@@ -170,9 +204,10 @@ class LocalProfileFragment : DaggerFragment() {
 
         binding.profileClone.setOnClickListener {
             if (localProfilePlugin.isEdited) {
-                activity?.let { OKDialog.show(it, "", resourceHelper.gs(R.string.saveorresetchangesfirst)) }
+                activity?.let { OKDialog.show(it, "", rh.gs(R.string.saveorresetchangesfirst)) }
             } else {
-                uel.log("CLONE PROFILE", localProfilePlugin.currentProfile()?.name ?: "")
+                uel.log(Action.CLONE_PROFILE, Sources.LocalProfile, ValueWithUnit.SimpleString(localProfilePlugin.currentProfile()?.name
+                    ?: ""))
                 localProfilePlugin.cloneProfile()
                 build()
             }
@@ -180,8 +215,9 @@ class LocalProfileFragment : DaggerFragment() {
 
         binding.profileRemove.setOnClickListener {
             activity?.let { activity ->
-                OKDialog.showConfirmation(activity, resourceHelper.gs(R.string.deletecurrentprofile), {
-                    uel.log("REMOVE PROFILE", localProfilePlugin.currentProfile()?.name ?: "")
+                OKDialog.showConfirmation(activity, rh.gs(R.string.deletecurrentprofile), {
+                    uel.log(Action.PROFILE_REMOVED, Sources.LocalProfile, ValueWithUnit.SimpleString(localProfilePlugin.currentProfile()?.name
+                        ?: ""))
                     localProfilePlugin.removeCurrentProfile()
                     build()
                 }, null)
@@ -192,12 +228,12 @@ class LocalProfileFragment : DaggerFragment() {
         // if (!pumpDescription.isTempBasalCapable) binding.basal.visibility = View.GONE
 
         @Suppress("SetTextI18n")
-        binding.units.text = resourceHelper.gs(R.string.units_colon) + " " + (if (currentProfile.mgdl) resourceHelper.gs(R.string.mgdl) else resourceHelper.gs(R.string.mmol))
+        binding.units.text = rh.gs(R.string.units_colon) + " " + (if (currentProfile.mgdl) rh.gs(R.string.mgdl) else rh.gs(R.string.mmol))
 
         binding.profileswitch.setOnClickListener {
             ProfileSwitchDialog()
                 .also { it.arguments = Bundle().also { bundle -> bundle.putInt("profileIndex", localProfilePlugin.currentProfileIndex) } }
-                .show(childFragmentManager, "NewNSTreatmentDialog")
+                .show(childFragmentManager, "ProfileSwitchDialog")
         }
 
         binding.reset.setOnClickListener {
@@ -206,9 +242,11 @@ class LocalProfileFragment : DaggerFragment() {
         }
 
         binding.save.setOnClickListener {
-            if (!localProfilePlugin.isValidEditState()) {
+            if (!localProfilePlugin.isValidEditState(activity)) {
                 return@setOnClickListener  //Should not happen as saveButton should not be visible if not valid
             }
+            uel.log(Action.STORE_PROFILE, Sources.LocalProfile, ValueWithUnit.SimpleString(localProfilePlugin.currentProfile()?.name
+                ?: ""))
             localProfilePlugin.storeSettings(activity)
             build()
         }
@@ -221,7 +259,7 @@ class LocalProfileFragment : DaggerFragment() {
         disposable += rxBus
             .toObservable(EventLocalProfileChanged::class.java)
             .observeOn(aapsSchedulers.main)
-            .subscribe({ build() },fabricPrivacy::logException)
+            .subscribe({ build() }, fabricPrivacy::logException)
         build()
     }
 
@@ -242,12 +280,21 @@ class LocalProfileFragment : DaggerFragment() {
         updateGUI()
     }
 
-    fun updateGUI() {
+    private fun roundUp(number: Double): Double {
+        return number.toBigDecimal().setScale(1, RoundingMode.UP).toDouble()
+    }
+
+    private fun roundDown(number: Double): Double {
+        return number.toBigDecimal().setScale(1, RoundingMode.DOWN).toDouble()
+    }
+
+    private fun updateGUI() {
         if (_binding == null) return
-        val isValid = localProfilePlugin.isValidEditState()
+        val isValid = localProfilePlugin.isValidEditState(activity)
         val isEdited = localProfilePlugin.isEdited
         if (isValid) {
-            this.view?.setBackgroundColor(resourceHelper.gc(R.color.ok_background))
+            this.view?.setBackgroundColor(rh.gc(R.color.ok_background))
+            binding.spinner.isEnabled = true
 
             if (isEdited) {
                 //edited profile -> save first
@@ -258,7 +305,8 @@ class LocalProfileFragment : DaggerFragment() {
                 binding.save.visibility = View.GONE
             }
         } else {
-            this.view?.setBackgroundColor(resourceHelper.gc(R.color.error_background))
+            this.view?.setBackgroundColor(rh.gc(R.color.error_background))
+            binding.spinner.isEnabled = false
             binding.profileswitch.visibility = View.GONE
             binding.save.visibility = View.GONE //don't save an invalid profile
         }
@@ -272,12 +320,12 @@ class LocalProfileFragment : DaggerFragment() {
     }
 
     private fun processVisibilityOnClick(selected: View) {
-        binding.diaTab.setBackgroundColor(resourceHelper.gc(R.color.defaultbackground))
-        binding.icTab.setBackgroundColor(resourceHelper.gc(R.color.defaultbackground))
-        binding.isfTab.setBackgroundColor(resourceHelper.gc(R.color.defaultbackground))
-        binding.basalTab.setBackgroundColor(resourceHelper.gc(R.color.defaultbackground))
-        binding.targetTab.setBackgroundColor(resourceHelper.gc(R.color.defaultbackground))
-        selected.setBackgroundColor(resourceHelper.gc(R.color.tabBgColorSelected))
+        binding.diaTab.setBackgroundColor(rh.gc(R.color.defaultbackground))
+        binding.icTab.setBackgroundColor(rh.gc(R.color.defaultbackground))
+        binding.isfTab.setBackgroundColor(rh.gc(R.color.defaultbackground))
+        binding.basalTab.setBackgroundColor(rh.gc(R.color.defaultbackground))
+        binding.targetTab.setBackgroundColor(rh.gc(R.color.defaultbackground))
+        selected.setBackgroundColor(rh.gc(R.color.tabBgColorSelected))
         binding.diaPlaceholder.visibility = View.GONE
         binding.ic.visibility = View.GONE
         binding.isf.visibility = View.GONE

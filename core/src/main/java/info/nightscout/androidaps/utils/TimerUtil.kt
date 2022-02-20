@@ -11,16 +11,19 @@ import javax.inject.Singleton
 @Singleton
 class TimerUtil @Inject constructor(
     private val context: Context,
-    private val resourceHelper: ResourceHelper,
+    private val rh: ResourceHelper,
+    private val dateUtil: DateUtil
 ) {
 
-    fun scheduleReminder(time: Long, text: String? = null) {
+    /**
+     * Schedule alarm in @seconds
+     */
+    fun scheduleReminder(seconds: Int, text: String) {
         Intent(AlarmClock.ACTION_SET_TIMER).apply {
-            val length: Int = ((time - DateUtil.now()) / 1000).toInt()
             flags = flags or Intent.FLAG_ACTIVITY_NEW_TASK
-            putExtra(AlarmClock.EXTRA_LENGTH, length)
+            putExtra(AlarmClock.EXTRA_LENGTH, seconds)
             putExtra(AlarmClock.EXTRA_SKIP_UI, true)
-            putExtra(AlarmClock.EXTRA_MESSAGE, text ?: resourceHelper.gs(R.string.app_name))
+            putExtra(AlarmClock.EXTRA_MESSAGE, text)
             context.startActivity(this)
         }
     }

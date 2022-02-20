@@ -6,13 +6,10 @@ import info.nightscout.androidaps.queue.Callback
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
 class ActionLoopSuspendTest : ActionsTestBase() {
 
     lateinit var sut: ActionLoopSuspend
@@ -20,8 +17,9 @@ class ActionLoopSuspendTest : ActionsTestBase() {
     @Before
     fun setup() {
 
-        `when`(resourceHelper.gs(R.string.suspendloop)).thenReturn("Suspend loop")
-        `when`(resourceHelper.gs(ArgumentMatchers.eq(R.string.suspendloopforXmin), ArgumentMatchers.anyInt())).thenReturn("Suspend loop for %d min")
+        `when`(rh.gs(R.string.suspendloop)).thenReturn("Suspend loop")
+        `when`(rh.gs(ArgumentMatchers.eq(R.string.suspendloopforXmin), ArgumentMatchers.anyInt())).thenReturn("Suspend loop for %d min")
+        `when`(rh.gs(R.string.alreadysuspended)).thenReturn("Already suspended")
 
         sut = ActionLoopSuspend(injector)
     }
@@ -31,7 +29,7 @@ class ActionLoopSuspendTest : ActionsTestBase() {
     }
 
     @Test fun shortDescriptionTest() {
-        sut.minutes = InputDuration(injector, 30, InputDuration.TimeUnit.MINUTES)
+        sut.minutes = InputDuration(30, InputDuration.TimeUnit.MINUTES)
         Assert.assertEquals("Suspend loop for %d min", sut.shortDescription())
     }
 
@@ -41,7 +39,7 @@ class ActionLoopSuspendTest : ActionsTestBase() {
 
     @Test fun doActionTest() {
         `when`(loopPlugin.isSuspended).thenReturn(false)
-        sut.minutes = InputDuration(injector, 30, InputDuration.TimeUnit.MINUTES)
+        sut.minutes = InputDuration(30, InputDuration.TimeUnit.MINUTES)
         sut.doAction(object : Callback() {
             override fun run() {}
         })
@@ -57,7 +55,7 @@ class ActionLoopSuspendTest : ActionsTestBase() {
 
     @Test fun applyTest() {
         val a = ActionLoopSuspend(injector)
-        a.minutes = InputDuration(injector, 20, InputDuration.TimeUnit.MINUTES)
+        a.minutes = InputDuration(20, InputDuration.TimeUnit.MINUTES)
         val b = ActionLoopSuspend(injector)
         b.apply(a)
         Assert.assertEquals(20, b.minutes.getMinutes().toLong())

@@ -1,25 +1,23 @@
 package info.nightscout.androidaps.plugins.general.automation.elements
 
+import android.view.Gravity
 import android.widget.LinearLayout
-import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.automation.R
+import info.nightscout.androidaps.interfaces.GlucoseUnit
 import info.nightscout.androidaps.interfaces.ProfileFunction
 import info.nightscout.androidaps.utils.ui.NumberPicker
 import java.text.DecimalFormat
-import javax.inject.Inject
 
-class InputBg(injector: HasAndroidInjector) : Element(injector) {
-    @Inject lateinit var profileFunction: ProfileFunction
+class InputBg(profileFunction: ProfileFunction) : Element() {
 
-    var units = Constants.MGDL
+    var units = GlucoseUnit.MGDL
     var value = 0.0
     var minValue = 0.0
     private var maxValue = 0.0
     private var step = 0.0
     private var decimalFormat: DecimalFormat? = null
 
-    constructor(injector: HasAndroidInjector, value: Double, units: String) : this(injector) {
+    constructor(profileFunction: ProfileFunction, value: Double, units: GlucoseUnit) : this(profileFunction) {
         setUnits(units)
         this.value = value
     }
@@ -29,19 +27,21 @@ class InputBg(injector: HasAndroidInjector) : Element(injector) {
     }
 
     override fun addToLayout(root: LinearLayout) {
-        val numberPicker = NumberPicker(root.context, null)
-        numberPicker.setParams(value, minValue, maxValue, step, decimalFormat, false, root.findViewById(R.id.ok))
-        numberPicker.setOnValueChangedListener { value: Double -> this.value = value }
-        root.addView(numberPicker)
+        root.addView(
+            NumberPicker(root.context, null).also {
+                it.setParams(value, minValue, maxValue, step, decimalFormat, false, root.findViewById(R.id.ok))
+                it.setOnValueChangedListener { v: Double -> value = v }
+                it.gravity = Gravity.CENTER_HORIZONTAL
+            })
     }
 
-    fun setValue(value: Double) : InputBg {
+    fun setValue(value: Double): InputBg {
         this.value = value
         return this
     }
 
-    fun setUnits(units: String): InputBg {
-        if (units == Constants.MMOL) {
+    fun setUnits(units: GlucoseUnit): InputBg {
+        if (units == GlucoseUnit.MMOL) {
             minValue = MMOL_MIN
             maxValue = MMOL_MAX
             step = 0.1
@@ -57,6 +57,7 @@ class InputBg(injector: HasAndroidInjector) : Element(injector) {
     }
 
     companion object {
+
         const val MMOL_MIN = 3.0
         const val MMOL_MAX = 20.0
         const val MGDL_MIN = 54.0

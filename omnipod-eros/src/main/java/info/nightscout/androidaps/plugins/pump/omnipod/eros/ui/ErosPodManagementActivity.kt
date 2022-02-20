@@ -3,11 +3,13 @@ package info.nightscout.androidaps.plugins.pump.omnipod.eros.ui
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.activities.ErrorHelperActivity
 import info.nightscout.androidaps.activities.NoSplashAppCompatActivity
-import info.nightscout.androidaps.interfaces.CommandQueueProvider
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.interfaces.CommandQueue
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.pump.common.events.EventRileyLinkDeviceStatusChange
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.dialog.RileyLinkStatusActivity
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.service.RileyLinkServiceData
@@ -19,7 +21,7 @@ import info.nightscout.androidaps.plugins.pump.omnipod.eros.OmnipodErosPumpPlugi
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.R
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.databinding.OmnipodErosPodManagementBinding
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.driver.definition.ActivationProgress
-import info.nightscout.androidaps.plugins.pump.omnipod.eros.driver.manager.PodStateManager
+import info.nightscout.androidaps.plugins.pump.omnipod.eros.driver.manager.ErosPodStateManager
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.event.EventOmnipodErosPumpValuesChanged
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.manager.AapsOmnipodErosManager
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.queue.command.CommandReadPulseLog
@@ -29,7 +31,7 @@ import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.queue.events.EventQueueChanged
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
-import info.nightscout.androidaps.utils.extensions.toVisibility
+import info.nightscout.androidaps.extensions.toVisibility
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
 import info.nightscout.androidaps.utils.ui.UIRunnable
 import io.reactivex.disposables.CompositeDisposable
@@ -41,10 +43,10 @@ import javax.inject.Inject
  */
 class ErosPodManagementActivity : NoSplashAppCompatActivity() {
 
-    @Inject lateinit var rxBus: RxBusWrapper
+    @Inject lateinit var rxBus: RxBus
     @Inject lateinit var fabricPrivacy: FabricPrivacy
-    @Inject lateinit var commandQueue: CommandQueueProvider
-    @Inject lateinit var podStateManager: PodStateManager
+    @Inject lateinit var commandQueue: CommandQueue
+    @Inject lateinit var podStateManager: ErosPodStateManager
     @Inject lateinit var injector: HasAndroidInjector
     @Inject lateinit var rileyLinkServiceData: RileyLinkServiceData
     @Inject lateinit var aapsOmnipodManager: AapsOmnipodErosManager
@@ -54,6 +56,7 @@ class ErosPodManagementActivity : NoSplashAppCompatActivity() {
     @Inject lateinit var aapsSchedulers: AapsSchedulers
 
     private var disposables: CompositeDisposable = CompositeDisposable()
+    private val handler = Handler(HandlerThread(this::class.simpleName + "Handler").also { it.start() }.looper)
 
     private lateinit var binding: OmnipodErosPodManagementBinding
 
@@ -82,7 +85,7 @@ class ErosPodManagementActivity : NoSplashAppCompatActivity() {
 
         binding.buttonDiscardPod.setOnClickListener {
             OKDialog.showConfirmation(this,
-                resourceHelper.gs(R.string.omnipod_common_pod_management_discard_pod_confirmation), Thread {
+                rh.gs(R.string.omnipod_common_pod_management_discard_pod_confirmation), Thread {
                 aapsOmnipodManager.discardPodState()
             })
         }
@@ -97,7 +100,7 @@ class ErosPodManagementActivity : NoSplashAppCompatActivity() {
 
         binding.buttonResetRileylinkConfig.setOnClickListener {
             // TODO improvement: properly disable button until task is finished
-            serviceTaskExecutor.startTask(ResetRileyLinkConfigurationTask(injector))
+            handler.post { serviceTaskExecutor.startTask(ResetRileyLinkConfigurationTask(injector)) }
         }
 
         binding.buttonPlayTestBeep.setOnClickListener {
@@ -107,7 +110,7 @@ class ErosPodManagementActivity : NoSplashAppCompatActivity() {
             commandQueue.customCommand(CommandPlayTestBeep(), object : Callback() {
                 override fun run() {
                     if (!result.success) {
-                        displayErrorDialog(resourceHelper.gs(R.string.omnipod_common_warning), resourceHelper.gs(R.string.omnipod_common_two_strings_concatenated_by_colon, resourceHelper.gs(R.string.omnipod_common_error_failed_to_play_test_beep), result.comment), false)
+                        displayErrorDialog(rh.gs(R.string.omnipod_common_warning), rh.gs(R.string.omnipod_common_two_strings_concatenated_by_colon, rh.gs(R.string.omnipod_common_error_failed_to_play_test_beep), result.comment), false)
                     }
                 }
             })
@@ -120,7 +123,7 @@ class ErosPodManagementActivity : NoSplashAppCompatActivity() {
             commandQueue.customCommand(CommandReadPulseLog(), object : Callback() {
                 override fun run() {
                     if (!result.success) {
-                        displayErrorDialog(resourceHelper.gs(R.string.omnipod_common_warning), resourceHelper.gs(R.string.omnipod_common_two_strings_concatenated_by_colon, resourceHelper.gs(R.string.omnipod_eros_error_failed_to_read_pulse_log), result.comment), false)
+                        displayErrorDialog(rh.gs(R.string.omnipod_common_warning), rh.gs(R.string.omnipod_common_two_strings_concatenated_by_colon, rh.gs(R.string.omnipod_eros_error_failed_to_read_pulse_log), result.comment), false)
                     }
                 }
             })
@@ -226,8 +229,8 @@ class ErosPodManagementActivity : NoSplashAppCompatActivity() {
     private fun displayNotConfiguredDialog() {
         context.let {
             UIRunnable {
-                OKDialog.show(it, resourceHelper.gs(R.string.omnipod_common_warning),
-                    resourceHelper.gs(R.string.omnipod_eros_error_operation_not_possible_no_configuration), null)
+                OKDialog.show(it, rh.gs(R.string.omnipod_common_warning),
+                    rh.gs(R.string.omnipod_eros_error_operation_not_possible_no_configuration), null)
             }.run()
         }
     }

@@ -2,30 +2,25 @@ package info.nightscout.androidaps.setupwizard
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.Config
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
+import info.nightscout.androidaps.data.ProfileSealed
 import info.nightscout.androidaps.dialogs.ProfileSwitchDialog
 import info.nightscout.androidaps.events.EventPumpStatusChanged
-import info.nightscout.androidaps.interfaces.ActivePluginProvider
-import info.nightscout.androidaps.interfaces.CommandQueueProvider
-import info.nightscout.androidaps.interfaces.ImportExportPrefsInterface
-import info.nightscout.androidaps.interfaces.PluginType
-import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.plugins.aps.loop.LoopPlugin
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
-import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.constraints.objectives.ObjectivesFragment
 import info.nightscout.androidaps.plugins.constraints.objectives.ObjectivesPlugin
 import info.nightscout.androidaps.plugins.general.nsclient.NSClientPlugin
 import info.nightscout.androidaps.plugins.general.nsclient.events.EventNSClientStatus
-import info.nightscout.androidaps.plugins.general.nsclient.services.NSClientService
 import info.nightscout.androidaps.plugins.profile.local.LocalProfileFragment
 import info.nightscout.androidaps.plugins.profile.local.LocalProfilePlugin
-import info.nightscout.androidaps.plugins.profile.ns.NSProfileFragment
-import info.nightscout.androidaps.plugins.profile.ns.NSProfilePlugin
 import info.nightscout.androidaps.plugins.pump.common.events.EventRileyLinkDeviceStatusChange
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.OmnipodDashPumpPlugin
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.OmnipodErosPumpPlugin
@@ -33,9 +28,10 @@ import info.nightscout.androidaps.setupwizard.elements.*
 import info.nightscout.androidaps.setupwizard.events.EventSWUpdate
 import info.nightscout.androidaps.utils.AndroidPermission
 import info.nightscout.androidaps.utils.CryptoUtil
+import info.nightscout.androidaps.utils.HardLimits
 import info.nightscout.androidaps.utils.extensions.isRunningTest
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,23 +39,23 @@ import javax.inject.Singleton
 @Singleton
 class SWDefinition @Inject constructor(
     injector: HasAndroidInjector,
-    private val rxBus: RxBusWrapper,
+    private val rxBus: RxBus,
     private val context: Context,
-    resourceHelper: ResourceHelper,
+    rh: ResourceHelper,
     private val sp: SP,
     private val profileFunction: ProfileFunction,
     private val localProfilePlugin: LocalProfilePlugin,
-    private val activePlugin: ActivePluginProvider,
-    private val commandQueue: CommandQueueProvider,
+    private val activePlugin: ActivePlugin,
+    private val commandQueue: CommandQueue,
     private val objectivesPlugin: ObjectivesPlugin,
-    private val configBuilderPlugin: ConfigBuilderPlugin,
+    private val configBuilder: ConfigBuilder,
     private val loopPlugin: LoopPlugin,
     private val nsClientPlugin: NSClientPlugin,
-    private val nsProfilePlugin: NSProfilePlugin,
-    private val importExportPrefs: ImportExportPrefsInterface,
+    private val importExportPrefs: ImportExportPrefs,
     private val androidPermission: AndroidPermission,
     private val cryptoUtil: CryptoUtil,
-    private val config: Config
+    private val config: Config,
+    private val hardLimits: HardLimits
 ) {
 
     lateinit var activity: AppCompatActivity
@@ -111,10 +107,21 @@ class SWDefinition @Inject constructor(
             .updateDelay(5)
             .label(R.string.high_mark)
             .comment(R.string.high_mark_comment))
+    private val screenPermissionWindow = SWScreen(injector, R.string.permission)
+        .skippable(false)
+        .add(SWInfoText(injector)
+            .label(rh.gs(R.string.needsystemwindowpermission)))
+        .add(SWBreak(injector))
+        .add(SWButton(injector)
+            .text(R.string.askforpermission)
+            .visibility { !Settings.canDrawOverlays(activity) }
+            .action { activity.startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.packageName))) })
+        .visibility { !Settings.canDrawOverlays(activity) }
+        .validator { Settings.canDrawOverlays(activity) }
     private val screenPermissionBattery = SWScreen(injector, R.string.permission)
         .skippable(false)
         .add(SWInfoText(injector)
-            .label(resourceHelper.gs(R.string.needwhitelisting, resourceHelper.gs(R.string.app_name))))
+            .label(rh.gs(R.string.needwhitelisting, rh.gs(R.string.app_name))))
         .add(SWBreak(injector))
         .add(SWButton(injector)
             .text(R.string.askforpermission)
@@ -125,7 +132,7 @@ class SWDefinition @Inject constructor(
     private val screenPermissionBt = SWScreen(injector, R.string.permission)
         .skippable(false)
         .add(SWInfoText(injector)
-            .label(resourceHelper.gs(R.string.needlocationpermission)))
+            .label(rh.gs(R.string.needlocationpermission)))
         .add(SWBreak(injector))
         .add(SWButton(injector)
             .text(R.string.askforpermission)
@@ -136,7 +143,7 @@ class SWDefinition @Inject constructor(
     private val screenPermissionStore = SWScreen(injector, R.string.permission)
         .skippable(false)
         .add(SWInfoText(injector)
-            .label(resourceHelper.gs(R.string.needstoragepermission)))
+            .label(rh.gs(R.string.needstoragepermission)))
         .add(SWBreak(injector))
         .add(SWButton(injector)
             .text(R.string.askforpermission)
@@ -160,10 +167,10 @@ class SWDefinition @Inject constructor(
         .add(SWButton(injector)
             .text(R.string.enable_nsclient)
             .action {
-                configBuilderPlugin.performPluginSwitch(nsClientPlugin, true, PluginType.GENERAL)
+                configBuilder.performPluginSwitch(nsClientPlugin, true, PluginType.GENERAL)
                 rxBus.send(EventSWUpdate(true))
             }
-            .visibility { !nsClientPlugin.isEnabled(PluginType.GENERAL) })
+            .visibility { !nsClientPlugin.isEnabled() })
         .add(SWEditUrl(injector)
             .preferenceId(R.string.key_nsclientinternal_url)
             .updateDelay(5)
@@ -180,8 +187,8 @@ class SWDefinition @Inject constructor(
             .label(R.string.status)
             .initialStatus(nsClientPlugin.status)
         )
-        .validator { nsClientPlugin.nsClientService != null && NSClientService.isConnected && NSClientService.hasWriteAuth }
-        .visibility { !(nsClientPlugin.nsClientService != null && NSClientService.isConnected && NSClientService.hasWriteAuth) }
+        .validator { nsClientPlugin.nsClientService?.isConnected == true && nsClientPlugin.nsClientService?.hasWriteAuth == true }
+        .visibility { !(nsClientPlugin.nsClientService?.isConnected == true && nsClientPlugin.nsClientService?.hasWriteAuth == true) }
     private val screenPatientName = SWScreen(injector, R.string.patient_name)
         .skippable(true)
         .add(SWInfoText(injector)
@@ -220,7 +227,7 @@ class SWDefinition @Inject constructor(
             .updateDelay(5)
             .label(R.string.treatmentssafety_maxbolus_title)
             .comment(R.string.common_values))
-        .add(SWEditNumber(injector, 48.0, 1.0, 100.0)
+        .add(SWEditIntNumber(injector, 48, 1, 100)
             .preferenceId(R.string.key_treatmentssafety_maxcarbs)
             .updateDelay(5)
             .label(R.string.treatmentssafety_maxcarbs_title)
@@ -228,7 +235,7 @@ class SWDefinition @Inject constructor(
         .validator {
             sp.contains(R.string.key_age)
                 && sp.getDouble(R.string.key_treatmentssafety_maxbolus, 0.0) > 0
-                && sp.getDouble(R.string.key_treatmentssafety_maxcarbs, 0.0) > 0
+                && sp.getInt(R.string.key_treatmentssafety_maxcarbs, 0) > 0
         }
     private val screenInsulin = SWScreen(injector, R.string.configbuilder_insulin)
         .skippable(false)
@@ -245,35 +252,22 @@ class SWDefinition @Inject constructor(
             .option(PluginType.BGSOURCE, R.string.configbuilder_bgsource_description)
             .label(R.string.configbuilder_bgsource))
         .add(SWBreak(injector))
-    private val screenProfile = SWScreen(injector, R.string.configbuilder_profile)
-        .skippable(false)
-        .add(SWInfoText(injector)
-            .label(R.string.setupwizard_profile_description))
-        .add(SWBreak(injector))
-        .add(SWPlugin(injector, this)
-            .option(PluginType.PROFILE, R.string.configbuilder_profile_description)
-            .label(R.string.configbuilder_profile))
-    private val screenNsProfile = SWScreen(injector, R.string.nsprofile)
-        .skippable(false)
-        .add(SWInfoText(injector)
-            .label(R.string.adjustprofileinns))
-        .add(SWFragment(injector, this)
-            .add(NSProfileFragment()))
-        .validator { nsProfilePlugin.profile != null && nsProfilePlugin.profile!!.getDefaultProfile() != null && nsProfilePlugin.profile!!.getDefaultProfile()!!.isValid("StartupWizard") }
-        .visibility { nsProfilePlugin.isEnabled(PluginType.PROFILE) }
     private val screenLocalProfile = SWScreen(injector, R.string.localprofile)
         .skippable(false)
         .add(SWFragment(injector, this)
             .add(LocalProfileFragment()))
-        .validator { localProfilePlugin.profile?.getDefaultProfile()?.isValid("StartupWizard") == true }
-        .visibility { localProfilePlugin.isEnabled(PluginType.PROFILE) }
+        .validator {
+            localProfilePlugin.profile?.getDefaultProfile()?.let { ProfileSealed.Pure(it).isValid("StartupWizard", activePlugin.activePump, config, rh, rxBus, hardLimits, false).isValid }
+                ?: false
+        }
+        .visibility { localProfilePlugin.isEnabled() }
     private val screenProfileSwitch = SWScreen(injector, R.string.careportal_profileswitch)
         .skippable(false)
         .add(SWInfoText(injector)
             .label(R.string.profileswitch_ismissing))
         .add(SWButton(injector)
             .text(R.string.doprofileswitch)
-            .action { ProfileSwitchDialog().show(activity.supportFragmentManager, "SetupWizard") })
+            .action { ProfileSwitchDialog().show(activity.supportFragmentManager, "ProfileSwitchDialog") })
         .validator { profileFunction.getProfile() != null }
         .visibility { profileFunction.getProfile() == null }
     private val screenPump = SWScreen(injector, R.string.configbuilder_pump)
@@ -298,7 +292,7 @@ class SWDefinition @Inject constructor(
                 .visibility { activePlugin.activePump is OmnipodErosPumpPlugin })
         .add(SWButton(injector)
             .text(R.string.readstatus)
-            .action { commandQueue.readStatus("Clicked connect to pump", null) }
+            .action { commandQueue.readStatus(rh.gs(R.string.clicked_connect_to_pump), null) }
             .visibility {
                 // Hide for Omnipod, because as we don't require a Pod to be paired in the setup wizard,
                 // Getting the status might not be possible
@@ -346,12 +340,12 @@ class SWDefinition @Inject constructor(
         .add(SWButton(injector)
             .text(R.string.enableloop)
             .action {
-                configBuilderPlugin.performPluginSwitch(loopPlugin, true, PluginType.LOOP)
+                configBuilder.performPluginSwitch(loopPlugin, true, PluginType.LOOP)
                 rxBus.send(EventSWUpdate(true))
             }
-            .visibility { !loopPlugin.isEnabled(PluginType.LOOP) })
-        .validator { loopPlugin.isEnabled(PluginType.LOOP) }
-        .visibility { !loopPlugin.isEnabled(PluginType.LOOP) && config.APS }
+            .visibility { !loopPlugin.isEnabled() })
+        .validator { loopPlugin.isEnabled() }
+        .visibility { !loopPlugin.isEnabled() && config.APS }
     private val screenSensitivity = SWScreen(injector, R.string.configbuilder_sensitivity)
         .skippable(false)
         .add(SWInfoText(injector)
@@ -377,6 +371,7 @@ class SWDefinition @Inject constructor(
             //.add(screenLanguage)
             .add(screenEula)
             .add(if (isRunningTest()) null else screenPermissionBattery) // cannot mock ask battery optimization
+            .add(screenPermissionWindow)
             .add(screenPermissionBt)
             .add(screenPermissionStore)
             .add(screenMasterPassword)
@@ -389,8 +384,6 @@ class SWDefinition @Inject constructor(
             .add(screenAge)
             .add(screenInsulin)
             .add(screenBgSource)
-            .add(screenProfile)
-            .add(screenNsProfile)
             .add(screenLocalProfile)
             .add(screenProfileSwitch)
             .add(screenPump)
@@ -406,6 +399,7 @@ class SWDefinition @Inject constructor(
             //.add(screenLanguage)
             .add(screenEula)
             .add(if (isRunningTest()) null else screenPermissionBattery) // cannot mock ask battery optimization
+            .add(screenPermissionWindow)
             .add(screenPermissionBt)
             .add(screenPermissionStore)
             .add(screenMasterPassword)
@@ -417,8 +411,6 @@ class SWDefinition @Inject constructor(
             .add(screenAge)
             .add(screenInsulin)
             .add(screenBgSource)
-            .add(screenProfile)
-            .add(screenNsProfile)
             .add(screenLocalProfile)
             .add(screenProfileSwitch)
             .add(screenPump)
@@ -430,6 +422,7 @@ class SWDefinition @Inject constructor(
             //.add(screenLanguage)
             .add(screenEula)
             .add(if (isRunningTest()) null else screenPermissionBattery) // cannot mock ask battery optimization
+            .add(screenPermissionWindow)
             .add(screenPermissionStore)
             .add(screenMasterPassword)
             .add(screenImport)
@@ -438,9 +431,6 @@ class SWDefinition @Inject constructor(
             .add(screenNsClient)
             //.add(screenBgSource)
             .add(screenPatientName)
-            .add(screenAge)
-            .add(screenInsulin)
-            .add(screenSensitivity)
     }
 
     init {

@@ -1,15 +1,10 @@
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
     defaultConfig {
-        minSdkVersion 26
+        minSdkVersion 28
         targetSdkVersion 28
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles 'consumer-rules.pro'
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
     }
 
     buildFeatures {
@@ -24,18 +19,18 @@ android {
         debug {
             testCoverageEnabled(project.hasProperty('coverage'))
         }
-        firebaseDisable {
-            System.setProperty("disableFirebase", "true")
-            ext.enableCrashlytics = false
-        }
+//        firebaseDisable {
+//            System.setProperty("disableFirebase", "true")
+//            ext.enableCrashlytics = false
+//        }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
-    lintOptions {
+    lint {
         checkReleaseBuilds false
         disable 'MissingTranslation'
         disable 'ExtraTranslation'

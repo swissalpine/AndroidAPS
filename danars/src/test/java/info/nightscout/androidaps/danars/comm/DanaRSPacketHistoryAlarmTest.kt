@@ -3,38 +3,33 @@ package info.nightscout.androidaps.danars.comm
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.dana.comm.RecordTypes
+import info.nightscout.androidaps.dana.database.DanaHistoryRecordDao
 import info.nightscout.androidaps.danars.DanaRSTestBase
-import info.nightscout.androidaps.interfaces.DatabaseHelperInterface
-import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.powermock.modules.junit4.PowerMockRunner
 import java.util.*
 
-@RunWith(PowerMockRunner::class)
 class DanaRSPacketHistoryAlarmTest : DanaRSTestBase() {
 
-    @Mock lateinit var databaseHelper: DatabaseHelperInterface
-    @Mock lateinit var nsUpload: NSUpload
+    @Mock lateinit var danaHistoryRecordDao: DanaHistoryRecordDao
 
     private val packetInjector = HasAndroidInjector {
         AndroidInjector {
-            if (it is DanaRS_Packet) {
+            if (it is DanaRSPacket) {
                 it.aapsLogger = aapsLogger
                 it.dateUtil = dateUtil
             }
-            if (it is DanaRS_Packet_History_Alarm) {
+            if (it is DanaRSPacketHistoryAlarm) {
                 it.rxBus = rxBus
-                it.databaseHelper = databaseHelper
+                it.danaHistoryRecordDao = danaHistoryRecordDao
             }
         }
     }
 
     @Test
     fun runTest() {
-        val packet = DanaRS_Packet_History_Alarm(packetInjector, 0)
+        val packet = DanaRSPacketHistoryAlarm(packetInjector, 0)
 
         val array = createArray(12, 0.toByte()) // 10 + 2
         putByteToArray(array, 0, 0x0A) // record code alarm
@@ -49,14 +44,14 @@ class DanaRSPacketHistoryAlarmTest : DanaRSTestBase() {
         putByteToArray(array, 9, 100) // value
 
         packet.handleMessage(array)
-        Assert.assertEquals(RecordTypes.RECORD_TYPE_ALARM, packet.danaRHistoryRecord.recordCode)
+        Assert.assertEquals(RecordTypes.RECORD_TYPE_ALARM, packet.danaRHistoryRecord.code)
         val date = GregorianCalendar().also {
             it.clear()
             it.set(2019, 1, 4, 20, 11, 35)
         }
-        Assert.assertEquals(date.timeInMillis, packet.danaRHistoryRecord.recordDate)
-        Assert.assertEquals("Occlusion", packet.danaRHistoryRecord.recordAlarm)
-        Assert.assertEquals(3.56, packet.danaRHistoryRecord.recordValue, 0.01)
+        Assert.assertEquals(date.timeInMillis, packet.danaRHistoryRecord.timestamp)
+        Assert.assertEquals("Occlusion", packet.danaRHistoryRecord.alarm)
+        Assert.assertEquals(3.56, packet.danaRHistoryRecord.value, 0.01)
         Assert.assertEquals("REVIEW__ALARM", packet.friendlyName)
     }
 }

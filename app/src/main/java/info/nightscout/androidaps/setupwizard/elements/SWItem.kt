@@ -1,16 +1,20 @@
 package info.nightscout.androidaps.setupwizard.elements
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.view.View
 import android.widget.LinearLayout
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.events.EventPreferenceChange
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.logging.LTag
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.setupwizard.events.EventSWUpdate
+import info.nightscout.androidaps.utils.protection.PasswordCheck
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -19,9 +23,10 @@ import javax.inject.Inject
 open class SWItem(val injector: HasAndroidInjector, var type: Type) {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var rxBus: RxBusWrapper
-    @Inject lateinit var resourceHelper: ResourceHelper
+    @Inject lateinit var rxBus: RxBus
+    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var sp: SP
+    @Inject lateinit var passwordCheck: PasswordCheck
 
     private val eventWorker = Executors.newSingleThreadScheduledExecutor()
     private var scheduledEventPost: ScheduledFuture<*>? = null
@@ -33,6 +38,7 @@ open class SWItem(val injector: HasAndroidInjector, var type: Type) {
 
     @Suppress("unused")
     enum class Type {
+
         NONE, TEXT, HTML_LINK, BREAK, LISTENER, URL, STRING, NUMBER, DECIMAL_NUMBER, RADIOBUTTON, PLUGIN, BUTTON, FRAGMENT, UNIT_NUMBER, PREFERENCE
     }
 
@@ -69,7 +75,7 @@ open class SWItem(val injector: HasAndroidInjector, var type: Type) {
 
             override fun run() {
                 aapsLogger.debug(LTag.CORE, "Firing EventPreferenceChange")
-                rxBus.send(EventPreferenceChange(resourceHelper, preferenceId))
+                rxBus.send(EventPreferenceChange(rh, preferenceId))
                 rxBus.send(EventSWUpdate(false))
                 scheduledEventPost = null
             }
@@ -78,5 +84,14 @@ open class SWItem(val injector: HasAndroidInjector, var type: Type) {
         scheduledEventPost?.cancel(false)
         val task: Runnable = PostRunnable()
         scheduledEventPost = eventWorker.schedule(task, updateDelay, TimeUnit.SECONDS)
+    }
+
+    fun scanForActivity(cont: Context?): AppCompatActivity? {
+        return when (cont) {
+            null                 -> null
+            is AppCompatActivity -> cont
+            is ContextWrapper    -> scanForActivity(cont.baseContext)
+            else                 -> null
+        }
     }
 }

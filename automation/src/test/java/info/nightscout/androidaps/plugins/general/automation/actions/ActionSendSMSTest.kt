@@ -6,13 +6,10 @@ import info.nightscout.androidaps.queue.Callback
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
 class ActionSendSMSTest : ActionsTestBase() {
 
     private lateinit var sut: ActionSendSMS
@@ -20,8 +17,8 @@ class ActionSendSMSTest : ActionsTestBase() {
     @Before
     fun setup() {
 
-        `when`(resourceHelper.gs(eq(R.string.sendsmsactionlabel), anyString())).thenReturn("Send SMS: %s")
-        `when`(resourceHelper.gs(R.string.sendsmsactiondescription)).thenReturn("Send SMS to all numbers")
+        `when`(rh.gs(eq(R.string.sendsmsactionlabel), anyString())).thenReturn("Send SMS: %s")
+        `when`(rh.gs(R.string.sendsmsactiondescription)).thenReturn("Send SMS to all numbers")
 
         sut = ActionSendSMS(injector)
     }
@@ -40,7 +37,7 @@ class ActionSendSMSTest : ActionsTestBase() {
 
     @Test fun doActionTest() {
         `when`(smsCommunicatorPlugin.sendNotificationToAllNumbers(anyString())).thenReturn(true)
-        sut.text = InputString(injector, "Asd")
+        sut.text = InputString("Asd")
         sut.doAction(object : Callback() {
             override fun run() {
                 Assert.assertTrue(result.success)
@@ -53,7 +50,7 @@ class ActionSendSMSTest : ActionsTestBase() {
     }
 
     @Test fun toJSONTest() {
-        sut.text = InputString(injector, "Asd")
+        sut.text = InputString("Asd")
         Assert.assertEquals("{\"data\":{\"text\":\"Asd\"},\"type\":\"info.nightscout.androidaps.plugins.general.automation.actions.ActionSendSMS\"}", sut.toJSON())
     }
 

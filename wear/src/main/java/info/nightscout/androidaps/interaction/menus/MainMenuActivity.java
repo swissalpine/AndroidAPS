@@ -5,12 +5,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.ListenerService;
 import info.nightscout.androidaps.interaction.AAPSPreferences;
-import info.nightscout.androidaps.interaction.actions.BolusActivity;
+import info.nightscout.androidaps.interaction.actions.TreatmentActivity;
 import info.nightscout.androidaps.interaction.actions.ECarbActivity;
 import info.nightscout.androidaps.interaction.actions.TempTargetActivity;
 import info.nightscout.androidaps.interaction.actions.WizardActivity;
@@ -27,34 +28,34 @@ public class MainMenuActivity extends MenuListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         sp = PreferenceManager.getDefaultSharedPreferences(this);
+        setTitle(R.string.label_actions_activity);
         super.onCreate(savedInstanceState);
         ListenerService.requestData(this);
     }
 
     @Override
-    protected String[] getElements() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+    protected List<MenuItem> getElements() {
 
-        if (!sharedPreferences.getBoolean("wearcontrol", false)) {
-            return new String[]{
-                    getString(R.string.menu_settings),
-                    getString(R.string.menu_resync)};
+        List<MenuItem> menuItems = new ArrayList<>();
+        if (!sp.getBoolean("wearcontrol", false)) {
+            menuItems.add(new MenuItem(R.drawable.ic_settings, getString(R.string.menu_settings)));
+            menuItems.add(new MenuItem(R.drawable.ic_sync, getString(R.string.menu_resync)));
+
+            return menuItems;
         }
-
 
         boolean showPrimeFill = sp.getBoolean("primefill", false);
         boolean showWizard = sp.getBoolean("showWizard", true);
 
-        Vector<String> menuitems = new Vector<String>();
-        menuitems.add(getString(R.string.menu_tempt));
-        if (showWizard) menuitems.add(getString(R.string.menu_wizard));
-        menuitems.add(getString(R.string.menu_ecarb));
-        menuitems.add(getString(R.string.menu_bolus));
-        menuitems.add(getString(R.string.menu_settings));
-        menuitems.add(getString(R.string.menu_status));
-        if (showPrimeFill) menuitems.add(getString(R.string.menu_prime_fill));
+        if (showWizard) menuItems.add(new MenuItem(R.drawable.ic_calculator, getString(R.string.menu_wizard)));
+        menuItems.add(new MenuItem(R.drawable.ic_e_carbs, getString(R.string.menu_ecarb)));
+        menuItems.add(new MenuItem(R.drawable.ic_treatment, getString(R.string.menu_treatment)));
+        menuItems.add(new MenuItem(R.drawable.ic_temptarget, getString(R.string.menu_tempt)));
+        menuItems.add(new MenuItem(R.drawable.ic_settings, getString(R.string.menu_settings)));
+        menuItems.add(new MenuItem(R.drawable.ic_status, getString(R.string.menu_status)));
+        if (showPrimeFill) menuItems.add(new MenuItem(R.drawable.ic_canula, getString(R.string.menu_prime_fill)));
 
-        return menuitems.toArray(new String[menuitems.size()]);
+        return menuItems;
     }
 
     @Override
@@ -72,8 +73,8 @@ public class MainMenuActivity extends MenuListActivity {
             intent = new Intent(this, TempTargetActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if (getString(R.string.menu_bolus).equals(action)) {
-            intent = new Intent(this, BolusActivity.class);
+        } else if (getString(R.string.menu_treatment).equals(action)) {
+            intent = new Intent(this, TreatmentActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
         } else if (getString(R.string.menu_wizard).equals(action)) {

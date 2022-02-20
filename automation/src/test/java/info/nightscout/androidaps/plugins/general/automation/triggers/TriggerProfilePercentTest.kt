@@ -3,28 +3,20 @@ package info.nightscout.androidaps.plugins.general.automation.triggers
 import com.google.common.base.Optional
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.plugins.general.automation.elements.Comparator
-import info.nightscout.androidaps.utils.DateUtil
 import org.json.JSONException
 import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(DateUtil::class)
 class TriggerProfilePercentTest : TriggerTestBase() {
 
     private val now = 1514766900000L
 
     @Before fun mock() {
         `when`(profileFunction.getProfile()).thenReturn(validProfile)
-        PowerMockito.mockStatic(DateUtil::class.java)
-        PowerMockito.`when`(DateUtil.now()).thenReturn(now)
+        `when`(dateUtil.now()).thenReturn(now)
     }
 
     @Test fun shouldRunTest() {
@@ -55,13 +47,13 @@ class TriggerProfilePercentTest : TriggerTestBase() {
         Assert.assertEquals(Comparator.Compare.IS_EQUAL_OR_LESSER, t.comparator.value)
     }
 
-    private val bgJson = "{\"data\":{\"comparator\":\"IS_EQUAL\",\"percentage\":110},\"type\":\"info.nightscout.androidaps.plugins.general.automation.triggers.TriggerProfilePercent\"}"
+    private val bgJson = "{\"data\":{\"comparator\":\"IS_EQUAL\",\"percentage\":110},\"type\":\"TriggerProfilePercent\"}"
     @Test fun toJSONTest() {
         val t: TriggerProfilePercent = TriggerProfilePercent(injector).setValue(110.0).comparator(Comparator.Compare.IS_EQUAL)
         Assert.assertEquals(bgJson, t.toJSON())
     }
 
-    @Test @Throws(JSONException::class) fun fromJSONTest() {
+    @Test fun fromJSONTest() {
         val t: TriggerProfilePercent = TriggerProfilePercent(injector).setValue(120.0).comparator(Comparator.Compare.IS_EQUAL)
         val t2 = TriggerDummy(injector).instantiate(JSONObject(t.toJSON())) as TriggerProfilePercent
         Assert.assertEquals(Comparator.Compare.IS_EQUAL, t2.comparator.value)

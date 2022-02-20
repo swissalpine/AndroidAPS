@@ -1,24 +1,26 @@
 package info.nightscout.androidaps.plugins.general.automation.triggers
 
 import android.content.Context
-import android.view.View
+import android.graphics.Typeface
+import android.view.Gravity
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.LinearLayout
-import android.widget.Spinner
+import android.widget.TextView
 import androidx.annotation.StringRes
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.shared.logging.LTag
+import info.nightscout.androidaps.plugins.general.automation.dialogs.ChooseOperationDialog
 import info.nightscout.androidaps.utils.JsonHelper.safeGetString
 import info.nightscout.androidaps.utils.resources.ResourceHelper
+import info.nightscout.androidaps.utils.ui.VerticalTextView
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
 class TriggerConnector(injector: HasAndroidInjector) : Trigger(injector) {
+
     var list: MutableList<Trigger> = ArrayList()
     private var connectorType: Type = Type.AND
 
@@ -34,16 +36,17 @@ class TriggerConnector(injector: HasAndroidInjector) : Trigger(injector) {
 
         @get:StringRes val stringRes: Int
             get() = when (this) {
-                OR  -> R.string.or
+                OR -> R.string.or
                 XOR -> R.string.xor
                 AND -> R.string.and
             }
 
         companion object {
-            fun labels(resourceHelper: ResourceHelper): List<String> {
+
+            fun labels(rh: ResourceHelper): List<String> {
                 val list: MutableList<String> = ArrayList()
                 for (t in values()) {
-                    list.add(resourceHelper.gs(t.stringRes))
+                    list.add(rh.gs(t.stringRes))
                 }
                 return list
             }
@@ -79,16 +82,12 @@ class TriggerConnector(injector: HasAndroidInjector) : Trigger(injector) {
         return result
     }
 
-    @Synchronized override fun toJSON(): String {
+    override fun dataJSON(): JSONObject {
         val array = JSONArray()
         for (t in list) array.put(t.toJSON())
-        val data = JSONObject()
+        return JSONObject()
             .put("connectorType", connectorType.toString())
             .put("triggerList", array)
-        return JSONObject()
-            .put("type", TriggerConnector::class.java.name)
-            .put("data", data)
-            .toString()
     }
 
     override fun fromJSON(data: String): Trigger {
@@ -97,7 +96,7 @@ class TriggerConnector(injector: HasAndroidInjector) : Trigger(injector) {
         val array = d.getJSONArray("triggerList")
         list.clear()
         for (i in 0 until array.length()) {
-            instantiate(JSONObject(array.getString(i)))?.let {
+            instantiate(JSONObject(array.getString(i))).let {
                 list.add(it)
             }
         }
@@ -110,7 +109,7 @@ class TriggerConnector(injector: HasAndroidInjector) : Trigger(injector) {
         val result = StringBuilder()
         for ((counter, t) in list.withIndex()) {
             if (counter > 0)
-                result.append("\n").append(resourceHelper.gs(friendlyName())).append("\n")
+                result.append("\n").append(rh.gs(friendlyName())).append("\n")
             result.append(t.friendlyDescription())
         }
         return result.toString()
@@ -121,51 +120,70 @@ class TriggerConnector(injector: HasAndroidInjector) : Trigger(injector) {
     override fun duplicate(): Trigger = TriggerConnector(injector, connectorType)
 
     override fun generateDialog(root: LinearLayout) {
-        val padding = resourceHelper.dpToPx(5)
-        root.setPadding(padding, padding, padding, padding)
-        root.setBackgroundResource(R.drawable.border_automation_unit)
-        // Header with spinner
-        val headerLayout = LinearLayout(root.context)
-        headerLayout.orientation = LinearLayout.HORIZONTAL
-        headerLayout.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        headerLayout.addView(createSpinner(root.context))
-        headerLayout.addView(createAddButton(root.context, this))
-        headerLayout.addView(createDeleteButton(root.context, this))
-        root.addView(headerLayout)
-        // Child triggers
-        val listLayout = LinearLayout(root.context)
-        listLayout.orientation = LinearLayout.VERTICAL
-        listLayout.setBackgroundColor(resourceHelper.gc(R.color.mdtp_line_dark))
-        //listLayout.setPadding(resourceHelper.dpToPx(5), resourceHelper.dpToPx(5), resourceHelper.dpToPx(5), 0)
-        val params = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        params.setMargins(resourceHelper.dpToPx(15), 0, resourceHelper.dpToPx(5), resourceHelper.dpToPx(4))
-        listLayout.layoutParams = params
-        for (t in list) t.generateDialog(listLayout)
-        root.addView(listLayout)
+        root.addView(
+            LinearLayout(root.context).also { mainLayout ->
+                mainLayout.orientation = LinearLayout.HORIZONTAL
+                mainLayout.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                val padding = rh.dpToPx(3)
+                mainLayout.setPadding(padding, padding, padding, padding)
+                mainLayout.setBackgroundResource(R.drawable.border_automation_unit)
+                // Header with spinner
+                mainLayout.addView(createVerticalView(root.context))
+                mainLayout.addView(
+                    LinearLayout(root.context).also { rightSide ->
+                        rightSide.orientation = LinearLayout.VERTICAL
+                        rightSide.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                        rightSide.addView(
+                            LinearLayout(root.context).also {
+                                it.orientation = LinearLayout.HORIZONTAL
+                                it.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                                it.addView(createAddButton(root.context, this))
+                                it.addView(createDeleteButton(root.context, this))
+                            })
+                        // Child triggers
+                        rightSide.addView(
+                            LinearLayout(root.context).also {
+                                it.orientation = LinearLayout.VERTICAL
+                                it.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).also { params ->
+                                    params.setMargins(rh.dpToPx(1), 0, rh.dpToPx(1), rh.dpToPx(2))
+                                }
+                                for (t in list) {
+                                    t.generateDialog(it)
+                                    it.addView(
+                                        TextView(root.context).also { spacer ->
+                                            spacer.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                                            spacer.setPadding(0, rh.dpToPx(0.3f), 0, 0)
+                                        })
+                                }
+                            })
+                    })
+            })
     }
 
-    private fun createSpinner(context: Context): Spinner {
-        val initialPosition = connectorType.ordinal
-        val spinner = Spinner(context)
-        val spinnerArrayAdapter = ArrayAdapter(context, R.layout.spinner_centered, Type.labels(resourceHelper))
-        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner.adapter = spinnerArrayAdapter
-        spinner.setSelection(initialPosition)
-        spinner.setBackgroundColor(resourceHelper.gc(R.color.black_overlay))
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.setMargins(0, resourceHelper.dpToPx(8), 0, resourceHelper.dpToPx(8))
-        params.weight = 1.0f
-        spinner.layoutParams = params
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                setType(Type.values()[position])
+    private fun createVerticalView(context: Context): VerticalTextView =
+        VerticalTextView(context).apply {
+            text = rh.gs(connectorType.stringRes)
+            gravity = gravity or Gravity.CENTER_VERTICAL
+            setTypeface(typeface, Typeface.BOLD)
+            setBackgroundColor(rh.gc(R.color.black_overlay))
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT).also { ll ->
+                ll.setMargins(rh.dpToPx(3), rh.dpToPx(3), rh.dpToPx(3), rh.dpToPx(3))
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            setOnClickListener {
+                scanForActivity(context)?.supportFragmentManager?.let {
+                    ChooseOperationDialog().also { dialog ->
+                        dialog.setCallback(object : ChooseOperationDialog.Callback() {
+                            override fun run() {
+                                result?.let { result ->
+                                    setType(Type.values()[result])
+                                    text = rh.gs(connectorType.stringRes)
+                                }
+                            }
+                        })
+                        dialog.setCheckedIndex(connectorType.ordinal)
+                        dialog.show(it, "TriggerConnector")
+                    }
+                }
+            }
         }
-        return spinner
-    }
 }

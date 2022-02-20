@@ -19,25 +19,25 @@ import dagger.android.DaggerService
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.events.EventAppExit
 import info.nightscout.androidaps.events.EventLocationChange
-import info.nightscout.androidaps.interfaces.NotificationHolderInterface
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.logging.LTag
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.interfaces.NotificationHolder
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.T
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
 import io.reactivex.disposables.CompositeDisposable
 import javax.inject.Inject
 
 class LocationService : DaggerService() {
 
     @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var rxBus: RxBusWrapper
+    @Inject lateinit var rxBus: RxBus
     @Inject lateinit var sp: SP
     @Inject lateinit var aapsSchedulers: AapsSchedulers
     @Inject lateinit var fabricPrivacy: FabricPrivacy
-    @Inject lateinit var notificationHolder: NotificationHolderInterface
+    @Inject lateinit var notificationHolder: NotificationHolder
     @Inject lateinit var lastLocationDataContainer: LastLocationDataContainer
 
     private val disposable = CompositeDisposable()
@@ -88,6 +88,7 @@ class LocationService : DaggerService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         try {
+            aapsLogger.debug("Starting LocationService with ID ${notificationHolder.notificationID} notification ${notificationHolder.notification}")
             startForeground(notificationHolder.notificationID, notificationHolder.notification)
         } catch (e: Exception) {
             startForeground(4711, Notification())
@@ -98,6 +99,7 @@ class LocationService : DaggerService() {
     override fun onCreate() {
         super.onCreate()
         try {
+            aapsLogger.debug("Starting LocationService with ID ${notificationHolder.notificationID} notification ${notificationHolder.notification}")
             startForeground(notificationHolder.notificationID, notificationHolder.notification)
         } catch (e: Exception) {
             startForeground(4711, Notification())
@@ -148,15 +150,13 @@ class LocationService : DaggerService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (locationManager != null) {
-            try {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    return
-                }
-                locationManager!!.removeUpdates(locationListener)
-            } catch (ex: Exception) {
-                aapsLogger.error(LTag.LOCATION, "fail to remove location listener, ignore", ex)
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return
             }
+            locationListener?.let { locationManager?.removeUpdates(it) }
+        } catch (ex: Exception) {
+            aapsLogger.error(LTag.LOCATION, "fail to remove location listener, ignore", ex)
         }
         disposable.clear()
     }

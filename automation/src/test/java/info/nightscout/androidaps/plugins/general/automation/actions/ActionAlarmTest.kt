@@ -6,52 +6,48 @@ import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.TestBase
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.data.PumpEnactResult
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.general.automation.elements.InputString
-import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.queue.Callback
+import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.TimerUtil
 import info.nightscout.androidaps.utils.resources.ResourceHelper
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(NSUpload::class, RxBusWrapper::class, TimerUtil::class)
 class ActionAlarmTest : TestBase() {
 
-    @Mock lateinit var resourceHelper: ResourceHelper
-    @Mock lateinit var rxBus: RxBusWrapper
+    @Mock lateinit var rh: ResourceHelper
+    @Mock lateinit var rxBus: RxBus
     @Mock lateinit var context: Context
     @Mock lateinit var timerUtil: TimerUtil
+    @Mock lateinit var dateUtil: DateUtil
 
     private lateinit var sut: ActionAlarm
     var injector: HasAndroidInjector = HasAndroidInjector {
         AndroidInjector {
             if (it is ActionAlarm) {
-                it.resourceHelper = resourceHelper
+                it.rh = rh
                 it.rxBus = rxBus
                 it.context = context
                 it.timerUtil = timerUtil
+                it.dateUtil = dateUtil
             }
             if (it is PumpEnactResult) {
-                it.aapsLogger = aapsLogger
-                it.resourceHelper = resourceHelper
+                it.rh = rh
             }
         }
     }
 
     @Before
     fun setup() {
-        `when`(resourceHelper.gs(R.string.ok)).thenReturn("OK")
-        `when`(resourceHelper.gs(R.string.alarm)).thenReturn("Alarm")
-        `when`(resourceHelper.gs(ArgumentMatchers.eq(R.string.alarm_message), ArgumentMatchers.anyString())).thenReturn("Alarm: %s")
+        `when`(rh.gs(R.string.ok)).thenReturn("OK")
+        `when`(rh.gs(R.string.alarm)).thenReturn("Alarm")
+        `when`(rh.gs(ArgumentMatchers.eq(R.string.alarm_message), ArgumentMatchers.anyString())).thenReturn("Alarm: %s")
 
         sut = ActionAlarm(injector)
     }
@@ -61,7 +57,7 @@ class ActionAlarmTest : TestBase() {
     }
 
     @Test fun shortDescriptionTest() {
-        sut.text = InputString(injector, "Asd")
+        sut.text = InputString("Asd")
         Assert.assertEquals("Alarm: %s", sut.shortDescription())
     }
 
@@ -82,12 +78,12 @@ class ActionAlarmTest : TestBase() {
     }
 
     @Test fun toJSONTest() {
-        sut.text = InputString(injector, "Asd")
+        sut.text = InputString("Asd")
         Assert.assertEquals("{\"data\":{\"text\":\"Asd\"},\"type\":\"info.nightscout.androidaps.plugins.general.automation.actions.ActionAlarm\"}", sut.toJSON())
     }
 
     @Test fun fromJSONTest() {
-        sut.text = InputString(injector, "Asd")
+        sut.text = InputString("Asd")
         sut.fromJSON("{\"text\":\"Asd\"}")
         Assert.assertEquals("Asd", sut.text.value)
     }

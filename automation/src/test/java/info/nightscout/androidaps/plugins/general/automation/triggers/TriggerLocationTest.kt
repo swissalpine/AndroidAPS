@@ -4,30 +4,19 @@ import android.location.Location
 import com.google.common.base.Optional
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.plugins.general.automation.elements.InputLocationMode
-import info.nightscout.androidaps.services.LocationService
-import info.nightscout.androidaps.utils.DateUtil
 import org.json.JSONException
 import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(DateUtil::class, LocationService::class)
 class TriggerLocationTest : TriggerTestBase() {
 
     var now = 1514766900000L
 
     @Before fun mock() {
-        PowerMockito.mockStatic(DateUtil::class.java)
-        PowerMockito.mockStatic(LocationService::class.java)
-        `when`(DateUtil.now()).thenReturn(now)
-        PowerMockito.spy(LocationService::class.java)
+        `when`(dateUtil.now()).thenReturn(now)
         `when`(locationDataContainer.lastLocation).thenReturn(mockedLocation())
     }
 
@@ -73,7 +62,7 @@ class TriggerLocationTest : TriggerTestBase() {
         // Currently unavailable due to problems with Location mocking
     }
 
-    private var locationJson = "{\"data\":{\"mode\":\"OUTSIDE\",\"distance\":2,\"latitude\":213,\"name\":\"\",\"longitude\":212},\"type\":\"info.nightscout.androidaps.plugins.general.automation.triggers.TriggerLocation\"}"
+    private var locationJson = "{\"data\":{\"mode\":\"OUTSIDE\",\"distance\":2,\"latitude\":213,\"name\":\"\",\"longitude\":212},\"type\":\"TriggerLocation\"}"
     @Test fun toJSONTest() {
         val t = TriggerLocation(injector)
         t.latitude.setValue(213.0)

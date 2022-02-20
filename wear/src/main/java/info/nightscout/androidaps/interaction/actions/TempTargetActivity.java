@@ -1,30 +1,24 @@
 package info.nightscout.androidaps.interaction.actions;
 
-
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.GridPagerAdapter;
-import android.support.wearable.view.GridViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.text.DecimalFormat;
 
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.data.ListenerService;
 import info.nightscout.androidaps.interaction.utils.PlusMinusEditText;
-import info.nightscout.androidaps.interaction.utils.SafeParse;
+import info.nightscout.shared.SafeParse;
 
 /**
  * Created by adrian on 09/02/17.
  */
-
 
 public class TempTargetActivity extends ViewSelectorActivity {
 
@@ -37,26 +31,19 @@ public class TempTargetActivity extends ViewSelectorActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.grid_layout);
-        final Resources res = getResources();
-        final GridViewPager pager = findViewById(R.id.pager);
 
-        pager.setAdapter(new MyGridViewPagerAdapter());
-        DotsPageIndicator dotsPageIndicator = findViewById(R.id.page_indicator);
-        dotsPageIndicator.setPager(pager);
+        setAdapter(new MyGridViewPagerAdapter());
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         isMGDL = sp.getBoolean("units_mgdl", true);
         isSingleTarget = sp.getBoolean("singletarget", true);
     }
 
-
     @Override
     protected void onPause() {
         super.onPause();
         finish();
     }
-
 
     private class MyGridViewPagerAdapter extends GridPagerAdapter {
         @Override
@@ -74,8 +61,6 @@ public class TempTargetActivity extends ViewSelectorActivity {
 
             if (col == 0) {
                 final View view = getInflatedPlusMinusView(container);
-                final TextView textView = view.findViewById(R.id.label);
-                textView.setText("duration");
                 if (time == null) {
                     time = new PlusMinusEditText(view, R.id.amountfield, R.id.plusbutton, R.id.minusbutton, 60d, 0d, 24 * 60d, 5d, new DecimalFormat("0"), false);
                 } else {
@@ -84,6 +69,7 @@ public class TempTargetActivity extends ViewSelectorActivity {
                 }
                 setLabelToPlusMinusView(view, getString(R.string.action_duration));
                 container.addView(view);
+                view.requestFocus();
                 return view;
 
             } else if (col == 1) {
@@ -130,22 +116,19 @@ public class TempTargetActivity extends ViewSelectorActivity {
 
                 final View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.action_send_item, container, false);
                 final ImageView confirmbutton = view.findViewById(R.id.confirmbutton);
-                confirmbutton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                confirmbutton.setOnClickListener((View v) -> {
+                    //check if it can happen that the fagment is never created that hold data?
+                    // (you have to swipe past them anyways - but still)
 
-                        //check if it can happen that the fagment is never created that hold data?
-                        // (you have to swipe past them anyways - but still)
+                    String actionstring = "temptarget"
+                            + " " + isMGDL
+                            + " " + SafeParse.stringToInt(time.editText.getText().toString())
+                            + " " + SafeParse.stringToDouble(lowRange.editText.getText().toString())
+                            + " " + (isSingleTarget ? SafeParse.stringToDouble(lowRange.editText.getText().toString()) : SafeParse.stringToDouble(highRange.editText.getText().toString()));
 
-                        String actionstring = "temptarget "
-                                + " " + isMGDL
-                                + " " + SafeParse.stringToInt(time.editText.getText().toString())
-                                + " " + SafeParse.stringToDouble(lowRange.editText.getText().toString())
-                                + " " + (isSingleTarget ? SafeParse.stringToDouble(lowRange.editText.getText().toString()) : SafeParse.stringToDouble(highRange.editText.getText().toString()));
-
-                        ListenerService.initiateAction(TempTargetActivity.this, actionstring);
-                        finish();
-                    }
+                    ListenerService.initiateAction(TempTargetActivity.this, actionstring);
+                    confirmAction(TempTargetActivity.this, R.string.action_tempt_confirmation);
+                    finishAffinity();
                 });
                 container.addView(view);
                 return view;
@@ -163,7 +146,6 @@ public class TempTargetActivity extends ViewSelectorActivity {
         public boolean isViewFromObject(View view, Object object) {
             return view == object;
         }
-
 
     }
 }

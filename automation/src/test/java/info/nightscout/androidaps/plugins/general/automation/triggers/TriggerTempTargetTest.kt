@@ -3,25 +3,18 @@ package info.nightscout.androidaps.plugins.general.automation.triggers
 import com.google.common.base.Optional
 import info.nightscout.androidaps.automation.R
 import info.nightscout.androidaps.plugins.general.automation.elements.ComparatorExists
-import info.nightscout.androidaps.utils.DateUtil
 import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
+import org.mockito.Mockito.`when`
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(DateUtil::class)
 class TriggerTempTargetTest : TriggerTestBase() {
 
     var now = 1514766900000L
 
     @Before fun mock() {
-        PowerMockito.mockStatic(DateUtil::class.java)
-        PowerMockito.`when`(DateUtil.now()).thenReturn(now)
+        `when`(dateUtil.now()).thenReturn(now)
     }
 /*
     @Test fun shouldRunTest() {
@@ -30,7 +23,7 @@ class TriggerTempTargetTest : TriggerTestBase() {
         Assert.assertFalse(t.shouldRun())
         t = TriggerTempTarget(injector).comparator(ComparatorExists.Compare.NOT_EXISTS)
         Assert.assertTrue(t.shouldRun())
-        PowerMockito.`when`(repository.getTemporaryTargetActiveAt(anyObject())).thenReturn(TemporaryTarget(duration = 0, highTarget = 0.0, lowTarget = 0.0, reason = TemporaryTarget.Reason.CUSTOM, timestamp = 0))
+        `when`(repository.getTemporaryTargetActiveAt(anyObject())).thenReturn(TemporaryTarget(duration = 0, highTarget = 0.0, lowTarget = 0.0, reason = TemporaryTarget.Reason.CUSTOM, timestamp = 0))
         t = TriggerTempTarget(injector).comparator(ComparatorExists.Compare.NOT_EXISTS)
         Assert.assertFalse(t.shouldRun())
         t = TriggerTempTarget(injector).comparator(ComparatorExists.Compare.EXISTS)
@@ -43,7 +36,7 @@ class TriggerTempTargetTest : TriggerTestBase() {
         Assert.assertEquals(ComparatorExists.Compare.NOT_EXISTS, t1.comparator.value)
     }
 
-    private var ttJson = "{\"data\":{\"comparator\":\"EXISTS\"},\"type\":\"info.nightscout.androidaps.plugins.general.automation.triggers.TriggerTempTarget\"}"
+    private var ttJson = "{\"data\":{\"comparator\":\"EXISTS\"},\"type\":\"TriggerTempTarget\"}"
     @Test fun toJSONTest() {
         val t: TriggerTempTarget = TriggerTempTarget(injector).comparator(ComparatorExists.Compare.EXISTS)
         Assert.assertEquals(ttJson, t.toJSON())

@@ -9,18 +9,21 @@ import com.google.common.base.Joiner
 import com.google.common.collect.Lists
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
-import info.nightscout.androidaps.data.Profile
+import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.database.AppRepository
 import info.nightscout.androidaps.database.ValueWrapper
+import info.nightscout.androidaps.database.entities.ValueWithUnit
 import info.nightscout.androidaps.database.entities.TemporaryTarget
+import info.nightscout.androidaps.database.entities.UserEntry.Action
+import info.nightscout.androidaps.database.entities.UserEntry.Sources
 import info.nightscout.androidaps.database.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
-import info.nightscout.androidaps.database.transactions.InsertTemporaryTargetAndCancelCurrentTransaction
+import info.nightscout.androidaps.database.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import info.nightscout.androidaps.databinding.DialogTemptargetBinding
+import info.nightscout.androidaps.interfaces.GlucoseUnit
 import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
-import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
 import info.nightscout.androidaps.utils.DefaultValueHelper
 import info.nightscout.androidaps.utils.HtmlHelper
 import info.nightscout.androidaps.utils.alertDialogs.OKDialog
@@ -35,12 +38,11 @@ import javax.inject.Inject
 class TempTargetDialog : DialogFragmentWithDate() {
 
     @Inject lateinit var constraintChecker: ConstraintChecker
-    @Inject lateinit var resourceHelper: ResourceHelper
+    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
     @Inject lateinit var uel: UserEntryLogger
     @Inject lateinit var repository: AppRepository
-    @Inject lateinit var nsUpload: NSUpload
 
     private lateinit var reasonList: List<String>
 
@@ -71,7 +73,7 @@ class TempTargetDialog : DialogFragmentWithDate() {
         binding.duration.setParams(savedInstanceState?.getDouble("duration")
             ?: 0.0, 0.0, Constants.MAX_PROFILE_SWITCH_DURATION, 10.0, DecimalFormat("0"), false, binding.okcancel.ok)
 
-        if (profileFunction.getUnits() == Constants.MMOL)
+        if (profileFunction.getUnits() == GlucoseUnit.MMOL)
             binding.temptarget.setParams(
                 savedInstanceState?.getDouble("tempTarget")
                     ?: 8.0,
@@ -83,20 +85,20 @@ class TempTargetDialog : DialogFragmentWithDate() {
                 Constants.MIN_TT_MGDL, Constants.MAX_TT_MGDL, 1.0, DecimalFormat("0"), false, binding.okcancel.ok)
 
         val units = profileFunction.getUnits()
-        binding.units.text = if (units == Constants.MMOL) resourceHelper.gs(R.string.mmol) else resourceHelper.gs(R.string.mgdl)
+        binding.units.text = if (units == GlucoseUnit.MMOL) rh.gs(R.string.mmol) else rh.gs(R.string.mgdl)
 
         // temp target
         context?.let { context ->
-            if (repository.getTemporaryTargetActiveAt(dateUtil._now()).blockingGet() is ValueWrapper.Existing)
+            if (repository.getTemporaryTargetActiveAt(dateUtil.now()).blockingGet() is ValueWrapper.Existing)
                 binding.targetCancel.visibility = View.VISIBLE
             else
                 binding.targetCancel.visibility = View.GONE
 
             reasonList = Lists.newArrayList(
-                resourceHelper.gs(R.string.manual),
-                resourceHelper.gs(R.string.eatingsoon),
-                resourceHelper.gs(R.string.activity),
-                resourceHelper.gs(R.string.hypo)
+                rh.gs(R.string.manual),
+                rh.gs(R.string.eatingsoon),
+                rh.gs(R.string.activity),
+                rh.gs(R.string.hypo)
             )
             val adapterReason = ArrayAdapter(context, R.layout.spinner_centered, reasonList)
             binding.reason.adapter = adapterReason
@@ -118,6 +120,8 @@ class TempTargetDialog : DialogFragmentWithDate() {
                 longClick(it)
                 return@setOnLongClickListener true
             }
+            binding.duration.editText?.id?.let { binding.durationLabel.labelFor = it }
+            binding.temptarget.editText?.id?.let { binding.temptargetLabel.labelFor = it }
         }
     }
 
@@ -131,19 +135,23 @@ class TempTargetDialog : DialogFragmentWithDate() {
             R.id.eating_soon -> {
                 binding.temptarget.value = defaultValueHelper.determineEatingSoonTT()
                 binding.duration.value = defaultValueHelper.determineEatingSoonTTDuration().toDouble()
-                binding.reason.setSelection(reasonList.indexOf(resourceHelper.gs(R.string.eatingsoon)))
+                binding.reason.setSelection(reasonList.indexOf(rh.gs(R.string.eatingsoon)))
             }
 
-            R.id.activity -> {
+            R.id.activity    -> {
                 binding.temptarget.value = defaultValueHelper.determineActivityTT()
                 binding.duration.value = defaultValueHelper.determineActivityTTDuration().toDouble()
-                binding.reason.setSelection(reasonList.indexOf(resourceHelper.gs(R.string.activity)))
+                binding.reason.setSelection(reasonList.indexOf(rh.gs(R.string.activity)))
             }
 
-            R.id.hypo -> {
+            R.id.hypo        -> {
                 binding.temptarget.value = defaultValueHelper.determineHypoTT()
                 binding.duration.value = defaultValueHelper.determineHypoTTDuration().toDouble()
-                binding.reason.setSelection(reasonList.indexOf(resourceHelper.gs(R.string.hypo)))
+                binding.reason.setSelection(reasonList.indexOf(rh.gs(R.string.hypo)))
+            }
+
+            R.id.cancel      -> {
+                binding.duration.value = 0.0
             }
         }
     }
@@ -157,49 +165,58 @@ class TempTargetDialog : DialogFragmentWithDate() {
     override fun submit(): Boolean {
         if (_binding == null) return false
         val actions: LinkedList<String> = LinkedList()
-        val reason = binding.reason.selectedItem?.toString() ?: return false
-        val unitResId = if (profileFunction.getUnits() == Constants.MGDL) R.string.mgdl else R.string.mmol
+        var reason = binding.reason.selectedItem?.toString() ?: return false
+        val unitResId = if (profileFunction.getUnits() == GlucoseUnit.MGDL) R.string.mgdl else R.string.mmol
         val target = binding.temptarget.value
         val duration = binding.duration.value.toInt()
         if (target != 0.0 && duration != 0) {
-            actions.add(resourceHelper.gs(R.string.reason) + ": " + reason)
-            actions.add(resourceHelper.gs(R.string.target_label) + ": " + Profile.toCurrentUnitsString(profileFunction, target) + " " + resourceHelper.gs(unitResId))
-            actions.add(resourceHelper.gs(R.string.duration) + ": " + resourceHelper.gs(R.string.format_mins, duration))
+            actions.add(rh.gs(R.string.reason) + ": " + reason)
+            actions.add(rh.gs(R.string.target_label) + ": " + Profile.toCurrentUnitsString(profileFunction, target) + " " + rh.gs(unitResId))
+            actions.add(rh.gs(R.string.duration) + ": " + rh.gs(R.string.format_mins, duration))
         } else {
-            actions.add(resourceHelper.gs(R.string.stoptemptarget))
+            actions.add(rh.gs(R.string.stoptemptarget))
+            reason = rh.gs(R.string.stoptemptarget)
         }
         if (eventTimeChanged)
-            actions.add(resourceHelper.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
+            actions.add(rh.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
         activity?.let { activity ->
-            OKDialog.showConfirmation(activity, resourceHelper.gs(R.string.careportal_temporarytarget), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
-                uel.log("TT", d1 = target, i1 = duration)
+            OKDialog.showConfirmation(activity, rh.gs(R.string.careportal_temporarytarget), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
+                val units = profileFunction.getUnits()
+                when(reason) {
+                    rh.gs(R.string.eatingsoon)      -> uel.log(Action.TT, Sources.TTDialog, ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged }, ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.EATING_SOON), ValueWithUnit.fromGlucoseUnit(target, units.asText), ValueWithUnit.Minute(duration))
+                    rh.gs(R.string.activity)        -> uel.log(Action.TT, Sources.TTDialog, ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged }, ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.ACTIVITY), ValueWithUnit.fromGlucoseUnit(target, units.asText), ValueWithUnit.Minute(duration))
+                    rh.gs(R.string.hypo)            -> uel.log(Action.TT, Sources.TTDialog, ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged }, ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.HYPOGLYCEMIA), ValueWithUnit.fromGlucoseUnit(target, units.asText), ValueWithUnit.Minute(duration))
+                    rh.gs(R.string.manual)          -> uel.log(Action.TT, Sources.TTDialog, ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged }, ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.CUSTOM), ValueWithUnit.fromGlucoseUnit(target, units.asText), ValueWithUnit.Minute(duration))
+                    rh.gs(R.string.stoptemptarget) -> uel.log(Action.CANCEL_TT, Sources.TTDialog, ValueWithUnit.Timestamp(eventTime).takeIf { eventTimeChanged })
+                }
                 if (target == 0.0 || duration == 0) {
                     disposable += repository.runTransactionForResult(CancelCurrentTemporaryTargetIfAnyTransaction(eventTime))
                         .subscribe({ result ->
-                            result.updated.forEach { nsUpload.updateTempTarget(it) }
+                            result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
                         }, {
-                            aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                            aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
                         })
                 } else {
-                    disposable += repository.runTransactionForResult(InsertTemporaryTargetAndCancelCurrentTransaction(
+                    disposable += repository.runTransactionForResult(InsertAndCancelCurrentTemporaryTargetTransaction(
                         timestamp = eventTime,
                         duration = TimeUnit.MINUTES.toMillis(duration.toLong()),
                         reason = when (reason) {
-                            "Eating Soon" -> TemporaryTarget.Reason.EATING_SOON
-                            "Activity"    -> TemporaryTarget.Reason.ACTIVITY
-                            "Hypo"        -> TemporaryTarget.Reason.HYPOGLYCEMIA
-                            else          -> TemporaryTarget.Reason.CUSTOM
+                            rh.gs(R.string.eatingsoon) -> TemporaryTarget.Reason.EATING_SOON
+                            rh.gs(R.string.activity)   -> TemporaryTarget.Reason.ACTIVITY
+                            rh.gs(R.string.hypo)       -> TemporaryTarget.Reason.HYPOGLYCEMIA
+                            else                            -> TemporaryTarget.Reason.CUSTOM
                         },
                         lowTarget = Profile.toMgdl(target, profileFunction.getUnits()),
                         highTarget = Profile.toMgdl(target, profileFunction.getUnits())
                     )).subscribe({ result ->
-                        result.inserted.forEach { nsUpload.uploadTempTarget(it) }
-                        result.updated.forEach { nsUpload.updateTempTarget(it) }
+                        result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                        result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
                     }, {
-                        aapsLogger.error(LTag.BGSOURCE, "Error while saving temporary target", it)
+                        aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
                     })
                 }
+
                 if (duration == 10) sp.putBoolean(R.string.key_objectiveusetemptarget, true)
             })
         }

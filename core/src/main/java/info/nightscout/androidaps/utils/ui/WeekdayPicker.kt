@@ -7,10 +7,10 @@ import android.widget.Checkable
 import androidx.appcompat.widget.AppCompatCheckedTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import info.nightscout.androidaps.core.databinding.WeekdayPickerBinding
-import info.nightscout.androidaps.utils.extensions.toVisibility
+import info.nightscout.androidaps.extensions.toVisibility
 import java.util.*
 
-class WeekdayPicker @JvmOverloads constructor(
+class WeekdayPicker constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 

@@ -9,19 +9,16 @@ import io.reactivex.Single
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
-import org.powermock.modules.junit4.PowerMockRunner
 
-@RunWith(PowerMockRunner::class)
 class ActionStopTempTargetTest : ActionsTestBase() {
 
     private lateinit var sut: ActionStopTempTarget
 
     @Before
     fun setup() {
-        `when`(resourceHelper.gs(R.string.stoptemptarget)).thenReturn("Stop temp target")
+        `when`(rh.gs(R.string.stoptemptarget)).thenReturn("Stop temp target")
 
         sut = ActionStopTempTarget(injector)
     }
@@ -66,7 +63,7 @@ class ActionStopTempTargetTest : ActionsTestBase() {
     }
 
     @Test fun toJSONTest() {
-        Assert.assertEquals("{\"type\":\"info.nightscout.androidaps.plugins.general.automation.actions.ActionStopTempTarget\"}", sut.toJSON())
+        Assert.assertEquals("{\"type\":\"ActionStopTempTarget\"}", sut.toJSON())
     }
 
     @Test fun fromJSONTest() {

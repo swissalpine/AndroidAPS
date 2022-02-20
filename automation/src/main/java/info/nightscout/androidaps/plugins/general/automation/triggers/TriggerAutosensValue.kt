@@ -4,7 +4,7 @@ import android.widget.LinearLayout
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.general.automation.elements.Comparator
 import info.nightscout.androidaps.plugins.general.automation.elements.InputDouble
 import info.nightscout.androidaps.plugins.general.automation.elements.LabelWithElement
@@ -20,17 +20,17 @@ class TriggerAutosensValue(injector: HasAndroidInjector) : Trigger(injector) {
     private val maxValue = (sp.getDouble(R.string.key_openapsama_autosens_max, 1.2) * 100).toInt()
     private val step = 1.0
     private val decimalFormat = DecimalFormat("1")
-    var autosens: InputDouble = InputDouble(injector, 100.0, minValue.toDouble(), maxValue.toDouble(), step, decimalFormat)
+    var autosens: InputDouble = InputDouble(100.0, minValue.toDouble(), maxValue.toDouble(), step, decimalFormat)
 
-    var comparator: Comparator = Comparator(injector)
+    var comparator: Comparator = Comparator(rh)
 
     private constructor(injector: HasAndroidInjector, triggerAutosensValue: TriggerAutosensValue) : this(injector) {
-        autosens = InputDouble(injector, triggerAutosensValue.autosens)
-        comparator = Comparator(injector, triggerAutosensValue.comparator.value)
+        autosens = InputDouble(triggerAutosensValue.autosens)
+        comparator = Comparator(rh, triggerAutosensValue.comparator.value)
     }
 
     override fun shouldRun(): Boolean {
-        val autosensData = iobCobCalculatorPlugin.getLastAutosensData("Automation trigger")
+        val autosensData = iobCobCalculator.ads.getLastAutosensData("Automation trigger", aapsLogger, dateUtil)
             ?: return if (comparator.value == Comparator.Compare.IS_NOT_AVAILABLE) {
                 aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
                 true
@@ -46,15 +46,10 @@ class TriggerAutosensValue(injector: HasAndroidInjector) : Trigger(injector) {
         return false
     }
 
-    override fun toJSON(): String {
-        val data = JSONObject()
+    override fun dataJSON(): JSONObject =
+        JSONObject()
             .put("value", autosens.value)
             .put("comparator", comparator.value.toString())
-        return JSONObject()
-            .put("type", this::class.java.name)
-            .put("data", data)
-            .toString()
-    }
 
     override fun fromJSON(data: String): Trigger {
         val d = JSONObject(data)
@@ -66,7 +61,7 @@ class TriggerAutosensValue(injector: HasAndroidInjector) : Trigger(injector) {
     override fun friendlyName(): Int = R.string.autosenslabel
 
     override fun friendlyDescription(): String =
-        resourceHelper.gs(R.string.autosenscompared, resourceHelper.gs(comparator.value.stringRes), autosens.value)
+        rh.gs(R.string.autosenscompared, rh.gs(comparator.value.stringRes), autosens.value)
 
     override fun icon(): Optional<Int?> = Optional.of(R.drawable.ic_as)
 
@@ -74,9 +69,9 @@ class TriggerAutosensValue(injector: HasAndroidInjector) : Trigger(injector) {
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
-            .add(StaticLabel(injector, R.string.autosenslabel, this))
+            .add(StaticLabel(rh, R.string.autosenslabel, this))
             .add(comparator)
-            .add(LabelWithElement(injector, resourceHelper.gs(R.string.autosenslabel) + ": ", "", autosens))
+            .add(LabelWithElement(rh, rh.gs(R.string.autosenslabel) + ": ", "", autosens))
             .build(root)
     }
 }

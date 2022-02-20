@@ -4,7 +4,8 @@ import android.widget.LinearLayout
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.automation.R
-import info.nightscout.androidaps.logging.LTag
+import info.nightscout.androidaps.data.ProfileSealed
+import info.nightscout.shared.logging.LTag
 import info.nightscout.androidaps.plugins.general.automation.elements.Comparator
 import info.nightscout.androidaps.plugins.general.automation.elements.InputPercent
 import info.nightscout.androidaps.plugins.general.automation.elements.LabelWithElement
@@ -14,17 +15,18 @@ import info.nightscout.androidaps.utils.JsonHelper
 import org.json.JSONObject
 
 class TriggerProfilePercent(injector: HasAndroidInjector) : Trigger(injector) {
-    var pct = InputPercent(injector)
-    var comparator = Comparator(injector)
+
+    var pct = InputPercent()
+    var comparator = Comparator(rh)
 
     constructor(injector: HasAndroidInjector, value: Double, compare: Comparator.Compare) : this(injector) {
-        pct = InputPercent(injector, value)
-        comparator = Comparator(injector, compare)
+        pct = InputPercent(value)
+        comparator = Comparator(rh, compare)
     }
 
     constructor(injector: HasAndroidInjector, triggerProfilePercent: TriggerProfilePercent) : this(injector) {
-        pct = InputPercent(injector, triggerProfilePercent.pct.value)
-        comparator = Comparator(injector, triggerProfilePercent.comparator.value)
+        pct = InputPercent(triggerProfilePercent.pct.value)
+        comparator = Comparator(rh, triggerProfilePercent.comparator.value)
     }
 
     fun setValue(value: Double): TriggerProfilePercent {
@@ -39,6 +41,10 @@ class TriggerProfilePercent(injector: HasAndroidInjector) : Trigger(injector) {
 
     override fun shouldRun(): Boolean {
         val profile = profileFunction.getProfile()
+        if (profileFunction.isProfileChangePending()) {
+            aapsLogger.debug(LTag.AUTOMATION, "NOT ready for execution: " + "Profile change is already pending: " + friendlyDescription())
+            return false
+        }
         if (profile == null && comparator.value == Comparator.Compare.IS_NOT_AVAILABLE) {
             aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
             return true
@@ -47,23 +53,26 @@ class TriggerProfilePercent(injector: HasAndroidInjector) : Trigger(injector) {
             aapsLogger.debug(LTag.AUTOMATION, "NOT ready for execution: " + friendlyDescription())
             return false
         }
-        if (comparator.value.check(profile.percentage.toDouble(), pct.value)) {
-            aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
-            return true
+        if (profile is ProfileSealed.EPS) {
+            if (comparator.value.check(profile.value.originalPercentage.toDouble(), pct.value)) {
+                aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
+                return true
+            }
+        }
+        if (profile is ProfileSealed.Pure) {
+            if (comparator.value.check(100.0, pct.value)) {
+                aapsLogger.debug(LTag.AUTOMATION, "Ready for execution: " + friendlyDescription())
+                return true
+            }
         }
         aapsLogger.debug(LTag.AUTOMATION, "NOT ready for execution: " + friendlyDescription())
         return false
     }
 
-    @Synchronized override fun toJSON(): String {
-        val data = JSONObject()
+    override fun dataJSON(): JSONObject =
+        JSONObject()
             .put("percentage", pct.value)
             .put("comparator", comparator.value.toString())
-        return JSONObject()
-            .put("type", this::class.java.name)
-            .put("data", data)
-            .toString()
-    }
 
     override fun fromJSON(data: String): Trigger {
         val d = JSONObject(data)
@@ -75,7 +84,7 @@ class TriggerProfilePercent(injector: HasAndroidInjector) : Trigger(injector) {
     override fun friendlyName(): Int = R.string.profilepercentage
 
     override fun friendlyDescription(): String =
-        resourceHelper.gs(R.string.percentagecompared, resourceHelper.gs(comparator.value.stringRes), pct.value.toInt())
+        rh.gs(R.string.percentagecompared, rh.gs(comparator.value.stringRes), pct.value.toInt())
 
     override fun icon(): Optional<Int?> = Optional.of(R.drawable.ic_actions_profileswitch)
 
@@ -83,9 +92,9 @@ class TriggerProfilePercent(injector: HasAndroidInjector) : Trigger(injector) {
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
-            .add(StaticLabel(injector, R.string.profilepercentage, this))
+            .add(StaticLabel(rh, R.string.profilepercentage, this))
             .add(comparator)
-            .add(LabelWithElement(injector, resourceHelper.gs(R.string.percent_u), "", pct))
+            .add(LabelWithElement(rh, rh.gs(R.string.percent_u), "", pct))
             .build(root)
     }
 }

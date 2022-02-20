@@ -5,7 +5,6 @@ import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.plugins.constraints.objectives.ObjectivesPlugin
 import info.nightscout.androidaps.plugins.general.nsclient.NSClientPlugin
-import info.nightscout.androidaps.plugins.general.nsclient.services.NSClientService
 import info.nightscout.androidaps.utils.T
 import javax.inject.Inject
 
@@ -23,12 +22,12 @@ class Objective3 @Inject constructor(injector: HasAndroidInjector) : Objective(i
             }
 
             override val progress: String
-                get() = if (sp.getInt(R.string.key_ObjectivesmanualEnacts, 0) >= MANUAL_ENACTS_NEEDED) resourceHelper.gs(R.string.completed_well_done) else sp.getInt(R.string.key_ObjectivesmanualEnacts, 0).toString() + " / " + MANUAL_ENACTS_NEEDED
+                get() = if (sp.getInt(R.string.key_ObjectivesmanualEnacts, 0) >= MANUAL_ENACTS_NEEDED) rh.gs(R.string.completed_well_done) else sp.getInt(R.string.key_ObjectivesmanualEnacts, 0).toString() + " / " + MANUAL_ENACTS_NEEDED
         })
     }
 
     override fun specialActionEnabled(): Boolean =
-        NSClientService.isConnected && NSClientService.hasWriteAuth
+        nsClientPlugin.nsClientService?.isConnected == true && nsClientPlugin.nsClientService?.hasWriteAuth == true
 
     override fun specialAction(activity: FragmentActivity, input: String) {
         objectivesPlugin.completeObjectives(activity, input)

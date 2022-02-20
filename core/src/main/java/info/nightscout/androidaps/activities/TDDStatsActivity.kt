@@ -17,21 +17,22 @@ import android.widget.TableRow
 import android.widget.TextView
 import info.nightscout.androidaps.core.R
 import info.nightscout.androidaps.core.databinding.ActivityTddStatsBinding
-import info.nightscout.androidaps.db.TDD
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.entities.TotalDailyDose
 import info.nightscout.androidaps.events.EventDanaRSyncStatus
 import info.nightscout.androidaps.events.EventPumpStatusChanged
-import info.nightscout.androidaps.interfaces.ActivePluginProvider
-import info.nightscout.androidaps.interfaces.CommandQueueProvider
-import info.nightscout.androidaps.interfaces.DatabaseHelperInterface
+import info.nightscout.androidaps.extensions.total
+import info.nightscout.androidaps.interfaces.ActivePlugin
+import info.nightscout.androidaps.interfaces.CommandQueue
 import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.pump.common.defs.PumpType
 import info.nightscout.androidaps.queue.Callback
 import info.nightscout.androidaps.utils.FabricPrivacy
-import info.nightscout.androidaps.utils.SafeParse
+import info.nightscout.androidaps.utils.T
 import info.nightscout.androidaps.utils.rx.AapsSchedulers
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.SafeParse
+import info.nightscout.shared.sharedPreferences.SP
 import io.reactivex.disposables.CompositeDisposable
 import java.text.DateFormat
 import java.text.DecimalFormat
@@ -43,13 +44,12 @@ import kotlin.math.roundToInt
 
 class TDDStatsActivity : NoSplashAppCompatActivity() {
 
-    @Inject lateinit var aapsLogger: AAPSLogger
-    @Inject lateinit var rxBus: RxBusWrapper
+    @Inject lateinit var rxBus: RxBus
     @Inject lateinit var sp: SP
     @Inject lateinit var profileFunction: ProfileFunction
-    @Inject lateinit var activePlugin: ActivePluginProvider
-    @Inject lateinit var commandQueue: CommandQueueProvider
-    @Inject lateinit var databaseHelper: DatabaseHelperInterface
+    @Inject lateinit var activePlugin: ActivePlugin
+    @Inject lateinit var commandQueue: CommandQueue
+    @Inject lateinit var repository: AppRepository
     @Inject lateinit var fabricPrivacy: FabricPrivacy
     @Inject lateinit var aapsSchedulers: AapsSchedulers
 
@@ -59,8 +59,8 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
     lateinit var tbb: String
     private var magicNumber = 0.0
     private var decimalFormat: DecimalFormat = DecimalFormat("0.000")
-    private var historyList: MutableList<TDD> = mutableListOf()
-    private var dummies: MutableList<TDD> = mutableListOf()
+    private var historyList: MutableList<TotalDailyDose> = mutableListOf()
+    private var dummies: MutableList<TotalDailyDose> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -92,23 +92,23 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
                 trHead.setBackgroundColor(Color.DKGRAY)
                 trHead.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
                 trHead.addView(TextView(this).also { labelDate ->
-                    labelDate.text = resourceHelper.gs(R.string.date)
+                    labelDate.text = rh.gs(R.string.date)
                     labelDate.setTextColor(Color.WHITE)
                 })
                 trHead.addView(TextView(this).also { labelBasalRate ->
-                    labelBasalRate.text = resourceHelper.gs(R.string.basalrate)
+                    labelBasalRate.text = rh.gs(R.string.basalrate)
                     labelBasalRate.setTextColor(Color.WHITE)
                 })
                 trHead.addView(TextView(this).also { labelBolus ->
-                    labelBolus.text = resourceHelper.gs(R.string.bolus)
+                    labelBolus.text = rh.gs(R.string.bolus)
                     labelBolus.setTextColor(Color.WHITE)
                 })
                 trHead.addView(TextView(this).also { labelTdd ->
-                    labelTdd.text = resourceHelper.gs(R.string.tdd)
+                    labelTdd.text = rh.gs(R.string.tdd)
                     labelTdd.setTextColor(Color.WHITE)
                 })
                 trHead.addView(TextView(this).also { labelRatio ->
-                    labelRatio.text = resourceHelper.gs(R.string.ratio)
+                    labelRatio.text = rh.gs(R.string.ratio)
                     labelRatio.setTextColor(Color.WHITE)
                 })
             }, TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
@@ -120,15 +120,15 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
                 ctrHead.setBackgroundColor(Color.DKGRAY)
                 ctrHead.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
                 ctrHead.addView(TextView(this).also { labelCumAmountDays ->
-                    labelCumAmountDays.text = resourceHelper.gs(R.string.amount_days)
+                    labelCumAmountDays.text = rh.gs(R.string.amount_days)
                     labelCumAmountDays.setTextColor(Color.WHITE)
                 })
                 ctrHead.addView(TextView(this).also { labelCumTdd ->
-                    labelCumTdd.text = resourceHelper.gs(R.string.tdd)
+                    labelCumTdd.text = rh.gs(R.string.tdd)
                     labelCumTdd.setTextColor(Color.WHITE)
                 })
                 ctrHead.addView(TextView(this).also { labelCumRatio ->
-                    labelCumRatio.text = resourceHelper.gs(R.string.ratio)
+                    labelCumRatio.text = rh.gs(R.string.ratio)
                     labelCumRatio.setTextColor(Color.WHITE)
                 })
             }, TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
@@ -140,15 +140,15 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
                 etrHead.setBackgroundColor(Color.DKGRAY)
                 etrHead.layoutParams = TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
                 etrHead.addView(TextView(this).also { labelExpWeight ->
-                    labelExpWeight.text = resourceHelper.gs(R.string.weight)
+                    labelExpWeight.text = rh.gs(R.string.weight)
                     labelExpWeight.setTextColor(Color.WHITE)
                 })
                 etrHead.addView(TextView(this).also { labelExpTdd ->
-                    labelExpTdd.text = resourceHelper.gs(R.string.tdd)
+                    labelExpTdd.text = rh.gs(R.string.tdd)
                     labelExpTdd.setTextColor(Color.WHITE)
                 })
                 etrHead.addView(TextView(this).also { labelExpRatio ->
-                    labelExpRatio.text = resourceHelper.gs(R.string.ratio)
+                    labelExpRatio.text = rh.gs(R.string.ratio)
                     labelExpRatio.setTextColor(Color.WHITE)
                 })
             }, TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
@@ -158,7 +158,7 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
             binding.reload.visibility = View.GONE
             binding.connectionStatus.visibility = View.VISIBLE
             binding.message.visibility = View.VISIBLE
-            binding.message.text = resourceHelper.gs(R.string.warning_Message)
+            binding.message.text = rh.gs(R.string.warning_Message)
             commandQueue.loadTDDs(object : Callback() {
                 override fun run() {
                     loadDataFromDB()
@@ -193,18 +193,20 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        disposable.add(rxBus
-            .toObservable(EventPumpStatusChanged::class.java)
-            .observeOn(aapsSchedulers.main)
-            .subscribe({ event -> binding.connectionStatus.text = event.getStatus(resourceHelper) }, fabricPrivacy::logException)
+        disposable.add(
+            rxBus
+                .toObservable(EventPumpStatusChanged::class.java)
+                .observeOn(aapsSchedulers.main)
+                .subscribe({ event -> binding.connectionStatus.text = event.getStatus(rh) }, fabricPrivacy::logException)
         )
-        disposable.add(rxBus
-            .toObservable(EventDanaRSyncStatus::class.java)
-            .observeOn(aapsSchedulers.main)
-            .subscribe({ event ->
-                aapsLogger.debug("EventDanaRSyncStatus: " + event.message)
-                binding.connectionStatus.text = event.message
-            }, fabricPrivacy::logException)
+        disposable.add(
+            rxBus
+                .toObservable(EventDanaRSyncStatus::class.java)
+                .observeOn(aapsSchedulers.main)
+                .subscribe({ event ->
+                               aapsLogger.debug("EventDanaRSyncStatus: " + event.message)
+                               binding.connectionStatus.text = event.message
+                           }, fabricPrivacy::logException)
         )
     }
 
@@ -230,28 +232,33 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun loadDataFromDB() {
         historyList.clear()
-        historyList.addAll(databaseHelper.getTDDs())
+        // timestamp DESC sorting!
+        historyList.addAll(repository.getLastTotalDailyDoses(10, true).blockingGet())
 
         //only use newest 10
         historyList = historyList.subList(0, min(10, historyList.size))
+
+        // dummies reset
+        dummies.clear()
 
         //fill single gaps
         val df: DateFormat = SimpleDateFormat("dd.MM.", Locale.getDefault())
         for (i in 0 until historyList.size - 1) {
             val elem1 = historyList[i]
             val elem2 = historyList[i + 1]
-            if (df.format(Date(elem1.date)) != df.format(Date(elem2.date + 25 * 60 * 60 * 1000))) {
-                val dummy = TDD()
-                dummy.date = elem1.date - 24 * 60 * 60 * 1000
-                dummy.basal = elem1.basal / 2
-                dummy.bolus = elem1.bolus / 2
+            if (df.format(Date(elem1.timestamp)) != df.format(Date(elem2.timestamp + 25 * 60 * 60 * 1000))) {
+                val dummy = TotalDailyDose(
+                    timestamp = elem1.timestamp - T.hours(24).msecs(),
+                    basalAmount = elem1.basalAmount / 2.0,
+                    bolusAmount = elem1.bolusAmount / 2.0
+                )
                 dummies.add(dummy)
-                elem1.basal /= 2.0
-                elem1.bolus /= 2.0
+                elem1.basalAmount /= 2.0
+                elem1.bolusAmount /= 2.0
             }
         }
         historyList.addAll(dummies)
-        historyList.sortWith { lhs: TDD, rhs: TDD -> (rhs.date - lhs.date).toInt() }
+        historyList.sortWith { lhs: TotalDailyDose, rhs: TotalDailyDose -> (rhs.timestamp - lhs.timestamp).toInt() }
         runOnUiThread {
             cleanTable(binding.mainTable)
             cleanTable(binding.cumulativeTable)
@@ -273,7 +280,7 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
 
             //TDD table
             for (record in historyList) {
-                val tdd = record.getTotal()
+                val tdd = record.total
 
                 // Create the table row
                 binding.mainTable.addView(
@@ -285,27 +292,28 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
                         tr.id = 100 + i
                         tr.layoutParams = TableLayout.LayoutParams(
                             TableLayout.LayoutParams.MATCH_PARENT,
-                            TableLayout.LayoutParams.WRAP_CONTENT)
+                            TableLayout.LayoutParams.WRAP_CONTENT
+                        )
 
                         // Here create the TextView dynamically
                         tr.addView(TextView(this@TDDStatsActivity).also { labelDATE ->
                             labelDATE.id = 200 + i
-                            labelDATE.text = df1.format(Date(record.date))
+                            labelDATE.text = df1.format(Date(record.timestamp))
                             labelDATE.setTextColor(Color.WHITE)
                         })
                         tr.addView(TextView(this@TDDStatsActivity).also { labelBASAL ->
                             labelBASAL.id = 300 + i
-                            labelBASAL.text = resourceHelper.gs(R.string.formatinsulinunits, record.basal)
+                            labelBASAL.text = rh.gs(R.string.formatinsulinunits, record.basalAmount)
                             labelBASAL.setTextColor(Color.WHITE)
                         })
                         tr.addView(TextView(this@TDDStatsActivity).also { labelBOLUS ->
                             labelBOLUS.id = 400 + i
-                            labelBOLUS.text = resourceHelper.gs(R.string.formatinsulinunits, record.bolus)
+                            labelBOLUS.text = rh.gs(R.string.formatinsulinunits, record.bolusAmount)
                             labelBOLUS.setTextColor(Color.WHITE)
                         })
                         tr.addView(TextView(this@TDDStatsActivity).also { labelTDD ->
                             labelTDD.id = 500 + i
-                            labelTDD.text = resourceHelper.gs(R.string.formatinsulinunits, tdd)
+                            labelTDD.text = rh.gs(R.string.formatinsulinunits, tdd)
                             labelTDD.setTextColor(Color.WHITE)
                         })
                         tr.addView(TextView(this@TDDStatsActivity).also { labelRATIO ->
@@ -313,18 +321,19 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
                             labelRATIO.text = (100 * tdd / magicNumber).roundToInt().toString() + "%"
                             labelRATIO.setTextColor(Color.WHITE)
                         })
-                    }, TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT))
+                    }, TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT)
+                )
                 i++
             }
             i = 0
 
             //cumulative TDDs
             for (record in historyList) {
-                if (historyList.isNotEmpty() && df1.format(Date(record.date)) == df1.format(Date()))
+                if (historyList.isNotEmpty() && df1.format(Date(record.timestamp)) == df1.format(Date()))
                 //Today should not be included
                     continue
                 i++
-                sum += record.getTotal()
+                sum += record.total
 
                 // Create the cumulative table row
                 binding.cumulativeTable.addView(
@@ -342,7 +351,7 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
 
                         ctr.addView(TextView(this@TDDStatsActivity).also { labelCUMTDD ->
                             labelCUMTDD.id = 900 + i
-                            labelCUMTDD.text = resourceHelper.gs(R.string.formatinsulinunits, sum / i)
+                            labelCUMTDD.text = rh.gs(R.string.formatinsulinunits, sum / i)
                             labelCUMTDD.setTextColor(Color.WHITE)
                         })
 
@@ -356,16 +365,16 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
             }
             if (isOldData(historyList) && activePlugin.activePump.pumpDescription.needsManualTDDLoad) {
                 binding.message.visibility = View.VISIBLE
-                binding.message.text = resourceHelper.gs(R.string.olddata_Message)
+                binding.message.text = rh.gs(R.string.olddata_Message)
             } else binding.mainTable.setBackgroundColor(Color.TRANSPARENT)
-            if (historyList.isNotEmpty() && df1.format(Date(historyList[0].date)) == df1.format(Date())) {
+            if (historyList.isNotEmpty() && df1.format(Date(historyList[0].timestamp)) == df1.format(Date())) {
                 //Today should not be included
                 historyList.removeAt(0)
             }
             historyList.reverse()
             i = 0
             for (record in historyList) {
-                val tdd = record.getTotal()
+                val tdd = record.total
                 if (i == 0) {
                     weighted03 = tdd
                     weighted05 = tdd
@@ -394,9 +403,9 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
                     etr.addView(TextView(this@TDDStatsActivity).also { labelEXPTDD ->
                         labelEXPTDD.id = 1300 + i
                         labelEXPTDD.text = """
-                ${resourceHelper.gs(R.string.formatinsulinunits, weighted03)}
-                ${resourceHelper.gs(R.string.formatinsulinunits, weighted05)}
-                ${resourceHelper.gs(R.string.formatinsulinunits, weighted07)}
+                ${rh.gs(R.string.formatinsulinunits, weighted03)}
+                ${rh.gs(R.string.formatinsulinunits, weighted05)}
+                ${rh.gs(R.string.formatinsulinunits, weighted07)}
                 """.trimIndent()
                         labelEXPTDD.setTextColor(Color.WHITE)
                     })
@@ -420,10 +429,11 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
         if (childCount > 1) table.removeViews(1, childCount - 1)
     }
 
-    private fun isOldData(historyList: List<TDD>): Boolean {
+    private fun isOldData(historyList: List<TotalDailyDose>): Boolean {
         val type = activePlugin.activePump.pumpDescription.pumpType
-        val startsYesterday = type == PumpType.DanaR || type == PumpType.DanaRS || type == PumpType.DanaRv2 || type == PumpType.DanaRKorean || type == PumpType.AccuChekInsight
+        val startsYesterday =
+            type == PumpType.DANA_R || type == PumpType.DANA_RS || type == PumpType.DANA_RV2 || type == PumpType.DANA_R_KOREAN || type == PumpType.ACCU_CHEK_INSIGHT_VIRTUAL || type == PumpType.DIACONN_G8
         val df: DateFormat = SimpleDateFormat("dd.MM.", Locale.getDefault())
-        return historyList.size < 3 || df.format(Date(historyList[0].date)) != df.format(Date(System.currentTimeMillis() - if (startsYesterday) 1000 * 60 * 60 * 24 else 0))
+        return historyList.size < 3 || df.format(Date(historyList[0].timestamp)) != df.format(Date(System.currentTimeMillis() - if (startsYesterday) 1000 * 60 * 60 * 24 else 0))
     }
 }
