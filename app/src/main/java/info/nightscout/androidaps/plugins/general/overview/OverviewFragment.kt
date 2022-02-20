@@ -22,7 +22,6 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.text.toSpanned
-import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
@@ -43,6 +42,7 @@ import info.nightscout.androidaps.events.EventPumpStatusChanged
 import info.nightscout.androidaps.events.EventRefreshOverview
 import info.nightscout.androidaps.extensions.directionToIcon
 import info.nightscout.androidaps.extensions.isInProgress
+import info.nightscout.androidaps.extensions.target
 import info.nightscout.androidaps.extensions.toVisibility
 import info.nightscout.androidaps.extensions.valueToUnitsString
 import info.nightscout.androidaps.interfaces.*
@@ -474,8 +474,11 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
             R.id.temp_target         -> v.performClick()
             R.id.active_profile      -> activity?.let { activity ->
+                // Anpassung Anfang ##################################################################
+                // Erlaube Profilswitch wenn loop.isDisconnected
                 //if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pumpdisconnected))
                 //else
+                // Anpassung Ende ####################################################################
                     protectionCheck.queryProtection(
                         activity,
                         ProtectionCheck.Protection.BOLUS,
@@ -681,12 +684,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
                     binding.infoLayout.variableSensitivity.text =
                         String.format(
+                            // Anpassung (%1$.1f→%2$.1f) ##############################################
                             Locale.getDefault(), "%1$.0f→%2$.0f",
+                            // Anpassung Ende #########################################################
                             Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
                             Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
                         )
                     binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+                    // Anpassung Ausblenden des autosens Wertes ########################################
                     binding.infoLayout.sensitivity.visibility = View.GONE
+                    // Anpassung Ende ##################################################################
                 } else binding.infoLayout.variableSensitivity.visibility = View.GONE
             } else binding.infoLayout.variableSensitivity.visibility = View.GONE
         } else {
@@ -872,8 +879,11 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         binding.statusLightsLayout.apply {
             cannulaOrPatch.setImageResource(if (isPatchPump) R.drawable.ic_patch_pump_outline else R.drawable.ic_cp_age_cannula)
             cannulaOrPatch.contentDescription = rh.gs(if (isPatchPump) R.string.statuslights_patch_pump_age else R.string.statuslights_cannula_age)
+            // Anpassung Anfang ################################################################
+            // Deaktiviere die Skalierung des Nadel.Icons (Status-Lights)
             //cannulaOrPatch.scaleX = if (isPatchPump) 1.4f else 2f
             //cannulaOrPatch.scaleY = cannulaOrPatch.scaleX
+            // Anpassung Ende ##################################################################
             insulinAge.visibility = isPatchPump.not().toVisibility()
             statusLights.visibility = (sp.getBoolean(R.string.key_show_statuslights, true) || config.NSCLIENT).toVisibility()
         }
