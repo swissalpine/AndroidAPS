@@ -173,61 +173,6 @@
 
             </TableRow>
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/carb_time_input_label"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center_vertical"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="2dp"
-                        android:text="@string/carb_time_label"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                        android:textStyle="bold" />
-
-                    <CheckBox
-                        android:id="@+id/alarm"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:checked="false"
-                        android:contentDescription="set carb timer alarm"
-                        android:drawableEnd="@drawable/ic_access_alarm_24dp"
-                        android:layoutDirection="rtl"
-                        android:padding="2dp" />
-
-
-                </LinearLayout>
-
-                <info.nightscout.androidaps.utils.ui.NumberPicker
-                    android:id="@+id/carb_time_input"
-                    android:layout_width="130dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center"
-                    app:contentDescription="carb time" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:gravity="start"
-                    android:padding="5dp"
-                    android:text="@string/unit_minute_short"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
-
-            </TableRow>
-
         </TableLayout>
 
         <LinearLayout
@@ -235,7 +180,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="5dp"
             android:layout_marginEnd="10dp"
             android:background="@color/dialog_title_background"
             android:gravity="center_horizontal"
@@ -247,23 +192,22 @@
                 android:id="@+id/total"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
                 android:text="2.35U 28g"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textSize="28dp"
                 tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/percent_used"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingLeft="1dp"
-                android:paddingRight="5dp"
-                android:text="(50%)"
+                android:layout_marginStart="10dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="50%"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@color/bolus"
-                android:textSize="28dp"
                 tools:ignore="HardcodedText" />
 
         </LinearLayout>
@@ -301,8 +245,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|center_vertical"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp"
             android:background="@android:color/transparent"
             android:orientation="horizontal"
             android:padding="0dp">
@@ -313,11 +256,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:scaleX="1.4"
-                android:scaleY="1.4"
-                android:button="@drawable/checkbox_bg_icon"
+                android:button="@android:color/transparent"
                 android:checked="true"
-                android:contentDescription="@string/treatments_wizard_bg_label" />
+                android:contentDescription="@string/treatments_wizard_bg_label"
+                android:drawableStart="@drawable/checkbox_bg_icon"
+                android:scaleX="1.4"
+                android:scaleY="1.4" />
 
             <CheckBox
                 android:id="@+id/tt_checkbox_icon"
@@ -325,12 +269,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:scaleX="1.4"
-                android:scaleY="1.4"
-                android:button="@drawable/checkbox_tt_icon"
+                android:button="@android:color/transparent"
                 android:checked="true"
-                android:visibility="gone"
-                android:contentDescription="@string/treatments_wizard_tt_label" />
+                android:contentDescription="@string/treatments_wizard_tt_label"
+                android:drawableStart="@drawable/checkbox_tt_icon"
+                android:scaleX="1.6"
+                android:scaleY="1.6"
+                android:visibility="gone" />
 
             <CheckBox
                 android:id="@+id/trend_checkbox_icon"
@@ -338,11 +283,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:scaleX="1.4"
-                android:scaleY="1.4"
-                android:button="@drawable/checkbox_trend_icon"
+                android:button="@android:color/transparent"
                 android:checked="true"
-                android:contentDescription="@string/bg_trend_label" />
+                android:contentDescription="@string/bg_trend_label"
+                android:drawableStart="@drawable/checkbox_trend_icon"
+                android:scaleX="1.4"
+                android:scaleY="1.4" />
 
             <CheckBox
                 android:id="@+id/iob_checkbox_icon"
@@ -350,11 +296,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:scaleX="1.4"
-                android:scaleY="1.4"
-                android:button="@drawable/checkbox_iob_icon"
+                android:button="@android:color/transparent"
                 android:checked="true"
-                android:contentDescription="@string/iob" />
+                android:contentDescription="@string/iob"
+                android:drawableStart="@drawable/checkbox_iob_icon"
+                android:scaleX="1.4"
+                android:scaleY="1.4" />
 
             <CheckBox
                 android:id="@+id/cob_checkbox_icon"
@@ -362,11 +309,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:scaleX="1.6"
-                android:scaleY="1.6"
-                android:button="@drawable/checkbox_cob_icon"
+                android:button="@android:color/transparent"
                 android:checked="true"
-                android:contentDescription="@string/treatments_wizard_cob_label" />
+                android:contentDescription="@string/treatments_wizard_cob_label"
+                android:drawableStart="@drawable/checkbox_cob_icon"
+                android:scaleX="1.6"
+                android:scaleY="1.6" />
 
         </LinearLayout>
 
@@ -389,7 +337,7 @@
                 android:contentDescription="@string/show_calculation"
                 android:drawableEnd="@drawable/ic_visibility" />
 
-           <include
+            <include
                 android:id="@+id/okcancel"
                 layout="@layout/okcancel" />
 
@@ -409,6 +357,53 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/carb_time_input_label"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="2dp"
+                    android:text="@string/carb_time_label"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    android:textStyle="bold" />
+
+                <CheckBox
+                    android:id="@+id/alarm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:checked="false"
+                    android:contentDescription="set carb timer alarm"
+                    android:drawableEnd="@drawable/ic_access_alarm_24dp"
+                    android:layoutDirection="rtl"
+                    android:padding="2dp" />
+
+                <info.nightscout.androidaps.utils.ui.NumberPicker
+                    android:id="@+id/carb_time_input"
+                    android:layout_width="130dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    app:contentDescription="carb time" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="start"
+                    android:padding="5dp"
+                    android:text="@string/unit_minute_short"
+                    android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -633,6 +628,7 @@
                 </TableRow>
 
                 <TableRow
+                    android:id="@+id/super_bolus_row"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:focusable="true">
