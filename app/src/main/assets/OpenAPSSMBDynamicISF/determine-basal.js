@@ -199,7 +199,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if ( profile.half_basal_exercise_target ) {
         var halfBasalTarget = profile.half_basal_exercise_target;
     } else {
-        halfBasalTarget = 160; // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
+        halfBasalTarget = 180; // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
         // 80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
     }
     if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget
@@ -286,7 +286,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
     console.error("                                            ");
     console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    console.error("++ Dynamic ISF Beta 1.4 - Linear Extrapolation/TDD7 ++");
+    //console.error("++ Dynamic ISF Beta 1.4 - Linear Extrapolation/TDD7 ++");
+    console.error("++ Dynamic ISF Beta 1.3 - Rolling TDD24 ++");
     console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     console.error("                                            ");
 
@@ -306,6 +307,15 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var tdd_24 = (( basal * 24 ) * 2.8);
         }
 
+
+        var TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
+
+       console.error("Rolling 24 hour TDD = "+tdd_24+"; ");
+       console.error("                                            ");
+       console.error("Weighted Average TDD = "+TDD+"; ");
+       console.error("                                            ");
+
+/*
    if (meal_data.TDDPUMP){
         var tdd_pump = ( (meal_data.TDDPUMP / now ) * 24);
         }
@@ -341,7 +351,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
              }
 
        console.error("                                            ");
-
+*/
 
     var variable_sens = (277700 / (TDD * bg));
     variable_sens = round(variable_sens,1);
