@@ -598,9 +598,9 @@
     <string name="key_smbinterval" translatable="false">smbinterval</string>
     <string name="smbinterval_summary">How frequently SMBs will be given in min</string>
     <string name="smbmaxminutes_summary">Max minutes of basal to limit SMB to</string>
-    <string name="dynisfadjust_summary">Adjustment factor for using Dynamic ISF to allow the value to be increased or decreased by the user. Default value is 1. Value should be between 0 and 10.</string>
+    <string name="DynISFAdjust_summary">Adjustment factor for using Dynamic ISF to allow the value to be increased or decreased by the user. Default value is 1. Value should be between 0 and 3. A number greater than 1 indicates increased resistance.</string>
     <string name="uamsmbmaxminutes">UAM SMB max minutes</string>
-    <string name="dynisfadjust">Dynamic ISF Adjustment Factor</string>
+    <string name="DynISFAdjust_title">Dynamic ISF Adjustment Factor</string>
     <string name="uamsmbmaxminutes_summary">Max minutes of basal to limit SMB to for UAM</string>
     <string name="key_carbsReqThreshold" translatable="false">carbsReqThreshold</string>
     <string name="carbsReqThreshold">Minimum Carbs Required For Suggestion</string>
@@ -897,7 +897,7 @@
     <string name="tidepool_upload_bg">Upload BG tests</string>
 
     <string name="key_smbmaxminutes" translatable="false">smbmaxminutes</string>
-    <string name="key_dynisfadjust" translatable="false">dynisfadjust</string>
+    <string name="key_DynISFAdjust" translatable="false">dynisfadjust</string>
     <string name="key_uamsmbmaxminutes" translatable="false">uamsmbmaxminutes</string>
     <string name="dst_plugin_name" translatable="false">Daylight Saving time</string>
     <string name="dst_in_24h_warning">Daylight Saving time change in 24h or less</string>

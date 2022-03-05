@@ -287,7 +287,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("                                            ");
     console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     //console.error("++ Dynamic ISF Beta 1.4 - Linear Extrapolation/TDD7 ++");
-    console.error("++ Dynamic ISF Beta 1.3 - Rolling TDD24 ++");
+    console.error("++ Dynamic ISF Beta 1.3m - TDD24 + restriction + factor ++");
     console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     console.error("                                            ");
 
@@ -297,7 +297,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         else{
         var tdd7 = ((basal * 12)*100)/21;
         }
-        console.error("7-day average TDD is: " +tdd7+ "; ");
+        console.error("7-day average TDD: " + round(tdd7,1) + "; ");
         console.error("                                            ");
 
     if (meal_data.TDDLast24){
@@ -310,9 +310,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         var TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
 
-       console.error("Rolling 24 hour TDD = "+tdd_24+"; ");
+       console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
        console.error("                                            ");
-       console.error("Weighted Average TDD = "+TDD+"; ");
+       console.error("Weighted Average TDD: " + round(TDD,1) + "; ");
        console.error("                                            ");
 
 /*
@@ -353,22 +353,35 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
        console.error("                                            ");
 */
 
-    var variable_sens = (277700 / (TDD * bg));
+    //var variable_sens = (277700 / (TDD * bg));
+    var dynISFadjust = profile.DynISFAdjust;
+    var dynISFadjust = ( dynISFadjust / 100 );
+    var TDD = (dynISFadjust * TDD);
+    var variable_sens = (277700 / ( TDD * bg));
     variable_sens = round(variable_sens,1);
-    console.log("Current sensitivity for predictions is " +variable_sens+" based on current bg");
-    console.error("                                            ");
+    TDD = round(TDD,1);
+    if (dynISFadjust > 1 ) {
+        console.log("TDD adjusted to "+TDD+" using adjustment factor of "+dynISFadjust+"; ");
+        console.log("Current sensitivity for predictions is " +variable_sens+" based on current bg");
+    }
+    else if (dynISFadjust < 1 ){
+        console.log("TDD adjusted to "+TDD+" using adjustment factor of "+dynISFadjust+"; ");
+        console.log("Current sensitivity for predictions is " +variable_sens+" based on current bg");
+    } else {
+        console.log("Current sensitivity for predictions is " +variable_sens+" based on current bg");
+    }
 
     sens = variable_sens;
     if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget ) {
         sens =  sens / sensitivityRatio ;
         sens = round(sens, 1);
-        console.log("ISF from "+variable_sens+" to "+sens+ "due to temp target; ");
+        console.log("ISF from "+variable_sens+" to "+sens+ " due to temp target; ");
     } else {
         sens = sens;
         sens = round(sens, 1);
     }
 
-    console.error("; CR:",profile.carb_ratio);
+    console.error("CR:",profile.carb_ratio);
 
     // compare currenttemp to iob_data.lastTemp and cancel temp if they don't match
     var lastTempAge;
@@ -784,11 +797,16 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         console.log("EventualBG is" +eventualBG+" ;");
 
-        if( glucose_status.delta >= 0 || bg > 60 && glucose_status.delta < 2 && glucose_status.delta > -2 && glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 || eventualBG > target_bg && glucose_status.delta < 0 ) {
+        if (bg > target_bg && glucose_status.delta < 2 && glucose_status.delta > -2 && glucose_status.short_avgdelta > -2 && glucose_status.short_avgdelta < 2 && eventualBG > target_bg){
+            var future_sens = ( 277700 / (TDD * ((eventualBG * 0.5) + (bg * 0.5) ) ) );
+                console.log("Future state sensitivity is " +future_sens+" based on eventual and current bg due to flat glucose level above target");
+                rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
+        }
+        else if( glucose_status.delta > 0 && eventualBG > target_bg ) {
             var future_sens = ( 277700 / (TDD * bg) );
             console.log("Future state sensitivity is " +future_sens+" using current bg due to no COB & small delta or variation");
             rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
-            }
+        }
         else {
             var future_sens = ( 277700 / (TDD * eventualBG));
         console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta");
