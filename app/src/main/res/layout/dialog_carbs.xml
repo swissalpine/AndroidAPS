@@ -42,13 +42,6 @@
         </RelativeLayout>
 
         <LinearLayout
-            android:id="@+id/spacer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="5dp" />
-
-        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -57,26 +50,26 @@
             <CheckBox
                 android:id="@+id/activity_tt"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginTop="5dp"
+                android:layout_height="42dp"
                 android:text="@string/start_activity_tt" />
 
             <CheckBox
                 android:id="@+id/eating_soon_tt"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="42dp"
                 android:text="@string/start_eating_soon_tt" />
 
             <CheckBox
                 android:id="@+id/hypo_tt"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="42dp"
                 android:text="@string/start_hypo_tt" />
 
             <CheckBox
                 android:id="@+id/hypo_action"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="42dp"
+                android:layout_marginBottom="5dp"
                 android:text="@string/start_hypo_action" />
 
         </LinearLayout>
@@ -115,7 +108,7 @@
                     <CheckBox
                         android:id="@+id/alarmCheckBox"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="40dp"
                         android:layout_gravity="center_vertical"
                         android:checked="false"
                         android:padding="2dp"
