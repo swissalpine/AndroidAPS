@@ -312,7 +312,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
        console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
        console.error("                                            ");
-       console.error("Weighted Average TDD: " + round(TDD,1) + "; ");
+       console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
        console.error("                                            ");
 
 /*
