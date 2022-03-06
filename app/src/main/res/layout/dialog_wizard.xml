@@ -300,7 +300,6 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp"
             android:layout_gravity="center|center_vertical"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="20dp"
@@ -310,10 +309,10 @@
 
             <CheckBox
                 android:id="@+id/bg_checkbox_icon"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:button="@android:color/transparent"
                 android:checked="true"
                 android:contentDescription="@string/treatments_wizard_bg_label"
@@ -323,10 +322,10 @@
 
             <CheckBox
                 android:id="@+id/tt_checkbox_icon"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:button="@android:color/transparent"
                 android:checked="true"
                 android:contentDescription="@string/treatments_wizard_tt_label"
@@ -337,10 +336,10 @@
 
             <CheckBox
                 android:id="@+id/trend_checkbox_icon"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:button="@android:color/transparent"
                 android:checked="true"
                 android:contentDescription="@string/bg_trend_label"
@@ -350,7 +349,7 @@
 
             <CheckBox
                 android:id="@+id/iob_checkbox_icon"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
@@ -363,7 +362,7 @@
 
             <CheckBox
                 android:id="@+id/cob_checkbox_icon"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
