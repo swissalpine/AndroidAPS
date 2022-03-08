@@ -2,12 +2,13 @@ package info.nightscout.androidaps.plugins.pump.common.hw.rileylink.service.task
 
 import android.content.Context;
 
+import java.util.Locale;
+
 import javax.inject.Inject;
 
 import dagger.android.HasAndroidInjector;
-import info.nightscout.androidaps.interfaces.ActivePluginProvider;
-import info.nightscout.androidaps.logging.AAPSLogger;
-import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.shared.logging.AAPSLogger;
+import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.common.ManufacturerType;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.RileyLinkCommunicationManager;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.RileyLinkConst;
@@ -19,7 +20,7 @@ import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.defs.RileyLin
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.service.RileyLinkServiceData;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.service.data.ServiceTransport;
 import info.nightscout.androidaps.utils.Round;
-import info.nightscout.androidaps.utils.sharedPreferences.SP;
+import info.nightscout.shared.sharedPreferences.SP;
 
 /**
  * Created by geoff on 7/9/16.
@@ -29,7 +30,7 @@ import info.nightscout.androidaps.utils.sharedPreferences.SP;
 public class InitializePumpManagerTask extends ServiceTask {
 
     @Inject AAPSLogger aapsLogger;
-    @Inject ActivePluginProvider activePlugin;
+    //@Inject ActivePluginProvider activePlugin;
     @Inject SP sp;
     @Inject RileyLinkServiceData rileyLinkServiceData;
     @Inject RileyLinkUtil rileyLinkUtil;
@@ -49,6 +50,10 @@ public class InitializePumpManagerTask extends ServiceTask {
     @Override
     public void run() {
 
+        if (!isRileyLinkDevice()) {
+            return;
+        }
+
         double lastGoodFrequency;
 
         if (rileyLinkServiceData.lastGoodFrequency == null) {
@@ -65,7 +70,12 @@ public class InitializePumpManagerTask extends ServiceTask {
             lastGoodFrequency = rileyLinkServiceData.lastGoodFrequency;
         }
 
-        RileyLinkCommunicationManager rileyLinkCommunicationManager = ((RileyLinkPumpDevice) activePlugin.getActivePump()).getRileyLinkService().getDeviceCommunicationManager();
+        /* FIXME this can apparently crash:
+            Fatal Exception: java.lang.ClassCastException
+            info.nightscout.androidaps.plugins.pump.virtual.VirtualPumpPlugin
+            cannot be cast to info.nightscout.androidaps.plugins.pump.common.hw.rileylink.defs.RileyLinkPumpDevice
+         */
+        RileyLinkCommunicationManager<?> rileyLinkCommunicationManager = ((RileyLinkPumpDevice) activePlugin.getActivePump()).getRileyLinkService().getDeviceCommunicationManager();
 
         if (activePlugin.getActivePump().manufacturer() == ManufacturerType.Medtronic) {
 
@@ -74,7 +84,7 @@ public class InitializePumpManagerTask extends ServiceTask {
 
                 rileyLinkServiceData.setRileyLinkServiceState(RileyLinkServiceState.RileyLinkReady);
 
-                aapsLogger.info(LTag.PUMPBTCOMM, "Setting radio frequency to {} MHz", lastGoodFrequency);
+                aapsLogger.info(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "Setting radio frequency to %.3f MHz", lastGoodFrequency));
 
                 rileyLinkCommunicationManager.setRadioFrequencyForPump(lastGoodFrequency);
 
@@ -103,7 +113,7 @@ public class InitializePumpManagerTask extends ServiceTask {
             rileyLinkServiceData.setRileyLinkServiceState(RileyLinkServiceState.RileyLinkReady);
             rileyLinkServiceData.rileyLinkTargetFrequency = RileyLinkTargetFrequency.Omnipod; // TODO shouldn't be needed
 
-            aapsLogger.info(LTag.PUMPBTCOMM, "Setting radio frequency to {} MHz", lastGoodFrequency);
+            aapsLogger.info(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "Setting radio frequency to %.3f MHz", lastGoodFrequency));
 
             rileyLinkCommunicationManager.setRadioFrequencyForPump(lastGoodFrequency);
 

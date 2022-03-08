@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        android:key="@string/key_danars_settings"
         android:title="@string/danarspump"
         app:initialExpandedChildrenCount="0">
 
@@ -41,22 +42,6 @@
             android:key="@string/key_rs_logcanulachange"
             android:summary="@string/rs_logcanulachange_summary"
             android:title="@string/rs_logcanulachange_title" />
-
-        <androidx.preference.PreferenceScreen
-            android:key="absorption_danars_advanced"
-            android:title="@string/advancedsettings_title">
-
-            <PreferenceCategory android:title="@string/bluetooth">
-
-                <SwitchPreference
-                    android:defaultValue="false"
-                    android:key="@string/key_btwatchdog"
-                    android:summary="@string/btwatchdog_summary"
-                    android:title="@string/btwatchdog_title" />
-
-            </PreferenceCategory>
-
-        </androidx.preference.PreferenceScreen>
 
     </PreferenceCategory>
 

@@ -1,5 +1,7 @@
 package info.nightscout.androidaps.plugins.pump.common.hw.rileylink.data;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -9,8 +11,8 @@ import java.util.UUID;
 
 public class BleAdvertisedData {
 
-    private List<UUID> mUuids;
-    private String mName;
+    private final List<UUID> mUuids;
+    private final String mName;
 
 
     public BleAdvertisedData(List<UUID> uuids, String name) {
@@ -29,7 +31,7 @@ public class BleAdvertisedData {
     }
 
 
-    public String toString() {
+    @NonNull public String toString() {
         return "BleAdvertisedData [name=" + mName + ", UUIDs=" + mUuids + "]";
     }
 }

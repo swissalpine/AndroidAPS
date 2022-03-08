@@ -1,11 +1,13 @@
 package info.nightscout.androidaps.plugins.pump.common.hw.rileylink;
 
+import java.util.Locale;
+
 import javax.inject.Inject;
 
 import dagger.android.HasAndroidInjector;
-import info.nightscout.androidaps.interfaces.ActivePluginProvider;
-import info.nightscout.androidaps.logging.AAPSLogger;
-import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.androidaps.interfaces.ActivePlugin;
+import info.nightscout.shared.logging.AAPSLogger;
+import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.pump.common.defs.PumpDeviceState;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.RFSpy;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.RileyLinkCommunicationException;
@@ -23,22 +25,21 @@ import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.service.tasks
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.service.tasks.WakeAndTuneTask;
 import info.nightscout.androidaps.plugins.pump.common.utils.ByteUtil;
 import info.nightscout.androidaps.utils.Round;
-import info.nightscout.androidaps.utils.sharedPreferences.SP;
+import info.nightscout.shared.sharedPreferences.SP;
 
 /**
  * This is abstract class for RileyLink Communication, this one needs to be extended by specific "Pump" class.
  * <p>
  * Created by andy on 5/10/18.
  */
-public abstract class RileyLinkCommunicationManager {
-
+public abstract class RileyLinkCommunicationManager<T extends RLMessage> {
     @Inject protected AAPSLogger aapsLogger;
     @Inject protected SP sp;
     @Inject protected RileyLinkServiceData rileyLinkServiceData;
     @Inject protected ServiceTaskExecutor serviceTaskExecutor;
     @Inject protected RFSpy rfspy;
     @Inject protected HasAndroidInjector injector;
-    @Inject protected ActivePluginProvider activePluginProvider;
+    @Inject protected ActivePlugin activePlugin;
 
     private final int SCAN_TIMEOUT = 1500;
     private final int ALLOWED_PUMP_UNREACHABLE = 10 * 60 * 1000; // 10 minutes
@@ -51,23 +52,23 @@ public abstract class RileyLinkCommunicationManager {
 
 
     // All pump communications go through this function.
-    protected RLMessage sendAndListen(RLMessage msg, int timeout_ms)
+    protected T sendAndListen(T msg, int timeout_ms)
             throws RileyLinkCommunicationException {
         return sendAndListen(msg, timeout_ms, null);
     }
 
-    private RLMessage sendAndListen(RLMessage msg, int timeout_ms, Integer extendPreamble_ms)
+    private T sendAndListen(T msg, int timeout_ms, Integer extendPreamble_ms)
             throws RileyLinkCommunicationException {
         return sendAndListen(msg, timeout_ms, 0, extendPreamble_ms);
     }
 
     // For backward compatibility
-    private RLMessage sendAndListen(RLMessage msg, int timeout_ms, int repeatCount, Integer extendPreamble_ms)
+    private T sendAndListen(T msg, int timeout_ms, int repeatCount, Integer extendPreamble_ms)
             throws RileyLinkCommunicationException {
         return sendAndListen(msg, timeout_ms, repeatCount, 0, extendPreamble_ms);
     }
 
-    protected RLMessage sendAndListen(RLMessage msg, int timeout_ms, int repeatCount, int retryCount, Integer extendPreamble_ms)
+    protected T sendAndListen(T msg, int timeout_ms, int repeatCount, int retryCount, Integer extendPreamble_ms)
             throws RileyLinkCommunicationException {
 
         // internal flag
@@ -80,14 +81,14 @@ public abstract class RileyLinkCommunicationManager {
                 (byte) 0, (byte) repeatCount, (byte) 0, (byte) 0, timeout_ms, (byte) retryCount, extendPreamble_ms);
 
         RadioResponse radioResponse = rfSpyResponse.getRadioResponse(injector);
-        RLMessage response = createResponseMessage(radioResponse.getPayload());
+        T response = createResponseMessage(radioResponse.getPayload());
 
         if (response.isValid()) {
             // Mark this as the last time we heard from the pump.
             rememberLastGoodDeviceCommunicationTime();
         } else {
-            aapsLogger.warn(LTag.PUMPBTCOMM, "isDeviceReachable. Response is invalid ! [interrupted={}, timeout={}, unknownCommand={}, invalidParam={}]", rfSpyResponse.wasInterrupted(),
-                    rfSpyResponse.wasTimeout(), rfSpyResponse.isUnknownCommand(), rfSpyResponse.isInvalidParam());
+            aapsLogger.warn(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "isDeviceReachable. Response is invalid ! [noResponseFromRileyLink=%b, interrupted=%b, timeout=%b, unknownCommand=%b, invalidParam=%b]",
+                    rfSpyResponse.wasNoResponseFromRileyLink(), rfSpyResponse.wasInterrupted(), rfSpyResponse.wasTimeout(), rfSpyResponse.isUnknownCommand(), rfSpyResponse.isInvalidParam()));
 
             if (rfSpyResponse.wasTimeout()) {
                 if (rileyLinkServiceData.targetDevice.isTuneUpEnabled()) {
@@ -105,6 +106,8 @@ public abstract class RileyLinkCommunicationManager {
                 throw new RileyLinkCommunicationException(RileyLinkBLEError.Timeout);
             } else if (rfSpyResponse.wasInterrupted()) {
                 throw new RileyLinkCommunicationException(RileyLinkBLEError.Interrupted);
+            } else if (rfSpyResponse.wasNoResponseFromRileyLink()) {
+                throw new RileyLinkCommunicationException(RileyLinkBLEError.NoResponse);
             }
         }
 
@@ -116,7 +119,7 @@ public abstract class RileyLinkCommunicationManager {
     }
 
 
-    public abstract RLMessage createResponseMessage(byte[] payload);
+    public abstract T createResponseMessage(byte[] payload);
 
 
     public abstract void setPumpDeviceState(PumpDeviceState pumpDeviceState);
@@ -213,7 +216,7 @@ public abstract class RileyLinkCommunicationManager {
 
 
     private double scanForDevice(double[] frequencies) {
-        aapsLogger.info(LTag.PUMPBTCOMM, "Scanning for receiver ({})", receiverDeviceID);
+        aapsLogger.info(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "Scanning for receiver (%s)", receiverDeviceID));
         wakeUp(receiverDeviceAwakeForMinutes, false);
         FrequencyScanResults results = new FrequencyScanResults();
 
@@ -230,7 +233,7 @@ public abstract class RileyLinkCommunicationManager {
                 RFSpyResponse resp = rfspy.transmitThenReceive(new RadioPacket(injector, pumpMsgContent), (byte) 0, (byte) 0,
                         (byte) 0, (byte) 0, 1250, (byte) 0);
                 if (resp.wasTimeout()) {
-                    aapsLogger.error(LTag.PUMPBTCOMM, "scanForPump: Failed to find pump at frequency {}", frequencies[i]);
+                    aapsLogger.error(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "scanForPump: Failed to find pump at frequency %.3f", frequencies[i]));
                 } else if (resp.looksLikeRadioPacket()) {
                     RadioResponse radioResponse = new RadioResponse(injector);
 
@@ -313,19 +316,19 @@ public abstract class RileyLinkCommunicationManager {
 
     private int tune_tryFrequency(double freqMHz) {
         rfspy.setBaseFrequency(freqMHz);
-        // RLMessage msg = makeRLMessage(RLMessageType.ReadSimpleData);
+        // T msg = makeRLMessage(RLMessageType.ReadSimpleData);
         byte[] pumpMsgContent = createPumpMessageContent(RLMessageType.ReadSimpleData);
         RadioPacket pkt = new RadioPacket(injector, pumpMsgContent);
         RFSpyResponse resp = rfspy.transmitThenReceive(pkt, (byte) 0, (byte) 0, (byte) 0, (byte) 0, SCAN_TIMEOUT, (byte) 0);
         if (resp.wasTimeout()) {
-            aapsLogger.warn(LTag.PUMPBTCOMM, "tune_tryFrequency: no pump response at frequency {}", freqMHz);
+            aapsLogger.warn(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "tune_tryFrequency: no pump response at frequency %.3f", freqMHz));
         } else if (resp.looksLikeRadioPacket()) {
             RadioResponse radioResponse = new RadioResponse(injector);
             try {
                 radioResponse.init(resp.getRaw());
 
                 if (radioResponse.isValid()) {
-                    aapsLogger.warn(LTag.PUMPBTCOMM, "tune_tryFrequency: saw response level {} at frequency {}", radioResponse.rssi, freqMHz);
+                    aapsLogger.warn(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "tune_tryFrequency: saw response level %d at frequency %.3f", radioResponse.rssi, freqMHz));
                     return calculateRssi(radioResponse.rssi);
                 } else {
                     aapsLogger.warn(LTag.PUMPBTCOMM, "tune_tryFrequency: invalid radio response:"
@@ -364,9 +367,9 @@ public abstract class RileyLinkCommunicationManager {
         } else {
             rfspy.setBaseFrequency(betterFrequency);
             if (betterFrequency != startFrequencyMHz) {
-                aapsLogger.info(LTag.PUMPBTCOMM, "quickTuneForPump: new frequency is {}MHz", betterFrequency);
+                aapsLogger.info(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "quickTuneForPump: new frequency is %.3fMHz", betterFrequency));
             } else {
-                aapsLogger.info(LTag.PUMPBTCOMM, "quickTuneForPump: pump frequency is the same: {}MHz", startFrequencyMHz);
+                aapsLogger.info(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "quickTuneForPump: pump frequency is the same: %.3fMHz", startFrequencyMHz));
             }
         }
         return betterFrequency;
@@ -374,7 +377,7 @@ public abstract class RileyLinkCommunicationManager {
 
 
     private double quickTunePumpStep(double startFrequencyMHz, double stepSizeMHz) {
-        aapsLogger.info(LTag.PUMPBTCOMM, "Doing quick radio tune for receiver ({})", receiverDeviceID);
+        aapsLogger.info(LTag.PUMPBTCOMM, String.format(Locale.ENGLISH, "Doing quick radio tune for receiver (%s)", receiverDeviceID));
         wakeUp(false);
         int startRssi = tune_tryFrequency(startFrequencyMHz);
         double lowerFrequency = startFrequencyMHz - stepSizeMHz;
@@ -424,7 +427,7 @@ public abstract class RileyLinkCommunicationManager {
     }
 
     private RileyLinkPumpDevice getPumpDevice() {
-        return (RileyLinkPumpDevice) activePluginProvider.getActivePump();
+        return (RileyLinkPumpDevice) activePlugin.getActivePump();
     }
 
     public abstract boolean isDeviceReachable();

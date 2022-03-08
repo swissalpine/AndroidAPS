@@ -39,7 +39,7 @@ public class AreaGraphSeries<E extends DoubleDataPoint> extends BaseSeries<E> {
     /**
      * wrapped styles regarding the line
      */
-    private final class Styles {
+    private static final class Styles {
         /**
          * the thickness of the line.
          * This option will be ignored if you are
@@ -115,7 +115,7 @@ public class AreaGraphSeries<E extends DoubleDataPoint> extends BaseSeries<E> {
     /**
      * creates a series without data
      */
-    public AreaGraphSeries() {
+    @SuppressWarnings("unused") public AreaGraphSeries() {
         init();
     }
 
@@ -174,9 +174,9 @@ public class AreaGraphSeries<E extends DoubleDataPoint> extends BaseSeries<E> {
         Iterator<E> values = getValues(minX, maxX);
 
         // draw background
-        double lastEndY1 = 0;
-        double lastEndY2 = 0;
-        double lastEndX = 0;
+        double lastEndY1;
+        double lastEndY2;
+        double lastEndX;
 
         // draw data
         mPaint.setStrokeWidth(mStyles.thickness);
@@ -205,8 +205,6 @@ public class AreaGraphSeries<E extends DoubleDataPoint> extends BaseSeries<E> {
         lastEndY1 = 0;
         lastEndY2 = 0;
         lastEndX = 0;
-        double lastUsedEndX = 0;
-        float firstX = 0;
         int i=0;
         while (values.hasNext()) {
             E value = values.next();
@@ -315,7 +313,7 @@ public class AreaGraphSeries<E extends DoubleDataPoint> extends BaseSeries<E> {
                 canvas.drawPath(mPath, paint);
                 canvas.drawPath(mSecondPath, paint);
                 if (mStyles.drawBackground) {
-                    canvas.drawRect((float)startX, (float)startY2, endX, endY1, mPaintBackground);
+                    canvas.drawRect(startX, startY2, endX, endY1, mPaintBackground);
                 }
             } else if (mStyles.drawDataPoints) {
                 //fix: last value not drawn as datapoint. Draw first point here, and then on every step the end values (above)

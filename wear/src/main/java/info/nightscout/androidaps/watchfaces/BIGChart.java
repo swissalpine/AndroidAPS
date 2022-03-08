@@ -133,7 +133,7 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
     }
 
     public void performViewSetup() {
-        final WatchViewStub stub = (WatchViewStub) layoutView.findViewById(R.id.watch_view_stub);
+        final WatchViewStub stub = layoutView.findViewById(R.id.watch_view_stub);
         IntentFilter messageFilter = new IntentFilter(Intent.ACTION_SEND);
 
         messageReceiver = new MessageReceiver();
@@ -143,14 +143,14 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-                mTime = (TextView) stub.findViewById(R.id.watch_time);
-                mSgv = (TextView) stub.findViewById(R.id.sgv);
-                mTimestamp = (TextView) stub.findViewById(R.id.timestamp);
-                mDelta = (TextView) stub.findViewById(R.id.delta);
-                mAvgDelta = (TextView) stub.findViewById(R.id.avgdelta);
-                mRelativeLayout = (RelativeLayout) stub.findViewById(R.id.main_layout);
-                chart = (LineChartView) stub.findViewById(R.id.chart);
-                statusView = (TextView) stub.findViewById(R.id.aps_status);
+                mTime = stub.findViewById(R.id.watch_time);
+                mSgv = stub.findViewById(R.id.sgv);
+                mTimestamp = stub.findViewById(R.id.timestamp);
+                mDelta = stub.findViewById(R.id.delta);
+                mAvgDelta = stub.findViewById(R.id.avgdelta);
+                mRelativeLayout = stub.findViewById(R.id.main_layout);
+                chart = stub.findViewById(R.id.chart);
+                statusView = stub.findViewById(R.id.aps_status);
                 layoutSet = true;
                 showAgeAndStatus();
                 mRelativeLayout.measure(specW, specH);
@@ -193,7 +193,7 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
     private void changeChartTimeframe() {
         int timeframe = Integer.parseInt(sharedPrefs.getString("chart_timeframe", "3"));
         timeframe = (timeframe%5) + 1;
-        sharedPrefs.edit().putString("chart_timeframe", "" + timeframe).commit();
+        sharedPrefs.edit().putString("chart_timeframe", "" + timeframe).apply();
     }
 
     protected void onWatchModeChanged(WatchMode watchMode) {
@@ -208,7 +208,7 @@ public class BIGChart extends WatchFace implements SharedPreferences.OnSharedPre
     }
 
     private boolean isLowRes(WatchMode watchMode) {
-        return (watchMode == WatchMode.LOW_BIT) || (watchMode == WatchMode.LOW_BIT_BURN_IN) || (watchMode == WatchMode.LOW_BIT_BURN_IN);
+        return (watchMode == WatchMode.LOW_BIT) || (watchMode == WatchMode.LOW_BIT_BURN_IN);
     }
 
 

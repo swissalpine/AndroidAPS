@@ -9,80 +9,110 @@ import android.view.WindowManager
 import dagger.android.support.DaggerDialogFragment
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
+import info.nightscout.androidaps.database.entities.BolusCalculatorResult
+import info.nightscout.androidaps.databinding.DialogWizardinfoBinding
+import info.nightscout.androidaps.extensions.bolusCalculatorResultFromJson
+import info.nightscout.androidaps.extensions.toJson
+import info.nightscout.androidaps.interfaces.Profile
 import info.nightscout.androidaps.interfaces.ProfileFunction
+import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.DecimalFormatter
-import info.nightscout.androidaps.utils.JsonHelper
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import kotlinx.android.synthetic.main.dialog_wizardinfo.*
 import org.json.JSONObject
 import javax.inject.Inject
 
 class WizardInfoDialog : DaggerDialogFragment() {
-    @Inject lateinit var resourceHelper: ResourceHelper
+
+    @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var profileFunction: ProfileFunction
+    @Inject lateinit var dateUtil: DateUtil
 
-    private var json: JSONObject? = null
+    private lateinit var data: BolusCalculatorResult
 
-    fun setData(json: JSONObject) {
-        this.json = json
+    fun setData(bolusCalculatorResult: BolusCalculatorResult) {
+        this.data = bolusCalculatorResult
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    private var _binding: DialogWizardinfoBinding? = null
+
+    // This property is only valid between onCreateView and
+    // onDestroyView.
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         dialog?.window?.requestFeature(Window.FEATURE_NO_TITLE)
         dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN)
         isCancelable = true
         dialog?.setCanceledOnTouchOutside(false)
-        return inflater.inflate(R.layout.dialog_wizardinfo, container, false)
+        _binding = DialogWizardinfoBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.getString("data")?.let { str ->
+            val json = JSONObject(str).apply {
+                put("mills", dateUtil.now()) // fake NS response
+            }
+            data = bolusCalculatorResultFromJson(json) ?: return
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("data", data.toJson(true, dateUtil).toString())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        close.setOnClickListener { dismiss() }
+        binding.close.setOnClickListener { dismiss() }
         val units = profileFunction.getUnits()
-        val bgString =
-            if (units == Constants.MGDL) DecimalFormatter.to0Decimal(JsonHelper.safeGetDouble(json, "bg"))
-            else DecimalFormatter.to1Decimal(JsonHelper.safeGetDouble(json, "bg"))
+        val bgString = Profile.toUnitsString(data.glucoseValue, data.glucoseValue * Constants.MGDL_TO_MMOLL, units)
         // BG
-        treatments_wizard_bg.text = resourceHelper.gs(R.string.format_bg_isf, bgString, JsonHelper.safeGetDouble(json, "isf"))
-        treatments_wizard_bginsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "insulinbg"))
-        treatments_wizard_bgcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "insulinbgused")
-        treatments_wizard_ttcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "ttused")
+        binding.bg.text = rh.gs(R.string.format_bg_isf, bgString, data.isf)
+        binding.bgInsulin.text = rh.gs(R.string.formatinsulinunits, data.glucoseInsulin)
+        binding.bgCheckbox.isChecked = data.wasGlucoseUsed
+        binding.ttCheckbox.isChecked = data.wasTempTargetUsed
         // Trend
-        treatments_wizard_bgtrend.text = JsonHelper.safeGetString(json, "trend")
-        treatments_wizard_bgtrendinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "insulintrend"))
-        treatments_wizard_bgtrendcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "trendused")
+        binding.bgTrend.text = DecimalFormatter.to1Decimal(data.glucoseTrend)
+        binding.bgTrendInsulin.text = rh.gs(R.string.formatinsulinunits, data.trendInsulin)
+        binding.bgTrendCheckbox.isChecked = data.wasTrendUsed
         // COB
-        treatments_wizard_cob.text = resourceHelper.gs(R.string.format_cob_ic, JsonHelper.safeGetDouble(json, "cob"), JsonHelper.safeGetDouble(json, "ic"))
-        treatments_wizard_cobinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "insulincob"))
-        treatments_wizard_cobcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "cobused")
+        binding.cob.text = rh.gs(R.string.format_cob_ic, data.cob, data.ic)
+        binding.cobInsulin.text = rh.gs(R.string.formatinsulinunits, data.cobInsulin)
+        binding.cobCheckbox.isChecked = data.wasCOBUsed
         // Bolus IOB
-        treatments_wizard_bolusiobinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "bolusiob"))
-        treatments_wizard_bolusiobcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "bolusiobused")
+        binding.bolusIobInsulin.text = rh.gs(R.string.formatinsulinunits, data.bolusIOB)
+        binding.bolusIobCheckbox.isChecked = data.wasBolusIOBUsed
         // Basal IOB
-        treatments_wizard_basaliobinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "basaliob"))
-        treatments_wizard_basaliobcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "basaliobused")
+        binding.basalIobInsulin.text = rh.gs(R.string.formatinsulinunits, data.basalIOB)
+        binding.basalIobCheckbox.isChecked = data.wasBasalIOBUsed
         // Superbolus
-        treatments_wizard_sbinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "insulinsuperbolus"))
-        treatments_wizard_sbcheckbox.isChecked = JsonHelper.safeGetBoolean(json, "superbolusused")
+        binding.sbinsulin.text = rh.gs(R.string.formatinsulinunits, data.superbolusInsulin)
+        binding.sbCheckbox.isChecked = data.wasSuperbolusUsed
         // Carbs
-        treatments_wizard_carbs.text = resourceHelper.gs(R.string.format_carbs_ic, JsonHelper.safeGetDouble(json, "carbs"), JsonHelper.safeGetDouble(json, "ic"))
-        treatments_wizard_carbsinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "insulincarbs"))
+        binding.carbs.text = rh.gs(R.string.format_carbs_ic, data.carbs, data.ic)
+        binding.carbsinsulin.text = rh.gs(R.string.formatinsulinunits, data.carbsInsulin)
         // Correction
-        treatments_wizard_correctioninsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "othercorrection"))
+        binding.correctioninsulin.text = rh.gs(R.string.formatinsulinunits, data.otherCorrection)
         // Profile
-        treatments_wizard_profile.text = JsonHelper.safeGetString(json, "profile")
+        binding.profile.text = data.profileName
         // Notes
-        treatments_wizard_notes.text = JsonHelper.safeGetString(json, "notes")
+        binding.notes.text = data.note
         // Percentage
-        treatments_wizard_percent_used.text = DecimalFormatter.to0Decimal(JsonHelper.safeGetDouble(json, "percentageCorrection", 100.0)) + "%"
+        binding.percentUsed.text = rh.gs(R.string.format_percent, data.percentageCorrection)
         // Total
-        treatments_wizard_totalinsulin.text = resourceHelper.gs(R.string.formatinsulinunits, JsonHelper.safeGetDouble(json, "insulin"))
+        binding.totalinsulin.text = rh.gs(R.string.formatinsulinunits, data.totalInsulin)
     }
 
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

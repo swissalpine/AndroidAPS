@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        android:key="@string/key_virtualpump_settings"
         android:title="@string/virtualpump_settings"
         app:initialExpandedChildrenCount="0">
 
@@ -15,7 +16,7 @@
 
         <SwitchPreference
             android:defaultValue="false"
-            android:key="virtualpump_uploadstatus"
+            android:key="@string/key_virtualpump_uploadstatus"
             android:title="@string/virtualpump_uploadstatus_title" />
 
     </PreferenceCategory>

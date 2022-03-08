@@ -5,18 +5,17 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import info.nightscout.androidaps.R;
-import info.nightscout.androidaps.aaps;
 import info.nightscout.androidaps.data.ListenerService;
 import info.nightscout.androidaps.interaction.AAPSPreferences;
-import info.nightscout.androidaps.interaction.actions.AcceptActivity;
 import info.nightscout.androidaps.interaction.actions.BolusActivity;
 import info.nightscout.androidaps.interaction.actions.ECarbActivity;
 import info.nightscout.androidaps.interaction.actions.TempTargetActivity;
-import info.nightscout.androidaps.interaction.utils.MenuListActivity;
 import info.nightscout.androidaps.interaction.actions.WizardActivity;
+import info.nightscout.androidaps.interaction.utils.MenuListActivity;
 
 /**
  * Created by adrian on 09/02/17.
@@ -29,34 +28,34 @@ public class MainMenuActivity extends MenuListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         sp = PreferenceManager.getDefaultSharedPreferences(this);
+        setTitle(R.string.label_actions_activity);
         super.onCreate(savedInstanceState);
         ListenerService.requestData(this);
     }
 
     @Override
-    protected String[] getElements() {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+    protected List<MenuItem> getElements() {
 
-        if(!sharedPreferences.getBoolean("wearcontrol", false)){
-            return new String[] {
-                    "Settings",
-                    "Re-Sync"};
+        List<MenuItem> menuItems = new ArrayList<>();
+        if (!sp.getBoolean("wearcontrol", false)) {
+            menuItems.add(new MenuItem(R.drawable.ic_settings, getString(R.string.menu_settings)));
+            menuItems.add(new MenuItem(R.drawable.ic_sync, getString(R.string.menu_resync)));
+
+            return menuItems;
         }
 
+        boolean showPrimeFill = sp.getBoolean("primefill", false);
+        boolean showWizard = sp.getBoolean("showWizard", true);
 
-        boolean showPrimeFill  = sp.getBoolean("primefill", false);
-        boolean showWizard  = sp.getBoolean("showWizard", true);
+        if (showWizard) menuItems.add(new MenuItem(R.drawable.ic_calculator, getString(R.string.menu_wizard)));
+        menuItems.add(new MenuItem(R.drawable.ic_e_carbs, getString(R.string.menu_ecarb)));
+        menuItems.add(new MenuItem(R.drawable.ic_bolus, getString(R.string.menu_bolus)));
+        menuItems.add(new MenuItem(R.drawable.ic_temptarget, getString(R.string.menu_tempt)));
+        menuItems.add(new MenuItem(R.drawable.ic_settings, getString(R.string.menu_settings)));
+        menuItems.add(new MenuItem(R.drawable.ic_status, getString(R.string.menu_status)));
+        if (showPrimeFill) menuItems.add(new MenuItem(R.drawable.ic_canula, getString(R.string.menu_prime_fill)));
 
-        Vector<String> menuitems = new Vector<String>();
-        menuitems.add(aaps.gs(R.string.menu_tempt));
-        if(showWizard) menuitems.add(aaps.gs(R.string.menu_wizard));
-        menuitems.add(aaps.gs(R.string.menu_ecarb));
-        menuitems.add(aaps.gs(R.string.menu_bolus));
-        menuitems.add(aaps.gs(R.string.menu_settings));
-        menuitems.add(aaps.gs(R.string.menu_status));
-        if (showPrimeFill) menuitems.add(aaps.gs(R.string.menu_prime_fill));
-
-        return menuitems.toArray(new String[menuitems.size()]);
+        return menuItems;
     }
 
     @Override
@@ -64,36 +63,36 @@ public class MainMenuActivity extends MenuListActivity {
 
         Intent intent;
 
-        if (aaps.gs(R.string.menu_settings).equals(action)) {
+        if (getString(R.string.menu_settings).equals(action)) {
             intent = new Intent(this, AAPSPreferences.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if ("Re-Sync".equals(action)) {
+        } else if (getString(R.string.menu_resync).equals(action)) {
             ListenerService.requestData(this);
-        } else if (aaps.gs(R.string.menu_tempt).equals(action)) {
+        } else if (getString(R.string.menu_tempt).equals(action)) {
             intent = new Intent(this, TempTargetActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if (aaps.gs(R.string.menu_bolus).equals(action)) {
+        } else if (getString(R.string.menu_bolus).equals(action)) {
             intent = new Intent(this, BolusActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if (aaps.gs(R.string.menu_wizard).equals(action)) {
+        } else if (getString(R.string.menu_wizard).equals(action)) {
             intent = new Intent(this, WizardActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if (aaps.gs(R.string.menu_status).equals(action)) {
+        } else if (getString(R.string.menu_status).equals(action)) {
             intent = new Intent(this, StatusMenuActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if (aaps.gs(R.string.menu_prime_fill).equals(action)) {
+        } else if (getString(R.string.menu_prime_fill).equals(action)) {
             intent = new Intent(this, FillMenuActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             this.startActivity(intent);
-        } else if (aaps.gs(R.string.menu_ecarb).equals(action)) {
-        intent = new Intent(this, ECarbActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        this.startActivity(intent);
-    }
+        } else if (getString(R.string.menu_ecarb).equals(action)) {
+            intent = new Intent(this, ECarbActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            this.startActivity(intent);
+        }
     }
 }

@@ -5,8 +5,8 @@ import org.apache.commons.lang3.NotImplementedException;
 import javax.inject.Inject;
 
 import dagger.android.HasAndroidInjector;
-import info.nightscout.androidaps.logging.AAPSLogger;
-import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.shared.logging.AAPSLogger;
+import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.RileyLinkUtil;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.RileyLinkCommunicationException;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.command.RileyLinkCommand;
@@ -57,9 +57,7 @@ public class RadioResponse {
             return false;
         }
         if (decodedPayload != null) {
-            if (receivedCRC == CRC.crc8(decodedPayload)) {
-                return true;
-            }
+            return receivedCRC == CRC.crc8(decodedPayload);
         }
         return false;
     }
@@ -76,8 +74,7 @@ public class RadioResponse {
         }
         byte[] encodedPayload;
 
-        if (RileyLinkFirmwareVersion.isSameVersion(rileyLinkServiceData.versionCC110,
-                RileyLinkFirmwareVersion.Version2AndHigher)) {
+        if (rileyLinkServiceData.firmwareVersion.isSameVersion(RileyLinkFirmwareVersion.Version2AndHigher)) {
             encodedPayload = ByteUtil.substring(rxData, 3, rxData.length - 3);
             rssi = rxData[1];
             responseNumber = rxData[2];

@@ -10,26 +10,25 @@
     <string name="label_xdrip_v2">AAPSv2</string>
     <string name="label_xdrip_cockpit">AAPS(Cockpit)</string>
     <string name="label_xdrip_steampunk">AAPS(Steampunk)</string>
+    <string name="label_digitalstyle">AAPS(DigitalStyle)</string>
     <string name="label_warning_sync">Sem dados!</string>
     <string name="label_warning_old">Dados antigos!</string>
     <string name="label_warning_since">Desde %1$s</string>
     <string name="label_warning_sync_aaps">Sincronizar com AAPS!</string>
     <string name="msg_warning_sync">Nenhum dado recebido desde %1$s! Confira se o AAPS no telefone envia dados para o relógio</string>
     <string name="msg_warning_old">Dados AAPS são %1$s antigos! Verifique sensor, xDrip+, NS, configuração AAPS ou outra!</string>
-    <string name="pref_on">Lig.</string>
-    <string name="pref_off">Desl.</string>
     <string name="pref_vibrate_on_bolus">Vibrar no Bólus</string>
     <string name="pref_units_for_actions">Unidades para Acções</string>
     <string name="pref_show_date">Mostrar Data</string>
-    <string name="pref_show_iob">Mostrar IOB</string>
-    <string name="pref_show_cob">Mostrar COB</string>
+    <string name="pref_show_iob">Mostrar IA </string>
+    <string name="pref_show_cob">Mostrar HCA</string>
     <string name="pref_show_delta">Mostrar Delta</string>
     <string name="pref_show_avgdelta">Mostrar MedDelta</string>
     <string name="pref_show_phone_battery">Mostrar Bateria Telefone</string>
     <string name="pref_show_rig_battery">Mostrar Bateria Equipamento</string>
     <string name="pref_show_basal_rate">Mostrar Taxa Basal</string>
     <string name="pref_show_loop_status">Mostrar Estado Loop</string>
-    <string name="pref_show_bg">Mostrar Glic.</string>
+    <string name="pref_show_bg">Mostrar Glicose</string>
     <string name="pref_show_direction_arrow">Mostrar Seta Direcção</string>
     <string name="pref_show_ago">Mostrar Atrás</string>
     <string name="pref_dark" comment="Enables dark visual theme">Escuro</string>
@@ -62,12 +61,15 @@
     <string name="pref_complication_tap_action">Complicação de Toque</string>
     <string name="pref_unicode_in_complications">Unicode em Complicações</string>
     <string name="pref_version">Versão:</string>
+    <string name="pref_moreWatchfaceSettings">mais definições do Mostrador</string>
+    <string name="pref_lookInYourWatchfaceConfiguration">Verifique a configuração do mostrador, por favor.</string>
     <string name="menu_tempt">AlvoT</string>
     <string name="menu_wizard">Assistente</string>
     <string name="menu_bolus">Bólus</string>
     <string name="menu_ecarb">eCarb</string>
     <string name="menu_settings">Definições</string>
     <string name="menu_status">Estado</string>
+    <string name="menu_resync">Re-Sincronizar</string>
     <string name="menu_prime_fill">Purgar/Preencher</string>
     <string name="menu_none">Nenhum</string>
     <string name="menu_default">Padrão</string>
@@ -86,24 +88,52 @@
     <string name="action_preset_3">Predefinição 3</string>
     <string name="action_free_amount" comment="In prime/fill menu, allows to enter any amount to be used for priming/filling">Valor livre</string>
     <string name="action_confirm">CONFIRMAR</string>
-    <string name="action_status_pump">ESTADO BOMBA</string>
-    <string name="action_status_loop">ESTADO LOOP</string>
-    <string name="action_timeshift">alteração turno</string>
-    <string name="action_tdd_weighted">TDD ponderada</string>
+    <string name="action_timeshift">Deslocamento temporal</string>
     <string name="action_bolus">bólus</string>
+    <string name="bolus_progress">Progresso do Bólus</string>
+    <string name="press_to_cancel">pressione para cancelar</string>
+    <string name="cancel_bolus">CANCELAR BÓLUS</string>
     <string name="status_pump">Bomba</string>
     <string name="status_loop">Loop</string>
     <string name="status_cpp">CPP</string>
-    <string name="status_tdd">TDD</string>
+    <string name="status_tdd">TDI</string>
     <string name="activity_carb">Hidratos</string>
-    <string name="activity_IOB">IOB</string>
+    <string name="activity_IOB">IA </string>
     <string name="activity_no_status">sem estado</string>
-    <string name="unit_mg_dl">mg/dL</string>
-    <string name="unit_mmol_l">mmol/L</string>
-    <string name="unit_g" comment="Shortcut for ISO unit: gram">g</string>
-    <string name="unit_u" comment="Shortcut for: insulin Unit">U</string>
-    <string name="unit_u_p_h" comment="Shortcut for: insulin Unit per Hour">U/h</string>
-    <string name="unit_h" comment="One letter shortcut for: Hour" maxLength="1">h</string>
-    <string name="unit_d" comment="One letter shortcut for: Day" maxLength="1">d</string>
-    <string name="unit_w" comment="One letter shortcut for: Week" maxLength="1">s</string>
+    <string name="color_name_red">vermelho</string>
+    <string name="color_name_pink">rosa</string>
+    <string name="color_name_purple">roxo</string>
+    <string name="color_name_deeppurple">roxo escuro</string>
+    <string name="color_name_indigo">azul índigo</string>
+    <string name="color_name_blue">azul</string>
+    <string name="color_name_lightblue">azul claro</string>
+    <string name="color_name_cyan">ciano</string>
+    <string name="color_name_teal">azul esverdeado</string>
+    <string name="color_name_green">verde</string>
+    <string name="color_name_lightgreen">verde claro</string>
+    <string name="color_name_lime">lima</string>
+    <string name="color_name_yellow">amarelo</string>
+    <string name="color_name_amber">âmbar</string>
+    <string name="color_name_orange">laranja</string>
+    <string name="color_name_deeporange">laranja escuro</string>
+    <string name="color_name_brown">castanho</string>
+    <string name="color_name_gray">cinzento</string>
+    <string name="color_name_bluegray">cinza azul</string>
+    <string name="color_name_white">branco</string>
+    <string name="color_name_black">preto</string>
+    <string name="color_name_multicolor">multicolor</string>
+    <string name="pref_vibrate_hourly">Vibrar por hora</string>
+    <string name="pref_show_weeknumber">Mostrar número da Semana</string>
+    <string name="digitalstyle_pref_your_style">Seu estilo:</string>
+    <string name="digitalstyle_style_none">sem estilo</string>
+    <string name="digitalstyle_style_minimal">estilo minimalista</string>
+    <string name="digitalstyle_style_shape">estilo de forma</string>
+    <string name="digitalstyle_style_full">estilo completo</string>
+    <string name="digitalstyle_pref_your_color">Sua cor:</string>
+    <string name="digitalstyle_pref_your_color_saturation">Sua saturação de cor:</string>
+    <string name="digitalstyle_pref_your_color_opacity">Sua opacidade de cor:</string>
+    <string name="bolus_progress_channel_name">Progresso Bólus AAPS</string>
+    <string name="bolus_progress_silent_channel_name">Progresso Bólus AAPS Silencioso</string>
+    <string name="bolus_progress_channel_description">Progresso Bólus e cancelar</string>
+    <string name="bolus_progress_silent_channel_description">Progresso Bólus e cancelar com menos vibrações</string>
 </resources>

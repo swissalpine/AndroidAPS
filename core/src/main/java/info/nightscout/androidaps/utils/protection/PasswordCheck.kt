@@ -2,17 +2,19 @@ package info.nightscout.androidaps.utils.protection
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.StringRes
 import info.nightscout.androidaps.core.R
+import info.nightscout.androidaps.interfaces.ActivePlugin
+import info.nightscout.androidaps.plugins.general.maintenance.PrefFileListProvider
 import info.nightscout.androidaps.utils.CryptoUtil
 import info.nightscout.androidaps.utils.ToastUtils
 import info.nightscout.androidaps.utils.alertDialogs.AlertDialogHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,8 +23,10 @@ const val AUTOFILL_HINT_NEW_PASSWORD = "newPassword"
 
 @Singleton
 class PasswordCheck @Inject constructor(
-    val sp: SP,
-    private val cryptoUtil: CryptoUtil
+    private val sp: SP,
+    private val cryptoUtil: CryptoUtil,
+    private val fileListProvider: PrefFileListProvider,
+    private val activePlugin: ActivePlugin
 ) {
 
     /**
@@ -45,11 +49,9 @@ class PasswordCheck @Inject constructor(
 
         userInput2.visibility = View.GONE
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val autoFillHintPasswordKind = context.getString(preference)
-            userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
-            userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
-        }
+        val autoFillHintPasswordKind = context.getString(preference)
+        userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
+        userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
 
         alertDialogBuilder
             .setCancelable(false)
@@ -80,11 +82,9 @@ class PasswordCheck @Inject constructor(
         val userInput = promptsView.findViewById<View>(R.id.password_prompt_pass) as EditText
         val userInput2 = promptsView.findViewById<View>(R.id.password_prompt_pass_confirm) as EditText
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val autoFillHintPasswordKind = context.getString(preference)
-            userInput.setAutofillHints(AUTOFILL_HINT_NEW_PASSWORD, "aaps_${autoFillHintPasswordKind}")
-            userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
-        }
+        val autoFillHintPasswordKind = context.getString(preference)
+        userInput.setAutofillHints(AUTOFILL_HINT_NEW_PASSWORD, "aaps_${autoFillHintPasswordKind}")
+        userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
 
         alertDialogBuilder
             .setCancelable(false)
@@ -135,9 +135,9 @@ class PasswordCheck @Inject constructor(
         passwordExplanation?.let { alertDialogBuilder.setMessage(it) }
 
         passwordWarning?.let {
-            val extraWarning: TextView = promptsView.findViewById<View>(R.id.password_prompt_extra_message) as TextView;
-            extraWarning.text = context.getString(it);
-            extraWarning.visibility = View.VISIBLE;
+            val extraWarning: TextView = promptsView.findViewById<View>(R.id.password_prompt_extra_message) as TextView
+            extraWarning.text = context.getString(it)
+            extraWarning.visibility = View.VISIBLE
         }
 
         val userInput = promptsView.findViewById<View>(R.id.password_prompt_pass) as EditText
@@ -145,11 +145,9 @@ class PasswordCheck @Inject constructor(
 
         userInput2.visibility = View.GONE
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val autoFillHintPasswordKind = context.getString(preference)
-            userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
-            userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
-        }
+        val autoFillHintPasswordKind = context.getString(preference)
+        userInput.setAutofillHints(View.AUTOFILL_HINT_PASSWORD, "aaps_${autoFillHintPasswordKind}")
+        userInput.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_YES
 
         alertDialogBuilder
             .setCancelable(false)
@@ -165,5 +163,19 @@ class PasswordCheck @Inject constructor(
             }
 
         alertDialogBuilder.create().show()
+    }
+
+    /**
+     * Check for existing PasswordReset file and
+     * reset password to SN of active pump if file exists
+     */
+    fun passwordResetCheck(context: Context) {
+        val passwordReset = File(fileListProvider.ensureExtraDirExists(), "PasswordReset")
+        if (passwordReset.exists()) {
+            val sn = activePlugin.activePump.serialNumber()
+            sp.putString(R.string.key_master_password, cryptoUtil.hashPassword(sn))
+            passwordReset.delete()
+            ToastUtils.okToast(context, context.getString(R.string.password_set))
+        }
     }
 }

@@ -7,8 +7,8 @@ import android.os.SystemClock;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import info.nightscout.androidaps.logging.AAPSLogger;
-import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.shared.logging.AAPSLogger;
+import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.RileyLinkBLE;
 
 /**
@@ -18,7 +18,7 @@ public class DescriptorWriteOperation extends BLECommOperation {
 
     private final AAPSLogger aapsLogger;
 
-    private BluetoothGattDescriptor descr;
+    private final BluetoothGattDescriptor descr;
 
 
     public DescriptorWriteOperation(AAPSLogger aapsLogger, BluetoothGatt gatt, BluetoothGattDescriptor descr, byte[] value) {

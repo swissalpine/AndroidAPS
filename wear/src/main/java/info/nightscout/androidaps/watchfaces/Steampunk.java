@@ -10,7 +10,8 @@ import android.view.animation.RotateAnimation;
 
 import info.nightscout.androidaps.R;
 import info.nightscout.androidaps.interaction.menus.MainMenuActivity;
-import info.nightscout.androidaps.interaction.utils.SafeParse;
+import info.nightscout.shared.SafeParse;
+
 /**
  * Created by andrew-warrington on 01/12/2017.
  */
@@ -66,7 +67,7 @@ public class Steampunk extends BaseWatchFace {
     protected void setColorDark() {
 
         if (mLinearLayout2 != null) {
-            if (ageLevel() <= 0) {
+            if (ageLevel() <= 0 && rawData.datetime != 0) {
                 mLinearLayout2.setBackgroundResource(R.drawable.redline);
                 mTimestamp.setTextColor(getResources().getColor(R.color.red_600));
             } else {
@@ -107,6 +108,7 @@ public class Steampunk extends BaseWatchFace {
 
             if (rotationAngle > 330) rotationAngle = 330;                       //if the glucose value is higher than 330 then show "HIGH" on the dial. ("HIGH" is at 330 degrees on the dial)
             if (rotationAngle != 0 && rotationAngle < 30) rotationAngle = 30;   //if the glucose value is lower than 30 show "LOW" on the dial. ("LOW" is at 30 degrees on the dial)
+            if (lastEndDegrees == 0) lastEndDegrees = rotationAngle;
 
             //rotate glucose dial
             RotateAnimation rotate = new RotateAnimation(
@@ -123,7 +125,7 @@ public class Steampunk extends BaseWatchFace {
         //set the delta gauge and rotate the delta pointer
         float deltaIsNegative = 1f;         //by default go clockwise
         if (!rawData.sAvgDelta.equals("--")) {      //if a legitimate delta value is received, then...
-            if (rawData.sAvgDelta.substring(0,1).equals("-")) deltaIsNegative = -1f;  //if the delta is negative, go counter-clockwise
+            if (rawData.sAvgDelta.charAt(0) == '-') deltaIsNegative = -1f;  //if the delta is negative, go counter-clockwise
             Float AbssAvgDelta = SafeParse.stringToFloat(rawData.sAvgDelta.substring(1)) ;   //get rid of the sign so it can be converted to float.
             String autogranularity = "0" ;                                                   //autogranularity off
             //ensure the delta gauge is the right units and granularity
@@ -264,6 +266,6 @@ public class Steampunk extends BaseWatchFace {
             pointSize = 1;
         }
         setupCharts();
-        sharedPrefs.edit().putString("chart_timeframe", "" + timeframe).commit();
+        sharedPrefs.edit().putString("chart_timeframe", "" + timeframe).apply();
     }
 }

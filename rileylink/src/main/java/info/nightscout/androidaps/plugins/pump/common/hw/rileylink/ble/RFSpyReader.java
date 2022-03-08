@@ -8,8 +8,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import info.nightscout.androidaps.logging.AAPSLogger;
-import info.nightscout.androidaps.logging.LTag;
+import info.nightscout.shared.logging.AAPSLogger;
+import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.data.GattAttributes;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.defs.RileyLinkEncodingType;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.operations.BLECommOperationResult;
@@ -24,8 +24,8 @@ public class RFSpyReader {
     private final AAPSLogger aapsLogger;
     private static AsyncTask<Void, Void, Void> readerTask;
     private RileyLinkBLE rileyLinkBle;
-    private Semaphore waitForRadioData = new Semaphore(0, true);
-    private LinkedBlockingQueue<byte[]> mDataQueue = new LinkedBlockingQueue<>();
+    private final Semaphore waitForRadioData = new Semaphore(0, true);
+    private final LinkedBlockingQueue<byte[]> mDataQueue = new LinkedBlockingQueue<>();
     private int acquireCount = 0;
     private int releaseCount = 0;
     private boolean stopAtNull = true;
@@ -107,7 +107,7 @@ public class RFSpyReader {
                                 + SystemClock.uptimeMillis());
                         SystemClock.sleep(100);
                         SystemClock.sleep(1);
-                        result = rileyLinkBle.readCharacteristic_blocking(serviceUUID, radioDataUUID);
+                        result = rileyLinkBle.readCharacteristicBlocking(serviceUUID, radioDataUUID);
                         SystemClock.sleep(100);
 
                         if (result.resultCode == BLECommOperationResult.RESULT_SUCCESS) {

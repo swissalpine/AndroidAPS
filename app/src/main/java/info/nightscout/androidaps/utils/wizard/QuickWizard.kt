@@ -1,7 +1,8 @@
 package info.nightscout.androidaps.utils.wizard
 
 import dagger.android.HasAndroidInjector
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.androidaps.R
+import info.nightscout.shared.sharedPreferences.SP
 import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
@@ -16,7 +17,7 @@ class QuickWizard @Inject constructor(
     private var storage = JSONArray()
 
     init {
-        setData(JSONArray(sp.getString("QuickWizard", "[]")))
+        setData(JSONArray(sp.getString(R.string.key_quickwizard, "[]")))
     }
 
     fun getActive(): QuickWizardEntry? {
@@ -32,7 +33,7 @@ class QuickWizard @Inject constructor(
     }
 
     fun save() {
-        sp.putString("QuickWizard", storage.toString())
+        sp.putString(R.string.key_quickwizard, storage.toString())
     }
 
     fun size(): Int = storage.length()

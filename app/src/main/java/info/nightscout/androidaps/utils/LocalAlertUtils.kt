@@ -1,23 +1,32 @@
 package info.nightscout.androidaps.utils
 
-import info.nightscout.androidaps.Config
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
-import info.nightscout.androidaps.db.BgReading
-import info.nightscout.androidaps.interfaces.ActivePluginProvider
-import info.nightscout.androidaps.logging.AAPSLogger
-import info.nightscout.androidaps.logging.LTag
-import info.nightscout.androidaps.plugins.bus.RxBusWrapper
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.ValueWrapper
+import info.nightscout.androidaps.database.entities.TherapyEvent
+import info.nightscout.androidaps.database.entities.UserEntry.Action
+import info.nightscout.androidaps.database.entities.UserEntry.Sources
+import info.nightscout.androidaps.database.entities.ValueWithUnit
+import info.nightscout.androidaps.database.transactions.InsertTherapyEventAnnouncementTransaction
+import info.nightscout.androidaps.interfaces.ActivePlugin
+import info.nightscout.androidaps.interfaces.Config
 import info.nightscout.androidaps.interfaces.ProfileFunction
-import info.nightscout.androidaps.plugins.general.nsclient.NSUpload
+import info.nightscout.shared.logging.AAPSLogger
+import info.nightscout.shared.logging.LTag
+import info.nightscout.androidaps.logging.UserEntryLogger
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.general.overview.events.EventDismissNotification
 import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification
 import info.nightscout.androidaps.plugins.general.overview.notifications.Notification
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
+import info.nightscout.androidaps.plugins.general.smsCommunicator.SmsCommunicatorPlugin
 import info.nightscout.androidaps.utils.resources.ResourceHelper
-import info.nightscout.androidaps.utils.sharedPreferences.SP
+import info.nightscout.shared.sharedPreferences.SP
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.min
 
 /**
  * Created by adrian on 17/12/17.
@@ -26,53 +35,57 @@ import javax.inject.Singleton
 class LocalAlertUtils @Inject constructor(
     private val aapsLogger: AAPSLogger,
     private val sp: SP,
-    private val rxBus: RxBusWrapper,
-    private val resourceHelper: ResourceHelper,
-    private val activePlugin: ActivePluginProvider,
+    private val rxBus: RxBus,
+    private val rh: ResourceHelper,
+    private val activePlugin: ActivePlugin,
     private val profileFunction: ProfileFunction,
-    private val iobCobCalculatorPlugin: IobCobCalculatorPlugin,
+    private val smsCommunicatorPlugin: SmsCommunicatorPlugin,
     private val config: Config,
-    private val nsUpload: NSUpload,
-    private val dateUtil: DateUtil
+    private val repository: AppRepository,
+    private val dateUtil: DateUtil,
+    private val uel: UserEntryLogger
 ) {
 
-    fun missedReadingsThreshold(): Long {
-        return T.mins(sp.getInt(resourceHelper.gs(R.string.key_missed_bg_readings_threshold_minutes), Constants.DEFAULT_MISSED_BG_READINGS_THRESHOLD_MINUTES).toLong()).msecs()
+    private val disposable = CompositeDisposable()
+
+    private fun missedReadingsThreshold(): Long {
+        return T.mins(sp.getInt(R.string.key_missed_bg_readings_threshold_minutes, Constants.DEFAULT_MISSED_BG_READINGS_THRESHOLD_MINUTES).toLong()).msecs()
     }
 
-    fun pumpUnreachableThreshold(): Long {
-        return T.mins(sp.getInt(resourceHelper.gs(R.string.key_pump_unreachable_threshold_minutes), Constants.DEFAULT_PUMP_UNREACHABLE_THRESHOLD_MINUTES).toLong()).msecs()
+    private fun pumpUnreachableThreshold(): Long {
+        return T.mins(sp.getInt(R.string.key_pump_unreachable_threshold_minutes, Constants.DEFAULT_PUMP_UNREACHABLE_THRESHOLD_MINUTES).toLong()).msecs()
     }
 
     fun checkPumpUnreachableAlarm(lastConnection: Long, isStatusOutdated: Boolean, isDisconnected: Boolean) {
         val alarmTimeoutExpired = isAlarmTimeoutExpired(lastConnection, pumpUnreachableThreshold())
         val nextAlarmOccurrenceReached = sp.getLong("nextPumpDisconnectedAlarm", 0L) < System.currentTimeMillis()
-        if (config.APS && sp.getBoolean(resourceHelper.gs(R.string.key_enable_pump_unreachable_alert), true)
-            && isStatusOutdated && alarmTimeoutExpired && nextAlarmOccurrenceReached && !isDisconnected) {
-            aapsLogger.debug(LTag.CORE, "Generating pump unreachable alarm. lastConnection: " + dateUtil.dateAndTimeString(lastConnection) + " isStatusOutdated: " + isStatusOutdated)
-            val n = Notification(Notification.PUMP_UNREACHABLE, resourceHelper.gs(R.string.pump_unreachable), Notification.URGENT)
-            n.soundId = R.raw.alarm
-            sp.putLong("nextPumpDisconnectedAlarm", System.currentTimeMillis() + pumpUnreachableThreshold())
-            rxBus.send(EventNewNotification(n))
-            if (sp.getBoolean(R.string.key_ns_create_announcements_from_errors, true)) {
-                nsUpload.uploadError(n.text)
+        if (config.APS && isStatusOutdated && alarmTimeoutExpired && nextAlarmOccurrenceReached && !isDisconnected) {
+            if (sp.getBoolean(R.string.key_enable_pump_unreachable_alert, true)) {
+                aapsLogger.debug(LTag.CORE, "Generating pump unreachable alarm. lastConnection: " + dateUtil.dateAndTimeString(lastConnection) + " isStatusOutdated: " + isStatusOutdated)
+                sp.putLong("nextPumpDisconnectedAlarm", System.currentTimeMillis() + pumpUnreachableThreshold())
+                rxBus.send(EventNewNotification(Notification(Notification.PUMP_UNREACHABLE, rh.gs(R.string.pump_unreachable), Notification.URGENT).also { it.soundId = R.raw.alarm }))
+                uel.log(Action.CAREPORTAL, Sources.Aaps, rh.gs(R.string.pump_unreachable), ValueWithUnit.TherapyEventType(TherapyEvent.Type.ANNOUNCEMENT))
+                if (sp.getBoolean(R.string.key_ns_create_announcements_from_errors, true))
+                    disposable += repository.runTransaction(InsertTherapyEventAnnouncementTransaction(rh.gs(R.string.pump_unreachable))).subscribe()
             }
+            if (sp.getBoolean(R.string.key_smscommunicator_report_pump_ureachable, true))
+                smsCommunicatorPlugin.sendNotificationToAllNumbers(rh.gs(R.string.pump_unreachable))
         }
         if (!isStatusOutdated && !alarmTimeoutExpired) rxBus.send(EventDismissNotification(Notification.PUMP_UNREACHABLE))
     }
 
     private fun isAlarmTimeoutExpired(lastConnection: Long, unreachableThreshold: Long): Boolean {
-        if (activePlugin.activePump.pumpDescription.hasCustomUnreachableAlertCheck) {
-            return activePlugin.activePump.isUnreachableAlertTimeoutExceeded(unreachableThreshold)
+        return if (activePlugin.activePump.pumpDescription.hasCustomUnreachableAlertCheck) {
+            activePlugin.activePump.isUnreachableAlertTimeoutExceeded(unreachableThreshold)
         } else {
-            return lastConnection + pumpUnreachableThreshold() < System.currentTimeMillis()
+            lastConnection + pumpUnreachableThreshold() < System.currentTimeMillis()
         }
     }
 
-    /*Presnoozes the alarms with 5 minutes if no snooze exists.
+    /*Pre-snoozes the alarms with 5 minutes if no snooze exists.
      * Call only at startup!
      */
-    fun presnoozeAlarms() {
+    fun preSnoozeAlarms() {
         if (sp.getLong("nextMissedReadingsAlarm", 0L) < System.currentTimeMillis()) {
             sp.putLong("nextMissedReadingsAlarm", System.currentTimeMillis() + 5 * 60 * 1000)
         }
@@ -83,10 +96,10 @@ class LocalAlertUtils @Inject constructor(
 
     fun shortenSnoozeInterval() { //shortens alarm times in case of setting changes or future data
         var nextMissedReadingsAlarm = sp.getLong("nextMissedReadingsAlarm", 0L)
-        nextMissedReadingsAlarm = Math.min(System.currentTimeMillis() + missedReadingsThreshold(), nextMissedReadingsAlarm)
+        nextMissedReadingsAlarm = min(System.currentTimeMillis() + missedReadingsThreshold(), nextMissedReadingsAlarm)
         sp.putLong("nextMissedReadingsAlarm", nextMissedReadingsAlarm)
         var nextPumpDisconnectedAlarm = sp.getLong("nextPumpDisconnectedAlarm", 0L)
-        nextPumpDisconnectedAlarm = Math.min(System.currentTimeMillis() + pumpUnreachableThreshold(), nextPumpDisconnectedAlarm)
+        nextPumpDisconnectedAlarm = min(System.currentTimeMillis() + pumpUnreachableThreshold(), nextPumpDisconnectedAlarm)
         sp.putLong("nextPumpDisconnectedAlarm", nextPumpDisconnectedAlarm)
     }
 
@@ -103,16 +116,22 @@ class LocalAlertUtils @Inject constructor(
     }
 
     fun checkStaleBGAlert() {
-        val bgReading: BgReading? = iobCobCalculatorPlugin.lastBg()
-        if (sp.getBoolean(resourceHelper.gs(R.string.key_enable_missed_bg_readings_alert), false)
-            && bgReading != null && bgReading.date + missedReadingsThreshold() < System.currentTimeMillis() && sp.getLong("nextMissedReadingsAlarm", 0L) < System.currentTimeMillis()) {
-            val n = Notification(Notification.BG_READINGS_MISSED, resourceHelper.gs(R.string.missed_bg_readings), Notification.URGENT)
+        val bgReadingWrapped = repository.getLastGlucoseValueWrapped().blockingGet()
+        val bgReading = if (bgReadingWrapped is ValueWrapper.Existing) bgReadingWrapped.value else return
+        if (sp.getBoolean(R.string.key_enable_missed_bg_readings_alert, false)
+            && bgReading.timestamp + missedReadingsThreshold() < System.currentTimeMillis()
+            && sp.getLong("nextMissedReadingsAlarm", 0L) < System.currentTimeMillis()
+        ) {
+            val n = Notification(Notification.BG_READINGS_MISSED, rh.gs(R.string.missed_bg_readings), Notification.URGENT)
             n.soundId = R.raw.alarm
             sp.putLong("nextMissedReadingsAlarm", System.currentTimeMillis() + missedReadingsThreshold())
             rxBus.send(EventNewNotification(n))
+            uel.log(Action.CAREPORTAL, Sources.Aaps, rh.gs(R.string.missed_bg_readings), ValueWithUnit.TherapyEventType(TherapyEvent.Type.ANNOUNCEMENT))
             if (sp.getBoolean(R.string.key_ns_create_announcements_from_errors, true)) {
-                nsUpload.uploadError(n.text)
+                n.text?.let { disposable += repository.runTransaction(InsertTherapyEventAnnouncementTransaction(it)).subscribe() }
             }
+        } else if (dateUtil.isOlderThan(bgReading.timestamp, 5).not()) {
+            rxBus.send(EventDismissNotification(Notification.BG_READINGS_MISSED))
         }
     }
 }
