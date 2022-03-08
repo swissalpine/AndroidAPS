@@ -143,7 +143,7 @@
                     <CheckBox
                         android:id="@+id/correction_percent"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="40dp"
                         android:layout_gravity="center_vertical"
                         android:checked="false"
                         android:layoutDirection="rtl"
@@ -199,7 +199,7 @@
                     <CheckBox
                         android:id="@+id/alarm"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="40dp"
                         android:layout_gravity="center_vertical"
                         android:checked="false"
                         android:contentDescription="set carb timer alarm"
@@ -301,8 +301,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|center_vertical"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:background="@android:color/transparent"
             android:orientation="horizontal"
             android:padding="0dp">
