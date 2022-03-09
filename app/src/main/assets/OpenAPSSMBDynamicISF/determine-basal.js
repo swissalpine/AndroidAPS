@@ -307,13 +307,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var tdd_24 = (( basal * 24 ) * 2.8);
         }
 
+    var TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
 
-        var TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
+    console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
+    console.error("                                            ");
+    console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
+    console.error("                                            ");
 
-       console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
-       console.error("                                            ");
-       console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
-       console.error("                                            ");
+    if( ((tdd7 * 0.3) + (tdd_24 * 0.7)) < (0.8 * tdd7) ) {
+        TDD = tdd7 * 0.8;
+        console.error("TDD limited to 80% tdd7 due to low insulin dosage: " + round(TDD,1) + "; ");
+    } else if ( ((tdd7 * 0.3) + (tdd_24 * 0.7))  > (1.2 * tdd7) ) {
+        TDD = tdd7 * 1.2;
+        console.error("TDD limited to 120% tdd7 due to high insulin dosage: " + round(TDD,1) + "; ");
+    }
 
 /*
    if (meal_data.TDDPUMP){
