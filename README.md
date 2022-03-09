@@ -6,8 +6,8 @@ The branch [sport-changes](https://github.com/swissalpine/AndroidAPS-1/tree/spor
 realise some changes which are very important for me:
 * Ketoacidosis-Protection
   The ketoacidosis protection can be enabled in the OpenApsSMB settings. Two different strategies 
-  are available for this:
-  (a) a reduced basal rate is delivered when the IOB is as small as if no insulin had been delivered for an hour _OR_  
+  are available for this:<br />
+  (a) a reduced basal rate is delivered when the IOB is as small as if no insulin had been delivered for an hour _OR_<br />  
   (b) a minimum basal rate of f. e. 20% is always delivered and 0% TBR will be avoided.
 * Set TempTargets up to 220 mg/dl / 12,2 mmol/l
 * Carbs Dialog with with an additional possibility to handle hypo situations (it sets a 
