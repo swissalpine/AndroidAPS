@@ -284,12 +284,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         else {
             console.error("Time now is "+now+"; ");
         }
-    console.error("                                            ");
+    //*********************************************************************************
+    //**                   Start of Dynamic ISF code for predictions                 **
+    //*********************************************************************************
+
     console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     //console.error("++ Dynamic ISF Beta 1.4 - Linear Extrapolation/TDD7 ++");
     console.error("++ Dynamic ISF Beta 1.3m - TDD24 + restriction + factor ++");
     console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    console.error("                                            ");
 
     if (meal_data.TDDAIMI7){
         var tdd7 = meal_data.TDDAIMI7;
@@ -298,7 +300,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var tdd7 = ((basal * 12)*100)/21;
         }
         console.error("7-day average TDD: " + round(tdd7,1) + "; ");
-        console.error("                                            ");
 
     if (meal_data.TDDLast24){
         var tdd_24 = meal_data.TDDLast24;
@@ -310,9 +311,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
 
     console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
-    console.error("                                            ");
     console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
-    console.error("                                            ");
 
     if( ((tdd7 * 0.3) + (tdd_24 * 0.7)) < (0.8 * tdd7) ) {
         TDD = tdd7 * 0.8;
@@ -357,7 +356,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
              rT.reason += "TDD: " +TDD+ " based on standard pump 60/tdd7 40 split; ";
              }
 
-       console.error("                                            ");
 */
 
     //var variable_sens = (277700 / (TDD * bg));
@@ -822,6 +820,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
         }
         var future_sens = round(future_sens,1);
+
 
 
     minIOBPredBG = Math.max(39,minIOBPredBG);
