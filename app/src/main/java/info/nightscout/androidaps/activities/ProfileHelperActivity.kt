@@ -68,7 +68,6 @@ class ProfileHelperActivity : NoSplashAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityProfilehelperBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
