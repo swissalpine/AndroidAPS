@@ -12,17 +12,18 @@
         android:focusable="true">
 
         <TextView
+            android:id="@+id/cannula_or_patch"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:gravity="center_vertical"
             android:paddingStart="15dp"
             android:paddingEnd="2dp"
-            android:text="@string/careportal_sensor_label"
+            android:text="@string/cannula"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_cp_age_sensor" />
+            app:drawableStartCompat="@drawable/ic_cp_age_cannula" />
 
         <TextView
-            android:id="@+id/sensor_age_label"
+            android:id="@+id/cannula_age_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -32,7 +33,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/sensor_age"
+            android:id="@+id/cannula_age"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -41,22 +42,21 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/sensor_level_label"
+            android:id="@+id/cannula_placeholder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
-            android:text="@string/careportal_level_label"
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/sensor_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:paddingStart="2dp"
+            android:text=""
             android:textSize="14sp"
             tools:ignore="RtlSymmetry" />
 
@@ -157,18 +157,17 @@
         android:focusable="true">
 
         <TextView
-            android:id="@+id/cannula_or_patch"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:gravity="center_vertical"
             android:paddingStart="15dp"
             android:paddingEnd="2dp"
-            android:text="@string/cannula"
+            android:text="@string/careportal_sensor_label"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_cp_age_cannula" />
+            app:drawableStartCompat="@drawable/ic_cp_age_sensor" />
 
         <TextView
-            android:id="@+id/cannula_age_label"
+            android:id="@+id/sensor_age_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -178,7 +177,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/cannula_age"
+            android:id="@+id/sensor_age"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -187,25 +186,27 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/cannula_placeholder"
+            android:id="@+id/sensor_level_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
             android:paddingEnd="0dp"
+            android:text="@string/careportal_level_label"
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/sensor_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:paddingStart="2dp"
-            android:text=""
             android:textSize="14sp"
             tools:ignore="RtlSymmetry" />
 
     </TableRow>
+
 
     <TableRow
         android:layout_width="fill_parent"

@@ -194,8 +194,11 @@ class OverviewData @Inject constructor(
             } ?: R.drawable.ic_cp_basal_no_tbr
 
     val temporaryBasalColor: Int
-        get() = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { rh.gc(R.color.defaulttextcolor) }
-            ?: rh.gc(R.color.defaulttextcolor)
+        // Anpassung
+        //get() = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { rh.gc(R.color.defaulttextcolor) }
+        //    ?: rh.gc(R.color.defaulttextcolor)
+        get() = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { rh.gc(R.color.white) }
+            ?: rh.gc(R.color.white)
 
     /*
      * EXTENDED BOLUS
