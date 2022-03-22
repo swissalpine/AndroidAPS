@@ -288,10 +288,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
-    console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    console.error("++++++++++++++++++++++++");
     //console.error("++ Dynamic ISF Beta 1.4 - Linear Extrapolation/TDD7 ++");
     console.error("++ Dynamic ISF Beta 1.3m - TDD24 + restriction + factor ++");
-    console.error("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    console.error("++++++++++++++++++++++++");
 
     if (meal_data.TDDAIMI7){
         var tdd7 = meal_data.TDDAIMI7;
@@ -358,7 +358,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
 */
 
-    //var variable_sens = (277700 / (TDD * bg));
     var dynISFadjust = profile.DynISFAdjust;
     var dynISFadjust = ( dynISFadjust / 100 );
     var TDD = (dynISFadjust * TDD);
@@ -385,6 +384,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         sens = sens;
         sens = round(sens, 1);
     }
+    console.error("++++++++++++++++++++++++");
 
     console.error("CR:",profile.carb_ratio);
 
@@ -802,6 +802,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         console.log("EventualBG is" +eventualBG+" ;");
 
+        console.error("++++++++++++++++++++++++");
         if (bg > target_bg && glucose_status.delta < 3 && glucose_status.delta > -3 &&
         glucose_status.short_avgdelta > -3 && glucose_status.short_avgdelta < 3 && eventualBG >
         target_bg){
@@ -820,7 +821,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
         }
         var future_sens = round(future_sens,1);
-
+        console.error("++++++++++++++++++++++++");
 
 
     minIOBPredBG = Math.max(39,minIOBPredBG);
