@@ -8,7 +8,6 @@ import info.nightscout.androidaps.R
 import info.nightscout.androidaps.data.LocalInsulin
 import info.nightscout.androidaps.database.entities.UserEntry
 import info.nightscout.androidaps.database.entities.ValueWithUnit
-//import info.nightscout.androidaps.data.Profile
 import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.shared.logging.AAPSLogger
@@ -31,22 +30,20 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * adaptation from oref0 autotune started by philoul on 2020 (complete refactoring of AutotunePlugin compare to Rumen Georgiev work done in 2018)
+ * adaptation from oref0 autotune started by philoul on 2020 (complete refactoring of AutotunePlugin initialised by Rumen Georgiev on 1/29/2018.)
  *
  * TODO: detail analysis of iob calculation to understand (and correct if necessary) differences between oaps calculation and aaps calculation
- * => Today AutotuneCore is full consistent between oaps and aaps module (same results up to 3 digits)
- * => only gap is in iob calculation, that's why today results even if close, are not exactly the same :-(
+ * => Today AutotuneCore is consistent between oaps and aaps module (same results up to 3 digits) for several users
+ * => Unfortunatly for some users we can have significant gaps in results (that can be due to exported data for verification and not aaps adaptation of algorythm)
+ * => This has to be fixed to get for all users consistent results
  * TODO: build data sets for autotune validation
- * => I work on a new BGsimulatorplugin, it uses a dedicated "reference profile" for BG calculation,
- *      the idea is to use this reference profile to simulate a real person (if different of profile used for loop, it's the optimum result of a perfect autotune algorythm...)
- * => I hope we will be able to validate autotunePlugin with several data set (simulation of several situations)
- * TODO: Add Constraints for auto Switch (in Objective 11 ?) for safety => see with Milos once autotuneplugin validated
- * => for complete beginners only show results, then add ability to copy to local profile (Obj x?) , then add ability to switch from autotune results (Obj y?), then ability to use autotune from automation...
+ * => I hope we will be able to validate autotunePlugin with several data set (simulation of several situations and get oref0 autotune results as reference)
  * TODO: Improve layout (see ProfileViewerDialog and HtmlHelper.fromHtml() function)
- *      use html table for results presentation
+ * => use materials for results presentation
  * TODO: futur version: add profile selector in AutotuneFragment to allow running autotune plugin with other profiles than current
  * TODO: futur version (once first version validated): add DIA and Peak tune for insulin
  * TODO: replace Thread by Worker
+ * TODO: Reset results field and Switch/Copy button visibility when Nb of selected days is changed
  */
 
 @Singleton
@@ -196,24 +193,28 @@ class AutotunePlugin @Inject constructor(
             profileSwitchButtonVisibility = View.VISIBLE
             copyButtonVisibility = View.VISIBLE
             if (autoSwitch) {
+                val circadian = sp.getBoolean(R.string.key_autotune_circadian_ic_isf, false)
                 profileSwitchButtonVisibility = View.GONE //hide profilSwitch button in fragment
                 val now = dateUtil.now()
-                if (profileFunction.createProfileSwitch(
-                        tunedProfile!!.profileStore!!,
-                        profileName = tunedProfile!!.profilename!!,
-                        durationInMinutes = 0,
-                        percentage = 100,
-                        timeShiftInHours = 0,
-                        timestamp = now
-                    )
-                ) {
-                    uel.log(
-                        UserEntry.Action.PROFILE_SWITCH,
-                        UserEntry.Sources.ProfileSwitchDialog,
-                        "Autotune AutoSwitch",
-                        ValueWithUnit.SimpleString(tunedProfile!!.profilename!!))
+                val profileStore = tunedProfile?.profileStore(circadian)
+                profileStore?.let {
+                    if (profileFunction.createProfileSwitch(
+                            it,
+                            profileName = tunedProfile!!.profilename!!,
+                            durationInMinutes = 0,
+                            percentage = 100,
+                            timeShiftInHours = 0,
+                            timestamp = now
+                        )
+                    ) {
+                        uel.log(
+                            UserEntry.Action.PROFILE_SWITCH,
+                            UserEntry.Sources.ProfileSwitchDialog,
+                            "Autotune AutoSwitch",
+                            ValueWithUnit.SimpleString(tunedProfile!!.profilename!!))
+                    }
+                    rxBus.send(EventLocalProfileChanged())
                 }
-                rxBus.send(EventLocalProfileChanged())
             }
             lastRunSuccess = true
             rxBus.send(EventAutotuneUpdateResult(result))
