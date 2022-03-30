@@ -266,16 +266,20 @@ class CarbsDialog : DialogFragmentWithDate() {
         val hypoSelected = binding.hypoTt.isChecked
         if (hypoSelected)
             actions.add(
-                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor( context,
-                                                                                                                                                                                         rh,
-                                                                                                                                                                                         R.attr.tempTargetConfirmation
+                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
+                    " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor( context, rh,
+                    R.attr.tempTargetConfirmation
                 )
             )
-        // Anpassung
+        // Anpassung 2
         val hypoActionSelected = binding.hypoAction.isChecked
         if (hypoActionSelected)
-            actions.add(rh.gs(R.string.temptargetshort) + ": " + "<font color='" + rh.gc(R.color.tempTargetConfirmation) + "'>" + DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
-                            " (" + hypoTTDuration + " " + rh.gs(R.string.unit_minute_short) + ")  + TBR: 50% (60 min)</font>")
+            actions.add(
+                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
+                    " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")  + TBR: 50% (60 min)").formatColor( context, rh,
+                    R.attr.tempTargetConfirmation
+                )
+            )
         // Ende Anpassung
         val timeOffset = binding.time.value.toInt()
         if (useAlarm && carbs > 0 && timeOffset > 0)
@@ -367,7 +371,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                                             aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
                                         })
                         }
-                        // Anpassung 2 (und Text start_hypo_tt in strings.xml
+                        // Anpassung 3 (und Text start_hypo_tt in strings.xml
                         hypoActionSelected       -> {
                             loopPlugin.suspendLoop(60)
                             rxBus.send(EventRefreshOverview("ActionLoopSuspend"))
