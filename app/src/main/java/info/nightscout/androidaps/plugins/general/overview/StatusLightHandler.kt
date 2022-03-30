@@ -66,8 +66,8 @@ class StatusLightHandler @Inject constructor(
                 handleLevel(careportal_battery_level, R.string.key_statuslights_bat_critical, 26.0, R.string.key_statuslights_bat_warning, 51.0, pump.batteryLevel.toDouble(), "%")
             } else {
                 // Anpassung
-                // careportal_battery_level?.text = rh.gs(R.string.notavailable)
-                careportal_battery_level?.setTextColor(Color.WHITE)
+                //careportal_battery_level?.text = rh.gs(R.string.notavailable)
+                careportal_battery_level?.setTextColor(rh.gac(careportal_battery_level.context, R.attr.defaultTextColor))
             }
         }
     }
