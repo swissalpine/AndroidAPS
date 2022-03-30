@@ -26,7 +26,7 @@
     <color name="colorOnPrimaryDefault">#FFFFFF</color>
 
     <color name="defaultbackground">#000000</color>
-    <color name="defaulttextcolor">#B3FFFFFF</color>
+    <color name="defaulttextcolor">#FFFFFF</color>
 
     <!---Android Dark ans Light Theme Base colors-->
     <color name="background_dark">#262626</color>
