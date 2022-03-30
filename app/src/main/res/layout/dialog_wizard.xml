@@ -305,6 +305,7 @@
             android:id="@+id/checkbox_row"
             android:layout_width="match_parent"
             android:layout_height="45dp"
+            android:layout_marginBottom="10dp"
             android:paddingHorizontal="10dp">
 
             <ToggleButton
