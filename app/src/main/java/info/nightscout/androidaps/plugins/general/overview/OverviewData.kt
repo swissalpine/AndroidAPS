@@ -195,9 +195,10 @@ class OverviewData @Inject constructor(
                 }
             } ?: R.drawable.ic_cp_basal_no_tbr
 
+    /* Anpassung (TBR war Text nicht sichtbar); auch in overviewfragment.kt, l. 855b
     val temporaryBasalColor: Int
-        get() = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { rh.gc(R.color.defaulttextcolor) }
-            ?: rh.gc(R.color.defaulttextcolor)
+        get() = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { rh.gc(R.color.basal) }
+            ?: rh.gc(R.color.defaulttextcolor)      */
 
     /*
      * EXTENDED BOLUS
