@@ -31,7 +31,7 @@ class ATProfile(profile: Profile?, var localInsulin: LocalInsulin, val injector:
     var profile: ProfileSealed
     var circadianProfile: ProfileSealed
     lateinit var pumpProfile: ProfileSealed
-    var profilename: String? = profile?.profileName
+    var profilename: String = profile?.profileName ?:""
     var basal = DoubleArray(24)
     var basalUntuned = IntArray(24)
     var ic = 0.0
@@ -48,6 +48,8 @@ class ATProfile(profile: Profile?, var localInsulin: LocalInsulin, val injector:
     @Inject lateinit var config: Config
     @Inject lateinit var rxBus: RxBus
     @Inject lateinit var rh: ResourceHelper
+
+    fun basal(time: Long) = basal[Profile.secondsFromMidnight(time)/3600]
 
     fun getProfile(circadian: Boolean = false): PureProfile {
         return if (circadian)
