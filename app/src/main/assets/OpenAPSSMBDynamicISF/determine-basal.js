@@ -803,22 +803,21 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("EventualBG is" +eventualBG+" ;");
 
         console.error("++++++++++++++++++++++++");
-        if (bg > target_bg && glucose_status.delta < 3 && glucose_status.delta > -3 &&
-        glucose_status.short_avgdelta > -3 && glucose_status.short_avgdelta < 3 && eventualBG >
-        target_bg){
-            var future_sens = ( 277700 / (TDD * ((eventualBG * 0.5) + (bg * 0.5) ) ) );
-                console.log("Future state sensitivity is " +future_sens+" based on eventual and current bg due to flat glucose level above target");
-                rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
+        if (bg > target_bg && eventualBG > target_bg && glucose_status.delta >= 0 && glucose_status.delta <= 5
+            && glucose_status.short_avgdelta >= 0 && glucose_status.short_avgdelta <= 5 ) {
+            var future_sens = round( 277700 / ( TDD * ( (eventualBG * 0.7) + (bg * 0.3) ) ),1);
+            console.log("Future state sensitivity is " +future_sens+" based on eventual and current bg due to flat glucose level (delta 0 to +5) above target; ");
+            rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG and current bg;";
         }
-        else if( glucose_status.delta > 0 && eventualBG > target_bg ) {
-            var future_sens = ( 277700 / (TDD * bg) );
-            console.log("Future state sensitivity is " +future_sens+" using current bg due to no COB & small delta or variation");
+        else if( glucose_status.delta > 5 && eventualBG > target_bg ) {
+            var future_sens = round( 277700 / (TDD * bg),1 );
+            console.log("Future state sensitivity is " +future_sens+" using current bg due to negative delta > 5; ");
             rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
         }
         else {
-            var future_sens = ( 277700 / (TDD * eventualBG));
-        console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta");
-        rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
+            var future_sens = round( 277700 / (TDD * eventualBG),1);
+            console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta; ");
+            rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
         }
         var future_sens = round(future_sens,1);
         console.error("++++++++++++++++++++++++");
