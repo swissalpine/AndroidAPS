@@ -1,5 +1,6 @@
 package info.nightscout.androidaps.plugins.general.autotune
 
+import android.content.Context
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.R
@@ -21,6 +22,7 @@ import info.nightscout.androidaps.plugins.general.autotune.data.ATProfile
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityAAPSPlugin
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityOref1Plugin
 import info.nightscout.androidaps.plugins.sensitivity.SensitivityWeightedAveragePlugin
+import info.nightscout.androidaps.receivers.DataWorker
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.utils.FabricPrivacy
 import info.nightscout.androidaps.utils.T
@@ -54,6 +56,8 @@ class AutotuneIob(
     @Inject lateinit var sp: SP
     @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var resourceHelper: ResourceHelper
+    @Inject lateinit var context: Context
+    @Inject lateinit var dataWorker: DataWorker
     @Inject lateinit var activePlugin: ActivePlugin
 
     lateinit var iobCobCalculator: IobCobCalculatorPlugin
@@ -65,7 +69,7 @@ class AutotuneIob(
     private lateinit var tempBasals: MutableList<TemporaryBasal>
     var startBG: Long = 0
     var endBG: Long = 0
-    private fun range(): Long = (60 * 60 * 1000L * dia).toLong()
+    private fun range(): Long = (60 * 60 * 1000L * dia + T.hours(2).msecs()).toLong()
 
     fun initializeData(from: Long, to: Long, tunedProfile: ATProfile) {
         iobCobCalculator =
@@ -83,7 +87,9 @@ class AutotuneIob(
                 sensitivityWeightedAveragePlugin,
                 fabricPrivacy,
                 dateUtil,
-                repository
+                repository,
+                context,
+                dataWorker
             )
         dia = tunedProfile.dia
         startBG = from
@@ -147,25 +153,25 @@ class AutotuneIob(
 
     //nsTreatment is used only for export data
     private fun initializeTempBasalData(from: Long, to: Long, tunedProfile: ATProfile) {
-        val tBRs = repository.getTemporaryBasalsDataFromTimeToTime(from - range(), to, false).blockingGet()
+        val tBRs = repository.getTemporaryBasalsDataFromTimeToTime(from, to, false).blockingGet()
         //log.debug("D/AutotunePlugin tempBasal size before cleaning:" + tBRs.size);
         for (i in tBRs.indices) {
             if (tBRs[i].isValid)
-                toRoundedTimestampTB(tBRs[i], tunedProfile)
+                toSplittedTimestampTB(tBRs[i], tunedProfile)
         }
         //log.debug("D/AutotunePlugin: tempBasal size: " + tempBasals.size)
     }
 
     //nsTreatment is used only for export data
     private fun initializeExtendedBolusData(from: Long, to: Long, tunedProfile: ATProfile) {
-        val extendedBoluses = repository.getExtendedBolusDataFromTimeToTime(from - range(), to, false).blockingGet()
+        val extendedBoluses = repository.getExtendedBolusDataFromTimeToTime(from, to, false).blockingGet()
         val pumpInterface = activePlugin.activePump
         if (pumpInterface.isFakingTempsByExtendedBoluses) {
             for (i in extendedBoluses.indices) {
                 val eb = extendedBoluses[i]
                 if (eb.isValid)
                     profileFunction.getProfile(eb.timestamp)?.let {
-                        toRoundedTimestampTB(eb.toTemporaryBasal(it), tunedProfile)
+                        toSplittedTimestampTB(eb.toTemporaryBasal(it), tunedProfile)
                     }
             }
         } else {
@@ -185,7 +191,7 @@ class AutotuneIob(
         var previousStart = to
         for (i in tempBasals.indices) {
             val newStart = tempBasals[i].timestamp + tempBasals[i].duration
-            if (previousStart > newStart) {
+            if (previousStart - newStart > T.mins(1).msecs()) {                  // fill neutral only if more than 1 min
                 val neutralTbr = TemporaryBasal(
                     isValid = true,
                     isAbsolute = false,
@@ -195,11 +201,11 @@ class AutotuneIob(
                     interfaceIDs_backing = InterfaceIDs(nightscoutId = "neutral_" + newStart.toString()),
                     type = TemporaryBasal.Type.NORMAL
                 )
-                toRoundedTimestampTB(neutralTbr, tunedProfile)
+                toSplittedTimestampTB(neutralTbr, tunedProfile)
             }
             previousStart = tempBasals[i].timestamp
         }
-        if (previousStart > from) {
+        if (previousStart - from > T.mins(1).msecs()) {                         // fill neutral only if more than 1 min
             val neutralTbr = TemporaryBasal(
                 isValid = true,
                 isAbsolute = false,
@@ -209,49 +215,49 @@ class AutotuneIob(
                 interfaceIDs_backing = InterfaceIDs(nightscoutId = "neutral_" + from.toString()),
                 type = TemporaryBasal.Type.NORMAL
             )
-            toRoundedTimestampTB(neutralTbr, tunedProfile)
+            toSplittedTimestampTB(neutralTbr, tunedProfile)
         }
     }
 
-    // toRoundedTimestampTB will round all beginning timestamp and duration to minutes
-    // it will also split all TBR accross hours in different TBR with correct absolute value to be sure to have correct basal rate
+    // toSplittedTimestampTB will split all TBR across hours in different TBR with correct absolute value to be sure to have correct basal rate
     // even if profile rate is not the same
-    private fun toRoundedTimestampTB(tb: TemporaryBasal, tunedProfile: ATProfile) {
-        var roundedTimestamp = (tb.timestamp / T.mins(1).msecs()) * T.mins(1).msecs()
-        var roundedDuration = tb.durationInMinutes.toInt()
+    private fun toSplittedTimestampTB(tb: TemporaryBasal, tunedProfile: ATProfile) {
+        var splittedTimestamp = tb.timestamp
+        val cutInMilliSec = T.mins(30).msecs()                  //30 min to compare with oref0
+        var splittedDuration = tb.duration
         if (tb.isValid && tb.durationInMinutes > 0) {
-            val endTimestamp = roundedTimestamp + roundedDuration * T.mins(1).msecs()
-            while (roundedDuration > 0) {
-                if (Profile.secondsFromMidnight(roundedTimestamp) / 3600 == Profile.secondsFromMidnight(endTimestamp) / 3600) {
+            val endTimestamp = splittedTimestamp + splittedDuration
+            while (splittedDuration > 0) {
+                if (Profile.milliSecFromMidnight(splittedTimestamp) / cutInMilliSec == Profile.milliSecFromMidnight(endTimestamp) / cutInMilliSec) {
                     val newtb = TemporaryBasal(
                         isValid = true,
                         isAbsolute = tb.isAbsolute,
-                        timestamp = roundedTimestamp,
+                        timestamp = splittedTimestamp,
                         rate = tb.rate,
-                        duration = roundedDuration.toLong() * 60 * 1000,
+                        duration = splittedDuration,
                         interfaceIDs_backing = tb.interfaceIDs_backing,
                         type = tb.type
                     )
                     tempBasals.add(newtb)
                     nsTreatments.add(NsTreatment(newtb))
-                    roundedDuration = 0
+                    splittedDuration = 0
                     val profile = profileFunction.getProfile(newtb.timestamp) ?:continue
                     boluses.addAll(newtb.convertToBoluses(profile, tunedProfile))           // required for correct iob calculation with oref0 algo
                 } else {
-                    val durationFilled = 60 - Profile.secondsFromMidnight(roundedTimestamp) / 60 % 60
+                    val durationFilled = (cutInMilliSec - Profile.milliSecFromMidnight(splittedTimestamp) % cutInMilliSec)
                     val newtb = TemporaryBasal(
                         isValid = true,
                         isAbsolute = tb.isAbsolute,
-                        timestamp = roundedTimestamp,
+                        timestamp = splittedTimestamp,
                         rate = tb.rate,
-                        duration = durationFilled.toLong() * 60 * 1000,
+                        duration = durationFilled,
                         interfaceIDs_backing = tb.interfaceIDs_backing,
                         type = tb.type
                     )
                     tempBasals.add(newtb)
                     nsTreatments.add(NsTreatment(newtb))
-                    roundedTimestamp += durationFilled * 60 * 1000
-                    roundedDuration = roundedDuration - durationFilled
+                    splittedTimestamp += durationFilled
+                    splittedDuration = splittedDuration - durationFilled
                     val profile = profileFunction.getProfile(newtb.timestamp) ?:continue
                     boluses.addAll(newtb.convertToBoluses(profile, tunedProfile))           // required for correct iob calculation with oref0 algo
                 }
@@ -302,8 +308,9 @@ class AutotuneIob(
         return json.toString(2).replace("\\/", "/")
     }
 
-    //I add this internal class to be able to export easily ns-treatment files with same containt and format than NS query used by oref0-autotune
+    //I add this internal class to be able to export easily ns-treatment files with same contain and format than NS query used by oref0-autotune
     private inner class NsTreatment {
+
         var date: Long = 0
         var eventType: TherapyEvent.Type? = null
         var carbsTreatment: Carbs? = null
@@ -339,7 +346,7 @@ class AutotuneIob(
             val cPjson = JSONObject()
             return when (eventType) {
                 TherapyEvent.Type.TEMPORARY_BASAL  ->
-                    temporaryBasal?.let {   tbr ->
+                    temporaryBasal?.let { tbr ->
                         val profile = profileFunction.getProfile(tbr.timestamp)
                         profile?.let { profile ->
                             tbr.toJson(true, profile, dateUtil)
