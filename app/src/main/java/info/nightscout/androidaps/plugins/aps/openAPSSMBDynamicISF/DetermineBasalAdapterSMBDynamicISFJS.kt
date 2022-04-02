@@ -266,6 +266,7 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount)
         //this.mealData.put("TDDPUMP", tddCalculator.calculateDaily().totalAmount)
         this.mealData.put("TDDLast24", tddCalculator.calculate24Daily().totalAmount)
+        this.mealData.put("TDDLast8", tddCalculator.calculate8Hours().totalAmount)
 
         if (constraintChecker.isAutosensModeEnabled().value()) {
             autosensData.put("ratio", autosensDataRatio)

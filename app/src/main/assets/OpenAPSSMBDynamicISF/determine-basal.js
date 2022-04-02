@@ -308,17 +308,29 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var tdd_24 = (( basal * 24 ) * 2.8);
         }
 
-    var TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
+    var TDD = tdd7;
 
+    // Anpassung Rolling 24 hours
+    TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
     console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
     console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
 
-    if( ((tdd7 * 0.3) + (tdd_24 * 0.7)) < (0.8 * tdd7) ) {
-        TDD = tdd7 * 0.8;
-        console.error("TDD limited to 80% tdd7 due to low insulin dosage: " + round(TDD,1) + "; ");
-    } else if ( ((tdd7 * 0.3) + (tdd_24 * 0.7))  > (1.2 * tdd7) ) {
-        TDD = tdd7 * 1.2;
-        console.error("TDD limited to 120% tdd7 due to high insulin dosage: " + round(TDD,1) + "; ");
+    // Anpassung: Rolling 8 hours
+    var tdd_8 = 3 * meal_data.TDDLast8;
+    var TDD_r8 = tdd7 * 0.5 + tdd_8 * 0.5;
+    console.error("Extrapolated rolling 8 hour TDD: " + round(tdd_8,1) + "; ");
+    console.error("Weighted Average TDD (50% tdd_8): " + round(TDD_r8,1) + "; ");
+    TDD = TDD_r8;
+
+    // Anpassung: TDD restriction
+    /*if( TDD < (0.7 * tdd7) ) {
+        TDD = tdd7 * 0.7;
+        console.error("TDD limited to 70% tdd7 due to low insulin dosage: " + round(TDD,1) + "; ");
+    } else */
+
+    if ( bg > 180 && TDD  > (1.3 * tdd7) ) {
+        TDD = tdd7 * 1.3;
+        console.error("TDD limited to 130% tdd7 due to high insulin dosage and high bg: " + round(TDD,1) + "; ");
     }
 
 /*
