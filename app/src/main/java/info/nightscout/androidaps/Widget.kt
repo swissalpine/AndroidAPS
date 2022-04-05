@@ -230,12 +230,15 @@ class Widget : AppWidgetProvider() {
                 views.setTextViewText(
                     R.id.variable_sensitivity,
                     String.format(
-                        Locale.getDefault(), "%1$.1f→%2$.1f",
+                        // Anpassung %1$.1f→%2$.1f
+                        Locale.getDefault(), "%1$.0f→%2$.0f",
                         Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
                         Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
                     )
                 )
                 views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
+                // Anpassung Zeile eingefügt, um Autosens auszublenden
+                views.setViewVisibility(R.id.sensitivity, View.GONE)
             } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
         } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
     }

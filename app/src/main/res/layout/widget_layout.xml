@@ -209,7 +209,7 @@
                 android:paddingTop="3dp"
                 android:paddingBottom="3dp"
                 android:text="n/a"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -241,7 +241,7 @@
                 android:paddingTop="3dp"
                 android:paddingBottom="3dp"
                 android:text="n/a"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -272,7 +272,7 @@
                 android:paddingTop="3dp"
                 android:paddingBottom="3dp"
                 android:text="n/a"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -302,7 +302,7 @@
                 android:paddingTop="3dp"
                 android:paddingBottom="3dp"
                 android:text="n/a"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -334,7 +334,7 @@
                 android:paddingTop="3dp"
                 android:paddingBottom="3dp"
                 android:text="n/a"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -342,11 +342,11 @@
                 android:id="@+id/variable_sensitivity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-9dp"
+                android:layout_marginTop="3dp"
                 android:gravity="center_horizontal"
                 android:paddingBottom="3dp"
                 android:text="n/a"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 android:textStyle="bold"
                 android:visibility="visible"
                 tools:ignore="HardcodedText" />
