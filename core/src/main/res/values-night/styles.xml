@@ -2,7 +2,6 @@
 <resources xmlns:ns2="http://schemas.android.com/tools">
 
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!---Text Colors -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/secondaryColorDefault</item>
@@ -224,6 +223,9 @@
         <item name="bgiColor">@color/bgi</item>
         <item name="ratioColor">@color/ratio</item>
         <item name="activityColor">@color/activity</item>
+        <!-- CardView specific colors  -->
+        <item name="strokeColor">@color/plastic_grey</item>
+        <item name="textAppearancemediumColor">@color/textAppearancemediumDark</item>
         <!-- Anpassung -->
         <item name="android:textColor">@color/white</item>
         <item name="colorControlNormal">@color/white</item>
