@@ -41,7 +41,6 @@
 
         <SwitchPreference
             android:defaultValue="false"
-            android:enabled="false"
             android:key="openapsama_useautosens"
             android:title="@string/openapsama_useautosens" />
 
