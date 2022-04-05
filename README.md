@@ -13,7 +13,7 @@ realise some changes which are very important for me:
 * Carbs Dialog with with an additional possibility to handle hypo situations (it sets a 
   TT and suspends the loop for 60 min with a TBR of 50%)
 * Autosense is disabled and exercise mode enabled (-> setting: high tt raises sensitivity)
-* dynISF with adjustment and safety restrictions
+* dynISF with adjustment, extrapolated TDD based on the last 8 hours and safety restrictions
 * Layout corrections for small devices like Jelly 
 
 [![Support Server](https://img.shields.io/discord/629952586895851530.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/4fQUWHZ4Mw)
