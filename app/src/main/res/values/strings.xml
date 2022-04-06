@@ -1209,6 +1209,7 @@
     <string name="show_loop_records">Show loop records</string>
     <string name="show_hide_records">Hide loop records</string>
     <string name="widget_description">AndroidAPS widget</string>
+    <string name="configure">Configure opacity</string>
 
     <!-- Keto-Protection -->
     <string name="key_keto_protect" translatable="false">keto_protect</string>
