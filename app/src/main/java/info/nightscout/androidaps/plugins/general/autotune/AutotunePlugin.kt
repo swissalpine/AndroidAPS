@@ -1,6 +1,5 @@
 package info.nightscout.androidaps.plugins.general.autotune
 
-import android.content.Context
 import android.view.View
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.Constants
@@ -33,25 +32,18 @@ import javax.inject.Singleton
 /**
  * adaptation from oref0 autotune started by philoul on 2020 (complete refactoring of AutotunePlugin initialised by Rumen Georgiev on 1/29/2018.)
  *
- * TODO: detail analysis of iob calculation to understand (and correct if necessary) differences between oaps calculation and aaps calculation
- * => Today AutotuneCore is consistent between oaps and aaps module (same results up to 3 digits) for several users
- * => Unfortunatly for some users we can have significant gaps in results (that can be due to exported data for verification and not aaps adaptation of algorythm)
- * => This has to be fixed to get for all users consistent results
  * TODO: build data sets for autotune validation
  * => I hope we will be able to validate autotunePlugin with several data set (simulation of several situations and get oref0 autotune results as reference)
- * TODO: Improve layout (see ProfileViewerDialog and HtmlHelper.fromHtml() function)
- * => use materials for results presentation
- * TODO: futur version: add profile selector in AutotuneFragment to allow running autotune plugin with other profiles than current
+ * TODO: Reset results field and Switch/Copy button visibility when selected profile is changed
+ * TODO: use materials for results presentation
  * TODO: futur version (once first version validated): add DIA and Peak tune for insulin
  * TODO: replace Thread by Worker
- * TODO: Reset results field and Switch/Copy button visibility when Nb of selected days is changed
  */
 
 @Singleton
 class AutotunePlugin @Inject constructor(
     injector: HasAndroidInjector,
     resourceHelper: ResourceHelper,
-    private val context: Context,
     private val sp: SP,
     private val rxBus: RxBus,
     private val profileFunction: ProfileFunction,
@@ -206,21 +198,19 @@ class AutotunePlugin @Inject constructor(
         if (autoSwitch) {
             val circadian = sp.getBoolean(R.string.key_autotune_circadian_ic_isf, false)
             profileSwitchButtonVisibility = View.GONE //hide profilSwitch button in fragment
-            val now = dateUtil.now()
-            val profileStore = tunedProfile?.profileStore(circadian)
-            profileStore?.let {
+            tunedProfile?.profileStore(circadian)?.let {
                 if (profileFunction.createProfileSwitch(
                         it,
                         profileName = tunedProfile!!.profilename,
                         durationInMinutes = 0,
                         percentage = 100,
                         timeShiftInHours = 0,
-                        timestamp = now
+                        timestamp = dateUtil.now()
                     )
                 ) {
                     uel.log(
                         UserEntry.Action.PROFILE_SWITCH,
-                        UserEntry.Sources.ProfileSwitchDialog,
+                        UserEntry.Sources.Autotune,
                         "Autotune AutoSwitch",
                         ValueWithUnit.SimpleString(tunedProfile!!.profilename))
                 }
@@ -243,6 +233,10 @@ class AutotunePlugin @Inject constructor(
         var strResult = line
         strResult += rh.gs(R.string.format_autotune_title)
         strResult += line
+        // show ISF and CR
+        strResult += rh.gs(R.string.format_autotune_isf, rh.gs(R.string.isf_short), pumpProfile.isf / toMgDl, tunedProfile.isf / toMgDl)
+        strResult += rh.gs(R.string.format_autotune_ic, rh.gs(R.string.ic_short), pumpProfile.ic, tunedProfile.ic)
+        strResult += line
         var totalBasal = 0.0
         var totalTuned = 0.0
         for (i in 0..23) {
@@ -254,11 +248,7 @@ class AutotunePlugin @Inject constructor(
         strResult += line
         strResult += rh.gs(R.string.format_autotune_sum_basal, totalBasal, totalTuned)
         strResult += line
-        // show ISF and CR
-        strResult += rh.gs(R.string.format_autotune_isf, rh.gs(R.string.isf_short), pumpProfile.isf / toMgDl, tunedProfile.isf / toMgDl)
-        strResult += line
-        strResult += rh.gs(R.string.format_autotune_ic, rh.gs(R.string.ic_short), pumpProfile.ic, tunedProfile.ic)
-        strResult += line
+
         atLog(strResult)
         return strResult
     }
