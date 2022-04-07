@@ -30,7 +30,7 @@ buildscript {
         dexmaker_version = "1.2"
         retrofit2_version = '2.9.0'
         okhttp3_version = '4.9.0'
-        byteBuddy_version = '1.12.8'
+        byteBuddy_version = '1.12.9'
 
         androidx_junit_version = '1.1.2'
         androidx_rules_version = '1.4.0'
