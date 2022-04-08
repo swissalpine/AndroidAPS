@@ -85,11 +85,11 @@ class AutotunePlugin @Inject constructor(
         get() = AutotuneFragment::class.java.name
 
     //Launch Autotune with default settings
-    override fun aapsAutotune() {
-        val daysBack = sp.getInt(R.string.key_autotune_default_tune_days, 5)
+    override fun aapsAutotune(daysBack: Int, profileToTune: String) {
+        var automationDaysBack = if (daysBack == 0) sp.getInt(R.string.key_autotune_default_tune_days, 5) else daysBack
         val autoSwitch = sp.getBoolean(R.string.key_autotune_auto, false)
         Thread(Runnable {
-            aapsAutotune(daysBack, autoSwitch)
+            aapsAutotune(automationDaysBack, autoSwitch, profileToTune)
         }).start()
     }
 
@@ -154,14 +154,15 @@ class AutotunePlugin @Inject constructor(
                 val from = starttime + i * 24 * 60 * 60 * 1000L
                 val to = from + 24 * 60 * 60 * 1000L
                 atLog("Tune day " + (i + 1) + " of " + daysBack)
-
-                //autotuneIob contains BG and Treatments data from history (<=> query for ns-treatments and ns-entries)
-                autotuneIob.initializeData(from, to, tunedProfile!!)
-               //<=> ns-entries.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
-                autotuneFS.exportEntries(autotuneIob)
-                //<=> ns-treatments.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine (include treatments ,tempBasal and extended
-                autotuneFS.exportTreatments(autotuneIob)
-                preppedGlucose = autotunePrep.categorizeBGDatums(autotuneIob, tunedProfile!!, localInsulin)
+                tunedProfile?.let {
+                    //autotuneIob contains BG and Treatments data from history (<=> query for ns-treatments and ns-entries)
+                    autotuneIob.initializeData(from, to, it)
+                   //<=> ns-entries.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
+                    autotuneFS.exportEntries(autotuneIob)
+                    //<=> ns-treatments.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine (include treatments ,tempBasal and extended
+                    autotuneFS.exportTreatments(autotuneIob)
+                    preppedGlucose = autotunePrep.categorizeBGDatums(autotuneIob, it, localInsulin)
+                }
                 //<=> autotune.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
                 if (preppedGlucose == null || tunedProfile == null) {
                     result = rh.gs(R.string.autotune_error)
@@ -198,7 +199,6 @@ class AutotunePlugin @Inject constructor(
         }
         if (autoSwitch) {
             val circadian = sp.getBoolean(R.string.key_autotune_circadian_ic_isf, false)
-            profileSwitchButtonVisibility = View.GONE //hide profilSwitch button in fragment
             tunedProfile?.profileStore(circadian)?.let {
                 if (profileFunction.createProfileSwitch(
                         it,
