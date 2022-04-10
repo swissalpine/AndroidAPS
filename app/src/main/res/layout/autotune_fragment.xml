@@ -252,7 +252,7 @@
                 android:background="@color/list_delimiter" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:orientation="horizontal">
@@ -260,7 +260,7 @@
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/autotune_run"
                     style="?android:attr/buttonStyle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginLeft="5dp"
@@ -272,11 +272,18 @@
                     android:text="@string/autotune_run"
                     android:lines="1"
                     android:ellipsize="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/autotune_compare"
                     style="?android:attr/buttonStyle"
-                    android:layout_width="160dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginLeft="5dp"
@@ -292,7 +299,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:orientation="horizontal">
@@ -300,7 +307,52 @@
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/autotune_copylocal"
                     style="?android:attr/buttonStyle"
-                    android:layout_width="160dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="70dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:padding="10dp"
+                    android:drawableStart="@drawable/ic_clone_24"
+                    android:text="@string/autotune_copy_localprofile_button"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    android:id="@+id/autotune_update_profile"
+                    style="?android:attr/buttonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_weight="1"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:text="@string/autotune_update_input_profile_button"
+                    android:drawableStart="@drawable/ic_local_save"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    android:id="@+id/autotune_profileswitch"
+                    style="?android:attr/buttonStyle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginLeft="5dp"
@@ -308,38 +360,11 @@
                     android:layout_weight="1"
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
-                    android:drawableStart="@drawable/ic_clone_24"
-                    android:text="@string/autotune_copy_localprofile_button" />
-
-                <info.nightscout.androidaps.utils.ui.SingleClickButton
-                    android:id="@+id/autotune_update_profile"
-                    style="?android:attr/buttonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:layout_weight="1"
-                    android:paddingLeft="5dp"
-                    android:paddingRight="5dp"
-                    android:text="@string/autotune_update_input_profile_button"
-                    android:drawableStart="@drawable/ic_local_save" />
+                    android:text="@string/activate_profile"
+                    android:drawableStart="@drawable/ic_local_activate"
+                    android:ellipsize="end" />
 
             </LinearLayout>
-
-            <info.nightscout.androidaps.utils.ui.SingleClickButton
-                android:id="@+id/autotune_profileswitch"
-                style="?android:attr/buttonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"
-                android:text="@string/activate_profile"
-                android:drawableStart="@drawable/ic_local_activate" />
 
         </LinearLayout>
 
