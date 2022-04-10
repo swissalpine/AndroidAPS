@@ -157,6 +157,23 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Anpassung exercise mode toggle icon
+        if ( sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false) == true ) {
+            binding.exerciseModeCheckboxIcon.alpha = 1.0f
+        } else {
+            binding.exerciseModeCheckboxIcon.alpha = 0.5f
+        }
+        binding.exerciseModeCheckboxIcon.setOnClickListener {
+            if (sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false) == true) {
+                binding.exerciseModeCheckboxIcon.alpha = 0.5f
+                sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false)
+            } else {
+                binding.exerciseModeCheckboxIcon.alpha = 01.0f
+                sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true)
+            }
+        }
+        // Ende Anpassung
+
         // pre-process landscape mode
         val screenWidth = dm.widthPixels
         val screenHeight = dm.heightPixels
