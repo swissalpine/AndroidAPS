@@ -250,7 +250,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         } */
 
         var dynISFadjust = profile.DynISFAdjust;
-        var dynISFadjust = ( dynISFadjust / 100 );
+        dynISFadjust = ( dynISFadjust / 100 );
         var TDD = round(dynISFadjust * TDD,1);
 
         // Anpassung: Security cap bg = 240
@@ -296,19 +296,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
             var c = halfBasalTarget - normalTarget;
             sensitivityRatio = c/(c+target_bg-normalTarget);
-            // limit sensitivityRatio to profile.autosens_max (1.2x by default)
-            sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
             sensitivityRatio = round(sensitivityRatio,2);
             console.log("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
             sens =  sens / sensitivityRatio ;
             sens = round(sens, 1);
-            console.log("ISF from "+variable_sens+" to "+sens+ "due to temp target; ");
+            console.log("ISF from "+variable_sens+" to "+sens+" due to temp target; ");
+            variable_sens = sens;
         } else if ( profile.openapsama_useautosens === true ) {
             sensitivityRatio = ( tdd_24 / tdd7 );
             //sensitivityRatio = ( tdd_8 / tdd7 );
             if ( sensitivityRatio > 1 ) {
+                // limit sensitivityRatio to profile.autosens_max (1.2x by default)
                 sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
             } else if ( sensitivityRatio < 1 ) {
+                // limit sensitivityRatio to profile.autosens_min (0.7x by default)
                 sensitivityRatio = Math.max(sensitivityRatio, profile.autosens_min);
             }
             sensitivityRatio = round(sensitivityRatio,2);
