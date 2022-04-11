@@ -173,6 +173,17 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             }
         }
         // Ende Anpassung
+        // Anpassung: autosens toggle icon
+        binding.infoLayout.sensitivityIcon.setOnClickListener {
+            if (sp.getBoolean(R.string.key_openapsama_useautosens, false) == true && constraintChecker.isAutosensModeEnabled().value()) {
+                sp.putBoolean(R.string.key_openapsama_useautosens, false)
+                binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
+            } else {
+                sp.putBoolean(R.string.key_openapsama_useautosens, true)
+                binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
+            }
+        }
+        // Ende Anpassung
 
         // pre-process landscape mode
         val screenWidth = dm.widthPixels
