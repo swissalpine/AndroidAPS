@@ -221,7 +221,6 @@
         <item name="strokeColor">@color/plastic_grey</item>
         <item name="textAppearancemediumColor">@color/textAppearancemediumDark</item>
         <!-- Anpassung -->
-        <item name="android:textColor">@color/white</item>
         <item name="colorControlNormal">@color/white</item>
         <!-- Actionbar  -->
         <item name="actionBarStyle">@style/Aaps_ActionBarStyle</item>
