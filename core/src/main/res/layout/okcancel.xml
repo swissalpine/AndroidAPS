@@ -21,7 +21,7 @@
     android:background="@android:color/transparent"
     android:gravity="end"
     android:layout_gravity="center_vertical"
-    android:paddingBottom="8dp">
+    android:paddingBottom="10dp">
 
     <Button
         android:id="@+id/cancel"
@@ -29,6 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_marginEnd="8dp"
         style="@style/OkCancelButton.Text"
+        android:textSize="22dp"
         android:text="@string/cancel" />
 
     <Button
@@ -37,5 +38,6 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         style="@style/OkCancelButton.Text"
+        android:textSize="22dp"
         android:text="@string/ok" />
 </LinearLayout>

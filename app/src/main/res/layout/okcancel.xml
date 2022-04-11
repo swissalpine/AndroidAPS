@@ -20,7 +20,7 @@
     android:background="@android:color/transparent"
     android:gravity="end"
     android:layout_gravity="center_vertical"
-    android:paddingBottom="8dp">
+    android:paddingBottom="10dp">
 
     <Button
         android:id="@+id/cancel"
