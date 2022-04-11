@@ -12,7 +12,8 @@ realise some changes which are very important for me:
 * Set TempTargets up to 220 mg/dl / 12,2 mmol/l
 * Carbs Dialog with with an additional possibility to handle hypo situations (it sets a 
   TT and suspends the loop for 60 min with a TBR of 50%)
-* Autosense is disabled and exercise mode enabled (-> setting: high tt raises sensitivity)
+* Exercise mode enabled (-> setting: high tt raises sensitivity), can be toggled via overview icon
+* Toggle autosens via overview icon
 * dynISF with adjustment, extrapolated TDD based on the last 8 hours and safety restrictions
 * Layout corrections for small devices like Jelly 
 
