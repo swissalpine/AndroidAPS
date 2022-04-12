@@ -83,7 +83,9 @@ class AutotuneFragment : DaggerFragment() {
         val defaultValue = sp.getInt(R.string.key_autotune_default_tune_days, 5).toDouble()
         profileStore = activePlugin.activeProfileSource.profile ?: ProfileStore(injector, JSONObject(), dateUtil)
         profileName = if (binding.profileList.text.toString() == rh.gs(R.string.active)) "" else binding.profileList.text.toString()
-        profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:profileFunction.getProfile(), LocalInsulin(""), injector)
+        profileFunction.getProfile()?.let { currentProfile ->
+            profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:currentProfile, LocalInsulin(""), injector)
+        }
 
         binding.tuneDays.setParams(
             savedInstanceState?.getDouble("tunedays")
@@ -94,6 +96,7 @@ class AutotuneFragment : DaggerFragment() {
             autotunePlugin.lastNbDays = daysBack.toString()
             autotunePlugin.copyButtonVisibility = View.GONE
             autotunePlugin.updateButtonVisibility = View.GONE
+            autotunePlugin.compareButtonVisibility = View.GONE
             autotunePlugin.profileSwitchButtonVisibility = View.GONE
             Thread(Runnable {
                 autotunePlugin.aapsAutotune(daysBack, false, profileName)
@@ -104,7 +107,9 @@ class AutotuneFragment : DaggerFragment() {
         }
         binding.profileList.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             profileName = if (binding.profileList.text.toString() == rh.gs(R.string.active)) "" else binding.profileList.text.toString()
-            profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:profileFunction.getProfile(), LocalInsulin(""), injector)
+            profileFunction.getProfile()?.let { currentProfile ->
+                profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:currentProfile, LocalInsulin(""), injector)
+            }
             autotunePlugin.selectedProfile = profileName
             resetParam()
             updateGui()
@@ -246,9 +251,12 @@ class AutotuneFragment : DaggerFragment() {
 
     @Synchronized
     private fun updateGui() {
+        _binding ?: return
         profileStore = activePlugin.activeProfileSource.profile ?: ProfileStore(injector, JSONObject(), dateUtil)
         profileName = if (binding.profileList.text.toString() == rh.gs(R.string.active)) "" else binding.profileList.text.toString()
-        profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:profileFunction.getProfile(), LocalInsulin(""), injector)
+        profileFunction.getProfile()?.let { currentProfile ->
+            profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:currentProfile, LocalInsulin(""), injector)
+        }
         val profileList: ArrayList<CharSequence> = profileStore.getProfileList()
         profileList.add(0, rh.gs(R.string.active))
         context?.let { context ->
@@ -263,23 +271,20 @@ class AutotuneFragment : DaggerFragment() {
         }
         if (autotunePlugin.calculationRunning) {
             binding.autotuneRun.visibility = View.GONE
-            binding.autotuneCompare.visibility = View.GONE
             binding.tuneWarning.text = rh.gs(R.string.autotune_warning_during_run)
             binding.tuneResult.text = autotunePlugin.result
         } else if (autotunePlugin.lastRunSuccess) {
             binding.autotuneRun.visibility = View.VISIBLE
             binding.tuneWarning.text = rh.gs(R.string.autotune_warning_after_run)
             binding.tuneResult.text = autotunePlugin.result
-            binding.autotuneCompare.visibility = View.VISIBLE
         } else {
             binding.tuneResult.text = autotunePlugin.result
             binding.autotuneRun.visibility = View.VISIBLE
         }
-        if (autotunePlugin.tunedProfile == null || autotunePlugin.pumpProfile == null)
-            binding.autotuneCompare.visibility = View.GONE
         binding.autotuneCopylocal.visibility = autotunePlugin.copyButtonVisibility
         binding.autotuneUpdateProfile.visibility = autotunePlugin.updateButtonVisibility
         binding.autotuneProfileswitch.visibility = autotunePlugin.profileSwitchButtonVisibility
+        binding.autotuneCompare.visibility = autotunePlugin.compareButtonVisibility
         lastRunTxt = if (autotunePlugin.lastRun != 0L) dateUtil.dateAndTimeString(autotunePlugin.lastRun) else ""
         binding.tuneLastrun.text = lastRunTxt
     }
@@ -287,13 +292,19 @@ class AutotuneFragment : DaggerFragment() {
     private fun addWarnings(): String {
         var warning = ""
         var nl = ""
-        if (!profile.isValid) return rh.gs(R.string.autotune_profile_invalid)
-        if (profile.icSize > 1) {
-            warning += nl + rh.gs(R.string.format_autotune_ic_warning, profile.icSize, profile.ic)
-            nl = "\n"
+        if (profileFunction.getProfile() == null) {
+            warning = rh.gs(R.string.profileswitch_ismissing)
+                return warning
         }
-        if (profile.isfSize > 1) {
-            warning += nl + rh.gs(R.string.format_autotune_isf_warning, profile.isfSize, Profile.fromMgdlToUnits(profile.isf, profileFunction.getUnits()), profileFunction.getUnits().asText)
+        profileFunction.getProfile()?.let {
+            if (!profile.isValid) return rh.gs(R.string.autotune_profile_invalid)
+            if (profile.icSize > 1) {
+                warning += nl + rh.gs(R.string.format_autotune_ic_warning, profile.icSize, profile.ic)
+                nl = "\n"
+            }
+            if (profile.isfSize > 1) {
+                warning += nl + rh.gs(R.string.format_autotune_isf_warning, profile.isfSize, Profile.fromMgdlToUnits(profile.isf, profileFunction.getUnits()), profileFunction.getUnits().asText)
+            }
         }
         return warning
     }
@@ -309,6 +320,7 @@ class AutotuneFragment : DaggerFragment() {
         autotunePlugin.profileSwitchButtonVisibility = View.GONE
         autotunePlugin.copyButtonVisibility = View.GONE
         autotunePlugin.updateButtonVisibility = View.GONE
+        autotunePlugin.compareButtonVisibility = View.GONE
         binding.autotuneCompare.visibility = View.GONE
     }
 
