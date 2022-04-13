@@ -37,7 +37,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_lastrun_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -47,7 +47,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/lastrun"
@@ -56,7 +56,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -81,7 +81,7 @@
                 android:gravity="center_horizontal"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_inputparameters_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -107,7 +107,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/constraints"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -117,7 +117,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/constraints"
@@ -126,7 +126,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -152,7 +152,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_glucosestatus_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -162,7 +162,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/glucosestatus"
@@ -171,7 +171,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -197,7 +197,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_currenttemp_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -207,7 +207,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/currenttemp"
@@ -216,7 +216,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -242,7 +242,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_iobdata_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -252,7 +252,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/iobdata"
@@ -261,7 +261,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -287,7 +287,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_profile_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -297,7 +297,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/profile"
@@ -306,7 +306,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -332,7 +332,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_mealdata_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -342,7 +342,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/mealdata"
@@ -351,7 +351,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -377,7 +377,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_autosensdata_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -387,7 +387,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/autosensdata"
@@ -396,7 +396,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -421,7 +421,7 @@
                 android:gravity="center_horizontal"
                 android:paddingEnd="5dp"
                 android:text="@string/result"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -456,7 +456,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_scriptdebugdata_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -466,7 +466,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/scriptdebugdata"
@@ -475,7 +475,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -501,7 +501,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/result"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -511,7 +511,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/result"
@@ -520,7 +520,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
@@ -546,7 +546,7 @@
                 android:gravity="end"
                 android:paddingEnd="5dp"
                 android:text="@string/openapsma_request_label"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:layout_width="5dp"
@@ -556,7 +556,7 @@
                 android:paddingStart="2dp"
                 android:paddingEnd="2dp"
                 android:text=":"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
             <TextView
                 android:id="@+id/request"
@@ -565,7 +565,7 @@
                 android:layout_weight="1"
                 android:gravity="start"
                 android:paddingStart="5dp"
-                android:textSize="14sp" />
+                android:textSize="20dp" />
 
         </LinearLayout>
 
