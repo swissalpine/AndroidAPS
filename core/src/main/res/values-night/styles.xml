@@ -47,8 +47,6 @@
         <item name="alarmColor">@color/alarm</item>
         <!-- BG source temp button -->
         <item name="setTempButton">@color/colorSetTempButton</item>
-        <!-- Card Item-->
-        <item name="cardItemBackgroundColor">@color/cardColorBackground</item>
         <!-- Exercise -->
         <item name="exerciseColor">@color/exercise</item>
         <!-- Stats  -->
@@ -76,7 +74,6 @@
         <!-- Pump -->
         <item name="pumpStatusBackground">@color/pumpStatusBackground</item>
         <!-- Objectives -->
-        <item name="objectivescardItemBackgroundColor">?attr/cardItemBackgroundColor</item>
         <item name="objectivesBackgroundColor">@color/objectivesBackground</item>
         <item name="objectivesDisabledTextColor">@color/colorObjectivesDisabledText</item>
         <!---Import List -->
@@ -243,6 +240,11 @@
         <item name="colorControlNormal">@color/white</item>
         <!-- Actionbar  -->
         <item name="actionBarStyle">@style/Aaps_ActionBarStyle</item>
+        <!-- Objectives specific colors  -->
+        <item name="isAccomplishedColor">@color/isAccomplished</item>
+        <item name="seperatorColor">@color/sphere_plastic_grey</item>
+        <item name="isCompletedColor">@color/isCompleted</item>
+        <item name="isNotCompletedColor">@color/isNotCompleted</item>
     </style>
 
     <style name="Aaps_ActionBarStyle" parent="@style/Widget.AppCompat.ActionBar">
