@@ -255,19 +255,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
         // Anpassung: Security cap bg = 240
         var dynBG = bg;
-        if (dynBG > 240) {
-            dynBG = 240;
-            console.log("BG safety restriction due to high bg; ")
+        if (typeof dynBG === 'undefined' || dynBG === 0) {
+            dynBG = 100;
+        }
+        if (dynBG > 220) {
+            dynBG = 220;
+            console.log("Bg safety cap: " + bg + " set to " + dynBG + "; ")
         }
 
-        var variable_sens = (277700 / ( TDD * dynBG));
+        var variable_sens_old = round(277700 / ( TDD * dynBG),1);
+        console.log("Sensitivity for predictions using old model is " + variable_sens_old +" based on current bg");
+
+        var variable_sens =  1800 / ( TDD * (Math.log(( dynBG / 75 ) + 1 ) ) );
         variable_sens = round(variable_sens,1);
-        if (dynISFadjust > 1 ) {
-            console.log("TDD adjustment factor is: " +dynISFadjust+"; ");
-            console.log("TDD adjusted to "+TDD+" using adjustment factor of "+dynISFadjust+"; ");
-            console.log("Current sensitivity for predictions is " +variable_sens+" based on current BG; ");
-        }
-        else if (dynISFadjust < 1 ){
+        if ( dynISFadjust < 1 || dynISFadjust > 1 ) {
             console.log("TDD adjustment factor is: " +dynISFadjust+"; ");
             console.log("TDD adjusted to "+TDD+" using adjustment factor of "+dynISFadjust+"; ");
             console.log("Current sensitivity for predictions is " +variable_sens+" based on current BG; ");
@@ -793,7 +794,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     console.log("EventualBG is" +eventualBG+" ;");
     console.error("---------------------------------------------------------");
-    if (bg > target_bg && eventualBG > target_bg && glucose_status.delta >= 0 && glucose_status.delta <= 5
+    /*if (bg > target_bg && eventualBG > target_bg && glucose_status.delta >= 0 && glucose_status.delta <= 5
         && glucose_status.short_avgdelta >= 0 && glucose_status.short_avgdelta <= 5 ) {
         var future_sens = round( 277700 / ( TDD * ( (eventualBG * 0.7) + (bg * 0.3) ) ),1);
         console.log("Future state sensitivity is " +future_sens+ " based on eventual and current BG due to flat glucose level (delta 0 to +5) above target; ");
@@ -806,6 +807,33 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var future_sens = round( 277700 / (TDD * eventualBG),1);
         console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta; ");
         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
+    }*/
+    // Anpassung
+    var dynEventualBG = Math.min(eventualBG,bg);
+    dynEventualBG = Math.min(dynEventualBG,220);
+    if (typeof dynEventualBG === 'undefined' || dynEventualBG === 0) {
+        dynEventualBG = 100;
+    }
+    //var future_sens = round( 277700 / (TDD * dynEventualBG),1);
+    var future_sens =  1800 / ( TDD * (Math.log(( dynEventualBG / 75 ) + 1 ) ) );
+    future_sens = round(future_sens,1);
+    if (dynEventualBG == bg) {
+        console.log("Future state sensitivity is " + future_sens + " based on bg: " + dynEventualBG + " (eventualBG: " + eventualBG + "); ");
+        rT.reason += "Dosing sensitivity: " +future_sens+ " using current BG; ";
+    } else if (dynEventualBG == eventualBG) {
+        console.log("Future state sensitivity is " + future_sens +" based on eventualBG: " + dynEventualBG +" ; ");
+        rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG; ";
+    } else {
+        console.log("Future state sensitivity is " + future_sens + " based on bg safety cap: " + dynEventualBG + " (eventualBG: " + eventualBG + "; ");
+        rT.reason += "Dosing sensitivity: " +future_sens+ " using safety cap; ";
+    }
+    if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget ) {
+        // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
+        // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
+        //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
+        // sensitivityRatio as set above
+        future_sens =  round(future_sens / sensitivityRatio,1) ;
+        console.log("Future state sensitivity set to " + future_sens + " due to temp target; ");
     }
     console.error("---------------------------------------------------------");
 
