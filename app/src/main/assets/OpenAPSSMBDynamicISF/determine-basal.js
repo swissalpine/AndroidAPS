@@ -264,8 +264,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
 
         var variable_sens_old = round(277700 / ( TDD * dynBG),1);
-        console.log("Sensitivity for predictions using old model is " + variable_sens_old +" based on current bg");
-
         var variable_sens =  1800 / ( TDD * (Math.log(( dynBG / 75 ) + 1 ) ) );
         variable_sens = round(variable_sens,1);
         if ( dynISFadjust < 1 || dynISFadjust > 1 ) {
@@ -275,6 +273,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         } else {
             console.log("Current sensitivity for predictions is " +variable_sens+" based on current BG; ");
         }
+        console.log("Sensitivity for predictions using old model is " + variable_sens_old +" based on current bg");
         sens = variable_sens;
 
         //*********************************************************************************
