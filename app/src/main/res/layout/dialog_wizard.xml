@@ -48,8 +48,8 @@
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingEnd="5dp"
-            tools:ignore="RtlSymmetry">
+            android:paddingStart="0dp"
+            android:paddingEnd="5dp">
 
             <TableRow
                 android:layout_width="match_parent"
@@ -207,7 +207,8 @@
                         android:paddingEnd="2dp"
                         android:text="%"
                         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
 
                 </LinearLayout>
 
@@ -399,7 +400,8 @@
                     android:layout_marginEnd="5dp"
                     android:layout_weight="0.5"
                     android:hint="@string/profile"
-                    android:paddingStart="7dp">
+                    android:paddingStart="7dp"
+                    android:paddingEnd="0dp">
 
                     <com.google.android.material.textfield.MaterialAutoCompleteTextView
                         android:id="@+id/profileList"
