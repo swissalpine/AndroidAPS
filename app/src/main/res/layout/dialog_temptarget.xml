@@ -140,7 +140,7 @@
 
             <info.nightscout.androidaps.utils.ui.SingleClickButton
                 android:id="@+id/target_cancel"
-                style="@style/ButtonSmallFontStyle"
+                style="?android:attr/buttonStyle"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
                 android:layout_marginEnd="-4dp"
@@ -155,7 +155,7 @@
 
             <info.nightscout.androidaps.utils.ui.SingleClickButton
                 android:id="@+id/eating_soon"
-                style="@style/ButtonSmallFontStyle"
+                style="?android:attr/buttonStyle"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
                 android:layout_marginEnd="-4dp"
@@ -170,7 +170,7 @@
 
             <info.nightscout.androidaps.utils.ui.SingleClickButton
                 android:id="@+id/activity"
-                style="@style/ButtonSmallFontStyle"
+                style="?android:attr/buttonStyle"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
                 android:layout_marginEnd="-4dp"
@@ -185,7 +185,7 @@
 
             <info.nightscout.androidaps.utils.ui.SingleClickButton
                 android:id="@+id/hypo"
-                style="@style/ButtonSmallFontStyle"
+                style="?android:attr/buttonStyle"
                 android:layout_width="0px"
                 android:layout_height="fill_parent"
                 android:layout_weight="0.5"
