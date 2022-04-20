@@ -46,7 +46,6 @@
             android:orientation="horizontal"
             android:padding="5dp" />
 
-
         <LinearLayout
             android:id="@+id/overview_loop"
             android:layout_width="fill_parent"
@@ -169,7 +168,6 @@
                 android:text="@string/suspendloop"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
-
             <info.nightscout.androidaps.utils.ui.SingleClickButton
                 android:id="@+id/overview_resume"
                 style="@style/ButtonSmallFontStyle"
@@ -215,7 +213,6 @@
                     android:drawableTop="@drawable/ic_loop_paused"
                     android:text="@string/duration2h" />
 
-
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_suspend_3h"
                     style="@style/ButtonSmallFontStyle"
@@ -227,7 +224,6 @@
                     android:paddingEnd="5dp"
                     android:drawableTop="@drawable/ic_loop_paused"
                     android:text="@string/duration3h" />
-
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_suspend_10h"

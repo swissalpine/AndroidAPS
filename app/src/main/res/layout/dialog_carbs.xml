@@ -241,7 +241,6 @@
                 android:text="+20"
                 tools:ignore="HardcodedText" />
 
-
         </LinearLayout>
 
         <LinearLayout

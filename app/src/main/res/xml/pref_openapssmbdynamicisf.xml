@@ -130,7 +130,6 @@
             android:summary="@string/enableuam_summary"
             android:title="@string/enableuam" />
 
-
         <SwitchPreference
             android:defaultValue="true"
             android:key="@string/key_sensitivity_raises_target"

@@ -36,8 +36,8 @@ class UserEntryPresentationHelper @Inject constructor(
         ColorGroup.Loop             -> R.color.loopClosed
         ColorGroup.Careportal       -> R.color.high
         ColorGroup.Pump             -> R.color.loopDisconnected
-        ColorGroup.Aaps             -> R.color.defaulttext
-        else                        -> R.color.defaulttext
+        ColorGroup.Aaps             -> R.color.defaultText
+        else                        -> R.color.defaultText
     }
 
     fun iconId(source: Sources): Int = when (source) {
@@ -64,6 +64,7 @@ class UserEntryPresentationHelper @Inject constructor(
         Sources.Automation          -> R.drawable.ic_automation
         Sources.Autotune            -> R.drawable.ic_autotune
         Sources.BG                  -> R.drawable.ic_generic_cgm
+        Sources.Aidex               -> R.drawable.ic_blooddrop_48
         Sources.Dexcom              -> R.drawable.ic_dexcom_g6
         Sources.Eversense           -> R.drawable.ic_eversense
         Sources.Glimp               -> R.drawable.ic_glimp
