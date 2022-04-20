@@ -24,41 +24,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/statusCard"
-                style="@style/Widget.MaterialComponents.CardView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:layout_marginTop="1dp"
-                app:cardCornerRadius="4dp"
-                app:contentPadding="2dp"
-                app:cardElevation="4dp"
-                app:cardUseCompatPadding="false"
-                android:layout_gravity="center">
-
-                <include
-                    android:id="@+id/status_lights_layout"
-                    layout="@layout/overview_statuslights_layout" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/loopCard"
-                style="@style/Widget.MaterialComponents.CardView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                android:layout_marginTop="1dp"
-                app:cardCornerRadius="4dp"
-                app:contentPadding="2dp"
-                app:cardElevation="4dp"
-                app:cardUseCompatPadding="false"
-                android:layout_gravity="center">
-
                 <LinearLayout
                     android:id="@+id/loop_layout"
                     android:layout_width="match_parent"
@@ -70,11 +35,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:layout_marginEnd="7dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
                     android:hint="active profile"
                     android:text="Profile"
                     android:textSize="18dp"
@@ -100,11 +65,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:layout_marginStart="7dp"
+                    android:layout_marginStart="5dp"
                     android:layout_weight="1"
                     android:gravity="center_vertical|center_horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
                     android:text="TempTarget"
                     android:hint="temp target"
                     android:textAppearance="?android:attr/textAppearanceSmall"
@@ -113,8 +78,6 @@
                     android:ellipsize="end" />
 
                 </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/infoCard"
@@ -126,13 +89,33 @@
                 android:layout_marginTop="1dp"
                 app:cardCornerRadius="4dp"
                 app:contentPadding="2dp"
-                app:cardElevation="4dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="false"
                 android:layout_gravity="center">
 
                 <include
                     android:id="@+id/info_layout"
                     layout="@layout/overview_info_layout" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/statusCard"
+                style="@style/Widget.MaterialComponents.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:layout_marginTop="1dp"
+                app:cardCornerRadius="4dp"
+                app:contentPadding="2dp"
+                app:cardElevation="2dp"
+                app:cardUseCompatPadding="false"
+                android:layout_gravity="center">
+
+                <include
+                    android:id="@+id/status_lights_layout"
+                    layout="@layout/overview_statuslights_layout" />
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -146,7 +129,7 @@
                 android:layout_marginTop="1dp"
                 app:cardCornerRadius="4dp"
                 app:contentPadding="2dp"
-                app:cardElevation="4dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="false"
                 android:layout_gravity="center">
 
@@ -207,7 +190,7 @@
                 android:layout_marginBottom="2dp"
                 app:cardCornerRadius="4dp"
                 app:contentPadding="2dp"
-                app:cardElevation="4dp"
+                app:cardElevation="2dp"
                 app:cardUseCompatPadding="false"
                 android:layout_gravity="center">
 
