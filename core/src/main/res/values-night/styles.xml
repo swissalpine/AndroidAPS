@@ -232,8 +232,6 @@
         <!-- CardView specific colors  -->
         <item name="strokeColor">@color/plastic_grey</item>
         <item name="textAppearanceMediumColor">@color/textAppearanceMediumDark</item>
-        <!-- Anpassung -->
-        <item name="colorControlNormal">@color/white</item>
         <!-- Actionbar  -->
         <item name="actionBarStyle">@style/Aaps_ActionBarStyle</item>
         <!-- Objectives specific colors  -->
@@ -333,9 +331,10 @@
 
     <style name="ButtonSmallFontStyle" parent="GrayButton">
         <item name="android:letterSpacing">0</item>
+        <item name="android:paddingTop">0dp</item>
         <item name="android:paddingStart">0dp</item>
         <item name="android:paddingEnd">0dp</item>
-        <item name="android:textSize">10dp</item>
+        <item name="android:textSize">11dp</item>
     </style>
 
     <style name="ButtonMediumFontStyle" parent="GrayButton">

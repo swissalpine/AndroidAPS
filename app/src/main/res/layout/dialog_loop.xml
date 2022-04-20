@@ -296,9 +296,7 @@
                     android:paddingStart="5dp"
                     android:paddingEnd="5dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
-                    android:text="@string/duration15m"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                    android:textSize="11sp" />
+                    android:text="@string/duration15m" />
 
                 <info.nightscout.androidaps.utils.ui.SingleClickButton
                     android:id="@+id/overview_disconnect_30m"
