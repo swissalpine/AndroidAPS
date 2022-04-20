@@ -40,8 +40,8 @@
                             android:layout_gravity="center_horizontal|center_vertical"
                             android:layout_weight="2"
                             android:gravity="end"
-                            android:paddingRight="5dp"
-                            android:paddingLeft="5dp"
+                            android:paddingStart="5dp"
+                            android:paddingEnd="5dp"
                             android:text="@string/autotune_profile"
                             android:textSize="14sp" />
 
@@ -51,10 +51,8 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:hint="@string/autotune_select_profile"
-                            android:paddingLeft="5dp"
-                            android:paddingRight="5dp"
-                            android:textSize="14sp"
-                            app:boxStrokeColor="@color/list_delimiter">
+                            android:paddingStart="5dp"
+                            android:paddingEnd="5dp">
 
                             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                                 android:id="@+id/profileList"
@@ -78,8 +76,8 @@
                             android:layout_gravity="center_horizontal|center_vertical"
                             android:layout_weight="2"
                             android:gravity="end"
-                            android:paddingLeft="5dp"
-                            android:paddingRight="5dp"
+                            android:paddingStart="5dp"
+                            android:paddingEnd="5dp"
                             android:text="@string/autotune_tune_days"
                             android:textSize="14sp" />
 
@@ -89,8 +87,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_horizontal"
-                            android:paddingLeft="5dp"
-                            android:paddingRight="5dp"
+                            android:paddingStart="5dp"
+                            android:paddingEnd="5dp"
                             android:layout_weight="1"
                             android:layout_marginBottom="2dp"
                             app:customContentDescription="@string/careportal_newnstreatment_duration_label" />
@@ -130,8 +128,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
                         android:gravity="end"
-                        android:paddingLeft="5dp"
-                        android:paddingRight="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:text="@string/autotune_last_run"
                         android:textSize="14sp" />
 
@@ -141,8 +139,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="start"
-                        android:paddingLeft="5dp"
-                        android:paddingRight="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:textSize="14sp" />
 
                 </LinearLayout>
@@ -157,8 +155,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
                         android:gravity="end"
-                        android:paddingLeft="5dp"
-                        android:paddingRight="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:text="@string/autotune_warning"
                         android:textSize="14sp" />
 
@@ -168,8 +166,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="start"
-                        android:paddingLeft="5dp"
-                        android:paddingRight="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:textSize="14sp" />
 
                 </LinearLayout>
@@ -210,80 +208,85 @@
                 <androidx.gridlayout.widget.GridLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="10dip"
+                    android:padding="5dip"
                     app:columnCount="2">
 
-                    <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/autotune_profileswitch"
-                        style="?android:attr/buttonStyle"
+                        style="@style/GrayButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:drawableStart="@drawable/ic_local_activate"
-                        android:paddingLeft="0dp"
-                        android:paddingRight="0dp"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
                         android:text="@string/activate_profile"
+                        app:icon="@drawable/ic_local_activate"
+                        app:iconTint="@color/ic_local_activate"
                         app:layout_column="0"
                         app:layout_columnWeight="1"
                         app:layout_gravity="fill"
                         app:layout_row="0" />
 
-                    <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/autotune_compare"
-                        style="?android:attr/buttonStyle"
+                        style="@style/GrayButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:drawableStart="@drawable/ic_compare_profiles"
-                        android:paddingLeft="0dp"
-                        android:paddingRight="0dp"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
                         android:text="@string/compareprofileshort"
+                        app:icon="@drawable/ic_compare_profiles"
+                        app:iconTintMode="multiply"
                         app:layout_column="1"
                         app:layout_columnWeight="1"
                         app:layout_gravity="fill"
                         app:layout_row="0" />
 
-                    <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/autotune_copylocal"
-                        style="?android:attr/buttonStyle"
+                        style="@style/GrayButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:drawableStart="@drawable/ic_clone_48"
-                        android:paddingLeft="0dp"
-                        android:paddingRight="0dp"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
                         android:text="@string/autotune_copy_localprofile_button"
+                        app:icon="@drawable/ic_clone_48"
+                        app:iconTintMode="multiply"
                         app:layout_column="0"
                         app:layout_columnWeight="1"
                         app:layout_gravity="fill"
                         app:layout_row="1" />
 
-                    <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/autotune_update_profile"
-                        style="?android:attr/buttonStyle"
+                        style="@style/GrayButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:drawableStart="@drawable/ic_local_save"
-                        android:paddingLeft="0dp"
-                        android:paddingRight="0dp"
+                        android:paddingStart="0dp"
+                        android:paddingEnd="0dp"
                         android:text="@string/autotune_update_input_profile_button"
+                        app:icon="@drawable/ic_local_save"
+                        app:iconTint="@color/ic_local_save"
                         app:layout_column="1"
                         app:layout_columnWeight="1"
                         app:layout_gravity="fill"
                         app:layout_row="1" />
 
 
-                    <info.nightscout.androidaps.utils.ui.SingleClickButton
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/autotune_run"
-                        style="?android:attr/buttonStyle"
+                        style="@style/GrayButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:drawableStart="@drawable/ic_local_reset"
-                        android:paddingLeft="5dp"
-                        android:paddingRight="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:text="@string/autotune_run"
+                        app:icon="@drawable/ic_local_reset"
+                        app:iconTint="@color/ic_local_reset"
                         app:layout_column="0"
                         app:layout_columnWeight="1"
                         app:layout_gravity="fill"
