@@ -51,7 +51,7 @@ class SkinLowRes @Inject constructor(private val config: Config) : SkinInterface
 
             statusCard.elevation = 0F
             statusCard.radius = 0F
-            statusCard.strokeWidth = 1
+            //statusCard.strokeWidth = 1
             val paramStatus = (statusCard.layoutParams as ViewGroup.MarginLayoutParams).apply {
                 setMargins(0,0,0,0)
             }
