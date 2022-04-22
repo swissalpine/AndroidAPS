@@ -158,17 +158,17 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         super.onViewCreated(view, savedInstanceState)
 
         // Anpassung exercise mode toggle icon
-        if ( sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false) == true ) {
-            binding.exerciseModeCheckboxIcon.alpha = 1.0f
+        if ( sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+            binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
         } else {
-            binding.exerciseModeCheckboxIcon.alpha = 0.5f
+            binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
         }
         binding.exerciseModeCheckboxIcon.setOnClickListener {
             if (sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false) == true) {
-                binding.exerciseModeCheckboxIcon.alpha = 0.5f
+                binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
                 sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false)
             } else {
-                binding.exerciseModeCheckboxIcon.alpha = 01.0f
+                binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
                 sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true)
             }
         }
