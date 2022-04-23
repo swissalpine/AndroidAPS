@@ -65,6 +65,8 @@
                         android:text="Profile"
                         android:textSize="18dp"
                         android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        app:drawableStartCompat="@drawable/ic_ribbon_profile"
                         tools:ignore="HardcodedText"
                         android:ellipsize="end" />
 
@@ -94,6 +96,8 @@
                         android:text="Temp Target"
                         android:textAppearance="?android:attr/textAppearanceSmall"
                         android:textSize="18dp"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        app:drawableStartCompat="@drawable/ic_crosstarget"
                         tools:ignore="HardcodedText"
                         android:ellipsize="end" />
 
