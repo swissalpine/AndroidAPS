@@ -6,9 +6,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="0dp"
-    android:layout_marginBottom="3dp"
+    android:layout_marginBottom="0dp"
     android:paddingTop="0dp"
-    android:paddingBottom="0dp"
+    android:paddingBottom="2dp"
     android:baselineAligned="false">
 
     <LinearLayout
@@ -23,6 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:layout_weight="1"
+            android:layout_marginTop="-4dp"
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
@@ -33,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
-            android:textColor="@color/defaulttextcolor"
+            android:textColor="@color/defaultTextColor"
             android:textSize="18dp" />
 
     </LinearLayout>
@@ -47,7 +48,7 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="36dp"
-            android:layout_marginTop="-2dp"
+            android:layout_marginTop="-6dp"
             android:layout_marginBottom="0dp"
             android:layout_weight="1"
             android:gravity="center_vertical"
@@ -67,7 +68,7 @@
                 android:gravity="center|center_vertical"
                 android:paddingStart="0dp"
                 android:paddingEnd="5dp"
-                android:textColor="@color/defaulttextcolor"
+                android:textColor="@color/defaultTextColor"
                 android:textSize="18dp" />
 
             <TextView
@@ -77,7 +78,7 @@
                 android:gravity="center|center_vertical"
                 android:paddingStart="5dp"
                 android:paddingEnd="0dp"
-                android:textColor="@color/defaulttextcolor"
+                android:textColor="@color/defaultTextColor"
                 android:textSize="18dp" />
         </LinearLayout>
 
@@ -94,6 +95,7 @@
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:layout_weight="1"
+            android:layout_marginTop="-4dp"
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
@@ -104,7 +106,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
-            android:textColor="@color/defaulttextcolor"
+            android:textColor="@color/defaultTextColor"
             android:textSize="18dp" />
     </LinearLayout>
 
@@ -119,6 +121,7 @@
             android:layout_width="match_parent"
             android:layout_height="36dp"
             android:layout_weight="1"
+            android:layout_marginTop="-4dp"
             android:layout_marginBottom="-2dp"
             android:gravity="center_vertical"
             android:scaleType="centerInside"
@@ -136,7 +139,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center|center_vertical"
                 android:paddingEnd="5dp"
-                android:textColor="@color/defaulttextcolor"
+                android:textColor="@color/defaultTextColor"
                 android:textSize="18dp" />
 
             <TextView
@@ -145,7 +148,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center|center_vertical"
                 android:paddingStart="5dp"
-                android:textColor="@color/defaulttextcolor"
+                android:textColor="@color/defaultTextColor"
                 android:textSize="18dp" />
 
         </LinearLayout>
