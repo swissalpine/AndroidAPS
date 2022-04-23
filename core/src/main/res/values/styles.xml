@@ -333,6 +333,7 @@
     <dimen name="gray_material_button_margin_horizontal">5dp</dimen>
 
     <style name="GrayButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:letterSpacing">0</item>
         <item name="android:backgroundTint">@color/mtrl_btn_bg_color_selector_grey</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
@@ -346,14 +347,15 @@
 
     <style name="ButtonSmallFontStyle" parent="GrayButton">
         <item name="android:letterSpacing">0</item>
-        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingTop">4dp</item>
         <item name="android:paddingStart">0dp</item>
         <item name="android:paddingEnd">0dp</item>
-        <item name="android:textSize">11dp</item>
+        <item name="android:textSize">12dp</item>
     </style>
 
     <style name="ButtonMediumFontStyle" parent="GrayButton">
-        <item name="android:textSize">15sp</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:textSize">16dp</item>
     </style>
 
     <!-- Alert Dialogs -->
