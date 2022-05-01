@@ -13,22 +13,22 @@ class WarnColors @Inject constructor(val rh: ResourceHelper) {
 
     fun setColor(view: TextView?, value: Double, warnLevel: Double, urgentLevel: Double) =
         view?.setTextColor( rh.gac( view.context ,when {
-            value >= urgentLevel -> R.attr.urgentColor
+            value >= urgentLevel -> R.attr.bgLow
             value >= warnLevel   -> R.attr.warnColor
             else                 -> R.attr.defaultTextColor
         }))
 
     fun setColorInverse(view: TextView?, value: Double, warnLevel: Double, urgentLevel: Double) =
         view?.setTextColor( rh.gac( view.context , when {
-            value <= urgentLevel -> R.attr.urgentColor
+            value <= urgentLevel -> R.attr.bgLow
             value <= warnLevel   -> R.attr.warnColor
             else                 -> R.attr.defaultTextColor
         }))
 
     fun setColorByAge(view: TextView?, therapyEvent: TherapyEvent, warnThreshold: Double, urgentThreshold: Double) =
         view?.setTextColor( rh.gac( view.context , when {
-            therapyEvent.isOlderThan(urgentThreshold) -> R.attr.lowColor
-            therapyEvent.isOlderThan(warnThreshold)   -> R.attr.highColor
+            therapyEvent.isOlderThan(urgentThreshold) -> R.attr.bgLow
+            therapyEvent.isOlderThan(warnThreshold)   -> R.attr.warnColor
             else                                      -> R.attr.defaultTextColor
         }))
 }
