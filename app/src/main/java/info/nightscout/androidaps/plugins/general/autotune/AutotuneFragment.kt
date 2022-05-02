@@ -22,7 +22,6 @@ import info.nightscout.androidaps.dialogs.ProfileViewerDialog
 import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.general.autotune.data.ATProfile
 import info.nightscout.androidaps.plugins.general.autotune.events.EventAutotuneUpdateGui
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.IobCobCalculatorPlugin
 import info.nightscout.androidaps.plugins.profile.local.LocalProfilePlugin
 import info.nightscout.androidaps.plugins.profile.local.events.EventLocalProfileChanged
 import info.nightscout.androidaps.data.LocalInsulin
@@ -51,9 +50,9 @@ import javax.inject.Inject
 
 class AutotuneFragment : DaggerFragment() {
     @Inject lateinit var profileFunction: ProfileFunction
-    @Inject lateinit var autotunePlugin: Autotune
+    @Inject lateinit var autotunePlugin: AutotunePlugin
+    @Inject lateinit var autotuneFS: AutotuneFS
     @Inject lateinit var sp: SP
-    @Inject lateinit var iobCobCalculatorPlugin: IobCobCalculatorPlugin
     @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var localProfilePlugin: LocalProfilePlugin
@@ -64,7 +63,6 @@ class AutotuneFragment : DaggerFragment() {
     @Inject lateinit var injector: HasAndroidInjector
 
     private var disposable: CompositeDisposable = CompositeDisposable()
-    private var lastRun: Long = 0
     private val log = LoggerFactory.getLogger(AutotunePlugin::class.java)
     private var _binding: AutotuneFragmentBinding? = null
     private lateinit var profileStore: ProfileStore
@@ -82,6 +80,8 @@ class AutotuneFragment : DaggerFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         autotunePlugin.lastRun = sp.getLong(R.string.key_autotune_last_run, 0)
+        if (autotunePlugin.lastNbDays.isNullOrEmpty())
+            autotunePlugin.lastNbDays = sp.getInt(R.string.key_autotune_default_tune_days, 5).toString()
         val defaultValue = sp.getInt(R.string.key_autotune_default_tune_days, 5).toDouble()
         profileStore = activePlugin.activeProfileSource.profile ?: ProfileStore(injector, JSONObject(), dateUtil)
         profileName = if (binding.profileList.text.toString() == rh.gs(R.string.active)) "" else binding.profileList.text.toString()
@@ -96,10 +96,10 @@ class AutotuneFragment : DaggerFragment() {
             val daysBack = SafeParse.stringToInt(binding.tuneDays.text)
             autotunePlugin.calculationRunning = true
             autotunePlugin.lastNbDays = daysBack.toString()
+            log("Run Autotune $profileName, $daysBack days")
             Thread(Runnable {
                 autotunePlugin.aapsAutotune(daysBack, false, profileName)
             }).start()
-            lastRun = autotunePlugin.lastRun
             updateGui()
         }
         binding.profileList.onItemClickListener = AdapterView.OnItemClickListener { _, _, _, _ ->
@@ -110,7 +110,6 @@ class AutotuneFragment : DaggerFragment() {
                     profile = ATProfile(profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(it) } ?:currentProfile, LocalInsulin(""), injector)
                 }
                 autotunePlugin.selectedProfile = profileName
-                autotunePlugin.lastRun = dateUtil.now()
                 resetParam()
             }
             updateGui()
@@ -122,7 +121,7 @@ class AutotuneFragment : DaggerFragment() {
             autotunePlugin.tunedProfile?.let {  tunedProfile ->
                 showConfirmation(requireContext(),
                                  rh.gs(R.string.autotune_copy_localprofile_button),
-                                 rh.gs(R.string.autotune_copy_local_profile_message) + "\n" + localName + " " + dateUtil.dateAndTimeString(lastRun),
+                                 rh.gs(R.string.autotune_copy_local_profile_message) + "\n" + localName + " " + dateUtil.dateAndTimeString(autotunePlugin.lastRun),
                                  Runnable {
                                      localProfilePlugin.addProfile(localProfilePlugin.copyFrom(tunedProfile.getProfile(circadian), localName))
                                      rxBus.send(EventLocalProfileChanged())
@@ -219,7 +218,6 @@ class AutotuneFragment : DaggerFragment() {
             autotunePlugin.updateProfile(tunedProfile)
             val circadian = sp.getBoolean(R.string.key_autotune_circadian_ic_isf, false)
             tunedProfile?.let { tunedP ->
-                log("ProfileSwitch pressed")
                 tunedP.profileStore(circadian)?.let {
                     showConfirmation(requireContext(),
                                      rh.gs(R.string.activate_profile) + ": " + tunedP.profilename + " ?",
@@ -251,19 +249,8 @@ class AutotuneFragment : DaggerFragment() {
                                      }
                     )
                 }
-                    ?: log("ProfileStore is null!")
             }
         }
-
-        lastRun = autotunePlugin.lastRun
-        val newDay = lastRun > MidnightTime.calc(System.currentTimeMillis() - autotunePlugin.autotuneStartHour * 3600 * 1000L) + autotunePlugin.autotuneStartHour * 3600 * 1000L
-        if (newDay && autotunePlugin.result !=="")
-        {
-            binding.tuneWarning.text = rh.gs(R.string.autotune_warning_after_run)
-        } else { //if new day reinit result, default days, warning and button's visibility
-            resetParam(newDay)
-        }
-        updateGui()
     }
 
     @Synchronized
@@ -275,7 +262,7 @@ class AutotuneFragment : DaggerFragment() {
             .subscribe({
                 updateGui()
             }, { fabricPrivacy.logException(it) })
-
+        checkNewDay()
         updateGui()
     }
 
@@ -329,6 +316,16 @@ class AutotuneFragment : DaggerFragment() {
         showResults()
     }
 
+    private fun checkNewDay() {
+        val runToday = autotunePlugin.lastRun > MidnightTime.calc(dateUtil.now() - autotunePlugin.autotuneStartHour * 3600 * 1000L) + autotunePlugin.autotuneStartHour * 3600 * 1000L
+        if (runToday && autotunePlugin.result != "")
+        {
+            binding.tuneWarning.text = rh.gs(R.string.autotune_warning_after_run)
+        } else if (!runToday || autotunePlugin.result.isNullOrEmpty()) { //if new day reinit result, default days, warning and button's visibility
+            resetParam(!runToday)
+        }
+    }
+
     private fun addWarnings(): String {
         var warning = ""
         var nl = ""
@@ -351,7 +348,7 @@ class AutotuneFragment : DaggerFragment() {
 
     private fun resetParam(resetDay: Boolean = true) {
         binding.tuneWarning.text = addWarnings()
-        if (resetDay || autotunePlugin.lastNbDays.isNullOrEmpty())
+        if (resetDay)
             autotunePlugin.lastNbDays = sp.getInt(R.string.key_autotune_default_tune_days, 5).toString()
         autotunePlugin.result = ""
         binding.autotuneResults.removeAllViews()
@@ -370,7 +367,6 @@ class AutotuneFragment : DaggerFragment() {
                         binding.tuneDays.value = autotunePlugin.lastNbDays.toDouble()
                     if (binding.tuneDays.value != autotunePlugin.lastNbDays.toDouble()) {
                         autotunePlugin.lastNbDays = binding.tuneDays.text
-                        autotunePlugin.lastRun = dateUtil.now()
                         resetParam(false)
                     }
                 } catch (e:Exception) { }
@@ -490,6 +486,6 @@ class AutotuneFragment : DaggerFragment() {
         }
 
     private fun log(message: String) {
-        autotunePlugin.atLog("[Fragment] $message")
+        autotuneFS.atLog("[Fragment] $message")
     }
 }
