@@ -293,8 +293,8 @@
                     android:layout_height="fill_parent"
                     android:layout_marginEnd="-2dp"
                     android:layout_weight="0.5"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="5dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
                     android:text="@string/duration15m" />
 
@@ -305,8 +305,8 @@
                     android:layout_height="fill_parent"
                     android:layout_marginEnd="-2dp"
                     android:layout_weight="0.5"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="5dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
                     android:text="@string/duration30m" />
 
@@ -317,8 +317,8 @@
                     android:layout_height="fill_parent"
                     android:layout_marginEnd="-2dp"
                     android:layout_weight="0.5"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="5dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
                     android:text="@string/duration1h" />
 
@@ -329,8 +329,8 @@
                     android:layout_height="fill_parent"
                     android:layout_marginEnd="-2dp"
                     android:layout_weight="0.5"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="5dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
                     android:text="@string/duration2h" />
 
@@ -341,8 +341,8 @@
                     android:layout_height="fill_parent"
                     android:layout_marginEnd="-2dp"
                     android:layout_weight="0.5"
-                    android:paddingStart="5dp"
-                    android:paddingEnd="5dp"
+                    android:paddingStart="3dp"
+                    android:paddingEnd="3dp"
                     android:drawableTop="@drawable/ic_loop_disconnected"
                     android:text="@string/duration3h" />
 
