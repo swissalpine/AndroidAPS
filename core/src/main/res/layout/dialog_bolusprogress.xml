@@ -48,6 +48,7 @@
         android:layout_gravity="center_horizontal"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
+        android:textSize="17dp"
         tools:text="Delivering 1.9U"/>
 
     <TextView
@@ -67,12 +68,12 @@
         style="@android:style/Widget.Material.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="20dp"
-        android:layout_marginStart="5dp"
+        android:layout_marginStart="10dp"
         android:layout_marginTop="20dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginEnd="10dp"
         android:maxHeight="5dp"
         android:minHeight="3dp"
-        android:scaleY="5"
+        android:scaleY="1.7"
         tools:progress="50" />
 
     <com.google.android.material.button.MaterialButton
