@@ -223,6 +223,9 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smbmaxminutes, SMBDefaults.maxSMBBasalMinutes))
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes))
         this.profile.put("DynISFAdjust",  SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust,"100")))
+        val insulin = activePlugin.activeInsulin
+        val insulinType = insulin.friendlyName
+        this.profile.put("insulinType", insulinType)
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes))
         //set the min SMB amount to be the amount set by the pump.
         this.profile.put("bolus_increment", pumpBolusStep)
@@ -265,7 +268,7 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
 
         this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount)
         //this.mealData.put("TDDPUMP", tddCalculator.calculateDaily().totalAmount)
-        //this.mealData.put("TDDLast24", tddCalculator.calculate24Daily().totalAmount)
+        this.mealData.put("TDDLast24", tddCalculator.calculate24Daily().totalAmount)
         //this.mealData.put("TDDLast8", tddCalculator.calculate8Hours().totalAmount)
         this.mealData.put("TDDLast4", tddCalculator.calculate4Daily().totalAmount)
         this.mealData.put("TDD4to8", tddCalculator.calculate8Gap().totalAmount)
