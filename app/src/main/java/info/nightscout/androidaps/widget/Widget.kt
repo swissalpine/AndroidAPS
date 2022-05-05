@@ -247,8 +247,6 @@ class Widget : AppWidgetProvider() {
                     )
                 )
                 views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
-                // Anpassung Zeile eingefügt, um Autosens auszublenden
-                views.setViewVisibility(R.id.sensitivity, View.GONE)
             } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
         } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
     }
