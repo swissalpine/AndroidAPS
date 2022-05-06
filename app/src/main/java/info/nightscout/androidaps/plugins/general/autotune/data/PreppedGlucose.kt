@@ -114,27 +114,4 @@ class PreppedGlucose {
         }
         return jsonString
     }
-
-    fun equals(obj: PreppedGlucose): Boolean {
-        var isEqual = true
-        if (crData!!.size == obj.crData!!.size) {
-            for (index in crData!!.indices) if (!crData!![index].equals(obj.crData!![index])) isEqual = false
-        } else isEqual = false
-        if (csfGlucoseData!!.size == obj.csfGlucoseData!!.size) {
-            for (index in csfGlucoseData!!.indices) if (!csfGlucoseData!![index].equals(obj.csfGlucoseData!![index])) isEqual = false
-        } else isEqual = false
-        if (isfGlucoseData!!.size == obj.isfGlucoseData!!.size) {
-            for (index in isfGlucoseData!!.indices) if (!isfGlucoseData!![index].equals(obj.isfGlucoseData!![index])) isEqual = false
-        } else isEqual = false
-        if (basalGlucoseData!!.size == obj.basalGlucoseData!!.size) {
-            for (index in basalGlucoseData!!.indices) if (!basalGlucoseData!![index].equals(obj.basalGlucoseData!![index])) isEqual = false
-        } else isEqual = false
-        if (diaDeviations.size == obj.diaDeviations.size) {
-            for (index in diaDeviations.indices) if (!diaDeviations[index].equals(obj.diaDeviations[index])) isEqual = false
-        } else isEqual = false
-        if (peakDeviations.size == obj.peakDeviations.size) {
-            for (index in peakDeviations.indices) if (!peakDeviations[index].equals(obj.peakDeviations[index])) isEqual = false
-        } else isEqual = false
-        return isEqual
-    }
 }

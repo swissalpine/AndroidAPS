@@ -95,14 +95,11 @@ class AutotunePlugin @Inject constructor(
         var localInsulin = LocalInsulin("PumpInsulin", activePlugin.activeInsulin.peak, profile.dia) // var because localInsulin could be updated later with Tune Insulin peak/dia
 
         log("Start Autotune with $daysBack days back")
-        //create autotune subfolder for autotune files if not exists
-        autotuneFS.createAutotuneFolder()
-        //clean autotune folder before run
-        autotuneFS.deleteAutotuneFiles()
+        autotuneFS.createAutotuneFolder()                           //create autotune subfolder for autotune files if not exists
+        autotuneFS.deleteAutotuneFiles()                            //clean autotune folder before run
         // Today at 4 AM
         var endTime = MidnightTime.calc(lastRun) + autotuneStartHour * 60 * 60 * 1000L
-        // Check if 4 AM is before now
-        if (endTime > lastRun) endTime -= 24 * 60 * 60 * 1000L
+        if (endTime > lastRun) endTime -= 24 * 60 * 60 * 1000L      // Check if 4 AM is before now
         val starttime = endTime - daysBack * 24 * 60 * 60 * 1000L
         autotuneFS.exportSettings(settings(lastRun, daysBack, starttime, endTime))
         tunedProfile = ATProfile(profile, localInsulin, injector).also {
@@ -114,19 +111,16 @@ class AutotunePlugin @Inject constructor(
         autotuneFS.exportPumpProfile(pumpProfile)
 
         for (i in 0 until daysBack) {
-            // get 24 hours BG values from 4 AM to 4 AM next day
-            val from = starttime + i * 24 * 60 * 60 * 1000L
+            val from = starttime + i * 24 * 60 * 60 * 1000L         // get 24 hours BG values from 4 AM to 4 AM next day
             val to = from + 24 * 60 * 60 * 1000L
             log("Tune day " + (i + 1) + " of " + daysBack)
+            tunedProfile?.let { tunedProfile ->
+                autotuneIob.initializeData(from, to, tunedProfile)  //autotuneIob contains BG and Treatments data from history (<=> query for ns-treatments and ns-entries)
+                autotuneFS.exportEntries(autotuneIob)               //<=> ns-entries.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
+                autotuneFS.exportTreatments(autotuneIob)            //<=> ns-treatments.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine (include treatments ,tempBasal and extended
+                preppedGlucose = autotunePrep.categorizeBGDatums(tunedProfile, localInsulin) //<=> autotune.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
+            }
 
-            //autotuneIob contains BG and Treatments data from history (<=> query for ns-treatments and ns-entries)
-            autotuneIob.initializeData(from, to, tunedProfile!!)
-            //<=> ns-entries.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
-            autotuneFS.exportEntries(autotuneIob)
-            //<=> ns-treatments.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine (include treatments ,tempBasal and extended
-            autotuneFS.exportTreatments(autotuneIob)
-            preppedGlucose = tunedProfile?.let { autotunePrep.categorizeBGDatums(it, localInsulin) }
-            //<=> autotune.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
             if (preppedGlucose == null || tunedProfile == null) {
                 result = rh.gs(R.string.autotune_error)
                 log(result)
@@ -137,11 +131,12 @@ class AutotunePlugin @Inject constructor(
                 autotuneFS.exportLogAndZip(lastRun)
                 return result
             }
-            autotuneFS.exportPreppedGlucose(preppedGlucose!!)
-            tunedProfile = autotuneCore.tuneAllTheThings(preppedGlucose!!, tunedProfile!!, pumpProfile)
-            // localInsulin = LocalInsulin("TunedInsulin", tunedProfile!!.peak, tunedProfile!!.dia)
-            //<=> newprofile.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
-            autotuneFS.exportTunedProfile(tunedProfile!!)
+            preppedGlucose?.let { preppedGlucose ->         //preppedGlucose and tunedProfile should never be null here
+                autotuneFS.exportPreppedGlucose(preppedGlucose)
+                tunedProfile = autotuneCore.tuneAllTheThings(preppedGlucose, tunedProfile!!, pumpProfile)
+            }
+            // localInsulin = LocalInsulin("TunedInsulin", tunedProfile!!.peak, tunedProfile!!.dia)     // Todo: Add tune Insulin option
+            autotuneFS.exportTunedProfile(tunedProfile!!)   //<=> newprofile.yyyymmdd.json files exported for results compare with oref0 autotune on virtual machine
             if (i < daysBack - 1) {
                 log("Partial result for day ${i + 1}".trimIndent())
                 result = rh.gs(R.string.autotune_partial_result, i + 1, daysBack)
