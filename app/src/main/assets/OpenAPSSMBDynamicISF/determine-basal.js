@@ -236,13 +236,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.error("Weighted Average TDD (60% tdd_8): " + round(TDD_r8,1) + "; ");
         TDD = TDD_r8;
     } */
-
+/*
+    if (meal_data.TDDAIMI1){
+        var tdd1 = meal_data.TDDAIMI1;
+    } else {
+        var tdd1 = ((basal * 12)*100)/21;
+    }
+    console.error("1-day average TDD is: " + round(tdd1,1) + "; "); */
     var tdd_4 = meal_data.TDDLast4;
     var tdd_4to8 = meal_data.TDD4to8;
-    var tdd_last8_wt = ( 1.2 * tdd_4 + 0.8 * tdd_4to8 ) * 3; // Original 1.4 / 0.6
-    console.log("Last 8 hour weighted TDD: " + round(tdd_last8_wt,1) + "; ");
-    TDD = tdd_last8_wt * 0.6 + tdd7 * 0.4;
-    console.log("TDD using rolling 8h weighted average extrapolation: " +round(TDD,1)+ "; ");
+    var tdd_last8_wt = ( 1.4 * tdd_4 + 0.6 * tdd_4to8 ) * 3; // Original 1.4 / 0.6
+    console.log("Rolling 8 hour weighted TDD: " + round(tdd_last8_wt,1) + "; ");
+    //TDD = tdd_last8_wt * 0.33 + tdd7 * 0.34 + tdd1 * 0.33;
+    TDD = tdd_last8_wt * 0.2 + tdd7 * 0.4 + tdd_24 * 0.4;
+    console.log("TDD using average of 7-day, rolling 24-hour and weighted 8hr average: " +round(TDD,1)+ "; ");
 
     var dynISFadjust = profile.DynISFAdjust;
     dynISFadjust = dynISFadjust / 100;
@@ -253,8 +260,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // Anpassung: Security cap bg = 220
     var dynBG = bg;
-    if (dynBG > 220) {
-        dynBG = 220;
+    if (dynBG > 200) {
+        dynBG = 200;
         console.log("Bg safety cap: " + bg + " set to " + dynBG + "; ");
     }
 
@@ -265,13 +272,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var ins_val = 55;
     var insulin = profile.insulinType;
     //console.log("Initial insulin value for ISF: "+ins_val+"; ");
-    if (insulin === 'Free-Peak Oref') {
+    if (insulin == 'Free-Peak Oref') {
         ins_val = 75;
-    } else if (insulin === 'Lyumjev'){
+    } else if (insulin == 'Lyumjev'){
         ins_val = 75;
-    } else if (insulin === 'Ultra-Rapid Oref'){
+    } else if (insulin == 'Ultra-Rapid Oref'){
         ins_val = 65;
-    } else if (insulin === 'Rapid-Acting Oref'){
+    } else if (insulin == 'Rapid-Acting Oref'){
         ins_val = 55;
     }
     console.log("Current divisor for "+insulin+": "+ins_val+"; ");
@@ -497,13 +504,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // min_bg of 90 -> threshold of 65, 100 -> 70, 110 -> 75 and 130 -> 85
     var threshold = min_bg - 0.5*(min_bg-40);
 
-    // Anpassung, z. B. um SMB zu deaktivieren, z. B. keine SMB unter 80
-    /*
-    if (threshold < 80) {
-        varOldThreshold = threshold;
-        threshold = Math.max(threshold, 80);
-        console.log("Threshold set from " + convert_bg(varOldThreshold, profile) + " to " + convert_bg(threshold, profile) + "; ")
-    }*/
+    // Anpassung threshold - LGS unter diesem Wert
+    var oldThreshold = threshold;
+    threshold = Math.max(threshold, 80);
+    if( threshold ===b 80 ) {
+        console.log("Threshold set from " + convert_bg(oldThreshold, profile) + " to " + convert_bg(threshold, profile) + "; ")
+    }
 
     //console.error(reservoir_data);
 
@@ -567,7 +573,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
     csf = sens / profile.carb_ratio;
-    console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",csf);
+    console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",round(csf,1));
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
     // limit Carb Impact to maxCarbAbsorptionRate * csf in mg/dL per 5m
@@ -824,7 +830,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }*/
     // Anpassung
     var dynEventualBG = Math.min(eventualBG,bg);
-    dynEventualBG = Math.min(dynEventualBG,220);
+    dynEventualBG = Math.min(dynEventualBG,200);
     if (typeof dynEventualBG === 'undefined' || dynEventualBG === 0) {
         dynEventualBG = 100;
     }
@@ -944,7 +950,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (minUAMPredBG < 999) {
         console.log(" minUAMPredBG: "+minUAMPredBG);
     }
-    console.error(" avgPredBG:",avgPredBG,"COB:",meal_data.mealCOB,"/",meal_data.carbs);
+    console.error(" avgPredBG:",avgPredBG,"COB:",round(meal_data.mealCOB,1),"/",meal_data.carbs);
     // But if the COB line falls off a cliff, don't trust UAM too much:
     // use maxCOBPredBG if it's been set and lower than minPredBG
     if ( maxCOBPredBG > bg ) {
@@ -1005,6 +1011,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if (enableSMB && minGuardBG < threshold) {
         console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB");
         //rT.reason += "minGuardBG "+minGuardBG+"<"+threshold+": SMB disabled; ";
+        enableSMB = false;
+    }
+    // Anpassung: Keine SMB unter 100 mg/dl
+    if(enableSMB && bg < 100) {
+        console.error("BG < 100 - Disabling SMB");
         enableSMB = false;
     }
     if ( maxDelta > 0.20 * bg ) {
