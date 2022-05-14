@@ -506,8 +506,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // Anpassung threshold - LGS unter diesem Wert
     var oldThreshold = threshold;
-    threshold = Math.max(threshold, 80);
-    if( threshold ===b 80 ) {
+    var lgsThreshold = profile.lgsThreshold;
+    threshold = Math.max(threshold, lgsThreshold);
+    if( threshold === lgsThreshold ) {
         console.log("Threshold set from " + convert_bg(oldThreshold, profile) + " to " + convert_bg(threshold, profile) + "; ")
     }
 

@@ -1225,7 +1225,11 @@
     <string name="a11y_only_on_phone">only on phone</string>
     <string name="a11y_drag_and_drop_handle">drag and drop handle</string>
 
-  <!-- Aidex Cgms -->
+    <string name="treatmentssafety_lgsThreshold_title">BG level below which low glucose suspend occurs</string>
+    <string name="key_treatmentssafety_lgsThreshold" translatable="false">lgsThreshold</string>
+    <string name="treatmentssafety_lgsThreshold_summary">BG value below which insulin is suspended. Default value uses standard target model. User can set value between 65 and 120</string>
+
+    <!-- Aidex Cgms -->
     <string name="aidex">GlucoRx Aidex</string>
     <string name="aidex_short">Aidex</string>
     <string name="description_source_aidex">Receive BG values from GlucoRx Aidex CGMS.</string>
