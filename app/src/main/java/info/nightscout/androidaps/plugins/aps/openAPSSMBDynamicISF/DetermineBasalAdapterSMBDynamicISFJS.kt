@@ -226,7 +226,9 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.profile.put("lgsThreshold", sp.getInt(R.string.key_treatmentssafety_lgsThreshold, 65))
         val insulin = activePlugin.activeInsulin
         val insulinType = insulin.friendlyName
+        val insulinPeak = insulin.peak
         this.profile.put("insulinType", insulinType)
+        this.profile.put("insulinPeak", insulinPeak)
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes))
         //set the min SMB amount to be the amount set by the pump.
         this.profile.put("bolus_increment", pumpBolusStep)

@@ -269,20 +269,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //console.log("Sensitivity using old model is " + variable_sens_old +" based on current BG; ");
     //var variable_sens =  1800 / ( TDD * Math.log( dynBG / 75 + 1 ) );
 
-    var ins_val = 55;
-    var insulin = profile.insulinType;
-    //console.log("Initial insulin value for ISF: "+ins_val+"; ");
-    if (insulin == 'Free-Peak Oref') {
+    var ins_val = 55;                       // rapid peak: 75
+    if (profile.insulinPeak < 50) {         // lyumjev peak: 45
         ins_val = 75;
-    } else if (insulin == 'Lyumjev'){
-        ins_val = 75;
-    } else if (insulin == 'Ultra-Rapid Oref'){
+    } else if (profile.insulinPeak < 65) {  // ultra rapid peak: 55
         ins_val = 65;
-    } else if (insulin == 'Rapid-Acting Oref'){
-        ins_val = 55;
     }
-    console.log("Current divisor for "+insulin+": "+ins_val+"; ");
-    //console.log("Insulin value for ISF based on profile: "+ins_val+"; ");
+    console.log("For "+profile.insulinType+" (Insulin peak: "+profile.insulinPeak+") divisor is: "+ins_val+"; ");
 
     var variable_sens = 1800 / ( TDD * Math.log( dynBG / ins_val + 1 ) );
     variable_sens = round(variable_sens, 1);
