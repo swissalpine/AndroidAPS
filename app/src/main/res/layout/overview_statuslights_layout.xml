@@ -35,7 +35,8 @@
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
             android:textColor="@color/defaultTextColor"
-            android:textSize="18dp" />
+            android:textSize="18dp"
+            tools:text="1d12h" />
 
     </LinearLayout>
 
@@ -69,7 +70,8 @@
                 android:paddingStart="0dp"
                 android:paddingEnd="5dp"
                 android:textColor="@color/defaultTextColor"
-                android:textSize="18dp" />
+                android:textSize="18dp"
+                tools:text="50U" />
 
             <TextView
                 android:id="@+id/insulin_age"
@@ -79,7 +81,8 @@
                 android:paddingStart="5dp"
                 android:paddingEnd="0dp"
                 android:textColor="@color/defaultTextColor"
-                android:textSize="18dp" />
+                android:textSize="18dp"
+                tools:text="12h" />
         </LinearLayout>
 
     </LinearLayout>
@@ -140,7 +143,9 @@
                 android:gravity="center|center_vertical"
                 android:paddingEnd="5dp"
                 android:textColor="@color/defaultTextColor"
-                android:textSize="18dp" />
+                android:textSize="18dp"
+                android:text="-"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/battery_level"
@@ -149,7 +154,8 @@
                 android:gravity="center|center_vertical"
                 android:paddingStart="5dp"
                 android:textColor="@color/defaultTextColor"
-                android:textSize="18dp" />
+                android:textSize="18dp"
+                tools:text="100%"/>
 
         </LinearLayout>
 
