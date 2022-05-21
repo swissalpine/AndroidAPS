@@ -110,7 +110,9 @@
             android:layout_height="wrap_content"
             android:gravity="center|center_vertical"
             android:textColor="@color/defaultTextColor"
-            android:textSize="18dp" />
+            android:textSize="18dp"
+            tools:text="1d12h" />
+
     </LinearLayout>
 
     <LinearLayout
