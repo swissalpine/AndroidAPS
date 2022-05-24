@@ -224,9 +224,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // Anpassung Rolling 24 hours
-//        TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
+    TDD = (tdd7 * 0.3) + (tdd_24 * 0.7);
     console.error("Rolling 24 hour TDD: " + round(tdd_24,1) + "; ");
-//       console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
+    console.error("Weighted Average TDD (70% tdd_24): " + round(TDD,1) + "; ");
 
     // Anpassung: Rolling 8 hours
 /*    if (meal_data.TDDLast8) {
@@ -235,14 +235,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.error("Extrapolated rolling 8 hour TDD: " + round(tdd_8,1) + "; ");
         console.error("Weighted Average TDD (60% tdd_8): " + round(TDD_r8,1) + "; ");
         TDD = TDD_r8;
-    } */
-/*
+    }
+
     if (meal_data.TDDAIMI1){
         var tdd1 = meal_data.TDDAIMI1;
     } else {
         var tdd1 = ((basal * 12)*100)/21;
     }
-    console.error("1-day average TDD is: " + round(tdd1,1) + "; "); */
+    console.error("1-day average TDD is: " + round(tdd1,1) + "; ");
     var tdd_4 = meal_data.TDDLast4;
     var tdd_4to8 = meal_data.TDD4to8;
     var tdd_last8_wt = ( 1.4 * tdd_4 + 0.6 * tdd_4to8 ) * 3; // Original 1.4 / 0.6
@@ -250,6 +250,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //TDD = tdd_last8_wt * 0.33 + tdd7 * 0.34 + tdd1 * 0.33;
     TDD = tdd_last8_wt * 0.2 + tdd7 * 0.4 + tdd_24 * 0.4;
     console.log("TDD using average of 7-day, rolling 24-hour and weighted 8hr average: " +round(TDD,1)+ "; ");
+    */
 
     var dynISFadjust = profile.DynISFAdjust;
     dynISFadjust = dynISFadjust / 100;
@@ -258,28 +259,24 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("TDD adjusted to "+TDD+" (adjustment factor: "+dynISFadjust+"); ");
     }
 
-    // Anpassung: Security cap bg = 220
+    // Anpassung: Security cap bg = 200
     var dynBG = bg;
     if (dynBG > 200) {
         dynBG = 200;
         console.log("Bg safety cap: " + bg + " set to " + dynBG + "; ");
     }
 
-    var variable_sens_old = round(277700 / ( TDD * dynBG), 1);
-    //console.log("Sensitivity using old model is " + variable_sens_old +" based on current BG; ");
-    //var variable_sens =  1800 / ( TDD * Math.log( dynBG / 75 + 1 ) );
-
-    var ins_val = 55;                       // rapid peak: 75
-    if (profile.insulinPeak < 50) {         // lyumjev peak: 45
-        ins_val = 75;
-    } else if (profile.insulinPeak < 65) {  // ultra rapid peak: 55
+    var ins_val = 75;                       // lyumjev peak: 45
+    if (profile.insulinPeak > 65) {         // rapid peak: 75
+        ins_val = 55;
+    } else if (profile.insulinPeak > 50) {  // ultra rapid peak: 55
         ins_val = 65;
     }
     console.log("For "+profile.insulinType+" (Insulin peak: "+profile.insulinPeak+") divisor is: "+ins_val+"; ");
 
     var variable_sens = 1800 / ( TDD * Math.log( dynBG / ins_val + 1 ) );
     variable_sens = round(variable_sens, 1);
-    console.log("Current sensitivity is " + variable_sens +" based on current BG (old model: " + variable_sens_old + "); ");
+    console.log("Current sensitivity is " + variable_sens +" based on current BG; ");
     sens = variable_sens;
 
     //*********************************************************************************
@@ -1040,8 +1037,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
-    if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
-        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
+    // Anpassung: LGS unter leichteren Bedingungen
+    if (bg < threshold && iob_data.iob < -profile.current_basal && minDelta > 0 && minDelta > 2*expectedDelta) {
+        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal);
         rT.reason += " and minDelta " + convert_bg(minDelta, profile) + " > " + "expectedDelta " + convert_bg(expectedDelta, profile) + "; ";
     // predictive low glucose suspend mode: BG is / is projected to be < threshold
     } else if ( bg < threshold || minGuardBG < threshold ) {
