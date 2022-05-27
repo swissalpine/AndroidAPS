@@ -1246,4 +1246,7 @@
     <string name="keto_protect_basal_summary">Quantity of the small safety TBR in % which is given to avoid ketoacidosis.</string>
     <string name="start_hypo_action">Start Hypo TT + Susp. 60\' + TBR 50%</string>
 
+    <string name="key_dynISFtdd7" translatable="false">dynISFtdd7</string>
+    <string name="key_dynISFMidnight" translatable="false">dynISFMidnight</string>
+
 </resources>

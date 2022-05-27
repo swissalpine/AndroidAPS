@@ -22,6 +22,7 @@ import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.interfaces.ResourceHelper
+import info.nightscout.androidaps.utils.MidnightTime
 import info.nightscout.androidaps.utils.stats.TddCalculator
 import info.nightscout.shared.SafeParse
 import info.nightscout.shared.logging.AAPSLogger
@@ -270,7 +271,24 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
         //this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount)
-        this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount)
+        // Anpassung: reduce senseless calculations
+        val currentMidnight = MidnightTime.calc(dateUtil.now())
+        val dynISFMidnight = sp.getLong(R.string.key_dynISFMidnight, 0)
+        val dynISFtdd7 = sp.getDouble(R.string.key_dynISFtdd7, 0.0)
+        aapsLogger.debug(LTag.APS, "Anpassung: dynISFMidnight ("+dynISFMidnight+") < currentMidnight ("+currentMidnight+")?")
+        if (dynISFMidnight < currentMidnight || dynISFtdd7 == 0.0) {
+            val tdd7 = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
+            if (tdd7 != null) {
+                this.mealData.put("TDDAIMI7", tdd7)
+                sp.putDouble(R.string.key_dynISFtdd7, tdd7)
+                sp.putLong(R.string.key_dynISFMidnight, currentMidnight)
+                aapsLogger.debug(LTag.APS, "Anpassung: Use calculated tdd7")
+            }
+        } else {
+            this.mealData.put("TDDAIMI7", dynISFtdd7)
+            aapsLogger.debug(LTag.APS, "Anpassung: Use saved tdd7")
+        }
+        // Ende Anpassung: reduce sensless calculations
         //this.mealData.put("TDDPUMP", tddCalculator.calculateDaily().totalAmount)
         this.mealData.put("TDDLast24", tddCalculator.calculate24Daily().totalAmount)
         //this.mealData.put("TDDLast8", tddCalculator.calculate8Hours().totalAmount)
