@@ -22,7 +22,6 @@ import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatus
 import info.nightscout.androidaps.utils.DateUtil
 import info.nightscout.androidaps.interfaces.ResourceHelper
-import info.nightscout.androidaps.utils.MidnightTime
 import info.nightscout.androidaps.utils.stats.TddCalculator
 import info.nightscout.shared.SafeParse
 import info.nightscout.shared.logging.AAPSLogger
@@ -193,11 +192,16 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.profile.put("sens", profile.getIsfMgdl())
         this.profile.put("max_daily_safety_multiplier", sp.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3))
         this.profile.put("current_basal_safety_multiplier", sp.getDouble(R.string.key_openapsama_current_basal_safety_multiplier, 4.0))
+        this.profile.put("lgsThreshold", Profile.toMgdl(sp.getDouble(R.string.key_lgs_threshold, 65.0)))
 
-        this.profile.put("high_temptarget_raises_sensitivity", sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
-        //this.profile.put("high_temptarget_raises_sensitivity", false)
-        this.profile.put("low_temptarget_lowers_sensitivity", sp.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
-        //this.profile.put("low_temptarget_lowers_sensitivity", false)
+        val insulin = activePlugin.activeInsulin
+        val insulinType = insulin.friendlyName
+        val insulinPeak = insulin.peak
+
+        //mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
+        this.profile.put("high_temptarget_raises_sensitivity", sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity))
+        //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
+        this.profile.put("low_temptarget_lowers_sensitivity", sp.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity))
         this.profile.put("sensitivity_raises_target", sp.getBoolean(R.string.key_sensitivity_raises_target, SMBDefaults.sensitivity_raises_target))
         this.profile.put("resistance_lowers_target", sp.getBoolean(R.string.key_resistance_lowers_target, SMBDefaults.resistance_lowers_target))
         this.profile.put("adv_target_adjustments", SMBDefaults.adv_target_adjustments)
@@ -223,11 +227,7 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.profile.put("enableSMB_after_carbs", smbEnabled && sp.getBoolean(R.string.key_enableSMB_after_carbs, false) && advancedFiltering)
         this.profile.put("maxSMBBasalMinutes", sp.getInt(R.string.key_smbmaxminutes, SMBDefaults.maxSMBBasalMinutes))
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes))
-        this.profile.put("DynISFAdjust",  SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust,"100")))
-        this.profile.put("lgsThreshold", sp.getInt(R.string.key_treatmentssafety_lgsThreshold, 65))
-        val insulin = activePlugin.activeInsulin
-        val insulinType = insulin.friendlyName
-        val insulinPeak = insulin.peak
+        this.profile.put("DynISFAdjust", SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")))
         this.profile.put("insulinType", insulinType)
         this.profile.put("insulinPeak", insulinPeak)
         this.profile.put("maxUAMSMBBasalMinutes", sp.getInt(R.string.key_uamsmbmaxminutes, SMBDefaults.maxUAMSMBBasalMinutes))
@@ -270,30 +270,13 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.mealData.put("lastBolusTime", mealData.lastBolusTime)
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
-        //this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount)
-        // Anpassung: reduce senseless calculations
-        val currentMidnight = MidnightTime.calc(dateUtil.now())
-        val dynISFMidnight = sp.getLong(R.string.key_dynISFMidnight, 0)
-        val dynISFtdd7 = sp.getDouble(R.string.key_dynISFtdd7, 0.0)
-        aapsLogger.debug(LTag.APS, "Anpassung: dynISFMidnight ("+dynISFMidnight+") < currentMidnight ("+currentMidnight+")?")
-        if (dynISFMidnight < currentMidnight || dynISFtdd7 == 0.0) {
-            val tdd7 = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
-            if (tdd7 != null) {
-                this.mealData.put("TDDAIMI7", tdd7)
-                sp.putDouble(R.string.key_dynISFtdd7, tdd7)
-                sp.putLong(R.string.key_dynISFMidnight, currentMidnight)
-                aapsLogger.debug(LTag.APS, "Anpassung: Use calculated tdd7")
-            }
-        } else {
-            this.mealData.put("TDDAIMI7", dynISFtdd7)
-            aapsLogger.debug(LTag.APS, "Anpassung: Use saved tdd7")
-        }
-        // Ende Anpassung: reduce sensless calculations
-        //this.mealData.put("TDDPUMP", tddCalculator.calculateDaily().totalAmount)
-        this.mealData.put("TDDLast24", tddCalculator.calculate24Daily().totalAmount)
-        //this.mealData.put("TDDLast8", tddCalculator.calculate8Hours().totalAmount)
-        //this.mealData.put("TDDLast4", tddCalculator.calculate4Daily().totalAmount)
-        //this.mealData.put("TDD4to8", tddCalculator.calculate8Gap().totalAmount)
+        this.mealData.put("TDDAIMI1", tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount)
+        this.mealData.put("TDDAIMI7", tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount)
+        this.mealData.put("TDDLast4", tddCalculator.calculateDaily(-4, 0).totalAmount)
+        this.mealData.put("TDD4to8", tddCalculator.calculateDaily(-8, -4).totalAmount)
+        this.mealData.put("TDD24", tddCalculator.calculateDaily(-24, 0).totalAmount)
+
+
 
         if (constraintChecker.isAutosensModeEnabled().value()) {
             autosensData.put("ratio", autosensDataRatio)
