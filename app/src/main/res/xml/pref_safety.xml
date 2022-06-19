@@ -38,7 +38,7 @@
             android:defaultValue="65"
             android:inputType="numberDecimal"
             android:dialogMessage="@string/treatmentssafety_lgsThreshold_summary"
-            android:key="@string/key_treatmentssafety_lgsThreshold"
+            android:key="@string/key_lgs_threshold"
             android:title="@string/treatmentssafety_lgsThreshold_title"
             validate:floatmaxNumber="120"
             validate:floatminNumber="65"
