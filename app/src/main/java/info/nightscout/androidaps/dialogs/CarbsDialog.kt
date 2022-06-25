@@ -147,7 +147,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         )
         val plus1text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_1, FAV1_DEFAULT))
         binding.plus1.text = plus1text
-        binding.plus1.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) +  " " + plus1text
+        binding.plus1.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) + " " + plus1text
         binding.plus1.setOnClickListener {
             binding.carbs.value = max(
                 0.0, binding.carbs.value
@@ -159,7 +159,7 @@ class CarbsDialog : DialogFragmentWithDate() {
 
         val plus2text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_2, FAV2_DEFAULT))
         binding.plus2.text = plus2text
-        binding.plus2.contentDescription =  rh.gs(R.string.treatments_wizard_carbs_label) +  " " + plus2text
+        binding.plus2.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) + " " + plus2text
         binding.plus2.setOnClickListener {
             binding.carbs.value = max(
                 0.0, binding.carbs.value
@@ -170,7 +170,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         }
         val plus3text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_3, FAV3_DEFAULT))
         binding.plus3.text = plus3text
-        binding.plus2.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) +  " " + plus3text
+        binding.plus2.contentDescription = rh.gs(R.string.treatments_wizard_carbs_label) + " " + plus3text
         binding.plus3.setOnClickListener {
             binding.carbs.value = max(
                 0.0, binding.carbs.value
@@ -183,7 +183,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         setOnValueChangedListener { eventTime: Long ->
             run {
                 val timeOffset = ((eventTime - eventTimeOriginal) / (1000 * 60)).toDouble()
-                binding.time.value = timeOffset
+                if (_binding != null) binding.time.value = timeOffset
             }
         }
 
@@ -266,8 +266,9 @@ class CarbsDialog : DialogFragmentWithDate() {
         val hypoSelected = binding.hypoTt.isChecked
         if (hypoSelected)
             actions.add(
-                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
-                    " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor( context, rh,
+                rh.gs(R.string.temptargetshort) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")").formatColor(
+                    context,
+                    rh,
                     R.attr.tempTargetConfirmation
                 )
             )
@@ -283,7 +284,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         // Ende Anpassung
         val timeOffset = binding.time.value.toInt()
         if (useAlarm && carbs > 0 && timeOffset > 0)
-            actions.add(rh.gs(R.string.alarminxmin, timeOffset).formatColor(context , rh, R.attr.infoColor))
+            actions.add(rh.gs(R.string.alarminxmin, timeOffset).formatColor(context, rh, R.attr.infoColor))
         val duration = binding.duration.value.toInt()
         if (duration > 0)
             actions.add(rh.gs(R.string.duration) + ": " + duration + rh.gs(R.string.shorthour))
@@ -444,7 +445,7 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     override fun onResume() {
         super.onResume()
-        if(!queryingProtection) {
+        if (!queryingProtection) {
             queryingProtection = true
             activity?.let { activity ->
                 val cancelFail = {
