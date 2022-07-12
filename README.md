@@ -14,7 +14,7 @@ realise some changes which are very important for me:
   TT and suspends the loop for 60 min with a TBR of 50%)
 * Exercise mode enabled (-> setting: high tt raises sensitivity), can be toggled via overview icon
 * Toggle autosens via overview icon
-* dynISF with adjustment, extrapolated TDD based on the weighted last 8 hours and safety restrictions
+* dynISF with adjustment, extrapolated TDD based on the weighted last 24 hours and safety restrictions
 * LGS threshold (65-120 mg/dl; Preferences > Treatments safety)
 * Layout corrections for small devices like Jelly 
 
