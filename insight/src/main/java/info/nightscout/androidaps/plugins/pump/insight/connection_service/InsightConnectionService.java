@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 
@@ -261,12 +262,12 @@ public class InsightConnectionService extends DaggerService implements Connectio
     @Override
     public synchronized void onCreate() {
         super.onCreate();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             bluetoothAdapter = ((BluetoothManager) getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
-            pairingDataStorage = new PairingDataStorage(this);
-            state = pairingDataStorage.isPaired() ? InsightState.DISCONNECTED : InsightState.NOT_PAIRED;
-            wakeLock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AndroidAPS:InsightConnectionService");
         }
+        pairingDataStorage = new PairingDataStorage(this);
+        state = pairingDataStorage.isPaired() ? InsightState.DISCONNECTED : InsightState.NOT_PAIRED;
+        wakeLock = ((PowerManager) getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AndroidAPS:InsightConnectionService");
     }
 
     private void setState(InsightState state) {
