@@ -1028,6 +1028,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
     // Anpassung: LGS unter leichteren Bedingungen
+    // if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
     if (bg < threshold && iob_data.iob < -profile.current_basal && minDelta > 0 && minDelta > 2*expectedDelta) {
         rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal);
         rT.reason += " and minDelta " + convert_bg(minDelta, profile) + " > " + "expectedDelta " + convert_bg(expectedDelta, profile) + "; ";
