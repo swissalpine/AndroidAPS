@@ -497,9 +497,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var c = halfBasalTarget - normalTarget;
         sensitivityRatio = c/(c+target_bg-normalTarget);
         // limit sensitivityRatio to profile.autosens_max (1.2x by default)
-        sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
+        // Anpassung: auskommentiert
+        // sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
         console.log("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
+
     } else if (typeof autosens_data !== 'undefined' && autosens_data) {
         sensitivityRatio = autosens_data.ratio;
         console.log("Autosens ratio: "+sensitivityRatio+"; ");
@@ -689,6 +691,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     threshold = round(threshold);
     //console.error(reservoir_data);
 
+    //Anpassung: Show new sens
     rT = {
         'temp': 'absolute'
         , 'bg': bg
@@ -699,6 +702,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         , 'reservoir' : reservoir_data // The expected reservoir volume at which to deliver the microbolus (the reservoir volume from right before the last pumphistory run)
         , 'deliverAt' : deliverAt // The time at which the microbolus should be delivered
         , 'sensitivityRatio' : sensitivityRatio // autosens ratio (fraction of normal basal)
+        , 'variable_sens' : sens // Anpassung: Zeile eingefügt
     };
 
     // generate predicted future BGs based on IOB, COB, and current absorption rate
