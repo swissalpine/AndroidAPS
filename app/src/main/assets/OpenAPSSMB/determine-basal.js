@@ -111,17 +111,14 @@ function enable_smb(
 }
 
 function loop_smb(profile, iob_data) {
-    if (profile.temptargetSet) {
+    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff) {
         var target = profile.min_bg;
-        profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
-        if (profile.iob_threshold_percent/100 < iob_data.iob/profile.max_iob) {
-            console.error("SMB disabled by full loop logic: iob",iob_data.iob,"is more than", profile.iob_threshold_percent+"% of maxIOB",profile.max_iob);
-            return "iobTH";
-        } else if ( target % 2 == 1 ) {         // odd number
-            console.error("SMB disabled by full loop logic: odd TT");
+        //profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
+        if ( target % 2 == 1 ) {                // odd number
+            console.error("SMB disabled by even/odd TT logic: odd TT");
             return "blocked";
         } else {
-            console.error("SMB enabled by full loop logic: even TT");
+            console.error("SMB enabled by even/odd TT logic: even TT");
             return "enforced";                  // even number
         }
     }
