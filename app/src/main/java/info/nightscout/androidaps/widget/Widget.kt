@@ -250,8 +250,15 @@ class Widget : AppWidgetProvider() {
                     )
                 )
                 views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
-            } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
-        } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
+                views.setViewVisibility(R.id.sensitivity, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
+                views.setViewVisibility(R.id.sensitivity, View.VISIBLE)
+            }
+        } else {
+            views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
+            views.setViewVisibility(R.id.sensitivity, View.VISIBLE)
+        }
     }
 }
 
