@@ -295,7 +295,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    console.error("bg_ISF adaptation", round(bg_ISF,2), "limited by autoisf_max", maxISFReduction);     // mod V14j
         //    bg_ISF = maxISFReduction;                                                                           // mod V14j
         //}                                                                                                       // mod V14j
-        return Math.min(720, round(profile.sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
+        return Math.min(720, round(sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
     }
@@ -364,7 +364,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //}                                                                                                       // mod V14j
         //if ( liftISF >= 1 ) { return round(profile.sens / Math.max(liftISF, sensitivityRatio), 1); }
         //if ( liftISF <  1 ) { return round(profile.sens / Math.min(liftISF, sensitivityRatio), 1); }
-        return round(profile.sens / final_ISF, 1);
+        return round(sens / final_ISF, 1);
     }
     return sens;                                                                                                // mod V14j: nothing changed
 }
