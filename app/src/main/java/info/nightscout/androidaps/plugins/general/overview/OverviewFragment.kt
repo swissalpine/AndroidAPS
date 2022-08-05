@@ -45,6 +45,7 @@ import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.logging.UserEntryLogger
 import info.nightscout.androidaps.plugins.aps.loop.events.EventNewOpenLoopNotification
 import info.nightscout.androidaps.plugins.aps.openAPSSMB.DetermineBasalResultSMB
+import info.nightscout.androidaps.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
 import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.configBuilder.ConstraintChecker
 import info.nightscout.androidaps.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
@@ -123,6 +124,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     @Inject lateinit var overviewPlugin: OverviewPlugin
     @Inject lateinit var automationPlugin: AutomationPlugin
     @Inject lateinit var bgQualityCheckPlugin: BgQualityCheckPlugin
+    //Anpassung
+    @Inject lateinit var openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin
 
     private val disposable = CompositeDisposable()
 
@@ -175,14 +178,21 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             }
         }
         // Ende Anpassung
-        // Anpassung: autosens toggle icon
-        binding.infoLayout.sensitivityIcon.setOnClickListener {
+        // Anpassung: autosens toggle icon für dynISF, disable autosens für openAPSSMB
+        if (openAPSSMBDynamicISFPlugin.isEnabled()) {
+            binding.infoLayout.sensitivityIcon.setOnClickListener {
+                if (sp.getBoolean(R.string.key_openapsama_useautosens, false) == true && constraintChecker.isAutosensModeEnabled().value()) {
+                    sp.putBoolean(R.string.key_openapsama_useautosens, false)
+                    binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
+                } else {
+                    sp.putBoolean(R.string.key_openapsama_useautosens, true)
+                    binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
+                }
+            }
+        } else {
             if (sp.getBoolean(R.string.key_openapsama_useautosens, false) == true && constraintChecker.isAutosensModeEnabled().value()) {
                 sp.putBoolean(R.string.key_openapsama_useautosens, false)
                 binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
-            } else {
-                sp.putBoolean(R.string.key_openapsama_useautosens, true)
-                binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
             }
         }
         // Ende Anpassung
