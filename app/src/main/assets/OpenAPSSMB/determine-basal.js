@@ -1146,13 +1146,18 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     if (enableSMB && minGuardBG < threshold) {
-        console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB");
+        console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB; ");
         //rT.reason += "minGuardBG "+minGuardBG+"<"+threshold+": SMB disabled; ";
         enableSMB = false;
     }
     if ( maxDelta > 0.20 * bg ) {
-        console.error("maxDelta",convert_bg(maxDelta, profile),"> 20% of BG",convert_bg(bg, profile),"- disabling SMB");
+        console.error("maxDelta",convert_bg(maxDelta, profile),"> 20% of BG",convert_bg(bg, profile),"- disabling SMB; ");
         rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > 20% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
+        enableSMB = false;
+    }
+    // Anpassung: Keine SMB unter 100 mg/dl
+    if(enableSMB && bg < 100) {
+        console.error("BG < 100 - disabling SMB; ");
         enableSMB = false;
     }
 
