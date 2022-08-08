@@ -199,7 +199,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if ( profile.half_basal_exercise_target ) {
         var halfBasalTarget = profile.half_basal_exercise_target;
     } else {
-        halfBasalTarget = 160; // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
+        halfBasalTarget = 180; // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%)
         // 80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
     }
 
@@ -207,13 +207,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     //**                   Start of Dynamic ISF code for predictions                 **
     //*********************************************************************************
 
-    console.error("---------------------------------------------------------");
-    console.error( " Dynamic ISF version Beta 1.6.5 ");
-    console.error("---------------------------------------------------------");
+    console.error("----------------------------------");
+    console.error("Dynamic ISF version Beta 1.6.5 mod ");
+    console.error("----------------------------------");
 
     var variable_sens = profile.variable_sens;
     var TDD = profile.TDD;
     var insulinDivisor = profile.insulinDivisor;
+    console.error("weighted TDD: "+round(TDD,1)+"; Insulin-Divisor: "+insulinDivisor+"; variable Sens: "+variable_sens+"; ")
 
     //*********************************************************************************
     //**                   End of Dynamic ISF code for predictions                   **
@@ -228,9 +229,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var c = halfBasalTarget - normalTarget;
         sensitivityRatio = c/(c+target_bg-normalTarget);
         // limit sensitivityRatio to profile.autosens_max (1.2x by default)
-        sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
+        //sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
+        // Anpassung: Exercise mode for sens
         console.log("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
+        variable_sens =  round(profile.variable_sens / sensitivityRatio,1);
+        console.log("ISF from "+profile.variable_sens+" to "+variable_sens+" due to temp target; ");
     } else if (typeof autosens_data !== 'undefined' && autosens_data) {
         sensitivityRatio = autosens_data.ratio;
         console.log("Autosens ratio: "+sensitivityRatio+"; ");
@@ -404,13 +408,14 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // min_bg of 90 -> threshold of 65, 100 -> 70 110 -> 75, and 130 -> 85, or if specified by user, take that value
+    // Anpassung
     var lgsThreshold = profile.lgsThreshold;
     var threshold = min_bg - 0.5*(min_bg-40);
     var oldThreshold = threshold;
-    if (lgsThreshold >= 65 && lgsThreshold <= 120 && lgsThreshold > threshold) {
-        threshold = lgsThreshold;
+    threshold = Math.max(threshold, lgsThreshold);
+    if( threshold === lgsThreshold ) {
+        console.log("Threshold set from " + convert_bg(oldThreshold, profile) + " to " + convert_bg(threshold, profile) + "; ")
     }
-    console.error("Threshold set from " + convert_bg(oldThreshold, profile) + " to " + convert_bg(threshold, profile) + "; ");
 
     //console.error(reservoir_data);
 
@@ -474,7 +479,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
     csf = sens / profile.carb_ratio;
-    console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",csf);
+    console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",round(csf,1));
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
     // limit Carb Impact to maxCarbAbsorptionRate * csf in mg/dL per 5m
@@ -713,7 +718,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     console.error("UAM Impact:",uci,"mg/dL per 5m; UAM Duration:",UAMduration,"hours");
 
-    console.log("EventualBG is" +eventualBG+" ;");
+    console.log("EventualBG: " +eventualBG+"; ");
 
     minIOBPredBG = Math.max(39,minIOBPredBG);
     minCOBPredBG = Math.max(39,minCOBPredBG);
@@ -725,21 +730,21 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
      if (bg > target_bg && glucose_status.delta < 3 && glucose_status.delta > -3 && glucose_status.short_avgdelta > -3 && glucose_status.short_avgdelta < 3 && eventualBG > target_bg && eventualBG < bg ) {
          var future_sens = ( 1800 / (Math.log((((fSensBG * 0.5) + (bg * 0.5))/insulinDivisor)+1)*TDD));
          //var future_sens_old = ( 277700 / (TDD * ((bg * 0.5) + (eventualBG * 0.5 ))));
-         console.log("Future state sensitivity is " +future_sens+" based on eventual and current bg due to flat glucose level above target");
-         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
+         console.log("Future state sensitivity is "+round(future_sens,1)+" based on eventual and current bg due to flat glucose level above target");
+         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual and current BG;";
      }
 
      else if( glucose_status.delta > 0 && eventualBG > target_bg || eventualBG > bg) {
          var future_sens = ( 1800 / (Math.log((bg/insulinDivisor)+1)*TDD));
          //var future_sens_old = ( 277700 / (TDD * bg));
-         console.log("Future state sensitivity is " +future_sens+" using current bg due to small delta or variation");
+         console.log("Future state sensitivity is "+round(future_sens,1)+" using current bg due to small delta or variation");
          rT.reason += "Dosing sensitivity: " +future_sens+" using current BG;";
          }
 
      else {
         var future_sens = ( 1800 / (Math.log((fSensBG/insulinDivisor)+1)*TDD));
         //var future_sens_old = ( 277700 / (TDD * eventualBG));
-        console.log("Future state sensitivity is " +future_sens+" based on eventual bg due to -ve delta");
+        console.log("Future state sensitivity is "+round(future_sens,1)+" based on eventual bg due to -ve delta");
         rT.reason += "Dosing sensitivity: " +future_sens+" using eventual BG;";
      }
      future_sens = round(future_sens,1);
@@ -899,6 +904,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > 20% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
         enableSMB = false;
     }
+    // Anpassung: Keine SMB unter 100 mg/dl
+    if(enableSMB && bg < 100) {
+        console.error("BG < 100 - disabling SMB; ");
+        enableSMB = false;
+    }
 
     console.error("BG projected to remain above",convert_bg(min_bg, profile),"for",minutesAboveMinBG,"minutes");
     if ( minutesAboveThreshold < 240 || minutesAboveMinBG < 60 ) {
@@ -922,8 +932,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
-    if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
-        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
+    //if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
+    // Anpassung: verschärfte Bedingungen:
+    if (bg < threshold && iob_data.iob < -profile.current_basal && minDelta > 0 && minDelta > 2*expectedDelta) {
+        // rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
+        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal,2);
         rT.reason += " and minDelta " + convert_bg(minDelta, profile) + " > " + "expectedDelta " + convert_bg(expectedDelta, profile) + "; ";
     // predictive low glucose suspend mode: BG is / is projected to be < threshold
     } else if ( bg < threshold || minGuardBG < threshold ) {

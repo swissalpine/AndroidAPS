@@ -264,31 +264,31 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.mealData.put("lastBolusTime", mealData.lastBolusTime)
         this.mealData.put("lastCarbTime", mealData.lastCarbTime)
 
-        val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount
+        //val tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1))?.totalAmount //auskommentiert, da aufgrund der Anpassung nicht genutzt
         val tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7))?.totalAmount
         val tddLast24H = tddCalculator.calculateDaily(-24, 0).totalAmount
         val tddLast4H = tddCalculator.calculateDaily(-4, 0).totalAmount
         val tddLast8to4H = tddCalculator.calculateDaily(-8, -4).totalAmount
 
-        val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3
-//        console.error("Rolling 8 hours weight average: " + tdd_last8_wt + "; ");
-//        console.error("1-day average TDD is: " + tdd1 + "; ");
-//        console.error("7-day average TDD is: " + tdd7 + "; ");
-
+        // Anpassung
+/*  auskommentiert
+        val tddWeightedFromLast8H = ((1.4 * tddLast4H) + (0.6 * tddLast8to4H)) * 3 // auskommentiert
         var tdd =
             if (tdd1D != null && tdd7D != null) (tddWeightedFromLast8H * 0.33) + (tdd7D * 0.34) + (tdd1D * 0.33)
             else tddWeightedFromLast8H
-//        console.log("TDD = " + TDD + " using average of 7-day, 1-day and weighted 8hr average");
-
-//        console.log("Insulin Peak = " + insulin.peak + "; ");
+*/
+        val tddWeightedLast24H = ( 0.35 * tddLast4H * 6 ) + ( 0.25 * tddLast8to4H * 6 ) + ( 0.4 * (tddLast24H-tddLast4H-tddLast8to4H) * 1.5 )
+        var tdd =
+            if (tddWeightedLast24H != null && tdd7D != null) (tddWeightedLast24H * 0.6 + tdd7D * 0.4)
+            else tddLast24H
+        // Anpassung Ende
 
         val insulin = activePlugin.activeInsulin
         val insulinDivisor = when {
-            insulin.peak > 65 -> 55 // lyumjev peak: 45
+            insulin.peak > 65 -> 55 // rapid peak: 75
             insulin.peak > 50 -> 65 // ultra rapid peak: 55
-            else              -> 75 // rapid peak: 75
+            else              -> 75 // lyumjev peak: 45
         }
-//        console.log("For " + insulin.friendlyName + " (insulin peak: " + insulin.peak + ") insulin divisor is: " + ins_val + "; ");
 
         val dynISFadjust = SafeParse.stringToDouble(sp.getString(R.string.key_DynISFAdjust, "100")) / 100.0
         tdd *= dynISFadjust
