@@ -494,8 +494,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         var c = halfBasalTarget - normalTarget;
         sensitivityRatio = c/(c+target_bg-normalTarget);
         // limit sensitivityRatio to profile.autosens_max (1.2x by default)
-        // Anpassung: auskommentiert
-        // sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
+        // Anpassung: Keine Beschränkung des exercise modes
+        //sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
         console.log("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
 
