@@ -755,7 +755,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // use autosens-adjusted sens to counteract autosens meal insulin dosing adjustments so that
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
-    csf = sens / profile.carb_ratio;
+    var csf = sens / profile.carb_ratio;
     console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",csf);
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
@@ -767,7 +767,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     var remainingCATimeMin = 3; // h; duration of expected not-yet-observed carb absorption
     // adjust remainingCATime (instead of CR) for autosens if sensitivityRatio defined
-    if (sensitivityRatio){
+    if (sensitivityRatio) {
         remainingCATimeMin = remainingCATimeMin / sensitivityRatio;
     }
     // 20 g/h means that anything <= 60g will get a remainingCATimeMin, 80g will get 4h, and 120g 6h
