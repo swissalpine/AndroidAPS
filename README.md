@@ -21,7 +21,9 @@ realise some changes which are very important for me:
 * dynISF with adjusted, extrapolated TDD based on the weighted last 24 hours and some safety restrictions
 * LGS threshold (65-120 mg/dl; Preferences > Treatments safety)
 * Layout corrections for small devices like Jelly
-* Integration of autoISF (Quick guide: https://github.com/ga-zelle/autoISF/tree/A3.1.0.2_ai2.2.7), modified for the use of exercise mode
+* Integration of autoISF (Quick guide: https://github.com/ga-zelle/autoISF/tree/A3.1.0.2_ai2.2.7)
+- modified for the use of exercise mode
+- another modification is that every odd target (normal target AND tt) disables smb
 
 [![Support Server](https://img.shields.io/discord/629952586895851530.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/4fQUWHZ4Mw)
 
