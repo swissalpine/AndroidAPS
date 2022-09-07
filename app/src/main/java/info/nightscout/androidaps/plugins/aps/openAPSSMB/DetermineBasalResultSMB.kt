@@ -46,11 +46,11 @@ class DetermineBasalResultSMB private constructor(injector: HasAndroidInjector) 
                 // Activate a small TBR
                 if (sp.getBoolean(R.string.key_keto_protect, false) && sp.getBoolean(R.string.key_variable_keto_protect_strategy, true) && bolusIob.iob + basalIob.basaliob < 0 - baseBasalRate && -(bolusIob.activity + basalIob.activity) > 0) {
                     // Variable strategy
-                    val cutoff: Double = baseBasalRate * (sp.getDouble(R.string.keto_protect_basal, 20.0) * 0.01)
+                    val cutoff: Double = baseBasalRate * (sp.getDouble(R.string.key_keto_protect_basal, 20.0) * 0.01)
                     if (rate < cutoff) rate = cutoff
                 } else if (sp.getBoolean(R.string.key_keto_protect, false) && !sp.getBoolean(R.string.key_variable_keto_protect_strategy, true)) {
                     // Continuous strategy
-                    val cutoff: Double = baseBasalRate * (sp.getDouble(R.string.keto_protect_basal, 20.0) * 0.01)
+                    val cutoff: Double = baseBasalRate * (sp.getDouble(R.string.key_keto_protect_basal, 20.0) * 0.01)
                     if (rate < cutoff) rate = cutoff
                 }
                 // End Ketoacidosis Protetion
