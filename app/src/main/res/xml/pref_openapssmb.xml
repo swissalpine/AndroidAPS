@@ -156,7 +156,7 @@
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="@string/half_basal_exercise_target_title"
-            validate:maxNumber="180"
+            validate:maxNumber="200"
             validate:minNumber="120"
             validate:testType="numericRange" />
 
