@@ -1146,9 +1146,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //rT.reason += "minGuardBG "+minGuardBG+"<"+threshold+": SMB disabled; ";
         enableSMB = false;
     }
-    if ( maxDelta > 0.20 * bg ) {
-        console.error("maxDelta",convert_bg(maxDelta, profile),"> 20% of BG",convert_bg(bg, profile),"- disabling SMB");
-        rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > 20% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
+    var maxDeltaPercentage = 0.2;                       // the AAPS default
+    if ( loop_wanted_smb == "enforced" ) {              // only if SMB specifically requested, e.g. for full loop
+        maxDeltaPercentage = 0.3;
+    }
+    if ( maxDelta > maxDeltaPercentage * bg ) {
+        console.error("maxDelta",convert_bg(maxDelta, profile)+" >", maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+"- disabling SMB");
+        rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > "+maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
         enableSMB = false;
     }
 
