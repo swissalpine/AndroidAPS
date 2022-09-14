@@ -198,15 +198,13 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         val insulinType = insulin.friendlyName
         val insulinPeak = insulin.peak
 
-        //mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
         this.profile.put("high_temptarget_raises_sensitivity", sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity))
-        //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
         this.profile.put("low_temptarget_lowers_sensitivity", sp.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity))
         this.profile.put("sensitivity_raises_target", sp.getBoolean(R.string.key_sensitivity_raises_target, SMBDefaults.sensitivity_raises_target))
         this.profile.put("resistance_lowers_target", sp.getBoolean(R.string.key_resistance_lowers_target, SMBDefaults.resistance_lowers_target))
         this.profile.put("adv_target_adjustments", SMBDefaults.adv_target_adjustments)
-        this.profile.put("exercise_mode", SMBDefaults.exercise_mode)
-        this.profile.put("half_basal_exercise_target", SMBDefaults.half_basal_exercise_target)
+        this.profile.put("exercise_mode", sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity))
+        this.profile.put("half_basal_exercise_target", sp.getInt(R.string.key_half_basal_exercise_target, SMBDefaults.half_basal_exercise_target))
         this.profile.put("maxCOB", SMBDefaults.maxCOB)
         this.profile.put("skip_neutral_temps", pump.setNeutralTempAtFullHour())
         // min_5m_carbimpact is not used within SMB determinebasal
