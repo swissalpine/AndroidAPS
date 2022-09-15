@@ -118,11 +118,18 @@ function loop_smb(profile, iob_data) {
         //profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
         if ( target % 2 == 1 ) {                // odd number
             // console.error("SMB disabled by even/odd TT logic: odd TT");
-            console.error("SMB disabled by even/odd target logic: odd target");
+            if (profile.temptargetSet) {
+                console.error("SMB disabled by even/odd target logic: odd TempTarget");
+            } else {
+                console.error("SMB disabled by even/odd target logic: odd ProfileTarget");
+            }
             return "blocked";
         } else {
-            // console.error("SMB enabled by even/odd TT logic: even TT");
-            console.error("SMB enabled by even/odd target logic: even target");
+            if (profile.temptargetSet) {
+                console.error("SMB enabled by even/odd target logic: even TempTarget");
+            } else {
+                console.error("SMB enabled by even/odd target logic: even ProfileTarget");
+            }
             return "enforced";                  // even number
         }
     }
