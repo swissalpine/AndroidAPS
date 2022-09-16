@@ -203,13 +203,16 @@ function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityR
     if ( liftISF >= 1 )            { final_ISF = Math.max(liftISF, sensitivityRatio); }
     if ( liftISF <  1 )            { final_ISF = Math.min(liftISF, sensitivityRatio); }
     console.error("final ISF factor is", round(final_ISF,2));
+    console.error("-- end autoISF -----------------------------")
     return final_ISF;
 }
 
 function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio)
 {   // #### mod 7e: added switch for autoISF ON/OFF
+    console.error("-- start autoISF, version 2.2.7 ------------")
     if ( !profile.enable_autoISF ) {
         console.error("autoISF disabled in Preferences");
+        console.error("-- end autoISF ----------------------------")
         return sens;
     }
     // #### mod  7:  dynamic ISF strengthening based on duration and width of +/-5% BG band
@@ -366,6 +369,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //if ( liftISF <  1 ) { return round(profile.sens / Math.min(liftISF, sensitivityRatio), 1); }
         return round(profile.sens / final_ISF, 1);
     }
+    console.error("-- end autoISF ----------------------------")
     return sens;                                                                                                // mod V14j: nothing changed
 }
 
