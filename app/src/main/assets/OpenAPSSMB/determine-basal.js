@@ -242,9 +242,13 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    console.error("Parabolic fit saw minimum of", minmax_value, "about", -minmax_delta, "minutes ago");
         //} else if (minmax_delta>0 && bg_acce<0) {
         if (minmax_delta>0 && bg_acce<0) {
-            console.error("Parabolic fit extrapolates a maximum of", minmax_value, "in about", minmax_delta, "minutes");
+            console.error("Parabolic fit extrapolates a maximum of", convert_bg(minmax_value,profile), "in about", minmax_delta, "minutes");
         } else if (minmax_delta>0 && bg_acce>0) {
-            console.error("Parabolic fit extrapolates a minimum of", minmax_value, "in about", minmax_delta, "minutes");
+            console.error("Parabolic fit extrapolates a minimum of", convert_bg(minmax_value,profile), "in about", minmax_delta, "minutes");
+        } else if (minmax_delta<0 && bg_acce<0) {
+            console.error("Parabolic fit saw a maximum of", convert_bg(minmax_value,profile), "about", minmax_delta, "minutes ago");
+        } else if (minmax_delta<0 && bg_acce>0) {
+            console.error("Parabolic fit saw a minimum of", convert_bg(minmax_value,profile), "about", minmax_delta, "minutes ago");
         }
     }
     if ( fit_corr<0.9 ) {
