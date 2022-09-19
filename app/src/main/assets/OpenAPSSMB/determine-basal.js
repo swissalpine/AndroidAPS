@@ -236,11 +236,6 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         var minmax_delta = - glucose_status.parabola_fit_a1/2/glucose_status.parabola_fit_a2 * 5;       // back from 5min block to 1 min
         var minmax_value = round(glucose_status.parabola_fit_a0 - minmax_delta*minmax_delta/25*glucose_status.parabola_fit_a2, 1);
         minmax_delta = round(minmax_delta, 1)
-        //if (minmax_delta<0 && bg_acce<0) {
-        //    console.error("Parabolic fit saw maximum of", minmax_value, "about", -minmax_delta, "minutes ago");
-        //} else if (minmax_delta<0 && bg_acce>0) {
-        //    console.error("Parabolic fit saw minimum of", minmax_value, "about", -minmax_delta, "minutes ago");
-        //} else if (minmax_delta>0 && bg_acce<0) {
         if (minmax_delta>0 && bg_acce<0) {
             console.error("Parabolic fit extrapolates a maximum of", convert_bg(minmax_value,profile), "in about", minmax_delta, "minutes");
         } else if (minmax_delta>0 && bg_acce>0) {
