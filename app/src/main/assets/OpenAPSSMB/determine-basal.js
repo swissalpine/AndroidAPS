@@ -193,10 +193,10 @@ function interpolate(xdata, profile) //, polygon)
 function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio)
 {   // extracted 17.Mar.2022
     if ( liftISF < minISFReduction ) {                                                                         // mod V14j
-        console.error("weakest ISF factor", round(liftISF,2), "limited by autoisf_min", minISFReduction);      // mod V14j
+        console.error("weakest ISF factor", round(liftISF,2), "limited by autoISF_min", minISFReduction);      // mod V14j
         liftISF = minISFReduction;                                                                             // mod V14j
     } else if ( liftISF > maxISFReduction ) {                                                                  // mod V14j
-        console.error("strongest ISF factor", round(liftISF,2), "limited by autoisf_max", maxISFReduction);    // mod V14j
+        console.error("strongest ISF factor", round(liftISF,2), "limited by autoISF_max", maxISFReduction);    // mod V14j
         liftISF = maxISFReduction;                                                                             // mod V14j
     }
     var final_ISF = 1;
