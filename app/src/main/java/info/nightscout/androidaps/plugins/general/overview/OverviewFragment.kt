@@ -161,7 +161,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Anpassung exercise mode toggle icon
+        // Mod exercise mode toggle icon
         if ( sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
             binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
         } else {
@@ -176,7 +176,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true)
             }
         }
-        // Ende Anpassung
+        // Mod end
         // Anpassung: autosens toggle icon für dynISF, disable autosens für openAPSSMB
         if (openAPSSMBDynamicISFPlugin.isEnabled()) {
             binding.infoLayout.sensitivityIcon.setOnClickListener {

@@ -111,13 +111,10 @@ function enable_smb(
 }
 
 function loop_smb(profile, iob_data) {
-    // Anpassung: Ungerades Target / gerades Target (nicht tempTarget)
-    // if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff) {
     if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.enableSMB_EvenOn_OddOff_allTargets) {
         var target = profile.min_bg;
         //profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
         if ( target % 2 == 1 ) {                // odd number
-            // console.error("SMB disabled by even/odd TT logic: odd TT");
             if (profile.temptargetSet) {
                 console.error("SMB disabled by even/odd target logic: odd TempTarget");
             } else {
@@ -204,10 +201,10 @@ function interpolate(xdata, profile) //, polygon)
 function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio)
 {   // extracted 17.Mar.2022
     if ( liftISF < minISFReduction ) {                                                                         // mod V14j
-        console.error("weakest ISF factor", round(liftISF,2), "limited by autoisf_min", minISFReduction);      // mod V14j
+        console.error("weakest ISF factor", round(liftISF,2), "limited by autoISF_min", minISFReduction);      // mod V14j
         liftISF = minISFReduction;                                                                             // mod V14j
     } else if ( liftISF > maxISFReduction ) {                                                                  // mod V14j
-        console.error("strongest ISF factor", round(liftISF,2), "limited by autoisf_max", maxISFReduction);    // mod V14j
+        console.error("strongest ISF factor", round(liftISF,2), "limited by autoISF_max", maxISFReduction);    // mod V14j
         liftISF = maxISFReduction;                                                                             // mod V14j
     }
     var final_ISF = 1;
@@ -516,7 +513,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
         console.log("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
-
     } else if (typeof autosens_data !== 'undefined' && autosens_data) {
         sensitivityRatio = autosens_data.ratio;
         console.log("Autosens ratio: "+sensitivityRatio+"; ");
@@ -706,7 +702,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     threshold = round(threshold);
     //console.error(reservoir_data);
 
-    //Anpassung: Show new sens
     rT = {
         'temp': 'absolute'
         , 'bg': bg
@@ -773,7 +768,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // use autosens-adjusted sens to counteract autosens meal insulin dosing adjustments so that
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
-    var csf = sens / profile.carb_ratio;
+    csf = sens / profile.carb_ratio;
     console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",csf);
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
@@ -1168,9 +1163,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //rT.reason += "minGuardBG "+minGuardBG+"<"+threshold+": SMB disabled; ";
         enableSMB = false;
     }
-    if ( maxDelta > 0.20 * bg ) {
-        console.error("maxDelta",convert_bg(maxDelta, profile),"> 20% of BG",convert_bg(bg, profile),"- disabling SMB; ");
-        rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > 20% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
+    var maxDeltaPercentage = 0.2;                       // the AAPS default
+    if ( loop_wanted_smb == "enforced" ) {              // only if SMB specifically requested, e.g. for full loop
+        maxDeltaPercentage = 0.3;
+    }
+    if ( maxDelta > maxDeltaPercentage * bg ) {
+        console.error("maxDelta",convert_bg(maxDelta, profile)+" >", maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+"- disabling SMB");
+        rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > "+maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
         enableSMB = false;
     }
     // Anpassung: Keine SMB unter 100 mg/dl
