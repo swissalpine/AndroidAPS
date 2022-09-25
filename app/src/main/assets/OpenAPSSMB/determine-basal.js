@@ -111,7 +111,7 @@ function enable_smb(
 }
 
 function loop_smb(profile, iob_data) {
-    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.enableSMB_EvenOn_OddOff_allTargets) {
+    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.enableSMB_EvenOn_OddOff_always) {
         var target = profile.min_bg;
         //profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
         if ( target % 2 == 1 ) {                // odd number
