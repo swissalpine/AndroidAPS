@@ -722,26 +722,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                         binding.infoLayout.apsModeText.visibility = View.GONE
                     }
                 }
-                // Show variable sensitivity
-                val request = loop.lastRun?.request
-                if (request is DetermineBasalResultSMB) {
-                    val isfMgdl = profile?.getIsfMgdl()
-                    val variableSens = request.variableSens
-                    if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
-                        binding.infoLayout.variableSensitivity.text =
-                            String.format(
-                                // Anpassung (%1$.1f→%2$.1f) ##############################################
-                                Locale.getDefault(), "%1$.0f→%2$.0f",
-                                // Anpassung Ende #########################################################
-                                Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
-                                Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
-                            )
-                        binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
-                        // Anpassung Ausblenden des autosens Wertes ########################################
-                        binding.infoLayout.sensitivity.visibility = View.GONE
-                        // Anpassung Ende ##################################################################
-                    } else binding.infoLayout.variableSensitivity.visibility = View.GONE
-                } else binding.infoLayout.variableSensitivity.visibility = View.GONE
             } else {
                 //nsclient
                 binding.infoLayout.apsMode.visibility = View.GONE
@@ -1156,11 +1136,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             binding.infoLayout.variableSensitivity.text =
                 String.format(
-                    Locale.getDefault(), "%1$.1f→%2$.1f",
+                    // Anpassung (%1$.1f→%2$.1f) ##############################################
+                    Locale.getDefault(), "%1$.0f→%2$.0f",
+                    // Anpassung Ende #########################################################
                     Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
                     Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
                 )
             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+            // Anpassung Ausblenden des autosens Wertes ########################################
+            binding.infoLayout.sensitivity.visibility = View.GONE
+            // Anpassung Ende ##################################################################
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 
