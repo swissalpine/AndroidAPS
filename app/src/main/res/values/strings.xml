@@ -821,9 +821,9 @@
     <string name="enableSMB_EvenOn_OddOff">Enable alternative activation of SMB depending on TempTarget</string>
     <string name="key_enableSMB_EvenOn_OddOff" translatable="false">Enable alternative activation of SMB</string>
     <string name="enableSMB_EvenOn_OddOff_summary">ON if TempTarget is even number\nOFF if TempTarget is odd number</string>
-    <string name="enableSMB_EvenOn_OddOff_allTargets">Enable alternative activation of SMB allways</string>
-    <string name="key_enableSMB_EvenOn_OddOff_allTargets" translatable="false">Enable alternative activation of SMB allways</string>
-    <string name="enableSMB_EvenOn_OddOff_allTargets_summary">ON if Target or TempTarget is even number\nOFF if Target or TempTarget is odd number</string>
+    <string name="enableSMB_EvenOn_OddOff_always">Enable alternative activation of SMB allways</string>
+    <string name="key_enableSMB_EvenOn_OddOff_always" translatable="false">Enable alternative activation of SMB always</string>
+    <string name="enableSMB_EvenOn_OddOff_always_summary">ON if Target or TempTarget is even number\nOFF if Target or TempTarget is odd number</string>
     <string name="openapsama_bolussnooze_dia_divisor">Bolus snooze dia divisor</string>
     <string name="openapsama_max_daily_safety_multiplier">Max daily safety multiplier</string>
     <string name="openapsama_current_basal_safety_multiplier">Current basal safety multiplier</string>

@@ -111,12 +111,10 @@ function enable_smb(
 }
 
 function loop_smb(profile, iob_data) {
-    // if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff) {
-    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.enableSMB_EvenOn_OddOff_allTargets) {
+    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.enableSMB_EvenOn_OddOff_always) {
         var target = profile.min_bg;
         //profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
         if ( target % 2 == 1 ) {                // odd number
-            // console.error("SMB disabled by even/odd TT logic: odd TT");
             if (profile.temptargetSet) {
                 console.error("SMB disabled by even/odd target logic: odd TempTarget");
             } else {
@@ -203,10 +201,10 @@ function interpolate(xdata, profile) //, polygon)
 function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio)
 {   // extracted 17.Mar.2022
     if ( liftISF < minISFReduction ) {                                                                         // mod V14j
-        console.error("weakest ISF factor", round(liftISF,2), "limited by autoisf_min", minISFReduction);      // mod V14j
+        console.error("weakest ISF factor", round(liftISF,2), "limited by autoISF_min", minISFReduction);      // mod V14j
         liftISF = minISFReduction;                                                                             // mod V14j
     } else if ( liftISF > maxISFReduction ) {                                                                  // mod V14j
-        console.error("strongest ISF factor", round(liftISF,2), "limited by autoisf_max", maxISFReduction);    // mod V14j
+        console.error("strongest ISF factor", round(liftISF,2), "limited by autoISF_max", maxISFReduction);    // mod V14j
         liftISF = maxISFReduction;                                                                             // mod V14j
     }
     var final_ISF = 1;
@@ -305,7 +303,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    console.error("bg_ISF adaptation", round(bg_ISF,2), "limited by autoisf_max", maxISFReduction);     // mod V14j
         //    bg_ISF = maxISFReduction;                                                                           // mod V14j
         //}                                                                                                       // mod V14j
-        return Math.min(720, round(profile.sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
+        return Math.min(720, round(sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
     }
@@ -374,7 +372,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //}                                                                                                       // mod V14j
         //if ( liftISF >= 1 ) { return round(profile.sens / Math.max(liftISF, sensitivityRatio), 1); }
         //if ( liftISF <  1 ) { return round(profile.sens / Math.min(liftISF, sensitivityRatio), 1); }
-        return round(profile.sens / final_ISF, 1);
+        return round(sens / final_ISF, 1);
     }
     return sens;                                                                                                // mod V14j: nothing changed
 }
@@ -714,6 +712,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         , 'reservoir' : reservoir_data // The expected reservoir volume at which to deliver the microbolus (the reservoir volume from right before the last pumphistory run)
         , 'deliverAt' : deliverAt // The time at which the microbolus should be delivered
         , 'sensitivityRatio' : sensitivityRatio // autosens ratio (fraction of normal basal)
+        , 'variable_sens' : sens // Anpassung: Zeile eingefügt
     };
 
     // generate predicted future BGs based on IOB, COB, and current absorption rate
@@ -781,7 +780,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     var remainingCATimeMin = 3; // h; duration of expected not-yet-observed carb absorption
     // adjust remainingCATime (instead of CR) for autosens if sensitivityRatio defined
-    if (sensitivityRatio){
+    if (sensitivityRatio) {
         remainingCATimeMin = remainingCATimeMin / sensitivityRatio;
     }
     // 20 g/h means that anything <= 60g will get a remainingCATimeMin, 80g will get 4h, and 120g 6h
@@ -1160,7 +1159,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     if (enableSMB && minGuardBG < threshold) {
-        console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB");
+        console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB; ");
         //rT.reason += "minGuardBG "+minGuardBG+"<"+threshold+": SMB disabled; ";
         enableSMB = false;
     }
@@ -1171,6 +1170,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     if ( maxDelta > maxDeltaPercentage * bg ) {
         console.error("maxDelta",convert_bg(maxDelta, profile)+" >", maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+"- disabling SMB");
         rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > "+maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
+        enableSMB = false;
+    }
+    // Anpassung: Keine SMB unter 100 mg/dl
+    if(enableSMB && bg < 100) {
+        console.error("BG < 100 - disabling SMB; ");
         enableSMB = false;
     }
 
@@ -1196,8 +1200,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
-    if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
-        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
+    //if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
+    // Anpassung: verschärfte Bedingungen:
+    if (bg < threshold && iob_data.iob < -profile.current_basal && minDelta > 0 && minDelta > 2*expectedDelta) {
+        // rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
+        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal,2);
         rT.reason += " and minDelta " + convert_bg(minDelta, profile) + " > " + "expectedDelta " + convert_bg(expectedDelta, profile) + "; ";
     // predictive low glucose suspend mode: BG is / is projected to be < threshold
     } else if ( bg < threshold || minGuardBG < threshold ) {
