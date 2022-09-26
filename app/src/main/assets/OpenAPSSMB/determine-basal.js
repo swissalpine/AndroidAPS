@@ -712,7 +712,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         , 'reservoir' : reservoir_data // The expected reservoir volume at which to deliver the microbolus (the reservoir volume from right before the last pumphistory run)
         , 'deliverAt' : deliverAt // The time at which the microbolus should be delivered
         , 'sensitivityRatio' : sensitivityRatio // autosens ratio (fraction of normal basal)
-        , 'variable_sens' : sens // Anpassung: Zeile eingefügt
     };
 
     // generate predicted future BGs based on IOB, COB, and current absorption rate
@@ -1172,11 +1171,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > "+maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
         enableSMB = false;
     }
-    // Anpassung: Keine SMB unter 100 mg/dl
-    if(enableSMB && bg < 100) {
-        console.error("BG < 100 - disabling SMB; ");
-        enableSMB = false;
-    }
 
     console.error("BG projected to remain above",convert_bg(min_bg, profile),"for",minutesAboveMinBG,"minutes");
     if ( minutesAboveThreshold < 240 || minutesAboveMinBG < 60 ) {
@@ -1200,11 +1194,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
-    //if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
-    // Anpassung: verschärfte Bedingungen:
-    if (bg < threshold && iob_data.iob < -profile.current_basal && minDelta > 0 && minDelta > 2*expectedDelta) {
-        // rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
-        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal,2);
+    if (bg < threshold && iob_data.iob < -profile.current_basal*20/60 && minDelta > 0 && minDelta > expectedDelta) {
+        rT.reason += "IOB "+iob_data.iob+" < " + round(-profile.current_basal*20/60,2);
         rT.reason += " and minDelta " + convert_bg(minDelta, profile) + " > " + "expectedDelta " + convert_bg(expectedDelta, profile) + "; ";
     // predictive low glucose suspend mode: BG is / is projected to be < threshold
     } else if ( bg < threshold || minGuardBG < threshold ) {
