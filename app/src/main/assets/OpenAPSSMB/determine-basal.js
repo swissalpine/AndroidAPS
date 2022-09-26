@@ -303,7 +303,8 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    console.error("bg_ISF adaptation", round(bg_ISF,2), "limited by autoisf_max", maxISFReduction);     // mod V14j
         //    bg_ISF = maxISFReduction;                                                                           // mod V14j
         //}                                                                                                       // mod V14j
-        return Math.min(720, round(sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
+        return Math.min(720, round(profile.sens / final_ISF, 1));
+                // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
     }
@@ -372,7 +373,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //}                                                                                                       // mod V14j
         //if ( liftISF >= 1 ) { return round(profile.sens / Math.max(liftISF, sensitivityRatio), 1); }
         //if ( liftISF <  1 ) { return round(profile.sens / Math.min(liftISF, sensitivityRatio), 1); }
-        return round(sens / final_ISF, 1);
+        return round(profile.sens / final_ISF, 1);
     }
     return sens;                                                                                                // mod V14j: nothing changed
 }
@@ -500,15 +501,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
         //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
         var c = halfBasalTarget - normalTarget;
-        // getting multiplication less or equal to 0 means that we have a really low target with a really low halfBasalTarget
-        // with low TT and lowTTlowersSensitivity we need autosens_max as a value
-        // we use multiplication instead of the division to avoid "division by zero error"
-        if (c * (c + target_bg-normalTarget) <= 0.0) {
-          sensitivityRatio = profile.autosens_max;
-        }
-        else {
-          sensitivityRatio = c/(c+target_bg-normalTarget);
-        }
+        sensitivityRatio = c/(c+target_bg-normalTarget);
         // limit sensitivityRatio to profile.autosens_max (1.2x by default)
         sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
