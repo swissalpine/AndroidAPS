@@ -505,6 +505,12 @@
                     android:summary="@string/enableSMB_EvenOn_OddOff_summary"
                     android:title="@string/enableSMB_EvenOn_OddOff" />
 
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="@string/key_enableSMB_EvenOn_OddOff_always"
+                    android:summary="@string/enableSMB_EvenOn_OddOff_always_summary"
+                    android:title="@string/enableSMB_EvenOn_OddOff_always" />
+
             </androidx.preference.PreferenceScreen>
 
         </androidx.preference.PreferenceScreen>

@@ -111,14 +111,22 @@ function enable_smb(
 }
 
 function loop_smb(profile, iob_data) {
-    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff) {
+    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.enableSMB_EvenOn_OddOff_always) {
         var target = profile.min_bg;
         //profile.iob_threshold_percent=101;      // effectively disabled; later make it variable
         if ( target % 2 == 1 ) {                // odd number
-            console.error("SMB disabled by even/odd TT logic: odd TT");
+            if (profile.temptargetSet) {
+                console.error("SMB disabled by even/odd target logic: odd TempTarget");
+            } else {
+                console.error("SMB disabled by even/odd target logic: odd ProfileTarget");
+            }
             return "blocked";
         } else {
-            console.error("SMB enabled by even/odd TT logic: even TT");
+            if (profile.temptargetSet) {
+                console.error("SMB enabled by even/odd target logic: even TempTarget");
+            } else {
+                console.error("SMB enabled by even/odd target logic: even ProfileTarget");
+            }
             return "enforced";                  // even number
         }
     }
@@ -297,7 +305,8 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    console.error("bg_ISF adaptation", round(bg_ISF,2), "limited by autoisf_max", maxISFReduction);     // mod V14j
         //    bg_ISF = maxISFReduction;                                                                           // mod V14j
         //}                                                                                                       // mod V14j
-        return Math.min(720, round(profile.sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
+        return Math.min(720, round(profile.sens / final_ISF, 1));
+                // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
     }
@@ -495,15 +504,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
         //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
         var c = halfBasalTarget - normalTarget;
-        // getting multiplication less or equal to 0 means that we have a really low target with a really low halfBasalTarget
-        // with low TT and lowTTlowersSensitivity we need autosens_max as a value
-        // we use multiplication instead of the division to avoid "division by zero error"
-        if (c * (c + target_bg-normalTarget) <= 0.0) {
-          sensitivityRatio = profile.autosens_max;
-        }
-        else {
-          sensitivityRatio = c/(c+target_bg-normalTarget);
-        }
+        sensitivityRatio = c/(c+target_bg-normalTarget);
         // limit sensitivityRatio to profile.autosens_max (1.2x by default)
         sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
@@ -774,7 +775,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
     var remainingCATimeMin = 3; // h; duration of expected not-yet-observed carb absorption
     // adjust remainingCATime (instead of CR) for autosens if sensitivityRatio defined
-    if (sensitivityRatio){
+    if (sensitivityRatio) {
         remainingCATimeMin = remainingCATimeMin / sensitivityRatio;
     }
     // 20 g/h means that anything <= 60g will get a remainingCATimeMin, 80g will get 4h, and 120g 6h
@@ -1153,7 +1154,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     if (enableSMB && minGuardBG < threshold) {
-        console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB");
+        console.error("minGuardBG",convert_bg(minGuardBG, profile),"projected below", convert_bg(threshold, profile) ,"- disabling SMB; ");
         //rT.reason += "minGuardBG "+minGuardBG+"<"+threshold+": SMB disabled; ";
         enableSMB = false;
     }
