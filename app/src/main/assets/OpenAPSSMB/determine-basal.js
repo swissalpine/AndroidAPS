@@ -210,17 +210,17 @@ function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityR
     var final_ISF = 1;
     if ( liftISF >= 1 )            { final_ISF = Math.max(liftISF, sensitivityRatio); }
     if ( liftISF <  1 )            { final_ISF = Math.min(liftISF, sensitivityRatio); }
-    console.error("final ISF factor is", round(final_ISF,2));
-    console.error("-- end autoISF -------------------")
+    console.error("final ISF factor:", round(final_ISF,2));
     return final_ISF;
 }
 
 function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio)
 {   // #### mod 7e: added switch for autoISF ON/OFF
-    console.error("-- start autoISF, version 2.2.7 --")
+    console.error("----------------------------------");
+    console.error("start autoISF v2.2.7");
+    console.error("----------------------------------");
     if ( !profile.enable_autoISF ) {
         console.error("autoISF disabled in Preferences");
-        console.error("-- end autoISF -----------------")
         return sens;
     }
     // #### mod  7:  dynamic ISF strengthening based on duration and width of +/-5% BG band
@@ -258,7 +258,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         }
     }
     if ( fit_corr<0.9 ) {
-        console.error("acce_ISF adaptation by-passed as correlation", round(fit_corr,3), "is too low");
+        console.error("acce_ISF: by-passed as correlation", round(fit_corr,3), "is too low");
     } else {
         var fit_share = 10*(fit_corr-0.9);                              // 0 at correlation 0.9, 1 at 1.00
         var cap_weight = 1;                                             // full contribution above target
@@ -280,7 +280,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
             }
         }
         acce_ISF = 1 + bg_acce * cap_weight * acce_weight * fit_share;
-        console.error("acce_ISF adaptation is", round(acce_ISF,2));
+        console.error("acce_ISF:", round(acce_ISF,2));
         if ( acce_ISF != 1 ) {
            sens_modified = true;
         }
@@ -288,14 +288,14 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
     // end of mod V14j code block
 
     var bg_ISF = 1 + interpolate(100-bg_off, profile);
-    console.error("bg_ISF adaptation is", round(bg_ISF,2));
+    console.error("bg_ISF:", round(bg_ISF,2));
     var liftISF = 1;
     var final_ISF = 1;
     if (bg_ISF<1) {
         liftISF = Math.min(bg_ISF, acce_ISF);
         if ( acce_ISF>1 ) {                                                                                 // mod V14j
              liftISF = bg_ISF * acce_ISF;                                                                   // mod V14j:  bg_ISF could become > 1 now
-             console.error("bg_ISF adaptation lifted to", round(liftISF,2), "as bg accelerates already");   // mod V14j
+             console.error("bg_ISF lifted to", round(liftISF,2), "as bg accelerates already");   // mod V14j
         }                                                                                                   // mod V14j
         final_ISF = withinISFlimits(liftISF, profile.autoISF_min, maxISFReduction, sensitivityRatio);
         //if ( liftISF < profile.autoisf_min ) {                                                                  // mod V14j
@@ -318,12 +318,12 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         deltaType = 'delta'
     }
     if (bg_off > 0) {
-        console.error(deltaType+"_ISF adaptation by-passed as average glucose < "+target_bg+"+10");
+        console.error(deltaType+"_ISF by-passed as average glucose < "+target_bg+"+10");
     } else if (glucose_status.short_avgdelta<0) {
-        console.error(deltaType+"_ISF adaptation by-passed as no rise or too short lived");
+        console.error(deltaType+"_ISF by-passed as no rise or too short lived");
     } else if (deltaType == 'pp') {
         pp_ISF = 1 + Math.max(0, bg_delta * profile.pp_ISF_weight);
-        console.error("pp_ISF adaptation is", round(pp_ISF,2));
+        console.error("pp_ISF:", round(pp_ISF,2));
         if (pp_ISF != 1) {
             sens_modified = true;
         }
@@ -335,7 +335,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
             delta_ISF = 0.5 * delta_ISF;
         }
         delta_ISF = 1 + delta_ISF;
-        console.error("delta_ISF adaptation is", round(delta_ISF,2));
+        console.error("delta_ISF:", round(delta_ISF,2));
 
         if (delta_ISF != 1) {
             sens_modified = true;
@@ -356,7 +356,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         var avg05_weight = weightISF / target_bg;                                       // mod gz7b: provide access from AAPS
         dura_ISF += dura05_weight*avg05_weight*(avg05-target_bg);
         sens_modified = true;
-        console.error("dura_ISF adaptation is", round(dura_ISF,2), "because ISF", round(sens,1), "did not do it for", round(dura05,1),"m");
+        console.error("dura_ISF:", round(dura_ISF,2), "because ISF", round(sens,1), "did not do it for", round(dura05,1),"m");
     }
     if ( sens_modified ) {
         liftISF = Math.max(dura_ISF, bg_ISF, delta_ISF, acce_ISF, pp_ISF);
@@ -377,7 +377,6 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //if ( liftISF <  1 ) { return round(profile.sens / Math.min(liftISF, sensitivityRatio), 1); }
         return round(sens / final_ISF, 1);
     }
-    console.error("-- end autoISF ------------------")
     return sens;                                                                                                // mod V14j: nothing changed
 }
 
@@ -591,8 +590,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         }
         //console.log(" (autosens ratio "+sensitivityRatio+")");
     }
-    console.error("CR:",profile.carb_ratio);
-    sens = autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio);
+    console.error("CR:",round(profile.carb_ratio,2));
+    //sens = autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio);
     // compare currenttemp to iob_data.lastTemp and cancel temp if they don't match
     var lastTempAge;
     if (typeof iob_data.lastTemp !== 'undefined' ) {
@@ -630,6 +629,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //}
     }
 
+    sens = autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio);
     //calculate BG impact: the amount BG "should" be rising or falling based on insulin activity alone
     var bgi = round(( -iob_data.activity * sens * 5 ), 2);
     // project deviations for 30 minutes
@@ -773,7 +773,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // autotuned CR is still in effect even when basals and ISF are being adjusted by TT or autosens
     // this avoids overdosing insulin for large meals when low temp targets are active
     csf = sens / profile.carb_ratio;
-    console.error("profile.sens:",profile.sens,"sens:",sens,"CSF:",csf);
+    console.error("profile.sens:",round(profile.sens,1));
+    console.error("sens:",sens,"; CSF:",round(csf,2));
+    console.error("----------------------------------");
+    console.error("end autoISF");
+    console.error("----------------------------------");
 
     var maxCarbAbsorptionRate = 30; // g/h; maximum rate to assume carbs will absorb if no CI observed
     // limit Carb Impact to maxCarbAbsorptionRate * csf in mg/dL per 5m
@@ -1099,12 +1103,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     console.log("minPredBG: "+minPredBG+" minIOBPredBG: "+minIOBPredBG+" minZTGuardBG: "+minZTGuardBG);
     if (minCOBPredBG < 999) {
-        console.log(" minCOBPredBG: "+minCOBPredBG);
+        console.log("minCOBPredBG: "+minCOBPredBG);
     }
     if (minUAMPredBG < 999) {
-        console.log(" minUAMPredBG: "+minUAMPredBG);
+        console.log("minUAMPredBG: "+minUAMPredBG);
     }
-    console.error(" avgPredBG:",avgPredBG,"COB:",meal_data.mealCOB,"/",meal_data.carbs);
+    console.error("avgPredBG:",avgPredBG,"COB:",meal_data.mealCOB,"/",meal_data.carbs);
     // But if the COB line falls off a cliff, don't trust UAM too much:
     // use maxCOBPredBG if it's been set and lower than minPredBG
     if ( maxCOBPredBG > bg ) {
