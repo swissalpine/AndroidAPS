@@ -13,6 +13,7 @@ import android.os.HandlerThread
 import android.view.View
 import android.widget.RemoteViews
 import dagger.android.HasAndroidInjector
+import info.nightscout.androidaps.Constants
 import info.nightscout.androidaps.data.ProfileSealed
 import info.nightscout.androidaps.extensions.directionToIcon
 import info.nightscout.androidaps.extensions.valueToUnitsString

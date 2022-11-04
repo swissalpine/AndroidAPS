@@ -8,9 +8,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.common.base.Joiner
+import info.nightscout.androidaps.data.DetailedBolusInfo
+import info.nightscout.androidaps.data.PumpEnactResult
+import info.nightscout.androidaps.database.AppRepository
+import info.nightscout.androidaps.database.entities.TemporaryTarget
+import info.nightscout.androidaps.database.entities.UserEntry
+import info.nightscout.androidaps.database.entities.UserEntry.Action
+import info.nightscout.androidaps.database.entities.UserEntry.Sources
+import info.nightscout.androidaps.database.entities.ValueWithUnit
+import info.nightscout.androidaps.database.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import info.nightscout.androidaps.dialogs.DialogFragmentWithDate
+import info.nightscout.androidaps.events.EventRefreshOverview
 import info.nightscout.androidaps.extensions.formatColor
+import info.nightscout.androidaps.extensions.rawOrSmoothed
+import info.nightscout.androidaps.interfaces.*
 import info.nightscout.androidaps.logging.UserEntryLogger
+import info.nightscout.androidaps.plugins.bus.RxBus
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
 import info.nightscout.androidaps.utils.DecimalFormatter
 import info.nightscout.androidaps.utils.DefaultValueHelper
@@ -55,6 +68,7 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     @Inject lateinit var ctx: Context
     @Inject lateinit var rh: ResourceHelper
+    @Inject lateinit var loop: Loop
     @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
     @Inject lateinit var profileFunction: ProfileFunction
@@ -270,7 +284,16 @@ class CarbsDialog : DialogFragmentWithDate() {
                     R.attr.tempTargetConfirmation
                 )
             )
-
+        // Anpassung 2
+        val hypoActionSelected = binding.hypoAction.isChecked
+        if (hypoActionSelected)
+            actions.add(
+                rh.gs(R.string.temp_target_short) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
+                    " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")  + TBR: 50% (60 min)").formatColor( context, rh,
+                    R.attr.tempTargetConfirmation
+                )
+            )
+        // Ende Anpassung
         val timeOffset = binding.time.value.toInt()
         if (useAlarm && carbs > 0 && timeOffset > 0)
             actions.add(rh.gs(R.string.alarminxmin, timeOffset).formatColor(context, rh, R.attr.infoColor))
@@ -361,6 +384,41 @@ class CarbsDialog : DialogFragmentWithDate() {
                                             aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
                                         })
                         }
+                        // Anpassung 3 (und Text start_hypo_tt in strings.xml
+                        hypoActionSelected       -> {
+                            loop.suspendLoop(60)
+                            rxBus.send(EventRefreshOverview("ActionLoopSuspend"))
+                            val callback: Callback = object : Callback() {
+                                override fun run() {
+                                    if (!result.success) {
+                                        activityNames.runAlarm(ctx, result.comment, rh.gs(R.string.tempbasaldeliveryerror), R.raw.boluserror)
+                                    }
+                                }
+                            }
+                            // only percent pump!!!
+                            uel.log(Action.TEMP_BASAL, Sources.TempBasalDialog,
+                                    ValueWithUnit.Percent(50),
+                                    ValueWithUnit.Minute(60))
+                            commandQueue.tempBasalPercent(50, 60, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
+
+                            uel.log(Action.TT, Sources.CarbDialog,
+                                ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.HYPOGLYCEMIA),
+                                ValueWithUnit.fromGlucoseUnit(hypoTT, units.asText),
+                                ValueWithUnit.Minute(hypoTTDuration))
+                            disposable += repository.runTransactionForResult(InsertAndCancelCurrentTemporaryTargetTransaction(
+                                timestamp = System.currentTimeMillis(),
+                                duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
+                                reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
+                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
+                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                            )).subscribe({ result ->
+                                result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                                result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
+                            }, {
+                                aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
+                            })
+                        }
+                        // Ende Anpassung
                     }
                     if (carbsAfterConstraints > 0) {
                         val detailedBolusInfo = DetailedBolusInfo()
