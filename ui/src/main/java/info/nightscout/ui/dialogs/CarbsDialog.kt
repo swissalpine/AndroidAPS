@@ -81,6 +81,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var repository: AppRepository
     @Inject lateinit var protectionCheck: ProtectionCheck
     @Inject lateinit var activityNames: ActivityNames
+    @Inject lateinit var activePlugin: ActivePlugin
 
     companion object {
 
@@ -396,10 +397,20 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 }
                             }
                             // only percent pump!!!
-                            uel.log(Action.TEMP_BASAL, Sources.TempBasalDialog,
-                                    ValueWithUnit.Percent(50),
-                                    ValueWithUnit.Minute(60))
-                            commandQueue.tempBasalPercent(50, 60, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
+                            var isPercentPump = true
+                            val pumpDescription = activePlugin.activePump.pumpDescription
+                            isPercentPump = pumpDescription.tempBasalStyle and PumpDescription.PERCENT == PumpDescription.PERCENT
+                            if (isPercentPump) {
+                                uel.log(Action.TEMP_BASAL, Sources.TempBasalDialog,
+                                        ValueWithUnit.Percent(50),
+                                        ValueWithUnit.Minute(60))
+                                commandQueue.tempBasalPercent(50, 60, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
+                            } else {
+                                uel.log(Action.TEMP_BASAL, Sources.TempBasalDialog,
+                                        ValueWithUnit.Insulin(profile.getBasal() * 0.5),
+                                        ValueWithUnit.Minute(60))
+                                commandQueue.tempBasalAbsolute(profile.getBasal() * 0.5, 60, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
+                            }
 
                             uel.log(Action.TT, Sources.CarbDialog,
                                 ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.HYPOGLYCEMIA),
