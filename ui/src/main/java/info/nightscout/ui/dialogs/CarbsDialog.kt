@@ -219,13 +219,21 @@ class CarbsDialog : DialogFragmentWithDate() {
         binding.hypoTt.setOnClickListener {
             binding.activityTt.isChecked = false
             binding.eatingSoonTt.isChecked = false
+            binding.hypoAction.isChecked = false
         }
         binding.activityTt.setOnClickListener {
             binding.hypoTt.isChecked = false
             binding.eatingSoonTt.isChecked = false
+            binding.hypoAction.isChecked = false
         }
         binding.eatingSoonTt.setOnClickListener {
             binding.hypoTt.isChecked = false
+            binding.activityTt.isChecked = false
+            binding.hypoAction.isChecked = false
+        }
+        binding.hypoAction.setOnClickListener {
+            binding.hypoTt.isChecked = false
+            binding.eatingSoonTt.isChecked = false
             binding.activityTt.isChecked = false
         }
         binding.durationLabel.labelFor = binding.duration.editTextId
@@ -258,6 +266,10 @@ class CarbsDialog : DialogFragmentWithDate() {
         val unitLabel = if (units == GlucoseUnit.MMOL) rh.gs(R.string.mmol) else rh.gs(R.string.mgdl)
         val useAlarm = binding.alarmCheckBox.isChecked
         val remindBolus = binding.bolusReminderCheckBox.isChecked
+
+        //Anpassung 1
+        val profile = profileFunction.getProfile() ?: return false
+        //Ende Anpassung
 
         val activitySelected = binding.activityTt.isChecked
         if (activitySelected)
@@ -313,7 +325,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         if (eventTimeChanged)
             actions.add(rh.gs(R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
-        if (carbsAfterConstraints > 0 || activitySelected || eatingSoonSelected || hypoSelected) {
+        if (carbsAfterConstraints > 0 || activitySelected || eatingSoonSelected || hypoSelected || hypoActionSelected) {
             activity?.let { activity ->
                 OKDialog.showConfirmation(activity, rh.gs(R.string.carbs), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                     when {
