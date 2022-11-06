@@ -59,7 +59,7 @@ buttons at the same time to cancel pairing)\n
     <string name="combov2_pairing_pump_requests_pin">Pump requests 10-digit PIN</string>
     <string name="combov2_pairing_finishing">Finishing pairing</string>
     <string name="combov2_no_connection_for_n_mins">No connection for %1$d minutes</string>
-    <string name="combov2_less_than_one_minute_ago">Less than 1 minute ago</string>
+    <string name="combov2_less_than_one_minute_ago">Less than 1 m ago</string>
     <string name="combov2_setting_current_pump_time">Setting current pump time</string>
     <string name="combov2_setting_current_pump_date">Setting current pump date</string>
     <string name="combov2_not_initialized">Not initialized</string>
@@ -96,8 +96,8 @@ buttons at the same time to cancel pairing)\n
     <string name="combov2_unrecognized_alert">Unrecognized Combo alert</string>
     <string name="combov2_combo_alert">Combo alert</string>
     <string name="combov2_last_bolus">%1$.1f %2$s (%3$s)</string>
-    <string name="combov2_current_tbr">%1$d%% (%2$d min remaining)</string>
-    <string name="combov2_current_tbr_less_than_1min">%1$d%% (less than 1 min remaining)</string>
+    <string name="combov2_current_tbr">%1$d%% (%2$d m remaining)</string>
+    <string name="combov2_current_tbr_less_than_1min">%1$d%% (less than 1 m remaining)</string>
     <string name="combov2_load_tdds_cancelled">Loading TDDs cancelled</string>
     <string name="combov2_retrieving_tdds_failed">Retrieving TDDs failed</string>
     <string name="combov2_no_activity">{fa-bed}</string>
