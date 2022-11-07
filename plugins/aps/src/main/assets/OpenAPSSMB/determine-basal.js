@@ -214,7 +214,7 @@ function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityR
     return final_ISF;
 }
 
-function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio)
+function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio, high_temptarget_raises_sensitivity, normalTarget)
 {   // #### mod 7e: added switch for autoISF ON/OFF
     console.error("----------------------------------");
     console.error("start autoISF v2.2.7");
@@ -305,8 +305,11 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    console.error("bg_ISF adaptation", round(bg_ISF,2), "limited by autoisf_max", maxISFReduction);     // mod V14j
         //    bg_ISF = maxISFReduction;                                                                           // mod V14j
         //}                                                                                                       // mod V14j
-        return Math.min(720, round(sens / final_ISF, 1));                                           // mod V14j: observe ISF maximum of 720(?)
-            // mod V14j: observe ISF maximum of 720(?)
+        if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
+            return Math.min(720, round(sens / final_ISF, 1);
+        } else {
+            return Math.min(720, round(profile.sens / final_ISF, 1);
+        }                                                                               // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
     }
@@ -375,7 +378,11 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //}                                                                                                       // mod V14j
         //if ( liftISF >= 1 ) { return round(profile.sens / Math.max(liftISF, sensitivityRatio), 1); }
         //if ( liftISF <  1 ) { return round(profile.sens / Math.min(liftISF, sensitivityRatio), 1); }
-        return round(sens / final_ISF, 1);
+        if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
+            return round(sens / final_ISF, 1);
+        } else {
+            return round(profile.sens / final_ISF, 1);
+        }
     }
     return sens;                                                                                                // mod V14j: nothing changed
 }
@@ -629,7 +636,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         //}
     }
 
-    sens = autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio);
+    sens = autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio, high_temptarget_raises_sensitivity, normalTarget);
     //calculate BG impact: the amount BG "should" be rising or falling based on insulin activity alone
     var bgi = round(( -iob_data.activity * sens * 5 ), 2);
     // project deviations for 30 minutes
