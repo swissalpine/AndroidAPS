@@ -306,9 +306,9 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
         //    bg_ISF = maxISFReduction;                                                                           // mod V14j
         //}                                                                                                       // mod V14j
         if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
-            return Math.min(720, round(sens / final_ISF, 1);
+            return Math.min(720, round(sens / final_ISF, 1));
         } else {
-            return Math.min(720, round(profile.sens / final_ISF, 1);
+            return Math.min(720, round(profile.sens / final_ISF, 1));
         }                                                                               // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
