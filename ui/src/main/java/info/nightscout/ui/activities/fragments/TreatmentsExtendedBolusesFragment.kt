@@ -18,10 +18,10 @@ import dagger.android.support.DaggerFragment
 import info.nightscout.androidaps.extensions.iobCalc
 import info.nightscout.androidaps.extensions.isInProgress
 import info.nightscout.androidaps.logging.UserEntryLogger
-import info.nightscout.androidaps.utils.ActionModeHelper
-import info.nightscout.core.fabric.FabricPrivacy
 import info.nightscout.core.ui.dialogs.OKDialog
 import info.nightscout.core.ui.toast.ToastUtils
+import info.nightscout.core.utils.ActionModeHelper
+import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.database.entities.ExtendedBolus
 import info.nightscout.database.entities.UserEntry.Action
 import info.nightscout.database.entities.UserEntry.Sources
@@ -154,9 +154,9 @@ class TreatmentsExtendedBolusesFragment : DaggerFragment(), MenuProvider {
             }
             val profile = profileFunction.getProfile(extendedBolus.timestamp) ?: return
             holder.binding.duration.text = rh.gs(R.string.format_mins, T.msecs(extendedBolus.duration).mins())
-            holder.binding.insulin.text = rh.gs(R.string.formatinsulinunits, extendedBolus.amount)
+            holder.binding.insulin.text = rh.gs(R.string.format_insulin_units, extendedBolus.amount)
             val iob = extendedBolus.iobCalc(System.currentTimeMillis(), profile, activePlugin.activeInsulin)
-            holder.binding.iob.text = rh.gs(R.string.formatinsulinunits, iob.iob)
+            holder.binding.iob.text = rh.gs(R.string.format_insulin_units, iob.iob)
             holder.binding.ratio.text = rh.gs(R.string.pump_basebasalrate, extendedBolus.rate)
             if (iob.iob != 0.0) holder.binding.iob.setTextColor(rh.gac(context, R.attr.activeColor)) else holder.binding.iob.setTextColor(holder.binding.insulin.currentTextColor)
             holder.binding.cbRemove.visibility = (extendedBolus.isValid && actionHelper.isRemoving).toVisibility()
