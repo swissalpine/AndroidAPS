@@ -11,13 +11,11 @@
     <string name="stop_pump">Stop pomp</string>
     <string name="started">Gestart</string>
     <string name="stopped">Gestopt</string>
-    <string name="paused">Gepauzeerd</string>
     <string name="operating_mode">Werkingsmodus</string>
     <string name="description_pump_insight_local">Pomp integratie voor Accu-Chek Insight pompen</string>
     <string name="not_inserted">Niet geplaatst</string>
     <string name="tdd_bolus">TDD Bolus</string>
     <string name="tdd_basal">TDD Basaal</string>
-    <string name="tdd_total">TDD Totaal</string>
     <string name="tbr_formatter">%1$d%% gedurende %2$d / %3$d min</string>
     <string name="multiwave_bolus">Multiwave-Bolus</string>
     <string name="eb_formatter">%1$.2f / %2$.2f U gedurende %3$d min</string>
@@ -46,7 +44,6 @@
     <string name="short_status_tdd">TDD: %1$.2f</string>
     <string name="short_status_reservoir">Reservoir: %1$.2f E</string>
     <string name="short_status_battery">Batt.: %1$d%%</string>
-    <string name="confirm">Bevestig</string>
     <string name="mute_alert">Geluid dempen</string>
     <string name="release_software_version">Release softwareversie</string>
     <string name="ui_processor_software_version">UI processor softwareversie</string>

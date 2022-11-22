@@ -11,13 +11,11 @@
     <string name="stop_pump">Arrêter la pompe</string>
     <string name="started">Démarré</string>
     <string name="stopped">Arrêté</string>
-    <string name="paused">En pause</string>
     <string name="operating_mode">Mode de fonctionnement</string>
     <string name="description_pump_insight_local">Intégration des pompes Accu-Chek Insight</string>
     <string name="not_inserted">Non inséré</string>
     <string name="tdd_bolus">DTI Bolus</string>
     <string name="tdd_basal">DTI Basale</string>
-    <string name="tdd_total">DTI Total</string>
     <string name="tbr_formatter">%1$d%% pour %2$d / %3$d min</string>
     <string name="multiwave_bolus">Bolus mixte</string>
     <string name="eb_formatter">%1$.2f / %2$.2f U pour %3$d min</string>
@@ -46,7 +44,6 @@
     <string name="short_status_tdd">DTI : %1$.2f</string>
     <string name="short_status_reservoir">Réserv.: %1$.2f U</string>
     <string name="short_status_battery">Batt.: %1$d%%</string>
-    <string name="confirm">Confirmer</string>
     <string name="mute_alert">Coupure son</string>
     <string name="release_software_version">Version du logiciel</string>
     <string name="ui_processor_software_version">Version du logiciel de processeur UI</string>
