@@ -36,7 +36,7 @@ class ConfigImpl @Inject constructor(
         val engineeringModeSemaphore = File(fileListProvider.ensureExtraDirExists(), "engineering_mode")
         val unfinishedModeSemaphore = File(fileListProvider.ensureExtraDirExists(), "unfinished_mode")
 
-        engineeringMode = engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile
+        engineeringMode = true //engineeringModeSemaphore.exists() && engineeringModeSemaphore.isFile
         unfinishedMode = unfinishedModeSemaphore.exists() && unfinishedModeSemaphore.isFile
         devBranch = BuildConfig.VERSION.contains("-") || BuildConfig.VERSION.matches(Regex(".*[a-zA-Z]+.*"))
     }
