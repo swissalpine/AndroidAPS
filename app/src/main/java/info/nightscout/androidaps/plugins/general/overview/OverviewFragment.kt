@@ -73,6 +73,7 @@ import info.nightscout.interfaces.ui.ActivityNames
 import info.nightscout.interfaces.utils.JsonHelper
 import info.nightscout.interfaces.utils.TrendCalculator
 import info.nightscout.plugins.aps.loop.events.EventNewOpenLoopNotification
+import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
 import info.nightscout.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
 import info.nightscout.plugins.databinding.OverviewFragmentBinding
 import info.nightscout.plugins.general.overview.notifications.NotificationStore
@@ -154,6 +155,9 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     @Inject lateinit var bgQualityCheckPlugin: BgQualityCheckPlugin
     @Inject lateinit var activityNames: ActivityNames
 
+    //Anpassung
+    @Inject lateinit var openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin
+
     private val disposable = CompositeDisposable()
 
     private var smallWidth = false
@@ -188,6 +192,41 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Mod exercise mode toggle icon
+        if ( sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false)) {
+            binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
+        } else {
+            binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
+        }
+        binding.exerciseModeCheckboxIcon.setOnClickListener {
+            if (sp.getBoolean(R.string.key_high_temptarget_raises_sensitivity, false) == true) {
+                binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
+                sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, false)
+            } else {
+                binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
+                sp.putBoolean(R.string.key_high_temptarget_raises_sensitivity, true)
+            }
+        }
+        // Mod end
+        // Anpassung: autosens toggle icon für dynISF, disable autosens für openAPSSMB
+        if (openAPSSMBDynamicISFPlugin.isEnabled()) {
+            binding.infoLayout.sensitivityIcon.setOnClickListener {
+                if (sp.getBoolean(R.string.key_openapsama_use_autosens, false) == true && constraintChecker.isAutosensModeEnabled().value()) {
+                    sp.putBoolean(R.string.key_openapsama_use_autosens, false)
+                    binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
+                } else {
+                    sp.putBoolean(R.string.key_openapsama_use_autosens, true)
+                    binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
+                }
+            }
+        } else {
+            if (sp.getBoolean(R.string.key_openapsama_use_autosens, false) == true && constraintChecker.isAutosensModeEnabled().value()) {
+                sp.putBoolean(R.string.key_openapsama_use_autosens, false)
+                binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
+            }
+        }
+        // Ende Anpassung
 
         // pre-process landscape mode
         val screenWidth = dm.widthPixels
@@ -503,8 +542,11 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
             R.id.temp_target         -> v.performClick()
             R.id.active_profile      -> activity?.let { activity ->
-                if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pump_disconnected))
-                else
+                // Anpassung Anfang ##################################################################
+                // Erlaube Profilswitch wenn loop.isDisconnected
+                //if (loop.isDisconnected) OKDialog.show(activity, rh.gs(R.string.not_available_full), rh.gs(R.string.smscommunicator_pump_disconnected))
+                //else
+                // Anpassung Ende ####################################################################
                     protectionCheck.queryProtection(
                         activity,
                         ProtectionCheck.Protection.BOLUS,
@@ -883,7 +925,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         runOnUiThread {
             _binding ?: return@runOnUiThread
             binding.infoLayout.baseBasal.text = temporaryBasalText
-            binding.infoLayout.baseBasal.setTextColor(temporaryBasalColor)
+            // Anpassung TBR Text nicht sichtbar
+            // binding.infoLayout.baseBasal.setTextColor(temporaryBasalColor)
             binding.infoLayout.baseBasalIcon.setImageResource(temporaryBasalIcon)
             binding.infoLayout.basalLayout.setOnClickListener { activity?.let { OKDialog.show(it, rh.gs(R.string.basal), temporaryBasalDialogText) } }
         }
@@ -911,8 +954,11 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         binding.statusLightsLayout.apply {
             cannulaOrPatch.setImageResource(if (isPatchPump) R.drawable.ic_patch_pump_outline else R.drawable.ic_cp_age_cannula)
             cannulaOrPatch.contentDescription = rh.gs(if (isPatchPump) R.string.statuslights_patch_pump_age else R.string.statuslights_cannula_age)
-            cannulaOrPatch.scaleX = if (isPatchPump) 1.4f else 2f
-            cannulaOrPatch.scaleY = cannulaOrPatch.scaleX
+            // Anpassung Anfang ################################################################
+            // Deaktiviere die Skalierung des Nadel.Icons (Status-Lights)
+            //cannulaOrPatch.scaleX = if (isPatchPump) 1.4f else 2f
+            //cannulaOrPatch.scaleY = cannulaOrPatch.scaleX
+            // Anpassung Ende ##################################################################
             insulinAge.visibility = isPatchPump.not().toVisibility()
             batteryLayout.visibility = (!isPatchPump || pump.pumpDescription.useHardwareLink).toVisibility()
             pbAge.visibility = (pump.pumpDescription.isBatteryReplaceable || pump.isBatteryChangeLoggingEnabled()).toVisibility()
@@ -1102,7 +1148,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateSensitivity() {
         _binding ?: return
-        if (constraintChecker.isAutosensModeEnabled().value() || !(config.NSCLIENT && overviewData.lastAutosensData(iobCobCalculator) == null)) {
+        if (constraintChecker.isAutosensModeEnabled().value() /*|| !(config.NSCLIENT && overviewData.lastAutosensData(iobCobCalculator) == null)*/) {
             binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_swap_vert_black_48dp_green)
         } else {
             binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
@@ -1124,11 +1170,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             binding.infoLayout.variableSensitivity.text =
                 String.format(
-                    Locale.getDefault(), "%1$.1f→%2$.1f",
+                    // Anpassung (%1$.1f→%2$.1f) ##############################################
+                    Locale.getDefault(), "%1$.0f→%2$.0f",
+                    // Anpassung Ende #########################################################
                     Profile.toUnits(isfMgdl, isfMgdl * Constants.MGDL_TO_MMOLL, profileFunction.getUnits()),
                     Profile.toUnits(variableSens, variableSens * Constants.MGDL_TO_MMOLL, profileFunction.getUnits())
                 )
             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+            // Anpassung Ausblenden des autosens Wertes ########################################
+            binding.infoLayout.sensitivity.visibility = View.GONE
+            // Anpassung Ende ##################################################################
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 
