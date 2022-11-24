@@ -8,6 +8,7 @@
     <string name="start_activity_tt">Start Activity TT</string>
     <string name="start_eating_soon_tt">Start Eating soon TT</string>
     <string name="start_hypo_tt">Start Hypo TT</string>
+    <string name="start_hypo_action">Start Hypo TT + Susp. 60\' + TBR 50%</string>
     <string name="time_offset">Time offset</string>
     <string name="unit_minute_short">min</string>
     <string name="remind_to_bolus_later">Remind to bolus later</string>
