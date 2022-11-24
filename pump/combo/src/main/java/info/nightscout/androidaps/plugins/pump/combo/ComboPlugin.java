@@ -21,8 +21,6 @@ import javax.inject.Singleton;
 
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.combo.R;
-import info.nightscout.androidaps.plugins.general.overview.events.EventDismissNotification;
-import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification;
 import info.nightscout.androidaps.plugins.pump.combo.events.EventComboPumpUpdateGUI;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.BasalProfile;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.BolusProgressReporter;
@@ -36,6 +34,7 @@ import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.history.Bolus
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.history.PumpHistory;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.history.PumpHistoryRequest;
 import info.nightscout.androidaps.plugins.pump.combo.ruffyscripter.history.Tdd;
+import info.nightscout.core.events.EventNewNotification;
 import info.nightscout.core.pump.PumpStateExtensionKt;
 import info.nightscout.core.utils.fabric.InstanceId;
 import info.nightscout.interfaces.constraints.Constraint;
@@ -55,6 +54,7 @@ import info.nightscout.interfaces.pump.defs.PumpDescription;
 import info.nightscout.interfaces.pump.defs.PumpType;
 import info.nightscout.interfaces.queue.CommandQueue;
 import info.nightscout.rx.bus.RxBus;
+import info.nightscout.rx.events.EventDismissNotification;
 import info.nightscout.rx.events.EventInitializationChanged;
 import info.nightscout.rx.events.EventOverviewBolusProgress;
 import info.nightscout.rx.events.EventRefreshOverview;
@@ -477,7 +477,7 @@ public class ComboPlugin extends PumpPluginBase implements Pump, Constraints {
                 event.setStatus(getRh().gs(R.string.combo_programming_bolus));
                 break;
             case DELIVERING:
-                event.setStatus(getRh().gs(R.string.bolusdelivering, delivered));
+                event.setStatus(getRh().gs(R.string.bolus_delivering, delivered));
                 break;
             case DELIVERED:
                 event.setStatus(getRh().gs(R.string.bolusdelivered, delivered));

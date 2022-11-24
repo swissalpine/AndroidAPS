@@ -14,8 +14,7 @@ import android.widget.EditText
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
-import info.nightscout.androidaps.activities.NoSplashAppCompatActivity
-import info.nightscout.androidaps.extensions.total
+import info.nightscout.core.activities.NoSplashAppCompatActivity
 import info.nightscout.core.main.R
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.database.entities.TotalDailyDose
@@ -227,6 +226,9 @@ class TDDStatsActivity : NoSplashAppCompatActivity() {
         }
         return super.dispatchTouchEvent(event)
     }
+
+    private val TotalDailyDose.total
+        get() = if (totalAmount > 0) totalAmount else basalAmount + bolusAmount
 
     @SuppressLint("SetTextI18n")
     private fun loadDataFromDB() {

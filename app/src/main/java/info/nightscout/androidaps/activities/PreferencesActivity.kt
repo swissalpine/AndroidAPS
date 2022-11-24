@@ -9,7 +9,8 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceScreen
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.databinding.ActivityPreferencesBinding
-import info.nightscout.interfaces.locale.LocaleHelper
+import info.nightscout.core.activities.NoSplashAppCompatActivity
+import info.nightscout.core.ui.locale.LocaleHelper
 
 class PreferencesActivity : NoSplashAppCompatActivity(), PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
 

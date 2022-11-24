@@ -34,8 +34,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import dagger.android.HasAndroidInjector;
-import info.nightscout.androidaps.plugins.general.overview.events.EventDismissNotification;
-import info.nightscout.androidaps.plugins.general.overview.events.EventNewNotification;
 import info.nightscout.androidaps.plugins.pump.common.defs.TempBasalPair;
 import info.nightscout.androidaps.plugins.pump.common.events.EventRileyLinkDeviceStatusChange;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.RileyLinkConst;
@@ -76,6 +74,7 @@ import info.nightscout.androidaps.plugins.pump.omnipod.eros.ui.OmnipodErosOvervi
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.util.AapsOmnipodUtil;
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.util.OmnipodAlertUtil;
 import info.nightscout.androidaps.services.AlarmSoundService;
+import info.nightscout.core.events.EventNewNotification;
 import info.nightscout.core.pump.DetailedBolusInfoExtensionKt;
 import info.nightscout.core.utils.DateTimeUtil;
 import info.nightscout.core.utils.fabric.FabricPrivacy;
@@ -106,6 +105,7 @@ import info.nightscout.rx.AapsSchedulers;
 import info.nightscout.rx.bus.RxBus;
 import info.nightscout.rx.events.EventAppExit;
 import info.nightscout.rx.events.EventAppInitialized;
+import info.nightscout.rx.events.EventDismissNotification;
 import info.nightscout.rx.events.EventPreferenceChange;
 import info.nightscout.rx.events.EventRefreshOverview;
 import info.nightscout.rx.events.EventSWRLStatus;
@@ -670,7 +670,7 @@ public class OmnipodErosPumpPlugin extends PumpPluginBase implements Pump, Riley
             // neither carbs nor bolus requested
             aapsLogger.error("deliverTreatment: Invalid input: neither carbs nor insulin are set in treatment");
             return new PumpEnactResult(getInjector()).success(false).enacted(false).bolusDelivered(0d).carbsDelivered(0d)
-                    .comment(R.string.invalidinput);
+                    .comment(R.string.invalid_input);
         } else if (detailedBolusInfo.insulin > 0) {
             // bolus needed, ask pump to deliver it
             return deliverBolus(detailedBolusInfo);

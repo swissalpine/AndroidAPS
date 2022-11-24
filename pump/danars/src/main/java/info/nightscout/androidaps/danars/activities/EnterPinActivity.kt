@@ -2,13 +2,13 @@ package info.nightscout.androidaps.danars.activities
 
 import android.os.Bundle
 import android.util.Base64
-import info.nightscout.androidaps.activities.NoSplashAppCompatActivity
 import info.nightscout.androidaps.danars.DanaRSPlugin
 import info.nightscout.androidaps.danars.R
 import info.nightscout.androidaps.danars.databinding.DanarsEnterPinActivityBinding
 import info.nightscout.androidaps.danars.services.BLEComm
 import info.nightscout.androidaps.utils.textValidator.DefaultEditTextValidator
 import info.nightscout.androidaps.utils.textValidator.EditTextValidator
+import info.nightscout.core.activities.NoSplashAppCompatActivity
 import info.nightscout.core.ui.dialogs.OKDialog
 import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.core.utils.hexStringToByteArray
@@ -54,7 +54,7 @@ class EnterPinActivity : NoSplashAppCompatActivity() {
                 if (result) {
                     bleComm.finishV3Pairing()
                     finish()
-                } else OKDialog.show(this, rh.gs(R.string.error), rh.gs(R.string.invalidinput))
+                } else OKDialog.show(this, rh.gs(R.string.error), rh.gs(R.string.invalid_input))
             }
         }
         binding.okcancel.cancel.setOnClickListener { finish() }

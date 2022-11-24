@@ -3,10 +3,11 @@ package info.nightscout.implementation.maintenance
 import android.content.Context
 import android.os.Environment
 import dagger.Lazy
+import dagger.Reusable
 import info.nightscout.androidaps.annotations.OpenForTesting
-import info.nightscout.androidaps.plugins.constraints.versionChecker.VersionCheckerUtils
 import info.nightscout.androidaps.plugins.general.maintenance.formats.EncryptedPrefsFormat
 import info.nightscout.core.main.R
+import info.nightscout.core.versionChecker.VersionCheckerUtils
 import info.nightscout.interfaces.Config
 import info.nightscout.interfaces.maintenance.PrefFileListProvider
 import info.nightscout.interfaces.maintenance.PrefMetadata
@@ -24,12 +25,11 @@ import org.joda.time.LocalDateTime
 import org.joda.time.format.DateTimeFormat
 import java.io.File
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.math.abs
 
 @Suppress("SpellCheckingInspection")
 @OpenForTesting
-@Singleton
+@Reusable
 class PrefFileListProviderImpl @Inject constructor(
     private val rh: ResourceHelper,
     private val config: Lazy<Config>,
