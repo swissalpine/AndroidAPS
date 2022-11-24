@@ -165,7 +165,7 @@ class OverviewDataImpl @Inject constructor(
         profileFunction.getProfile()?.let { profile ->
             var temporaryBasal = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())
             if (temporaryBasal?.isInProgress == false) temporaryBasal = null
-            temporaryBasal?.let { "T:" + it.toStringShort() }
+            temporaryBasal?.let { it.toStringShort() }
                 ?: rh.gs(R.string.pump_basebasalrate, profile.getBasal())
         } ?: rh.gs(R.string.value_unavailable_short)
 

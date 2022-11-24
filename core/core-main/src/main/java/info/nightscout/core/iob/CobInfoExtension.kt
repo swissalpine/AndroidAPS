@@ -22,6 +22,6 @@ fun CobInfo.displayText(rh: ResourceHelper, dateUtil: DateUtil, isDev: Boolean):
         var cobText = rh.gs(R.string.format_carbs, displayCob.toInt())
         if (futureCarbs > 0) cobText += "(" + DecimalFormatter.to0Decimal(futureCarbs) + ")"
         // This is only temporary for debugging
-        if (isDev) cobText += "\n" + dateUtil.timeString(timestamp)
+        //if (isDev) cobText += "\n" + dateUtil.timeString(timestamp)
         cobText
     }
