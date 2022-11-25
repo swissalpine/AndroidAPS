@@ -11,7 +11,6 @@ import info.nightscout.androidaps.dana.DanaPump;
 import info.nightscout.androidaps.dana.comm.RecordTypes;
 import info.nightscout.androidaps.danar.services.AbstractDanaRExecutionService;
 import info.nightscout.core.events.EventNewNotification;
-import info.nightscout.core.pump.PumpStateExtensionKt;
 import info.nightscout.interfaces.constraints.Constraint;
 import info.nightscout.interfaces.constraints.Constraints;
 import info.nightscout.interfaces.notifications.Notification;
@@ -144,17 +143,17 @@ public abstract class AbstractDanaRPlugin extends PumpPluginBase implements Pump
         }
         if (!isInitialized()) {
             getAapsLogger().error("setNewBasalProfile not initialized");
-            Notification notification = new Notification(Notification.PROFILE_NOT_SET_NOT_INITIALIZED, getRh().gs(R.string.pumpNotInitializedProfileNotSet), Notification.URGENT);
+            Notification notification = new Notification(Notification.PROFILE_NOT_SET_NOT_INITIALIZED, getRh().gs(R.string.pump_not_initialized_profile_not_set), Notification.URGENT);
             rxBus.send(new EventNewNotification(notification));
-            result.comment(R.string.pumpNotInitializedProfileNotSet);
+            result.comment(R.string.pump_not_initialized_profile_not_set);
             return result;
         } else {
             rxBus.send(new EventDismissNotification(Notification.PROFILE_NOT_SET_NOT_INITIALIZED));
         }
         if (!sExecutionService.updateBasalsInPump(profile)) {
-            Notification notification = new Notification(Notification.FAILED_UPDATE_PROFILE, getRh().gs(R.string.failedupdatebasalprofile), Notification.URGENT);
+            Notification notification = new Notification(Notification.FAILED_UPDATE_PROFILE, getRh().gs(R.string.failed_update_basal_profile), Notification.URGENT);
             rxBus.send(new EventNewNotification(notification));
-            result.comment(R.string.failedupdatebasalprofile);
+            result.comment(R.string.failed_update_basal_profile);
         } else {
             rxBus.send(new EventDismissNotification(Notification.PROFILE_NOT_SET_NOT_INITIALIZED));
             rxBus.send(new EventDismissNotification(Notification.FAILED_UPDATE_PROFILE));
@@ -399,14 +398,14 @@ public abstract class AbstractDanaRPlugin extends PumpPluginBase implements Pump
             }
             PumpSync.PumpState pumpState = pumpSync.expectedPumpState();
             if (pumpState.getTemporaryBasal() != null) {
-                extended.put("TempBasalAbsoluteRate", PumpStateExtensionKt.convertedToAbsolute(pumpState.getTemporaryBasal(), now, profile));
+                extended.put("TempBasalAbsoluteRate", pumpState.getTemporaryBasal().convertedToAbsolute(now, profile));
                 extended.put("TempBasalStart", dateUtil.dateAndTimeString(pumpState.getTemporaryBasal().getTimestamp()));
-                extended.put("TempBasalRemaining", PumpStateExtensionKt.getPlannedRemainingMinutes(pumpState.getTemporaryBasal()));
+                extended.put("TempBasalRemaining", pumpState.getTemporaryBasal().getPlannedRemainingMinutes());
             }
             if (pumpState.getExtendedBolus() != null) {
                 extended.put("ExtendedBolusAbsoluteRate", pumpState.getExtendedBolus().getRate());
                 extended.put("ExtendedBolusStart", dateUtil.dateAndTimeString(pumpState.getExtendedBolus().getTimestamp()));
-                extended.put("ExtendedBolusRemaining", PumpStateExtensionKt.getPlannedRemainingMinutes(pumpState.getExtendedBolus()));
+                extended.put("ExtendedBolusRemaining", pumpState.getExtendedBolus().getPlannedRemainingMinutes());
             }
             extended.put("BaseBasalRate", getBaseBasalRate());
             try {
@@ -496,10 +495,10 @@ public abstract class AbstractDanaRPlugin extends PumpPluginBase implements Pump
         }
         PumpSync.PumpState pumpState = pumpSync.expectedPumpState();
         if (pumpState.getTemporaryBasal() != null) {
-            ret += "Temp: " + PumpStateExtensionKt.toStringFull(pumpState.getTemporaryBasal(), dateUtil) + "\n";
+            ret += "Temp: " + pumpState.getTemporaryBasal().toStringFull(dateUtil) + "\n";
         }
         if (pumpState.getExtendedBolus() != null) {
-            ret += "Extended: " + PumpStateExtensionKt.toStringFull(pumpState.getExtendedBolus(), dateUtil) + "\n";
+            ret += "Extended: " + pumpState.getExtendedBolus().toStringFull(dateUtil) + "\n";
         }
         if (!veryShort) {
             ret += "TDD: " + DecimalFormatter.INSTANCE.to0Decimal(danaPump.getDailyTotalUnits()) + " / " + danaPump.getMaxDailyTotalUnits() + " U\n";

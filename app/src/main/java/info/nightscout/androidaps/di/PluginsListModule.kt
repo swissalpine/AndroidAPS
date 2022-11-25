@@ -14,9 +14,6 @@ import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin
 import info.nightscout.androidaps.plugins.general.maintenance.MaintenancePlugin
 import info.nightscout.androidaps.plugins.general.overview.OverviewPlugin
 import info.nightscout.androidaps.plugins.general.persistentNotification.PersistentNotificationPlugin
-import info.nightscout.plugins.general.wear.WearPlugin
-import info.nightscout.androidaps.plugins.pump.combo.ComboPlugin
-import info.nightscout.androidaps.plugins.pump.combov2.ComboV2Plugin
 import info.nightscout.androidaps.plugins.pump.eopatch.EopatchPumpPlugin
 import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin
 import info.nightscout.androidaps.plugins.pump.medtronic.MedtronicPumpPlugin
@@ -41,6 +38,7 @@ import info.nightscout.plugins.general.dataBroadcaster.DataBroadcastPlugin
 import info.nightscout.plugins.general.food.FoodPlugin
 import info.nightscout.plugins.general.smsCommunicator.SmsCommunicatorPlugin
 import info.nightscout.plugins.general.themes.ThemeSwitcherPlugin
+import info.nightscout.plugins.general.wear.WearPlugin
 import info.nightscout.plugins.general.xdripStatusline.StatusLinePlugin
 import info.nightscout.plugins.insulin.InsulinLyumjevPlugin
 import info.nightscout.plugins.insulin.InsulinOrefFreePeakPlugin
@@ -63,6 +61,8 @@ import info.nightscout.plugins.source.XdripPlugin
 import info.nightscout.plugins.sync.nsclient.NSClientPlugin
 import info.nightscout.plugins.sync.nsclientV3.NSClientV3Plugin
 import info.nightscout.plugins.sync.tidepool.TidepoolPlugin
+import info.nightscout.pump.combo.ComboPlugin
+import info.nightscout.pump.combov2.ComboV2Plugin
 import info.nightscout.sensitivity.SensitivityAAPSPlugin
 import info.nightscout.sensitivity.SensitivityOref1Plugin
 import info.nightscout.sensitivity.SensitivityWeightedAveragePlugin
@@ -173,6 +173,12 @@ abstract class PluginsListModule {
     @IntoMap
     @IntKey(140)
     abstract fun bindComboPlugin(plugin: ComboPlugin): PluginBase
+
+    @Binds
+    @PumpDriver
+    @IntoMap
+    @IntKey(141)
+    abstract fun bindComboV2Plugin(plugin: ComboV2Plugin): PluginBase
 
     @Binds
     @PumpDriver
@@ -431,12 +437,6 @@ abstract class PluginsListModule {
     @IntoMap
     @IntKey(500)
     abstract fun bindThemeSwitcherPlugin(plugin: ThemeSwitcherPlugin): PluginBase
-
-    @Binds
-    @PumpDriver
-    @IntoMap
-    @IntKey(510)
-    abstract fun bindComboV2Plugin(plugin: ComboV2Plugin): PluginBase
 
     @Qualifier
     annotation class AllConfigs

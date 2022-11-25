@@ -99,7 +99,7 @@
                             android:layout_weight="1.5"
                             android:gravity="end"
                             android:paddingRight="5dp"
-                            android:text="@string/lastconnection_label"
+                            android:text="@string/last_connection_label"
                             android:textSize="14sp" />
 
                         <TextView
@@ -124,6 +124,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_marginBottom="5dp"
                         android:layout_height="match_parent"
                         android:orientation="horizontal">
 
@@ -245,7 +246,7 @@
                             android:layout_weight="1.5"
                             android:gravity="end"
                             android:paddingRight="5dp"
-                            android:text="@string/lastbolus_label"
+                            android:text="@string/last_bolus_label"
                             android:textSize="14sp" />
 
                         <TextView
@@ -347,7 +348,7 @@
                             android:layout_weight="1.5"
                             android:gravity="end"
                             android:paddingRight="5dp"
-                            android:text="@string/serialnumber"
+                            android:text="@string/serial_number"
                             android:textSize="14sp" />
 
                         <TextView
@@ -412,7 +413,7 @@
                         android:orientation="horizontal"
                         android:gravity="center">
 
-                        <info.nightscout.androidaps.plugins.pump.combov2.ComboV2RTDisplayFrameView
+                        <info.nightscout.pump.combov2.ComboV2RTDisplayFrameView
                             android:id="@+id/combov2_rt_display_frame"
                             android:layout_width="192dp"
                             android:layout_height="64dp"
