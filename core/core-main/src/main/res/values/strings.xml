@@ -2,22 +2,16 @@
 <resources>
     <!--    General-->
     <string name="save">Save</string>
-    <string name="not_set_short">Not set</string>
-    <string name="tempbasaldeliveryerror">Tempbasal delivery error</string>
     <string name="goingtodeliver">Going to deliver %1$.2f U</string>
     <string name="waitingforpump">Waiting for pump</string>
     <string name="androidaps_start">AAPS started</string>
     <string name="formatsignedinsulinunits">%1$+.2f U</string>
     <string name="format_carbs">%1$d g</string>
-    <string name="reservoirvalue">%1$.0f / %2$d U</string>
     <string name="format_hours">%1$.2f h</string>
     <string name="format_mins">%1$d mins</string>
-    <string name="pumpbusy">Pump is busy</string>
-    <string name="connectionerror">Pump connection error</string>
     <string name="objectives">Objectives</string>
     <string name="please_wait">Please wait…</string>
     <string name="mute">Mute</string>
-    <string name="reload">Reload</string>
     <string name="stop">Stop</string>
     <string name="carbs">Carbs</string>
     <string name="invalid_profile">Invalid profile!</string>
@@ -36,19 +30,12 @@
     <string name="basal_long_label">Basal rate</string>
     <string name="target_long_label">Blood Glucose Target</string>
     <string name="initializing">Initializing ...</string>
-    <string name="dailyunits">Daily units</string>
-    <string name="pumphistory">Pump history</string>
-    <string name="viewprofile">View profile</string>
-    <string name="eventtype">Event type</string>
-    <string name="mgdl">mg/dl</string>
-    <string name="mmol">mmol/l</string>
     <string name="shortgram">g</string>
     <string name="shortpercent">%</string>
     <string name="advancedsettings_title">Advanced Settings</string>
     <string name="bluetooth">Bluetooth</string>
     <string name="btwatchdog_title">BT Watchdog</string>
     <string name="btwatchdog_summary">Switches off the phone\'s bluetooth for one second if no connection to the pump is possible. This may help on some phones where the bluetooth stack freezes.</string>
-    <string name="pairing">Pairing</string>
     <string name="virtualpump_resultok">OK</string>
     <string name="extended_bolus">Extended bolus</string>
     <string name="pump_time_updated">Pump time updated</string>
@@ -136,20 +123,6 @@
     <string name="ic_short">IC</string>
     <string name="isf_short">ISF</string>
 
-    <!--    Constraints-->
-    <string name="limitingbasalratio">Limiting max basal rate to %1$.2f U/h because of %2$s</string>
-    <string name="pumplimit">pump limit</string>
-    <string name="limitingpercentrate">Limiting max percent rate to %1$d%% because of %2$s</string>
-    <string name="itmustbepositivevalue">it must be positive value</string>
-    <string name="limitingbolus">Limiting bolus to %1$.1f U because of %2$s</string>
-
-    <!--    BlePreCheck-->
-    <string name="ble_not_supported">Bluetooth Low Energy not supported.</string>
-    <string name="ble_not_supported_or_not_paired">Bluetooth Low Energy not supported or device not paired.</string>
-    <string name="ble_not_enabled">Bluetooth not enabled.</string>
-    <string name="location_not_found_title">Location Is Not Enabled</string>
-    <string name="location_not_found_message">For Bluetooth discovery to work on newer devices, location must be enabled. AAPS does not track your location and it can be disabled after pairing is successful.</string>
-
     <!--    Protection-->
     <string name="wrongpassword">Wrong password</string>
     <string name="wrongpin">Wrong PIN</string>
@@ -227,8 +200,6 @@
     <string name="loop">Loop</string>
     <string name="ns">NS</string>
     <string name="record">Record</string>
-    <string name="reading_pump_history">Reading pump history</string>
-    <string name="pump_icon">Pump icon</string>
 
     <!--    Command-->
     <string name="connectiontimedout">Connection timed out</string>
@@ -247,7 +218,6 @@
     <string name="carbsreq">%1$d g additional carbs required within %2$d minutes</string>
 
     <!--    TDDStatsActivity-->
-    <string name="stats">Stats</string>
     <string name="cumulative_tdd">Cumulative TDD</string>
     <string name="expweight">Exponentially Weighted TDD</string>
     <string name="basalrate">Basal</string>
@@ -436,14 +406,10 @@
     <string name="keepalive_status_outdated" comment="26 characters max for translation">KeepAlive. Status outdated.</string>
     <string name="keepalive_basal_outdated" comment="26 characters max for translation">KeepAlive. Basal outdated.</string>
     <string name="sms" comment="26 characters max for translation">SMS</string>
-    <string name="clicked_connect_to_pump" comment="26 characters max for translation">Clicked connect to pump</string>
-    <string name="pump_driver_change" comment="26 characters max for translation">Pump driver change.</string>
-    <string name="device_changed" comment="26 characters max for translation">Device changed</string>
     <string name="clicked_refresh" comment="26 characters max for translation">Clicked refresh</string>
     <string name="scheduled_status_refresh" comment="26 characters max for translation">Scheduled Status Refresh</string>
     <string name="unconfirmed_command" comment="26 characters max for translation">Unconfirmed command</string>
     <string name="requested_by_user" comment="26 characters max for translation">Requested by user</string>
-    <string name="bolus_ok" comment="26 characters max for translation">Bolus OK</string>
     <string name="insight_refresh_button" comment="26 characters max for translation">Insight Refresh Button</string>
     <string name="formatPercent">%1$.0f%%</string>
     <string name="basal">Basal</string>

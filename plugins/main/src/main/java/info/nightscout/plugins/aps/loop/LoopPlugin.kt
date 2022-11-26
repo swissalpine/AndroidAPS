@@ -256,8 +256,8 @@ class LoopPlugin @Inject constructor(
             }
 
             if (!isEmptyQueue()) {
-                aapsLogger.debug(LTag.APS, rh.gs(R.string.pumpbusy))
-                rxBus.send(EventLoopSetLastRunGui(rh.gs(R.string.pumpbusy)))
+                aapsLogger.debug(LTag.APS, rh.gs(R.string.pump_busy))
+                rxBus.send(EventLoopSetLastRunGui(rh.gs(R.string.pump_busy)))
                 return
             }
 
@@ -679,7 +679,7 @@ class LoopPlugin @Inject constructor(
             commandQueue.tempBasalAbsolute(0.0, durationInMinutes, true, profile, PumpSync.TemporaryBasalType.EMULATED_PUMP_SUSPEND, object : Callback() {
                 override fun run() {
                     if (!result.success) {
-                        activityNames.runAlarm(context, result.comment, rh.gs(R.string.tempbasaldeliveryerror), R.raw.boluserror)
+                        activityNames.runAlarm(context, result.comment, rh.gs(R.string.temp_basal_delivery_error), R.raw.boluserror)
                     }
                 }
             })
@@ -687,7 +687,7 @@ class LoopPlugin @Inject constructor(
             commandQueue.tempBasalPercent(0, durationInMinutes, true, profile, PumpSync.TemporaryBasalType.EMULATED_PUMP_SUSPEND, object : Callback() {
                 override fun run() {
                     if (!result.success) {
-                        activityNames.runAlarm(context, result.comment, rh.gs(R.string.tempbasaldeliveryerror), R.raw.boluserror)
+                        activityNames.runAlarm(context, result.comment, rh.gs(R.string.temp_basal_delivery_error), R.raw.boluserror)
                     }
                 }
             })
@@ -714,7 +714,7 @@ class LoopPlugin @Inject constructor(
         commandQueue.cancelTempBasal(true, object : Callback() {
             override fun run() {
                 if (!result.success) {
-                    activityNames.runAlarm(context, result.comment, rh.gs(R.string.tempbasaldeliveryerror), R.raw.boluserror)
+                    activityNames.runAlarm(context, result.comment, rh.gs(R.string.temp_basal_delivery_error), R.raw.boluserror)
                 }
             }
         })

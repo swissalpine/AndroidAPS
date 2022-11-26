@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import dagger.android.HasAndroidInjector;
-import info.nightscout.androidaps.dana.DanaPump;
 import info.nightscout.androidaps.danar.services.DanaRExecutionService;
 import info.nightscout.core.utils.fabric.FabricPrivacy;
 import info.nightscout.interfaces.constraints.Constraint;
@@ -24,7 +23,9 @@ import info.nightscout.interfaces.pump.PumpEnactResult;
 import info.nightscout.interfaces.pump.PumpSync;
 import info.nightscout.interfaces.pump.defs.PumpType;
 import info.nightscout.interfaces.queue.CommandQueue;
+import info.nightscout.interfaces.ui.ActivityNames;
 import info.nightscout.interfaces.utils.Round;
+import info.nightscout.pump.dana.DanaPump;
 import info.nightscout.rx.AapsSchedulers;
 import info.nightscout.rx.bus.RxBus;
 import info.nightscout.rx.events.EventAppExit;
@@ -62,9 +63,10 @@ public class DanaRPlugin extends AbstractDanaRPlugin {
             DanaPump danaPump,
             DateUtil dateUtil,
             FabricPrivacy fabricPrivacy,
-            PumpSync pumpSync
+            PumpSync pumpSync,
+            ActivityNames activityNames
     ) {
-        super(injector, danaPump, rh, constraints, aapsLogger, aapsSchedulers, commandQueue, rxBus, activePlugin, sp, dateUtil, pumpSync);
+        super(injector, danaPump, rh, constraints, aapsLogger, aapsSchedulers, commandQueue, rxBus, activePlugin, sp, dateUtil, pumpSync, activityNames);
         this.aapsLogger = aapsLogger;
         this.context = context;
         this.rh = rh;

@@ -9,11 +9,8 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.BlendModeColorFilterCompat;
-import androidx.core.graphics.BlendModeCompat;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.BaseSeries;
@@ -250,11 +247,7 @@ public class PointsWithLabelGraphSeries<E extends DataPointWithLabelInterface> e
                 } else if (value.getShape() == Shape.PROFILE) {
                     Drawable drawable = ContextCompat.getDrawable(graphView.getContext(), R.drawable.ic_ribbon_profile);
                     assert drawable != null;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        drawable.setColorFilter (BlendModeColorFilterCompat.createBlendModeColorFilterCompat(Color.WHITE, BlendModeCompat.MULTIPLY));
-                    } else {
-                        drawable.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
-                    }
+                    drawable.setColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY);
                     drawable.setBounds(
                             (int) (endX - drawable.getIntrinsicWidth() / 2),
                             (int) (endY - drawable.getIntrinsicHeight() / 2),

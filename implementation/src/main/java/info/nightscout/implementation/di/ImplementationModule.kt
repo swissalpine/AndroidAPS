@@ -2,6 +2,7 @@ package info.nightscout.implementation.di
 
 import dagger.Binds
 import dagger.Module
+import dagger.android.ContributesAndroidInjector
 import info.nightscout.core.graph.OverviewData
 import info.nightscout.implementation.AndroidPermissionImpl
 import info.nightscout.implementation.BolusTimerImpl
@@ -19,9 +20,12 @@ import info.nightscout.implementation.logging.LoggerUtilsImpl
 import info.nightscout.implementation.maintenance.PrefFileListProviderImpl
 import info.nightscout.implementation.overview.OverviewDataImpl
 import info.nightscout.implementation.plugin.PluginStore
+import info.nightscout.implementation.profile.ProfileInstantiatorImpl
+import info.nightscout.implementation.profile.ProfileStoreObject
 import info.nightscout.implementation.profiling.ProfilerImpl
 import info.nightscout.implementation.protection.PasswordCheckImpl
 import info.nightscout.implementation.protection.ProtectionCheckImpl
+import info.nightscout.implementation.pump.BlePreCheckImpl
 import info.nightscout.implementation.pump.DetailedBolusInfoStorageImpl
 import info.nightscout.implementation.pump.PumpSyncImplementation
 import info.nightscout.implementation.pump.TemporaryBasalStorageImpl
@@ -45,9 +49,11 @@ import info.nightscout.interfaces.logging.UserEntryLogger
 import info.nightscout.interfaces.maintenance.PrefFileListProvider
 import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.profile.DefaultValueHelper
+import info.nightscout.interfaces.profile.ProfileInstantiator
 import info.nightscout.interfaces.profiling.Profiler
 import info.nightscout.interfaces.protection.PasswordCheck
 import info.nightscout.interfaces.protection.ProtectionCheck
+import info.nightscout.interfaces.pump.BlePreCheck
 import info.nightscout.interfaces.pump.DetailedBolusInfoStorage
 import info.nightscout.interfaces.pump.PumpSync
 import info.nightscout.interfaces.pump.TemporaryBasalStorage
@@ -68,7 +74,9 @@ import info.nightscout.shared.interfaces.ResourceHelper
 )
 
 @Suppress("unused")
-open class ImplementationModule {
+abstract class ImplementationModule {
+
+    @ContributesAndroidInjector abstract fun profileStoreInjector(): ProfileStoreObject
 
     @Module
     interface Bindings {
@@ -88,6 +96,8 @@ open class ImplementationModule {
         @Binds fun bindWarnColors(warnColorsImpl: WarnColorsImpl): WarnColors
         @Binds fun bindHardLimits(hardLimitsImpl: HardLimitsImpl): HardLimits
         @Binds fun bindResourceHelper(resourceHelperImpl: ResourceHelperImpl): ResourceHelper
+        @Binds fun bindProfileStoreInstantiator(profileStoreInstantiatorImpl: ProfileInstantiatorImpl): ProfileInstantiator
+        @Binds fun bindBlePreCheck(blePreCheckImpl: BlePreCheckImpl): BlePreCheck
 
         @Binds fun bindTrendCalculatorInterface(trendCalculator: TrendCalculatorImpl): TrendCalculator
         @Binds fun bindTddCalculatorInterface(tddCalculator: TddCalculatorImpl): TddCalculator
