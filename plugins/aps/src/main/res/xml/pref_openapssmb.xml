@@ -191,7 +191,7 @@
                 android:summary="@string/keto_protect_strategy_summary"
                 android:title="@string/keto_protect_strategy_title" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="20"
                 android:dependency="@string/key_keto_protect"
                 android:dialogMessage="@string/keto_protect_basal_summary"
@@ -264,7 +264,7 @@
                 android:key="@string/key_enable_autoISF"
                 android:title="@string/openapsama_enable_autoISF" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1.0"
                 android:dialogMessage="@string/openapsama_autoISF_min_summary"
                 android:digits="0123456789.,"
@@ -278,7 +278,7 @@
                 validate:floatminNumber="0.3"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+            <info.nightscout.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1.0"
                 android:dialogMessage="@string/openapsama_autoISF_max_summary"
                 android:digits="0123456789.,"
@@ -298,7 +298,7 @@
 
                 <Preference android:summary="@string/acce_ISF_settings_summary" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_bgAccel_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -312,7 +312,7 @@
                     validate:floatminNumber="0"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_bgBrake_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -334,7 +334,7 @@
 
                 <Preference android:summary="@string/bg_ISF_settings_summary" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_lower_ISFrange_weight_summary"
                     android:digits="0123456789.,"
@@ -348,7 +348,7 @@
                     validate:floatminNumber="0"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_higher_ISFrange_weight_summary"
                     android:digits="0123456789.,"
@@ -376,7 +376,7 @@
                     android:summary="@string/enable_postprandial_ISF_always_summary"
                     android:title="@string/enable_postprandial_ISF_always" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="3"
                     android:dialogMessage="@string/openapsama_pp_ISF_hours_summary"
                     android:digits="0123456789"
@@ -390,7 +390,7 @@
                     validate:minNumber="1"
                     validate:testType="numericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_pp_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -412,7 +412,7 @@
 
                 <Preference android:summary="@string/delta_ISF_settings_summary" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_delta_ISFrange_weight_summary"
                     android:digits="0123456789.,"
@@ -440,7 +440,7 @@
                     android:summary="@string/enableautoISFwithcob_summary"
                     android:title="@string/enableautoISFwithcob" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_dura_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -462,7 +462,7 @@
 
                 <Preference android:summary="@string/smb_delivery_settings_summary" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.5"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_summary"
                     android:digits="0123456789.,"
@@ -476,7 +476,7 @@
                     validate:floatminNumber="0.5"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.5"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_min_summary"
                     android:digits="0123456789.,"
@@ -490,7 +490,7 @@
                     validate:floatminNumber="0.5"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.5"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_max_summary"
                     android:digits="0123456789.,"
@@ -504,7 +504,7 @@
                     validate:floatminNumber="0.5"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_bg_range_summary"
                     android:digits="0123456789.,"
@@ -518,7 +518,7 @@
                     validate:floatminNumber="0"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.androidaps.utils.textValidator.ValidatingEditTextPreference
+                <info.nightscout.core.validators.ValidatingEditTextPreference
                     android:defaultValue="1"
                     android:dialogMessage="@string/openapsama_smb_max_range_extension_summary"
                     android:digits="0123456789.,"
