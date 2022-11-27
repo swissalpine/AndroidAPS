@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--    General-->
-    <string name="save">Save</string>
     <string name="goingtodeliver">Going to deliver %1$.2f U</string>
     <string name="waitingforpump">Waiting for pump</string>
     <string name="androidaps_start">AAPS started</string>
@@ -29,7 +28,6 @@
     <string name="isf_long_label">Insulin Sensitivity Factor</string>
     <string name="basal_long_label">Basal rate</string>
     <string name="target_long_label">Blood Glucose Target</string>
-    <string name="initializing">Initializing ...</string>
     <string name="shortgram">g</string>
     <string name="shortpercent">%</string>
     <string name="advancedsettings_title">Advanced Settings</string>
@@ -61,7 +59,7 @@
     <string name="loading">Loading …</string>
     <string name="notes_label">Notes</string>
     <string name="remove_button">Remove</string>
-    <string name="addnew">Add new</string>
+    <string name="add_new">Add new</string>
     <string name="addnew_above">Add new above</string>
     <string name="wrong_pump_data">Data is coming from different pump. Change pump driver to reset pump state.</string>
     <string name="bg_label">BG</string>
@@ -260,16 +258,6 @@
     <string name="prefdecrypt_issue_wrong_pass">Decryption error, the provided password is invalid or settings file was modified! It may happen that the imported file was exported with a different Master password.</string>
     <string name="prefdecrypt_issue_wrong_format">Missing encryption configuration, settings format is invalid!</string>
     <string name="prefdecrypt_issue_wrong_algorithm">Unsupported or not specified encryption algorithm!</string>
-
-    <!-- VersionChecker -->
-    <string name="key_last_time_this_version_detected_as_ok" translatable="false">last_time_this_version_detected</string>
-    <string name="key_last_versionchecker_warning" translatable="false">last_versionchecker_warning</string>
-    <string name="key_last_expired_versionchecker_warning" translatable="false">last_expired_version_checker_warning</string>
-    <string name="key_last_versionchecker_plugin_warning" translatable="false">last_versionchecker_plugin_waring</string>
-    <string name="key_last_revoked_certs_check" translatable="false">last_revoked_certs_check</string>
-    <string name="running_invalid_version">We have detected that you are running an invalid version. Loop disabled!</string>
-    <string name="versionavailable">Version %1$s available</string>
-    <string name="version_expire">Version %1$s expire on %2$s</string>
 
     <!-- Permissions -->
     <string name="alert_dialog_storage_permission_text">Please reboot your phone or restart AAPS from the System Settings \notherwise Android APS will not have logging (important to track and verify that the algorithms are working correctly)!</string>

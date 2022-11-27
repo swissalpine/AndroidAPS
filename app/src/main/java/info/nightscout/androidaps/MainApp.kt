@@ -21,10 +21,10 @@ import info.nightscout.androidaps.receivers.ChargingStateReceiver
 import info.nightscout.androidaps.receivers.KeepAliveWorker
 import info.nightscout.androidaps.receivers.TimeDateOrTZChangeReceiver
 import info.nightscout.androidaps.services.AlarmSoundServiceHelper
-import info.nightscout.androidaps.utils.ProcessLifecycleListener
+import info.nightscout.implementation.lifecycle.ProcessLifecycleListener
 import info.nightscout.core.ui.locale.LocaleHelper
 import info.nightscout.core.utils.receivers.NetworkChangeReceiver
-import info.nightscout.core.versionChecker.VersionCheckerUtils
+import info.nightscout.interfaces.versionChecker.VersionCheckerUtils
 import info.nightscout.database.entities.TherapyEvent
 import info.nightscout.database.entities.UserEntry
 import info.nightscout.database.impl.AppRepository

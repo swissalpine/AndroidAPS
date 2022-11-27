@@ -7,11 +7,8 @@ import dagger.multibindings.IntoMap
 import info.nightscout.androidaps.danaRKorean.DanaRKoreanPlugin
 import info.nightscout.androidaps.danaRv2.DanaRv2Plugin
 import info.nightscout.androidaps.danar.DanaRPlugin
-import info.nightscout.androidaps.diaconn.DiaconnG8Plugin
 import info.nightscout.androidaps.plugin.general.openhumans.OpenHumansUploaderPlugin
-import info.nightscout.androidaps.plugins.configBuilder.ConfigBuilderPlugin
 import info.nightscout.androidaps.plugins.general.maintenance.MaintenancePlugin
-import info.nightscout.androidaps.plugins.general.overview.OverviewPlugin
 import info.nightscout.androidaps.plugins.general.persistentNotification.PersistentNotificationPlugin
 import info.nightscout.androidaps.plugins.pump.eopatch.EopatchPumpPlugin
 import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin
@@ -19,22 +16,21 @@ import info.nightscout.androidaps.plugins.pump.medtronic.MedtronicPumpPlugin
 import info.nightscout.androidaps.plugins.pump.omnipod.dash.OmnipodDashPumpPlugin
 import info.nightscout.androidaps.plugins.pump.omnipod.eros.OmnipodErosPumpPlugin
 import info.nightscout.automation.AutomationPlugin
+import info.nightscout.configuration.configBuilder.ConfigBuilderPlugin
 import info.nightscout.interfaces.plugin.PluginBase
 import info.nightscout.plugins.aps.loop.LoopPlugin
 import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
 import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
 import info.nightscout.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
-import info.nightscout.plugins.constraints.dstHelper.DstHelperPlugin
 import info.nightscout.plugins.constraints.objectives.ObjectivesPlugin
 import info.nightscout.plugins.constraints.safety.SafetyPlugin
 import info.nightscout.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
-import info.nightscout.plugins.constraints.storage.StorageConstraintPlugin
-import info.nightscout.plugins.constraints.versionChecker.VersionCheckerPlugin
 import info.nightscout.plugins.general.actions.ActionsPlugin
 import info.nightscout.plugins.general.autotune.AutotunePlugin
 import info.nightscout.plugins.general.dataBroadcaster.DataBroadcastPlugin
 import info.nightscout.plugins.general.food.FoodPlugin
+import info.nightscout.plugins.general.overview.OverviewPlugin
 import info.nightscout.plugins.general.smsCommunicator.SmsCommunicatorPlugin
 import info.nightscout.plugins.general.themes.ThemeSwitcherPlugin
 import info.nightscout.plugins.general.wear.WearPlugin
@@ -62,6 +58,7 @@ import info.nightscout.plugins.sync.nsclientV3.NSClientV3Plugin
 import info.nightscout.plugins.sync.tidepool.TidepoolPlugin
 import info.nightscout.pump.combo.ComboPlugin
 import info.nightscout.pump.combov2.ComboV2Plugin
+import info.nightscout.pump.diaconn.DiaconnG8Plugin
 import info.nightscout.sensitivity.SensitivityAAPSPlugin
 import info.nightscout.sensitivity.SensitivityOref1Plugin
 import info.nightscout.sensitivity.SensitivityWeightedAveragePlugin
@@ -267,7 +264,7 @@ abstract class PluginsListModule {
     @NotNSClient
     @IntoMap
     @IntKey(270)
-    abstract fun bindVersionCheckerPlugin(plugin: VersionCheckerPlugin): PluginBase */
+    abstract fun bindVersionCheckerPlugin(plugin: info.nightscout.plugins.constraints.versionChecker.VersionCheckerPlugin): PluginBase */
 
     @Binds
     @NotNSClient
@@ -279,7 +276,7 @@ abstract class PluginsListModule {
     @APS
     @IntoMap
     @IntKey(290)
-    abstract fun bindStorageConstraintPlugin(plugin: StorageConstraintPlugin): PluginBase
+    abstract fun bindStorageConstraintPlugin(plugin: info.nightscout.plugins.constraints.storage.StorageConstraintPlugin): PluginBase
 
     /* @Binds
     @APS
@@ -339,7 +336,7 @@ abstract class PluginsListModule {
     @AllConfigs
     @IntoMap
     @IntKey(380)
-    abstract fun bindDstHelperPlugin(plugin: DstHelperPlugin): PluginBase
+    abstract fun bindDstHelperPlugin(plugin: info.nightscout.plugins.constraints.dstHelper.DstHelperPlugin): PluginBase
 
     @Binds
     @AllConfigs
