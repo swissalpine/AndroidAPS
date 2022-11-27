@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
 import dagger.android.support.DaggerFragment
+
 import info.nightscout.androidaps.extensions.directionToIcon
 import info.nightscout.androidaps.extensions.valueToUnitsString
 import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
@@ -68,8 +69,6 @@ import info.nightscout.interfaces.utils.JsonHelper
 import info.nightscout.interfaces.utils.TrendCalculator
 import info.nightscout.plugins.R
 import info.nightscout.plugins.aps.loop.events.EventNewOpenLoopNotification
-import info.nightscout.plugins.aps.openAPSSMBDynamicISF.OpenAPSSMBDynamicISFPlugin
-import info.nightscout.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
 import info.nightscout.plugins.databinding.OverviewFragmentBinding
 import info.nightscout.plugins.general.overview.activities.QuickWizardListActivity
 import info.nightscout.plugins.general.overview.events.EventUpdateOverviewCalcProgress
@@ -149,7 +148,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     @Inject lateinit var activityNames: ActivityNames
 
     //Anpassung
-    @Inject lateinit var openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin
+    //@Inject lateinit var openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin
 
     private val disposable = CompositeDisposable()
 
@@ -203,7 +202,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         }
         // Mod end
         // Anpassung: autosens toggle icon für dynISF, disable autosens für openAPSSMB
-        if (openAPSSMBDynamicISFPlugin.isEnabled()) {
+        /*if (openAPSSMBDynamicISFPlugin.isEnabled()) {
             binding.infoLayout.sensitivityIcon.setOnClickListener {
                 if (sp.getBoolean(R.string.key_openapsama_use_autosens, false) == true && constraintChecker.isAutosensModeEnabled().value()) {
                     sp.putBoolean(R.string.key_openapsama_use_autosens, false)
@@ -218,7 +217,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 sp.putBoolean(R.string.key_openapsama_use_autosens, false)
                 binding.infoLayout.sensitivityIcon.setImageResource(R.drawable.ic_x_swap_vert)
             }
-        }
+        } */
         // Ende Anpassung
 
         // pre-process landscape mode
