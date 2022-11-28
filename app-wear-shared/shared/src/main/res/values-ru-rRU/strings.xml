@@ -27,4 +27,9 @@
     <string name="tomorrow">Завтра</string>
     <string name="today">Cегодня</string>
     <string name="yesterday">Вчера</string>
+    <!-- Rx -->
+    <string name="handshaking">Подтверждение связи</string>
+    <string name="connected">соединение установлено</string>
+    <string name="disconnecting">разъединение</string>
+    <string name="waiting_for_disconnection">Ожидание разъединения</string>
 </resources>

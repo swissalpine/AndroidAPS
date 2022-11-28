@@ -9,4 +9,14 @@
     <string name="privacy_settings">Adatvédelmi beállítások</string>
     <string name="profile">Profil</string>
     <string name="setupwizard_pump_riley_link_status">RileyLink állapot:</string>
+    <!--    ConfigBuilder-->
+    <!--ImportExport-->
+    <string name="nav_export">Beállítások exportálása</string>
+    <string name="setting_imported">Beállítások importálva</string>
+    <string name="old_master_password">Régi mesterjelszó</string>
+    <string name="filenotfound">Fájl nem található</string>
+    <!--    Maintenance-->
+    <string name="configbuilder_nightscoutversion_label">Nightscout verzió:</string>
+    <!-- Maintenance -->
+    <!-- Permissions -->
 </resources>

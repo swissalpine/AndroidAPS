@@ -26,12 +26,11 @@ import info.nightscout.interfaces.nsclient.NSAlarm
 import info.nightscout.interfaces.nsclient.NSSettingsStatus
 import info.nightscout.interfaces.sync.DataSyncSelector
 import info.nightscout.interfaces.sync.NsClient
-import info.nightscout.interfaces.ui.ActivityNames
+import info.nightscout.interfaces.ui.UiInteraction
 import info.nightscout.interfaces.utils.JsonHelper.safeGetString
 import info.nightscout.interfaces.utils.JsonHelper.safeGetStringAllowNull
 import info.nightscout.interfaces.workflow.WorkerClasses
 import info.nightscout.plugins.sync.R
-import info.nightscout.interfaces.nsclient.StoreDataForDb
 import info.nightscout.plugins.sync.nsShared.StoreDataForDbImpl
 import info.nightscout.plugins.sync.nsShared.events.EventNSClientStatus
 import info.nightscout.plugins.sync.nsShared.events.EventNSClientUpdateGUI
@@ -90,7 +89,7 @@ class NSClientService : DaggerService(), NsClient.NSClientService {
     @Inject lateinit var dataWorkerStorage: DataWorkerStorage
     @Inject lateinit var dataSyncSelector: DataSyncSelector
     @Inject lateinit var repository: AppRepository
-    @Inject lateinit var activityNames: ActivityNames
+    @Inject lateinit var uiInteraction: UiInteraction
     @Inject lateinit var workerClasses: WorkerClasses
 
     companion object {
@@ -509,10 +508,44 @@ class NSClientService : DaggerService(), NsClient.NSClientService {
                         val gson = GsonBuilder().also {
                             it.registerTypeAdapter(JSONObject::class.java, deserializer)
                         }.create()
-                        val devicestatuses = gson.fromJson(data.getString("devicestatus"), Array<RemoteDeviceStatus>::class.java)
-                        if (devicestatuses.isNotEmpty()) {
-                            rxBus.send(EventNSClientNewLog("DATA", "received " + devicestatuses.size + " device statuses"))
-                            nsDeviceStatusHandler.handleNewData(devicestatuses)
+
+                        try {
+                            // "Live-patch" the JSON data if the battery value is not an integer.
+                            // This has caused crashes in the past due to parsing errors. See:
+                            // https://github.com/nightscout/AndroidAPS/issues/2223
+                            // The reason is that the "battery" data type has been changed:
+                            // https://github.com/NightscoutFoundation/xDrip/pull/1709
+                            //
+                            // Since we cannot reliably derive an integer percentage out
+                            // of an arbitrary string, we are forced to replace that string
+                            // with a hardcoded percentage. That way, at least, the
+                            // subsequent GSON parsing won't crash.
+                            val devicestatusJsonArray = data.getJSONArray("devicestatus")
+                            for (arrayIndex in 0 until devicestatusJsonArray.length()) {
+                                val devicestatusObject = devicestatusJsonArray.getJSONObject(arrayIndex)
+                                if (devicestatusObject.has("uploader")) {
+                                    val uploaderObject = devicestatusObject.getJSONObject("uploader")
+                                    if (uploaderObject.has("battery")) {
+                                        val batteryValue = uploaderObject["battery"]
+                                        if (batteryValue !is Int) {
+                                            aapsLogger.warn(
+                                                LTag.NSCLIENT,
+                                                "JSON devicestatus object #$arrayIndex (out of ${devicestatusJsonArray.length()}) " +
+                                                "has invalid value \"$batteryValue\" (expected integer); replacing with hardcoded integer 100"
+                                            )
+                                            uploaderObject.put("battery", 100)
+                                        }
+                                    }
+                                }
+                            }
+
+                            val devicestatuses = gson.fromJson(data.getString("devicestatus"), Array<RemoteDeviceStatus>::class.java)
+                            if (devicestatuses.isNotEmpty()) {
+                                rxBus.send(EventNSClientNewLog("DATA", "received " + devicestatuses.size + " device statuses"))
+                                nsDeviceStatusHandler.handleNewData(devicestatuses)
+                            }
+                        } catch (e: JSONException) {
+                            aapsLogger.error(LTag.NSCLIENT, "Skipping invalid Nightscout devicestatus data; exception: $e")
                         }
                     }
                     if (data.has("food")) {
@@ -635,7 +668,7 @@ class NSClientService : DaggerService(), NsClient.NSClientService {
         val defaultVal = config.NSCLIENT
         if (sp.getBoolean(R.string.key_ns_announcements, defaultVal)) {
             val nsAlarm = NSAlarm(announcement)
-            activityNames.addNotificationWithAction(injector, nsAlarm)
+            uiInteraction.addNotificationWithAction(injector, nsAlarm)
             rxBus.send(EventNSClientNewLog("ANNOUNCEMENT", safeGetString(announcement, "message", "received")))
             aapsLogger.debug(LTag.NSCLIENT, announcement.toString())
         }
@@ -647,7 +680,7 @@ class NSClientService : DaggerService(), NsClient.NSClientService {
             val snoozedTo = sp.getLong(R.string.key_snoozed_to, 0L)
             if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo) {
                 val nsAlarm = NSAlarm(alarm)
-                activityNames.addNotificationWithAction(injector, nsAlarm)
+                uiInteraction.addNotificationWithAction(injector, nsAlarm)
             }
             rxBus.send(EventNSClientNewLog("ALARM", safeGetString(alarm, "message", "received")))
             aapsLogger.debug(LTag.NSCLIENT, alarm.toString())
@@ -660,7 +693,7 @@ class NSClientService : DaggerService(), NsClient.NSClientService {
             val snoozedTo = sp.getLong(R.string.key_snoozed_to, 0L)
             if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo) {
                 val nsAlarm = NSAlarm(alarm)
-                activityNames.addNotificationWithAction(injector, nsAlarm)
+                uiInteraction.addNotificationWithAction(injector, nsAlarm)
             }
             rxBus.send(EventNSClientNewLog("URGENTALARM", safeGetString(alarm, "message", "received")))
             aapsLogger.debug(LTag.NSCLIENT, alarm.toString())

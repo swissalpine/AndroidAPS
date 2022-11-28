@@ -27,10 +27,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
 import dagger.android.support.DaggerFragment
-
-import info.nightscout.androidaps.extensions.directionToIcon
-import info.nightscout.androidaps.extensions.valueToUnitsString
-import info.nightscout.androidaps.plugins.iob.iobCobCalculator.GlucoseStatusProvider
+import info.nightscout.core.extensions.directionToIcon
+import info.nightscout.core.extensions.valueToUnitsString
+import info.nightscout.core.iob.iobCobCalculator.GlucoseStatusProvider
 import info.nightscout.core.graph.OverviewData
 import info.nightscout.core.iob.displayText
 import info.nightscout.core.profile.ProfileSealed
@@ -64,7 +63,7 @@ import info.nightscout.interfaces.profile.Profile
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.protection.ProtectionCheck
 import info.nightscout.interfaces.pump.defs.PumpType
-import info.nightscout.interfaces.ui.ActivityNames
+import info.nightscout.interfaces.ui.UiInteraction
 import info.nightscout.interfaces.utils.JsonHelper
 import info.nightscout.interfaces.utils.TrendCalculator
 import info.nightscout.plugins.R
@@ -145,7 +144,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     @Inject lateinit var overviewData: OverviewData
     @Inject lateinit var automation: Automation
     @Inject lateinit var bgQualityCheck: BgQualityCheck
-    @Inject lateinit var activityNames: ActivityNames
+    @Inject lateinit var uiInteraction: UiInteraction
 
     //Anpassung
     //@Inject lateinit var openAPSSMBDynamicISFPlugin: OpenAPSSMBDynamicISFPlugin
@@ -406,34 +405,34 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 R.id.treatment_button    -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
-                    UIRunnable { if (isAdded) activityNames.runTreatmentDialog(childFragmentManager) })
+                    UIRunnable { if (isAdded) uiInteraction.runTreatmentDialog(childFragmentManager) })
 
                 R.id.wizard_button       -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
-                    UIRunnable { if (isAdded) activityNames.runWizardDialog(childFragmentManager) })
+                    UIRunnable { if (isAdded) uiInteraction.runWizardDialog(childFragmentManager) })
 
                 R.id.insulin_button      -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
-                    UIRunnable { if (isAdded) activityNames.runInsulinDialog(childFragmentManager) })
+                    UIRunnable { if (isAdded) uiInteraction.runInsulinDialog(childFragmentManager) })
 
                 R.id.quick_wizard_button -> protectionCheck.queryProtection(activity, ProtectionCheck.Protection.BOLUS, UIRunnable { if (isAdded) onClickQuickWizard() })
                 R.id.carbs_button        -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
-                    UIRunnable { if (isAdded) activityNames.runCarbsDialog(childFragmentManager) })
+                    UIRunnable { if (isAdded) uiInteraction.runCarbsDialog(childFragmentManager) })
 
                 R.id.temp_target         -> protectionCheck.queryProtection(
                     activity,
                     ProtectionCheck.Protection.BOLUS,
-                    UIRunnable { if (isAdded) activityNames.runTempTargetDialog(childFragmentManager) })
+                    UIRunnable { if (isAdded) uiInteraction.runTempTargetDialog(childFragmentManager) })
 
                 R.id.active_profile      -> {
-                    activityNames.runProfileViewerDialog(
+                    uiInteraction.runProfileViewerDialog(
                         childFragmentManager,
                         dateUtil.now(),
-                        ActivityNames.Mode.RUNNING_PROFILE
+                        UiInteraction.Mode.RUNNING_PROFILE
                     )
                 }
 
@@ -450,7 +449,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 R.id.calibration_button  -> {
                     if (xdripPlugin.isEnabled()) {
-                        activityNames.runCalibrationDialog(childFragmentManager)
+                        uiInteraction.runCalibrationDialog(childFragmentManager)
                     } else if (dexcomPlugin.isEnabled()) {
                         try {
                             dexcomMediator.findDexcomPackageName()?.let {
@@ -492,7 +491,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
                 R.id.aps_mode            -> {
                     protectionCheck.queryProtection(activity, ProtectionCheck.Protection.BOLUS, UIRunnable {
-                        if (isAdded) activityNames.runLoopDialog(childFragmentManager, 1)
+                        if (isAdded) uiInteraction.runLoopDialog(childFragmentManager, 1)
                     })
                 }
             }
@@ -523,7 +522,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             R.id.aps_mode            -> {
                 activity?.let { activity ->
                     protectionCheck.queryProtection(activity, ProtectionCheck.Protection.BOLUS, UIRunnable {
-                        activityNames.runLoopDialog(childFragmentManager, 0)
+                        uiInteraction.runLoopDialog(childFragmentManager, 0)
                     })
                 }
             }
@@ -538,7 +537,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     protectionCheck.queryProtection(
                         activity,
                         ProtectionCheck.Protection.BOLUS,
-                        UIRunnable { activityNames.runProfileSwitchDialog(childFragmentManager) })
+                        UIRunnable { uiInteraction.runProfileSwitchDialog(childFragmentManager) })
             }
 
         }
