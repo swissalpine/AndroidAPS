@@ -57,6 +57,7 @@ import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DecimalFormat
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.math.max
 
 class WizardDialog : DaggerDialogFragment() {
 
@@ -169,6 +170,45 @@ class WizardDialog : DaggerDialogFragment() {
                 ?: 0.0, 0.0, maxCarbs.toDouble(), 1.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher
         )
 
+        // Anpassung carbs + buttons
+        val plus1text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_1, Constants.CARBS_FAV1_DEFAULT))
+        binding.plus1.text = plus1text
+        binding.plus1.contentDescription = rh.gs(R.string.carbs) + " " + plus1text
+        binding.plus1.setOnClickListener {
+            binding.carbsInput.value = max(
+                0.0, binding.carbsInput.value
+                    + sp.getInt(R.string.key_carbs_button_increment_1, Constants.CARBS_FAV1_DEFAULT)
+            )
+            validateInputs()
+            binding.carbsInput.announceValue()
+            calculateInsulin()
+        }
+        val plus2text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_2, Constants.CARBS_FAV2_DEFAULT))
+        binding.plus2.text = plus2text
+        binding.plus2.contentDescription = rh.gs(R.string.carbs) + " " + plus2text
+        binding.plus2.setOnClickListener {
+            binding.carbsInput.value = max(
+                0.0, binding.carbsInput.value
+                    + sp.getInt(R.string.key_carbs_button_increment_2, Constants.CARBS_FAV2_DEFAULT)
+            )
+            validateInputs()
+            binding.carbsInput.announceValue()
+            calculateInsulin()
+        }
+        val plus3text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_3, Constants.CARBS_FAV3_DEFAULT))
+        binding.plus3.text = plus3text
+        binding.plus2.contentDescription = rh.gs(R.string.carbs) + " " + plus3text
+        binding.plus3.setOnClickListener {
+            binding.carbsInput.value = max(
+                0.0, binding.carbsInput.value
+                    + sp.getInt(R.string.key_carbs_button_increment_3, Constants.CARBS_FAV3_DEFAULT)
+            )
+            validateInputs()
+            binding.carbsInput.announceValue()
+            calculateInsulin()
+        }
+        // Ende Anpassung
+
         if (usePercentage) {
             calculatedPercentage = sp.getInt(R.string.key_boluswizard_percentage, 100).toDouble()
             binding.correctionInput.setParams(calculatedPercentage, 10.0, 200.0, 5.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher)
@@ -264,6 +304,19 @@ class WizardDialog : DaggerDialogFragment() {
             .subscribe({ calculateInsulin() }, fabricPrivacy::logException)
         setA11yLabels()
     }
+
+    // Anpassung carbs buttons
+    private fun toSignedString(value: Int): String {
+        return if (value > 0) "+$value" else value.toString()
+    }
+    private fun validateInputs() {
+        val maxCarbs = constraintChecker.getMaxCarbsAllowed().value().toDouble()
+        if (binding.carbsInput.value.toInt() > maxCarbs) {
+            binding.carbsInput.value = 0.0
+            ToastUtils.warnToast(ctx, R.string.carbs_constraint_applied)
+        }
+    }
+    // Ende Anpassung
 
     private fun setA11yLabels() {
         binding.bgInputLabel.labelFor = binding.bgInput.editTextId
