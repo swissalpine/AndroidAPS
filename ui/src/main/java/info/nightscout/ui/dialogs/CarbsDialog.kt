@@ -290,8 +290,8 @@ class CarbsDialog : DialogFragmentWithDate() {
         if (hypoActionSelected)
             actions.add(
                 rh.gs(R.string.temp_target_short) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
-                    " (" + rh.gs(R.string.format_mins, hypoTTDuration) + ")  + TBR: 50% (60 min)").formatColor( context, rh,
-                    R.attr.tempTargetConfirmation
+                    " (" + rh.gs(info.nightscout.core.ui.R.string.format_mins, hypoTTDuration) + ")  + TBR: 50% (60 min)").formatColor( context, rh,
+                    info.nightscout.core.ui.R.attr.tempTargetConfirmation
                 )
             )
         // Ende Anpassung
@@ -392,7 +392,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                             val callback: Callback = object : Callback() {
                                 override fun run() {
                                     if (!result.success) {
-                                        uiInteraction.runAlarm(result.comment, rh.gs(R.string.temp_basal_delivery_error), R.raw.boluserror)
+                                        uiInteraction.runAlarm(result.comment, rh.gs(info.nightscout.core.ui.R.string.temp_basal_delivery_error), info.nightscout.core.ui.R.raw.boluserror)
                                     }
                                 }
                             }

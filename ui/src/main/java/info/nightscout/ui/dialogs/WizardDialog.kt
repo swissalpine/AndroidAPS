@@ -171,37 +171,37 @@ class WizardDialog : DaggerDialogFragment() {
         )
 
         // Anpassung carbs + buttons
-        val plus1text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_1, Constants.CARBS_FAV1_DEFAULT))
+        val plus1text = toSignedString(sp.getInt(info.nightscout.core.utils.R.string.key_carbs_button_increment_1, Constants.CARBS_FAV1_DEFAULT))
         binding.plus1.text = plus1text
-        binding.plus1.contentDescription = rh.gs(R.string.carbs) + " " + plus1text
+        binding.plus1.contentDescription = rh.gs(info.nightscout.core.ui.R.string.carbs) + " " + plus1text
         binding.plus1.setOnClickListener {
             binding.carbsInput.value = max(
                 0.0, binding.carbsInput.value
-                    + sp.getInt(R.string.key_carbs_button_increment_1, Constants.CARBS_FAV1_DEFAULT)
+                    + sp.getInt(info.nightscout.core.utils.R.string.key_carbs_button_increment_1, Constants.CARBS_FAV1_DEFAULT)
             )
             validateInputs()
             binding.carbsInput.announceValue()
             calculateInsulin()
         }
-        val plus2text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_2, Constants.CARBS_FAV2_DEFAULT))
+        val plus2text = toSignedString(sp.getInt(info.nightscout.core.utils.R.string.key_carbs_button_increment_2, Constants.CARBS_FAV2_DEFAULT))
         binding.plus2.text = plus2text
-        binding.plus2.contentDescription = rh.gs(R.string.carbs) + " " + plus2text
+        binding.plus2.contentDescription = rh.gs(info.nightscout.core.ui.R.string.carbs) + " " + plus2text
         binding.plus2.setOnClickListener {
             binding.carbsInput.value = max(
                 0.0, binding.carbsInput.value
-                    + sp.getInt(R.string.key_carbs_button_increment_2, Constants.CARBS_FAV2_DEFAULT)
+                    + sp.getInt(info.nightscout.core.utils.R.string.key_carbs_button_increment_2, Constants.CARBS_FAV2_DEFAULT)
             )
             validateInputs()
             binding.carbsInput.announceValue()
             calculateInsulin()
         }
-        val plus3text = toSignedString(sp.getInt(R.string.key_carbs_button_increment_3, Constants.CARBS_FAV3_DEFAULT))
+        val plus3text = toSignedString(sp.getInt(info.nightscout.core.utils.R.string.key_carbs_button_increment_3, Constants.CARBS_FAV3_DEFAULT))
         binding.plus3.text = plus3text
-        binding.plus2.contentDescription = rh.gs(R.string.carbs) + " " + plus3text
+        binding.plus2.contentDescription = rh.gs(info.nightscout.core.ui.R.string.carbs) + " " + plus3text
         binding.plus3.setOnClickListener {
             binding.carbsInput.value = max(
                 0.0, binding.carbsInput.value
-                    + sp.getInt(R.string.key_carbs_button_increment_3, Constants.CARBS_FAV3_DEFAULT)
+                    + sp.getInt(info.nightscout.core.utils.R.string.key_carbs_button_increment_3, Constants.CARBS_FAV3_DEFAULT)
             )
             validateInputs()
             binding.carbsInput.announceValue()
