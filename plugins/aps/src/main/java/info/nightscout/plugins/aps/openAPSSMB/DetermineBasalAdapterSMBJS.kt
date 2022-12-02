@@ -1,10 +1,10 @@
 package info.nightscout.plugins.aps.openAPSSMB
 
 import dagger.android.HasAndroidInjector
+import info.nightscout.core.aps.APSResultObject
 import info.nightscout.core.extensions.convertedToAbsolute
 import info.nightscout.core.extensions.getPassedDurationToTimeInMinutes
 import info.nightscout.core.extensions.plannedRemainingMinutes
-import info.nightscout.core.aps.APSResultObject
 import info.nightscout.interfaces.GlucoseUnit
 import info.nightscout.interfaces.aps.DetermineBasalAdapter
 import info.nightscout.interfaces.aps.SMBDefaults
@@ -229,7 +229,11 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("carbsReqThreshold", sp.getInt(R.string.key_carbsReqThreshold, SMBDefaults.carbsReqThreshold))
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
-        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autosens_max, "1.2")))
+        this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(info.nightscout.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
+        if (profileFunction.getUnits() == GlucoseUnit.MMOL) {
+            this.profile.put("out_units", "mmol/L")
+        }
+        val now = System.currentTimeMillis()
 
         // mod 7e: can I add use autoisf here?
         this.profile.put("enable_autoISF", sp.getBoolean(R.string.key_enable_autoISF, false))
@@ -256,7 +260,6 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("smb_max_range_extension", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_max_range_extension, "1.0")))
         this.profile.put("enableSMB_EvenOn_OddOff", sp.getBoolean(R.string.key_enableSMB_EvenOn_OddOff, false))
         this.profile.put("enableSMB_EvenOn_OddOff_always", sp.getBoolean(R.string.key_enableSMB_EvenOn_OddOff_always, false))
-
         if (profileFunction.getUnits() == GlucoseUnit.MMOL) {
             this.profile.put("out_units", "mmol/L")
         }
