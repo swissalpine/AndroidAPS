@@ -27,9 +27,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/age_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/sensor_age"
@@ -46,9 +44,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/level_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/sensor_level"
@@ -99,9 +95,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/age_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/insulin_age"
@@ -118,9 +112,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/level_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp"/>
 
         <TextView
             android:id="@+id/reservoir_level"
@@ -173,9 +165,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/age_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/cannula_age"
@@ -192,9 +182,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/cannula_usage"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/cannula_usage"
@@ -248,9 +236,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/age_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/pb_age"
@@ -267,9 +253,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"
-            android:text="@string/level_label"
-            android:textSize="14sp" />
+            android:paddingEnd="0dp" />
 
         <TextView
             android:id="@+id/battery_level"
