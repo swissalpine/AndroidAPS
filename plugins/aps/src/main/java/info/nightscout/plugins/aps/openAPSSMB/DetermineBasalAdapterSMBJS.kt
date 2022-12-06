@@ -235,6 +235,7 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         }
 
         // mod 7e: can I add use autoisf here?
+        // this.profile.put("autoISF_version", "2.2.8")
         this.profile.put("enable_autoISF", sp.getBoolean(R.string.key_enable_autoISF, false))
         // mod 7f: can I add use autoisf with COB here?
         this.profile.put("autoISF_max",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autoISF_max, "1.0")))
