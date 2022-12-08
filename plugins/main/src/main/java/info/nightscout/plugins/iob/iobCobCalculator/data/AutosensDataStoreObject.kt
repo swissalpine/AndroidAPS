@@ -1,4 +1,4 @@
-package info.nightscout.core.iob.iobCobCalculator
+package info.nightscout.plugins.iob.iobCobCalculator.data
 
 import androidx.collection.LongSparseArray
 import androidx.collection.size
@@ -237,7 +237,7 @@ class AutosensDataStoreObject : AutosensDataStore {
                 val bgDelta = newer.value - older.value
                 val timeDiffToNew = newer.timestamp - currentTime
                 val currentBg = newer.value - timeDiffToNew.toDouble() / (newer.timestamp - older.timestamp) * bgDelta
-                val newBgReading = InMemoryGlucoseValue(currentTime, currentBg.roundToLong().toDouble(), true)
+                val newBgReading = InMemoryGlucoseValue(currentTime, currentBg.roundToLong().toDouble())
                 newBucketedData.add(newBgReading)
                 //log.debug("BG: " + newBgReading.value + " (" + new Date(newBgReading.date).toLocaleString() + ") Prev: " + older.value + " (" + new Date(older.date).toLocaleString() + ") Newer: " + newer.value + " (" + new Date(newer.date).toLocaleString() + ")");
             }
@@ -273,7 +273,7 @@ class AutosensDataStoreObject : AutosensDataStore {
                         val gapDelta = bgReadings[i].value - lastBg
                         //console.error(gapDelta, lastBg, elapsed_minutes);
                         val nextBg = lastBg + 5.0 / elapsedMinutes * gapDelta
-                        val newBgReading = InMemoryGlucoseValue(nextBgTime, nextBg.roundToLong().toDouble(), true)
+                        val newBgReading = InMemoryGlucoseValue(nextBgTime, nextBg.roundToLong().toDouble())
                         //console.error("Interpolated", bData[j]);
                         bData.add(newBgReading)
                         aapsLogger.debug(LTag.AUTOSENS) { "Adding. bgTime: ${dateUtil.toISOString(bgTime)} lastBgTime: ${dateUtil.toISOString(lastBgTime)} $newBgReading" }
@@ -310,7 +310,9 @@ class AutosensDataStoreObject : AutosensDataStore {
             val previous = bData[i + 1]
             val mSecDiff = current.timestamp - previous.timestamp
             val adjusted = (mSecDiff - T.mins(5).msecs()) / 1000
-            aapsLogger.debug(LTag.AUTOSENS) { "Adjusting bucketed data time. Current: ${dateUtil.dateAndTimeAndSecondsString(current.timestamp)} to: ${dateUtil.dateAndTimeAndSecondsString(previous.timestamp + T.mins(5).msecs())} by $adjusted sec" }
+            aapsLogger.debug(LTag.AUTOSENS) { "Adjusting bucketed data time. Current: ${dateUtil.dateAndTimeAndSecondsString(current.timestamp)} to: ${dateUtil.dateAndTimeAndSecondsString(previous.timestamp + T.mins(
+                5
+            ).msecs())} by $adjusted sec" }
             if (abs(adjusted) > 90) {
                 // too big adjustment, fallback to non 5 min data
                 aapsLogger.debug(LTag.AUTOSENS, "Fallback to non 5 min data")
