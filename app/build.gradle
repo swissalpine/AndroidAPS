@@ -177,6 +177,7 @@ allprojects {
 }
 
 dependencies {
+    implementation project(path: ':plugins:aps')
     wearApp project(':wear')
 
     // in order to use internet's versions you'd need to enable Jetifier again
@@ -197,11 +198,11 @@ dependencies {
     implementation project(':plugins:aps')
     implementation project(':plugins:automation')
     implementation project(':plugins:configuration')
+    implementation project(':plugins:constraints')
     implementation project(':plugins:main')
     implementation project(':plugins:openhumans')
     implementation project(':plugins:sensitivity')
     implementation project(':plugins:smoothing')
-    implementation project(':plugins:support')
     implementation project(':plugins:sync')
     implementation project(':implementation')
     implementation project(':database:entities')
