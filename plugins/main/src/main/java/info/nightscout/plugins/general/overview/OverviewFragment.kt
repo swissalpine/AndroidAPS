@@ -84,6 +84,7 @@ import info.nightscout.rx.events.EventBucketedDataCreated
 import info.nightscout.rx.events.EventEffectiveProfileSwitchChanged
 import info.nightscout.rx.events.EventExtendedBolusChange
 import info.nightscout.rx.events.EventMobileToWear
+import info.nightscout.rx.events.EventNewBG
 import info.nightscout.rx.events.EventNewOpenLoopNotification
 import info.nightscout.rx.events.EventPreferenceChange
 import info.nightscout.rx.events.EventPumpStatusChanged
@@ -1137,15 +1138,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateSensitivity() {
         _binding ?: return
-        if (constraintChecker.isAutosensModeEnabled().value() /*|| !(config.NSCLIENT && overviewData.lastAutosensData(iobCobCalculator) == null)*/) {
+        val lastAutosensData = overviewData.lastAutosensData(iobCobCalculator)
+        if (constraintChecker.isAutosensModeEnabled().value() /*|| !(config.NSCLIENT && lastAutosensData == null)*/) {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_swap_vert_black_48dp_green)
         } else {
             binding.infoLayout.sensitivityIcon.setImageResource(info.nightscout.core.main.R.drawable.ic_x_swap_vert)
         }
 
         binding.infoLayout.sensitivity.text =
-            overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
-                String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
+           lastAutosensData?.let {
+                String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
             } ?: ""
         // Show variable sensitivity
         val profile = profileFunction.getProfile()
