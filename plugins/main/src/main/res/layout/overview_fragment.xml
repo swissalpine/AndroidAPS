@@ -153,7 +153,7 @@
                         android:layout_height="wrap_content"
                         android:paddingStart="4sp"
                         android:paddingEnd="4sp"
-                        android:text="Pump: running"
+                        tools:text="Pump: running"
                         android:textSize="16sp"
                         tools:ignore="HardcodedText" />
 
@@ -164,7 +164,7 @@
                         android:layout_weight="1"
                         android:paddingStart="4sp"
                         android:paddingEnd="4sp"
-                        android:text="OpenAPS: 3 min ago"
+                        tools:text="OpenAPS: 3 min ago"
                         android:textSize="16sp"
                         tools:ignore="HardcodedText" />
 
@@ -175,7 +175,7 @@
                         android:layout_weight="1"
                         android:paddingStart="4sp"
                         android:paddingEnd="4sp"
-                        android:text="Uploader: 84%"
+                        tools:text="Uploader: 84%"
                         android:textSize="16sp"
                         tools:ignore="HardcodedText" />
 
