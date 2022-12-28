@@ -201,7 +201,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         }
 
         iobCobCalculator.ads.actualBg()?.let { bgReading ->
-            if (bgReading.value < 72)
+            if (bgReading.recalculated < 72)
                 binding.hypoTt.isChecked = true
         }
         binding.hypoTt.setOnClickListener {
