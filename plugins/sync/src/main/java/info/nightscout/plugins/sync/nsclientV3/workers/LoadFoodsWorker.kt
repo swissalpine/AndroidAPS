@@ -15,13 +15,14 @@ import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.events.EventNSClientNewLog
 import info.nightscout.sdk.localmodel.food.NSFood
 import info.nightscout.shared.utils.DateUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 class LoadFoodsWorker(
     context: Context,
     params: WorkerParameters
-) : LoggingWorker(context, params) {
+) : LoggingWorker(context, params, Dispatchers.IO) {
 
     @Inject lateinit var dataWorkerStorage: DataWorkerStorage
     @Inject lateinit var rxBus: RxBus
@@ -30,14 +31,14 @@ class LoadFoodsWorker(
     @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var storeDataForDb: StoreDataForDb
 
-    override fun doWorkAndLog(): Result {
+    override suspend fun doWorkAndLog(): Result {
         val nsAndroidClient = nsClientV3Plugin.nsAndroidClient ?: return Result.failure(workDataOf("Error" to "AndroidClient is null"))
 
         // Food database doesn't provide last record modification
         // Read full collection every 5th attempt
         runBlocking {
             if (nsClientV3Plugin.lastLoadedSrvModified.collections.foods++ % 5 == 0L) {
-                val foods: List<NSFood> = nsAndroidClient.getFoods(1000)
+                val foods: List<NSFood> = nsAndroidClient.getFoods(1000).values
                 aapsLogger.debug("FOODS: $foods")
                 rxBus.send(EventNSClientNewLog("RCV", "${foods.size} FOODs"))
                 // Schedule processing of fetched data
