@@ -205,10 +205,10 @@
     <string name="openapsama_dura_ISF_weight">dura_ISF weight\n(dura_ISF_weight)</string>
     <string name="enableSMB_EvenOn_OddOff">Enable alternative activation of SMB depending on TempTarget</string>
     <string name="key_enableSMB_EvenOn_OddOff" translatable="false">Enable alternative activation of SMB</string>
-    <string name="enableSMB_EvenOn_OddOff_summary">ON if TempTarget is even number\nOFF if TempTarget is odd number</string>
-    <string name="enableSMB_EvenOn_OddOff_always">Enable alternative activation of SMB allways</string>
+    <string name="enableSMB_EvenOn_OddOff_summary">\nenabled if ...\nTempTarget(mmol/L) has even decimal\nor TempTarget(mg/dL) is even number\n\ndisabled otherwise</string>
+    <string name="enableSMB_EvenOn_OddOff_always">Enable alternative activation of SMB depending on profile target</string>
     <string name="key_enableSMB_EvenOn_OddOff_always" translatable="false">Enable alternative activation of SMB always</string>
-    <string name="enableSMB_EvenOn_OddOff_always_summary">ON if Target or TempTarget is even number\nOFF if Target or TempTarget is odd number</string>
+    <string name="enableSMB_EvenOn_OddOff_always_summary">\nenabled if no TempTarget set and ...\nprofile target(mmol/L) has even decimal\nor profile target(mg/dL) is even number\n\ndisabled otherwise</string>
     <string name="key_enable_autoISF" translatable="false">openapsama_enable_autoISF</string>
     <string name="enableautoISFwithcob">Enable dura_ISF with COB</string>
     <string name="enableautoISFwithcob_summary">Enable dura_ISF when there is COB active</string>
