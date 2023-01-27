@@ -12,17 +12,18 @@
         android:focusable="true">
 
         <TextView
+            android:id="@+id/cannula_or_patch"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:gravity="center_vertical"
             android:paddingStart="15dp"
             android:paddingEnd="2dp"
-            android:text="@string/sensor_label"
+            android:text="@string/cannula"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_cp_age_sensor" />
+            app:drawableStartCompat="@drawable/ic_cp_age_cannula" />
 
         <TextView
-            android:id="@+id/sensor_age_label"
+            android:id="@+id/cannula_age_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -30,7 +31,7 @@
             android:paddingEnd="0dp" />
 
         <TextView
-            android:id="@+id/sensor_age"
+            android:id="@+id/cannula_age"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -39,7 +40,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/sensor_level_label"
+            android:id="@+id/cannula_usage_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -47,14 +48,15 @@
             android:paddingEnd="0dp" />
 
         <TextView
-            android:id="@+id/sensor_level"
+            android:id="@+id/cannula_usage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:paddingStart="4dp"
             android:paddingEnd="0dp"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            tools:text="..." />
 
     </TableRow>
 
@@ -149,18 +151,17 @@
         android:focusable="true">
 
         <TextView
-            android:id="@+id/cannula_or_patch"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:gravity="center_vertical"
             android:paddingStart="15dp"
             android:paddingEnd="2dp"
-            android:text="@string/cannula"
+            android:text="@string/sensor_label"
             android:textSize="14sp"
-            app:drawableStartCompat="@drawable/ic_cp_age_cannula" />
+            app:drawableStartCompat="@drawable/ic_cp_age_sensor" />
 
         <TextView
-            android:id="@+id/cannula_age_label"
+            android:id="@+id/sensor_age_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -168,7 +169,7 @@
             android:paddingEnd="0dp" />
 
         <TextView
-            android:id="@+id/cannula_age"
+            android:id="@+id/sensor_age"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -177,7 +178,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/cannula_usage_label"
+            android:id="@+id/sensor_level_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -185,15 +186,14 @@
             android:paddingEnd="0dp" />
 
         <TextView
-            android:id="@+id/cannula_usage"
+            android:id="@+id/sensor_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:paddingStart="4dp"
             android:paddingEnd="0dp"
-            android:textSize="14sp"
-            tools:text="..." />
+            android:textSize="14sp" />
 
     </TableRow>
 
