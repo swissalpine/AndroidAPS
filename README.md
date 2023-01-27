@@ -1,6 +1,6 @@
 # AAPS
 * Check the wiki: https://wiki.aaps.app
-*  Everyone who’s been looping with AAPS needs to fill out the form after 3 days of looping  https://docs.google.com/forms/d/14KcMjlINPMJHVt28MDRupa4sz4DDIooI4SrW0P3HSN8/viewform?c=0&w=1
+Everyone who’s been looping with AAPS needs to fill out the form after 3 days of looping  https://docs.google.com/forms/d/14KcMjlINPMJHVt28MDRupa4sz4DDIooI4SrW0P3HSN8/viewform?c=0&w=1
 
 The branch [sport-changes](https://github.com/swissalpine/AndroidAPS-1/tree/sport-changes) 
 realise some changes which are very important for me:
@@ -14,28 +14,11 @@ realise some changes which are very important for me:
 * Carbs Dialog with with an additional possibility to handle hypo situations (it sets a 
   TT and suspends the loop for 60 min with a TBR of 50%)
 * Exercise mode enabled (-> setting: high tt raises sensitivity), can be toggled via overview icon for openAPSSMB, dynISF and autoISF
-* No use of autosens limitations to the exercise mode result
-* Integrate ISF in exercise mode
-* Disable autosens for openAPSSMB and autoISF, as this feature can cause problems when interacting with exercise mode
 * Toggle autosens via overview icon (dynISF only)
-* dynISF with adjusted, extrapolated TDD based on the weighted last 24 hours and some safety restrictions
-* LGS threshold (65-120 mg/dl; Preferences > Treatments safety)
+* dynISF: LGS threshold (65-120 mg/dl; Preferences > Treatments safety)
 * Layout corrections for small devices like Jelly
-* Integration of autoISF (Quick guide: https://github.com/ga-zelle/autoISF/tree/A3.1.0.2_ai2.2.7)
-- modified for the use of exercise mode
-- another modification is that every odd target (normal target AND tt) disables smb
+* Integration of autoISF 2.2.8 (Quick guide: https://github.com/ga-zelle/autoISF/tree/A3.1.0.2_ai2.2.7)
+
+Please note that these are personal changes that work well _for me_. You should definitely use the official [AAPS master branch](https://github.com/nightscout/AndroidAPS/tree/master)!
 
 [![Support Server](https://img.shields.io/discord/629952586895851530.svg?label=Discord&logo=Discord&colorB=7289da&style=for-the-badge)](https://discord.gg/4fQUWHZ4Mw)
-
-[![CircleCI](https://circleci.com/gh/nightscout/AndroidAPS/tree/master.svg?style=svg)](https://circleci.com/gh/nightscout/AndroidAPS/tree/master)
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/androidaps/localized.svg)](https://translations.aaps.app/project/androidaps)
-[![Documentation Status](https://readthedocs.org/projects/androidaps/badge/?version=latest)](https://wiki.aaps.app/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/nightscout/AndroidAPS/branch/master/graph/badge.svg?token=EmklfIV6bH)](https://codecov.io/gh/nightscout/AndroidAPS)
-
-DEV: 
-[![CircleCI](https://circleci.com/gh/nightscout/AndroidAPS/tree/dev.svg?style=svg)](https://circleci.com/gh/nightscout/AndroidAPS/tree/dev)
-[![codecov](https://codecov.io/gh/nightscout/AndroidAPS/branch/dev/graph/badge.svg?token=EmklfIV6bH)](https://codecov.io/gh/nightscout/AndroidAPS/tree/dev)
-
-<img src="https://cdn.iconscout.com/icon/free/png-256/bitcoin-384-920569.png" srcset="https://cdn.iconscout.com/icon/free/png-512/bitcoin-384-920569.png 2x" alt="Bitcoin Icon" width="100">
-
-3KawK8aQe48478s6fxJ8Ms6VTWkwjgr9f2
