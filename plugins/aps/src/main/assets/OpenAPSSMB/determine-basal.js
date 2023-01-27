@@ -138,7 +138,7 @@ function loop_smb(profile, iob_data) {
         } else {
             console.error("SMB enabled; " +msgType +target +msgUnits +msgEven +msgTail);
             if (profile.temptargetSet && profile.target_bg < 100) {     // indirect asessment; later set it in GUI
-                console.error("Full Loop enabled");
+                //console.error("Full Loop enabled");                   // do not confuse users
                 return "fullLoop";                                      // even number
             } else {
                 return "enforced";                                      // even number
@@ -224,7 +224,7 @@ function interpolate(xdata, profile, type) //, polygon)
     return newVal;
 }
 
-function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio, high_temptarget_raises_sensitivity, normalTarget, profile, target_bg)
+function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio, origin_sens, profile, high_temptarget_raises_sensitivity, target_bg, normalTarget)
 {   // extracted 17.Mar.2022
     if ( liftISF < minISFReduction ) {                                                                         // mod V14j
         console.error("weakest ISF factor", round(liftISF,2), "limited by autoISF_min", minISFReduction);      // mod V14j
@@ -234,19 +234,24 @@ function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityR
         liftISF = maxISFReduction;                                                                             // mod V14j
     }
     var final_ISF = 1;
-    if ( liftISF >= 1 )            { final_ISF = Math.max(liftISF, sensitivityRatio); }
-    if ( liftISF <  1 )            { final_ISF = Math.min(liftISF, sensitivityRatio); }
-    if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
-        final_ISF = liftISF;
+    if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget ) {
+         final_ISF = liftISF * sensitivityRatio ;                 //# on top of TT modification
+         origin_sens = "includes exercise mode impact";
+    } else if ( liftISF >= 1 ) {
+        final_ISF = Math.max(liftISF, sensitivityRatio);
+        if (liftISF >= sensitivityRatio)            { origin_sens = "";}        // autoISF dominates
+    } else {
+        final_ISF = Math.min(liftISF, sensitivityRatio);
+        if (liftISF <= sensitivityRatio)            { origin_sens = "";}        // autoISF dominates
     }
-    console.error("final ISF factor is", round(final_ISF,2));
+    console.error("final ISF factor is", round(final_ISF,2), origin_sens);
     console.error("----------------------------------");
     console.error(" end autoISF");
     console.error("----------------------------------");
     return final_ISF;
 }
 
-function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensitivity, normalTarget)
+function autoISF(sens, origin_sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensitivity, normalTarget)
 {   // #### mod 7e: added switch for autoISF ON/OFF
     if ( !profile.enable_autoISF ) {
         console.error("autoISF disabled in Preferences");
@@ -263,6 +268,7 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
     var dura05 = glucose_status.dura_ISF_minutes;           // mod 7d
     var avg05  = glucose_status.dura_ISF_average;           // mod 7d
     // mod V14 dated 06.JUN.2021 starts
+    var minISFReduction = profile.autoISF_min;
     var maxISFReduction = profile.autoISF_max;              // mod 7d
     var sens_modified = false;
     var pp_ISF = 1;                                         // mod 14f
@@ -328,12 +334,12 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
              liftISF = bg_ISF * acce_ISF;                                                                   // mod V14j:  bg_ISF could become > 1 now
              console.error("bg_ISF lifted to", round(liftISF,2), "as bg accelerates already");   // mod V14j
         }                                                                                                   // mod V14j
-        final_ISF = withinISFlimits(liftISF, profile.autoISF_min, maxISFReduction, sensitivityRatio, high_temptarget_raises_sensitivity, normalTarget, profile, target_bg);
-        if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
-            return Math.min(720, round(sens / final_ISF, 1));
-        } else {
-            return Math.min(720, round(profile.sens / final_ISF, 1));
-        }                                                                               // mod V14j: observe ISF maximum of 720(?)
+        final_ISF = withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio, origin_sens, profile, high_temptarget_raises_sensitivity, target_bg, normalTarget);
+        //if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
+        //  return Math.min(720, round(sens / final_ISF, 1));
+        //} else {
+        return Math.min(720, round(profile.sens / final_ISF, 1));
+        //}                                                                               // mod V14j: observe ISF maximum of 720(?)
     } else if ( bg_ISF > 1 ) {
         sens_modified = true;
     }
@@ -391,12 +397,12 @@ function autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTim
             console.error("strongest ISF factor", round(liftISF,2), "weakened to", round(liftISF*acce_ISF,2), "as bg decelerates already");   // mod V14j
             liftISF = liftISF * acce_ISF;                                                               // mod V14j: brakes on for otherwise stronger or stable ISF
         }                                                                                               // mod V14j: brakes on for otherwise stronger or stable ISF
-        final_ISF = withinISFlimits(liftISF, profile.autoISF_min, maxISFReduction, sensitivityRatio, high_temptarget_raises_sensitivity, normalTarget, profile, target_bg);
-        if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
-            return round(sens / final_ISF, 1);
-        } else {
-            return round(profile.sens / final_ISF, 1);
-        }
+        final_ISF = withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityRatio, origin_sens, profile, high_temptarget_raises_sensitivity, target_bg, normalTarget);
+        //if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget) {
+        //    return round(sens / final_ISF, 1);
+        //} else {
+        return round(profile.sens / final_ISF, 1);
+        //}
     }
     console.error("----------------------------------");
     console.error(" end autoISF");
@@ -510,6 +516,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     }
 
     var sensitivityRatio;
+    var origin_sens = "";
     var high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity;
     var normalTarget = 100; // evaluate high/low temptarget against 100, not scheduled target (which might change)
     if ( profile.half_basal_exercise_target ) {
@@ -536,9 +543,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // limit sensitivityRatio to profile.autosens_max (1.2x by default)
         sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
         sensitivityRatio = round(sensitivityRatio,2);
+        origin_sens = "from TT modifier";
         console.log("Sensitivity ratio set to "+sensitivityRatio+" based on temp target of "+target_bg+"; ");
     } else if (typeof autosens_data !== 'undefined' && autosens_data) {
         sensitivityRatio = autosens_data.ratio;
+        origin_sens = "from Autosens";
         console.log("Autosens ratio: "+sensitivityRatio+"; ");
     }
     if (sensitivityRatio) {
@@ -614,7 +623,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("CR:", round(profile.carb_ratio,2));
 
     console.error("----------------------------------");
-    console.error("start autoISF, version 2.2.8"); //, profile.autoISF_version); vgl. auch DetermineBasalAdapter: Import nicht bekannt
+    console.error("start autoISF 2.2.8"); //, profile.autoISF_version); vgl. auch DetermineBasalAdapter: Import nicht bekannt
     console.error("----------------------------------");
     var loop_wants_smb = loop_smb(profile, iob_data);
     var enableSMB = false;
@@ -631,7 +640,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
        );
     }
 
-    sens = autoISF(sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensitivity, normalTarget);
+    sens = autoISF(sens, origin_sens, target_bg, profile, glucose_status, meal_data, currentTime, autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensitivity, normalTarget);
     // compare currenttemp to iob_data.lastTemp and cancel temp if they don't match
     var lastTempAge;
     if (typeof iob_data.lastTemp !== 'undefined' ) {
