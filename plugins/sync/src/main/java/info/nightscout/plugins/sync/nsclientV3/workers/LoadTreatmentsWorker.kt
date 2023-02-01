@@ -51,6 +51,7 @@ class LoadTreatmentsWorker(
                     response = nsAndroidClient.getTreatmentsNewerThan(lastLoadedIso, NSClientV3Plugin.RECORDS_TO_LOAD)
                 } else {
                     response = nsAndroidClient.getTreatmentsModifiedSince(lastLoaded, NSClientV3Plugin.RECORDS_TO_LOAD)
+                    aapsLogger.debug(LTag.NSCLIENT, "lastLoadedSrvModified: ${response.lastServerModified}")
                     response.lastServerModified?.let { nsClientV3Plugin.lastLoadedSrvModified.collections.treatments = it }
                     nsClientV3Plugin.storeLastLoadedSrvModified()
                 }
@@ -60,6 +61,7 @@ class LoadTreatmentsWorker(
                     val action = if (isFirstLoad) "RCV-FIRST" else "RCV"
                     rxBus.send(EventNSClientNewLog("◄ $action", "${treatments.size} TRs from ${dateUtil.dateAndTimeAndSecondsString(lastLoaded)}"))
                     // Schedule processing of fetched data and continue of loading
+                    val stopLoading = treatments.size != NSClientV3Plugin.RECORDS_TO_LOAD || response.code == 304
                     WorkManager.getInstance(context)
                         .beginUniqueWork(
                             NSClientV3Plugin.JOB_NAME,
@@ -69,8 +71,8 @@ class LoadTreatmentsWorker(
                                 .build()
                         )
                         // response 304 == Not modified (happens when date > srvModified => bad time on phone or server during upload
-                        .then(response.code != 304, OneTimeWorkRequest.Builder(LoadTreatmentsWorker::class.java).build())
-                        .then(response.code == 304, OneTimeWorkRequest.Builder(LoadFoodsWorker::class.java).build())
+                        .then(!stopLoading, OneTimeWorkRequest.Builder(LoadTreatmentsWorker::class.java).build())
+                        .then(stopLoading, OneTimeWorkRequest.Builder(LoadFoodsWorker::class.java).build())
                         .enqueue()
                 } else {
                     // End first load
