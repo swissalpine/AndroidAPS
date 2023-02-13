@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
-import android.text.Spanned
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreference
@@ -17,7 +16,6 @@ import com.google.gson.GsonBuilder
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.annotations.OpenForTesting
 import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.core.utils.receivers.DataWorkerStorage
 import info.nightscout.database.ValueWrapper
 import info.nightscout.database.entities.interfaces.TraceableDBEntry
 import info.nightscout.database.impl.AppRepository
@@ -25,25 +23,25 @@ import info.nightscout.interfaces.Config
 import info.nightscout.interfaces.Constants
 import info.nightscout.interfaces.notifications.Notification
 import info.nightscout.interfaces.nsclient.NSAlarm
+import info.nightscout.interfaces.nsclient.StoreDataForDb
 import info.nightscout.interfaces.plugin.PluginBase
 import info.nightscout.interfaces.plugin.PluginDescription
 import info.nightscout.interfaces.plugin.PluginType
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.source.NSClientSource
 import info.nightscout.interfaces.sync.DataSyncSelector
+import info.nightscout.interfaces.sync.DataSyncSelectorV3
 import info.nightscout.interfaces.sync.NsClient
 import info.nightscout.interfaces.sync.Sync
 import info.nightscout.interfaces.ui.UiInteraction
-import info.nightscout.interfaces.utils.HtmlHelper
-import info.nightscout.interfaces.utils.JsonHelper
-import info.nightscout.interfaces.workflow.WorkerClasses
 import info.nightscout.plugins.sync.R
 import info.nightscout.plugins.sync.nsShared.NSClientFragment
-import info.nightscout.plugins.sync.nsShared.StoreDataForDbImpl
+import info.nightscout.plugins.sync.nsShared.NsIncomingDataProcessor
+import info.nightscout.plugins.sync.nsShared.events.EventConnectivityOptionChanged
 import info.nightscout.plugins.sync.nsShared.events.EventNSClientResend
-import info.nightscout.plugins.sync.nsShared.events.EventNSClientUpdateGUI
-import info.nightscout.plugins.sync.nsShared.events.EventNSConnectivityOptionChanged
-import info.nightscout.plugins.sync.nsclient.NsClientReceiverDelegate
+import info.nightscout.plugins.sync.nsShared.events.EventNSClientUpdateGuiData
+import info.nightscout.plugins.sync.nsShared.events.EventNSClientUpdateGuiStatus
+import info.nightscout.plugins.sync.nsclient.ReceiverDelegate
 import info.nightscout.plugins.sync.nsclient.data.NSDeviceStatusHandler
 import info.nightscout.plugins.sync.nsclientV3.extensions.toNSBolus
 import info.nightscout.plugins.sync.nsclientV3.extensions.toNSBolusWizard
@@ -60,10 +58,12 @@ import info.nightscout.plugins.sync.nsclientV3.extensions.toNSTemporaryTarget
 import info.nightscout.plugins.sync.nsclientV3.extensions.toNSTherapyEvent
 import info.nightscout.plugins.sync.nsclientV3.workers.DataSyncWorker
 import info.nightscout.plugins.sync.nsclientV3.workers.LoadBgWorker
+import info.nightscout.plugins.sync.nsclientV3.workers.LoadDeviceStatusWorker
+import info.nightscout.plugins.sync.nsclientV3.workers.LoadFoodsWorker
 import info.nightscout.plugins.sync.nsclientV3.workers.LoadLastModificationWorker
+import info.nightscout.plugins.sync.nsclientV3.workers.LoadProfileStoreWorker
 import info.nightscout.plugins.sync.nsclientV3.workers.LoadStatusWorker
-import info.nightscout.plugins.sync.nsclientV3.workers.ProcessFoodWorker
-import info.nightscout.plugins.sync.nsclientV3.workers.ProcessTreatmentsWorker
+import info.nightscout.plugins.sync.nsclientV3.workers.LoadTreatmentsWorker
 import info.nightscout.rx.AapsSchedulers
 import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.events.EventAppExit
@@ -91,18 +91,16 @@ import io.socket.client.Ack
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URISyntaxException
+import java.security.InvalidParameterException
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("SpellCheckingInspection")
 @OpenForTesting
 @Singleton
 class NSClientV3Plugin @Inject constructor(
@@ -114,18 +112,17 @@ class NSClientV3Plugin @Inject constructor(
     private val context: Context,
     private val fabricPrivacy: FabricPrivacy,
     private val sp: SP,
-    private val nsClientReceiverDelegate: NsClientReceiverDelegate,
+    private val receiverDelegate: ReceiverDelegate,
     private val config: Config,
     private val dateUtil: DateUtil,
     private val uiInteraction: UiInteraction,
-    private val dataSyncSelector: DataSyncSelector,
+    private val dataSyncSelectorV3: DataSyncSelectorV3,
     private val profileFunction: ProfileFunction,
     private val repository: AppRepository,
     private val nsDeviceStatusHandler: NSDeviceStatusHandler,
-    private val workManager: WorkManager,
-    private val workerClasses: WorkerClasses,
-    private val dataWorkerStorage: DataWorkerStorage,
-    private val nsClientSource: NSClientSource
+    private val nsClientSource: NSClientSource,
+    private val nsIncomingDataProcessor: NsIncomingDataProcessor,
+    private val storeDataForDb: StoreDataForDb
 ) : NsClient, Sync, PluginBase(
     PluginDescription()
         .mainType(PluginType.SYNC)
@@ -138,18 +135,19 @@ class NSClientV3Plugin @Inject constructor(
     aapsLogger, rh, injector
 ) {
 
+    @Suppress("PropertyName")
+    val JOB_NAME: String = this::class.java.simpleName
+
     companion object {
 
-        val JOB_NAME: String = this::class.java.simpleName
-        val REFRESH_INTERVAL = T.secs(30).msecs()
         const val RECORDS_TO_LOAD = 500
     }
 
     private val disposable = CompositeDisposable()
-    var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var runLoop: Runnable
     private val handler = Handler(HandlerThread(this::class.simpleName + "Handler").also { it.start() }.looper)
-    private val listLog: MutableList<EventNSClientNewLog> = ArrayList()
+    override val listLog: MutableList<EventNSClientNewLog> = ArrayList()
+    override val dataSyncSelector: DataSyncSelector get() = dataSyncSelectorV3
     override val status
         get() =
             when {
@@ -159,7 +157,7 @@ class NSClientV3Plugin @Inject constructor(
                 sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && !wsConnected -> "WS: " + rh.gs(R.string.not_connected)
                 lastOperationError != null                                                             -> rh.gs(info.nightscout.core.ui.R.string.error)
                 nsAndroidClient?.lastStatus == null                                                    -> rh.gs(R.string.not_connected)
-                workIsRunning(arrayOf(JOB_NAME))                                                       -> rh.gs(R.string.working)
+                workIsRunning()                                                                        -> rh.gs(R.string.working)
                 nsAndroidClient?.lastStatus?.apiPermissions?.isFull() == true                          -> rh.gs(info.nightscout.shared.R.string.connected)
                 nsAndroidClient?.lastStatus?.apiPermissions?.isRead() == true                          -> rh.gs(R.string.read_only)
                 else                                                                                   -> rh.gs(info.nightscout.core.ui.R.string.unknown)
@@ -168,8 +166,8 @@ class NSClientV3Plugin @Inject constructor(
 
     internal var nsAndroidClient: NSAndroidClient? = null
 
-    private val isAllowed get() = nsClientReceiverDelegate.allowed
-    private val blockingReason get() = nsClientReceiverDelegate.blockingReason
+    private val isAllowed get() = receiverDelegate.allowed
+    private val blockingReason get() = receiverDelegate.blockingReason
 
     val maxAge = T.days(77).msecs()
     internal var newestDataOnServer: LastModified? = null // timestamp of last modification for every collection provided by server
@@ -188,14 +186,15 @@ class NSClientV3Plugin @Inject constructor(
 
         setClient("START")
 
-        nsClientReceiverDelegate.grabReceiversState()
+        receiverDelegate.grabReceiversState()
         disposable += rxBus
-            .toObservable(EventNSConnectivityOptionChanged::class.java)
+            .toObservable(EventConnectivityOptionChanged::class.java)
             .observeOn(aapsSchedulers.io)
             .subscribe({ ev ->
-                           rxBus.send(EventNSClientNewLog("● CONNECTIVITY CHANGE", ev.blockingReason))
-                           setClient("CONNECTIVITY_CHANGE")
-                           if (isAllowed) executeLoop("CONNECTIVITY_CHANGE", forceNew = false)
+                           rxBus.send(EventNSClientNewLog("● CONNECTIVITY", ev.blockingReason))
+                           setClient("CONNECTIVITY")
+                           if (isAllowed) executeLoop("CONNECTIVITY", forceNew = false)
+                           rxBus.send(EventNSClientUpdateGuiStatus())
                        }, fabricPrivacy::logException)
         disposable += rxBus
             .toObservable(EventPreferenceChange::class.java)
@@ -204,7 +203,9 @@ class NSClientV3Plugin @Inject constructor(
                            if (ev.isChanged(rh.gs(R.string.key_ns_client_token)) ||
                                ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_nsclientinternal_url)) ||
                                ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_ns_use_ws)) ||
-                               ev.isChanged(rh.gs(R.string.key_ns_paused))
+                               ev.isChanged(rh.gs(R.string.key_ns_paused)) ||
+                               ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_ns_alarms)) ||
+                               ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_ns_announcements))
                            )
                                setClient("SETTING CHANGE")
                            if (ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_local_profile_last_change)))
@@ -270,7 +271,10 @@ class NSClientV3Plugin @Inject constructor(
     override fun onStop() {
         handler.removeCallbacksAndMessages(null)
         disposable.clear()
-        socket?.disconnect()
+        storageSocket?.disconnect()
+        alarmSocket?.disconnect()
+        storageSocket = null
+        alarmSocket = null
         super.onStop()
     }
 
@@ -287,10 +291,14 @@ class NSClientV3Plugin @Inject constructor(
 
     override val hasWritePermission: Boolean get() = nsAndroidClient?.lastStatus?.apiPermissions?.isFull() ?: false
     override val connected: Boolean get() = nsAndroidClient?.lastStatus != null
-    override fun clearLog() {
-        handler.post {
-            synchronized(listLog) { listLog.clear() }
-            rxBus.send(EventNSClientUpdateGUI())
+    private fun addToLog(ev: EventNSClientNewLog) {
+        synchronized(listLog) {
+            listLog.add(0, ev)
+            // remove the first line if log is too large
+            if (listLog.size >= Constants.MAX_LOG_LINES) {
+                listLog.removeAt(listLog.size - 1)
+            }
+            rxBus.send(EventNSClientUpdateGuiData())
         }
     }
 
@@ -302,8 +310,12 @@ class NSClientV3Plugin @Inject constructor(
             logging = true,
             logger = { msg -> aapsLogger.debug(LTag.HTTP, msg) }
         )
-        if (wsConnected)
-            socket?.disconnect()
+        if (wsConnected) {
+            storageSocket?.disconnect()
+            alarmSocket?.disconnect()
+            storageSocket = null
+            alarmSocket = null
+        }
         SystemClock.sleep(2000)
         initializeWebSockets(reason)
         rxBus.send(EventSWSyncStatus(status))
@@ -312,58 +324,62 @@ class NSClientV3Plugin @Inject constructor(
     /**********************
     WS code
      **********************/
-    private var connectCounter = 0
-    private var socket: Socket? = null
+    private var storageSocket: Socket? = null
+    private var alarmSocket: Socket? = null
     var wsConnected = false
     internal var initialLoadFinished = false
     private fun initializeWebSockets(reason: String) {
         if (!sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true)) return
-        val url = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/storage"
+        if (sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").isEmpty()) return
+        val urlStorage = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/storage"
+        val urlAlarm = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/alarm"
         if (!isAllowed) {
             rxBus.send(EventNSClientNewLog("● WS", blockingReason))
         } else if (sp.getBoolean(R.string.key_ns_paused, false)) {
             rxBus.send(EventNSClientNewLog("● WS", "paused"))
-        } else if (url != "") {
+        } else {
             try {
-                //rxBus.send(EventNSClientStatus("Connecting ..."))
-                val opt = IO.Options().also {
-                    it.forceNew = true
-                    //it.webSocketFactory = nsAndroidClient.
-                }
-                socket = IO.socket(url, opt).also { socket ->
-                    socket.on(Socket.EVENT_CONNECT, onConnect)
-                    socket.on(Socket.EVENT_DISCONNECT, onDisconnect)
-                    rxBus.send(EventNSClientNewLog("► WS", "do connect $reason"))
+                // java io.client doesn't support multiplexing. create 2 sockets
+                storageSocket = IO.socket(urlStorage).also { socket ->
+                    socket.on(Socket.EVENT_CONNECT, onConnectStorage)
+                    socket.on(Socket.EVENT_DISCONNECT, onDisconnectStorage)
+                    rxBus.send(EventNSClientNewLog("► WS", "do connect storage $reason"))
                     socket.connect()
                     socket.on("create", onDataCreateUpdate)
                     socket.on("update", onDataCreateUpdate)
                     socket.on("delete", onDataDelete)
-                    socket.on("announcement", onAnnouncement)
-                    socket.on("alarm", onAlarm)
-                    socket.on("urgent_alarm", onUrgentAlarm)
-                    socket.on("clear_alarm", onClearAlarm)
                 }
+                if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_announcements, config.NSCLIENT) ||
+                    sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, config.NSCLIENT)
+                )
+                    alarmSocket = IO.socket(urlAlarm).also { socket ->
+                        socket.on(Socket.EVENT_CONNECT, onConnectAlarms)
+                        socket.on(Socket.EVENT_DISCONNECT, onDisconnectAlarm)
+                        rxBus.send(EventNSClientNewLog("► WS", "do connect alarm $reason"))
+                        socket.connect()
+                        socket.on("announcement", onAnnouncement)
+                        socket.on("alarm", onAlarm)
+                        socket.on("urgent_alarm", onUrgentAlarm)
+                        socket.on("clear_alarm", onClearAlarm)
+                    }
             } catch (e: URISyntaxException) {
                 rxBus.send(EventNSClientNewLog("● WS", "Wrong URL syntax"))
             } catch (e: RuntimeException) {
                 rxBus.send(EventNSClientNewLog("● WS", "RuntimeException"))
             }
-        } else {
-            rxBus.send(EventNSClientNewLog("● WS", "No NS URL specified"))
         }
     }
 
-    private val onConnect = Emitter.Listener {
-        connectCounter++
-        val socketId = socket?.id() ?: "NULL"
-        rxBus.send(EventNSClientNewLog("◄ WS", "connect #$connectCounter event. ID: $socketId"))
-        if (socket != null) {
+    private val onConnectStorage = Emitter.Listener {
+        val socketId = storageSocket?.id() ?: "NULL"
+        rxBus.send(EventNSClientNewLog("◄ WS", "connected storage ID: $socketId"))
+        if (storageSocket != null) {
             val authMessage = JSONObject().also {
                 it.put("accessToken", sp.getString(R.string.key_ns_client_token, ""))
-                it.put("collections", JSONArray(arrayOf<String>("devicestatus", "entries", "profile", "treatments", "foods", "settings")))
+                it.put("collections", JSONArray(arrayOf("devicestatus", "entries", "profile", "treatments", "foods", "settings")))
             }
-            rxBus.send(EventNSClientNewLog("► WS", "requesting auth"))
-            socket?.emit("subscribe", authMessage, Ack { args ->
+            rxBus.send(EventNSClientNewLog("► WS", "requesting auth for storage"))
+            storageSocket?.emit("subscribe", authMessage, Ack { args ->
                 val response = args[0] as JSONObject
                 wsConnected = if (response.optBoolean("success")) {
                     rxBus.send(EventNSClientNewLog("◄ WS", "Subscribed for: ${response.optString("collections")}"))
@@ -376,12 +392,38 @@ class NSClientV3Plugin @Inject constructor(
         }
     }
 
-    private val onDisconnect = Emitter.Listener { args ->
-        aapsLogger.debug(LTag.NSCLIENT, "disconnect reason: ${args[0]}")
-        rxBus.send(EventNSClientNewLog("◄ WS", "disconnect event"))
+    private val onConnectAlarms = Emitter.Listener {
+        val socket = alarmSocket
+        val socketId = socket?.id() ?: "NULL"
+        rxBus.send(EventNSClientNewLog("◄ WS", "connected alarms ID: $socketId"))
+        if (socket != null) {
+            val authMessage = JSONObject().also {
+                it.put("accessToken", sp.getString(R.string.key_ns_client_token, ""))
+            }
+            rxBus.send(EventNSClientNewLog("► WS", "requesting auth for alarms"))
+            socket?.emit("subscribe", authMessage, Ack { args ->
+                val response = args[0] as JSONObject
+                wsConnected = if (response.optBoolean("success")) {
+                    rxBus.send(EventNSClientNewLog("◄ WS", response.optString("message")))
+                    true
+                } else {
+                    rxBus.send(EventNSClientNewLog("◄ WS", "Auth failed"))
+                    false
+                }
+            })
+        }
+    }
+
+    private val onDisconnectStorage = Emitter.Listener { args ->
+        aapsLogger.debug(LTag.NSCLIENT, "disconnect storage reason: ${args[0]}")
+        rxBus.send(EventNSClientNewLog("◄ WS", "disconnect storage event"))
         wsConnected = false
         initialLoadFinished = false
-        socket = null
+    }
+
+    private val onDisconnectAlarm = Emitter.Listener { args ->
+        aapsLogger.debug(LTag.NSCLIENT, "disconnect alarm reason: ${args[0]}")
+        rxBus.send(EventNSClientNewLog("◄ WS", "disconnect alarm event"))
     }
 
     private val onDataCreateUpdate = Emitter.Listener { args ->
@@ -397,40 +439,21 @@ class NSClientV3Plugin @Inject constructor(
         when (collection) {
             "devicestatus" -> docString.toNSDeviceStatus().let { nsDeviceStatusHandler.handleNewData(arrayOf(it)) }
             "entries"      -> docString.toNSSgvV3()?.let {
-                workManager.beginUniqueWork(
-                    JOB_NAME + collection,
-                    ExistingWorkPolicy.APPEND_OR_REPLACE,
-                    OneTimeWorkRequest.Builder(workerClasses.nsClientSourceWorker).setInputData(dataWorkerStorage.storeInputData(listOf(it))).build()
-                )
-                    .then(OneTimeWorkRequest.Builder(StoreDataForDbImpl.StoreBgWorker::class.java).build())
-                    .enqueue()
+                nsIncomingDataProcessor.processSgvs(listOf(it))
+                storeDataForDb.storeGlucoseValuesToDb()
             }
 
             "profile"      ->
-                workManager.enqueueUniqueWork(
-                    JOB_NAME + collection,
-                    ExistingWorkPolicy.APPEND_OR_REPLACE,
-                    OneTimeWorkRequest.Builder(workerClasses.nsProfileWorker).setInputData(dataWorkerStorage.storeInputData(docJson)).build()
-                )
+                nsIncomingDataProcessor.processProfile(docJson)
 
             "treatments"   -> docString.toNSTreatment()?.let {
-                workManager.beginUniqueWork(
-                    JOB_NAME + collection,
-                    ExistingWorkPolicy.APPEND_OR_REPLACE,
-                    OneTimeWorkRequest.Builder(ProcessTreatmentsWorker::class.java).setInputData(dataWorkerStorage.storeInputData(listOf(it))).build()
-                )
-                    .then(OneTimeWorkRequest.Builder(StoreDataForDbImpl.StoreTreatmentsWorker::class.java).build())
-                    .enqueue()
+                nsIncomingDataProcessor.processTreatments(listOf(it))
+                storeDataForDb.storeTreatmentsToDb()
             }
 
             "foods"        -> docString.toNSFood()?.let {
-                workManager.beginUniqueWork(
-                    JOB_NAME + collection,
-                    ExistingWorkPolicy.APPEND_OR_REPLACE,
-                    OneTimeWorkRequest.Builder(ProcessFoodWorker::class.java).setInputData(dataWorkerStorage.storeInputData(listOf(it))).build()
-                )
-                    .then(OneTimeWorkRequest.Builder(StoreDataForDbImpl.StoreFoodWorker::class.java).build())
-                    .enqueue()
+                nsIncomingDataProcessor.processFood(listOf(it))
+                storeDataForDb.storeFoodsToDb()
             }
 
             "settings"     -> {}
@@ -456,13 +479,11 @@ class NSClientV3Plugin @Inject constructor(
         "key":"9ac46ad9a1dcda79dd87dae418fce0e7955c68da"
         }
          */
-        val data: JSONObject
-        try {
-            data = args[0] as JSONObject
-            handleAnnouncement(data)
-        } catch (e: Exception) {
-            aapsLogger.error("Unhandled exception", e)
-        }
+        val data = args[0] as JSONObject
+        rxBus.send(EventNSClientNewLog("◄ ANNOUNCEMENT", data.optString("message")))
+        aapsLogger.debug(LTag.NSCLIENT, data.toString())
+        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_announcements, config.NSCLIENT))
+            uiInteraction.addNotificationWithAction(injector, NSAlarm(data))
     }
     private val onAlarm = Emitter.Listener { args ->
 
@@ -479,23 +500,27 @@ class NSClientV3Plugin @Inject constructor(
         "key":"simplealarms_1"
         }
          */
-        val data: JSONObject
-        try {
-            data = args[0] as JSONObject
-            handleAlarm(data)
-        } catch (e: Exception) {
-            aapsLogger.error("Unhandled exception", e)
+        val data = args[0] as JSONObject
+        rxBus.send(EventNSClientNewLog("◄ ALARM", data.optString("message")))
+        aapsLogger.debug(LTag.NSCLIENT, data.toString())
+        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, config.NSCLIENT)) {
+            val snoozedTo = sp.getLong(rh.gs(info.nightscout.core.utils.R.string.key_snoozed_to) + data.optString("level"), 0L)
+            if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo)
+                uiInteraction.addNotificationWithAction(injector, NSAlarm(data))
         }
     }
+
     private val onUrgentAlarm = Emitter.Listener { args: Array<Any> ->
-        val data: JSONObject
-        try {
-            data = args[0] as JSONObject
-            handleUrgentAlarm(data)
-        } catch (e: Exception) {
-            aapsLogger.error("Unhandled exception", e)
+        val data = args[0] as JSONObject
+        rxBus.send(EventNSClientNewLog("◄ URGENT ALARM", data.optString("message")))
+        aapsLogger.debug(LTag.NSCLIENT, data.toString())
+        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, config.NSCLIENT)) {
+            val snoozedTo = sp.getLong(rh.gs(info.nightscout.core.utils.R.string.key_snoozed_to) + data.optString("level"), 0L)
+            if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo)
+                uiInteraction.addNotificationWithAction(injector, NSAlarm(data))
         }
     }
+
     private val onClearAlarm = Emitter.Listener { args ->
 
         /*
@@ -506,81 +531,26 @@ class NSClientV3Plugin @Inject constructor(
         "group":"default"
         }
          */
-        val data: JSONObject
-        try {
-            data = args[0] as JSONObject
-            rxBus.send(EventNSClientNewLog("CLEARALARM", "received"))
-            rxBus.send(EventDismissNotification(Notification.NS_ALARM))
-            rxBus.send(EventDismissNotification(Notification.NS_URGENT_ALARM))
-            aapsLogger.debug(LTag.NSCLIENT, data.toString())
-        } catch (e: Exception) {
-            aapsLogger.error("Unhandled exception", e)
-        }
+        val data = args[0] as JSONObject
+        rxBus.send(EventNSClientNewLog("◄ CLEARALARM", data.optString("title")))
+        aapsLogger.debug(LTag.NSCLIENT, data.toString())
+        rxBus.send(EventDismissNotification(Notification.NS_ALARM))
+        rxBus.send(EventDismissNotification(Notification.NS_URGENT_ALARM))
     }
 
-    private fun handleAnnouncement(announcement: JSONObject) {
-        val defaultVal = config.NSCLIENT
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_announcements, defaultVal)) {
-            val nsAlarm = NSAlarm(announcement)
-            uiInteraction.addNotificationWithAction(injector, nsAlarm)
-            rxBus.send(EventNSClientNewLog("ANNOUNCEMENT", JsonHelper.safeGetString(announcement, "message", "received")))
-            aapsLogger.debug(LTag.NSCLIENT, announcement.toString())
+    override fun handleClearAlarm(originalAlarm: NSAlarm, silenceTimeInMilliseconds: Long) {
+        if (!isEnabled()) return
+        if (!sp.getBoolean(R.string.key_ns_upload, true)) {
+            aapsLogger.debug(LTag.NSCLIENT, "Upload disabled. Message dropped")
+            return
         }
-    }
-
-    private fun handleAlarm(alarm: JSONObject) {
-        val defaultVal = config.NSCLIENT
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, defaultVal)) {
-            val snoozedTo = sp.getLong(info.nightscout.core.utils.R.string.key_snoozed_to, 0L)
-            if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo) {
-                val nsAlarm = NSAlarm(alarm)
-                uiInteraction.addNotificationWithAction(injector, nsAlarm)
-            }
-            rxBus.send(EventNSClientNewLog("ALARM", JsonHelper.safeGetString(alarm, "message", "received")))
-            aapsLogger.debug(LTag.NSCLIENT, alarm.toString())
-        }
-    }
-
-    private fun handleUrgentAlarm(alarm: JSONObject) {
-        val defaultVal = config.NSCLIENT
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, defaultVal)) {
-            val snoozedTo = sp.getLong(info.nightscout.core.utils.R.string.key_snoozed_to, 0L)
-            if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo) {
-                val nsAlarm = NSAlarm(alarm)
-                uiInteraction.addNotificationWithAction(injector, nsAlarm)
-            }
-            rxBus.send(EventNSClientNewLog("URGENTALARM", JsonHelper.safeGetString(alarm, "message", "received")))
-            aapsLogger.debug(LTag.NSCLIENT, alarm.toString())
-        }
+        alarmSocket?.emit("ack", originalAlarm.level(), originalAlarm.group(), silenceTimeInMilliseconds)
+        rxBus.send(EventNSClientNewLog("► ALARMACK ", "${originalAlarm.level()} ${originalAlarm.group()} $silenceTimeInMilliseconds"))
     }
 
     /**********************
     WS code end
      **********************/
-
-    private fun addToLog(ev: EventNSClientNewLog) {
-        synchronized(listLog) {
-            listLog.add(ev)
-            // remove the first line if log is too large
-            if (listLog.size >= Constants.MAX_LOG_LINES) {
-                listLog.removeAt(0)
-            }
-        }
-        rxBus.send(EventNSClientUpdateGUI())
-    }
-
-    override fun textLog(): Spanned {
-        try {
-            val newTextLog = StringBuilder()
-            synchronized(listLog) {
-                for (log in listLog) newTextLog.append(log.toPreparedHtml())
-            }
-            return HtmlHelper.fromHtml(newTextLog.toString())
-        } catch (e: OutOfMemoryError) {
-            uiInteraction.showToastAndNotification(context, "Out of memory!\nStop using this phone !!!", info.nightscout.core.ui.R.raw.error)
-        }
-        return HtmlHelper.fromHtml("")
-    }
 
     override fun resend(reason: String) {
         if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true))
@@ -589,28 +559,14 @@ class NSClientV3Plugin @Inject constructor(
             executeLoop("RESEND", forceNew = false)
     }
 
-     override fun pause(newState: Boolean) {
-         sp.putBoolean(R.string.key_ns_paused, newState)
-         rxBus.send(EventPreferenceChange(rh.gs(R.string.key_ns_paused)))
-     }
+    override fun pause(newState: Boolean) {
+        sp.putBoolean(R.string.key_ns_paused, newState)
+        rxBus.send(EventPreferenceChange(rh.gs(R.string.key_ns_paused)))
+    }
 
     override fun detectedNsVersion(): String? = nsAndroidClient?.lastStatus?.version
 
     override val address: String get() = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "")
-
-    override fun handleClearAlarm(originalAlarm: NSAlarm, silenceTimeInMilliseconds: Long) {
-        if (!isEnabled()) return
-        if (!sp.getBoolean(R.string.key_ns_upload, true)) {
-            aapsLogger.debug(LTag.NSCLIENT, "Upload disabled. Message dropped")
-            return
-        }
-        // nsClientService?.sendAlarmAck(
-        //     AlarmAck().also { ack ->
-        //         ack.level = originalAlarm.level()
-        //         ack.group = originalAlarm.group()
-        //         ack.silenceTime = silenceTimeInMilliseconds
-        //     })
-    }
 
     override fun isFirstLoad(collection: NsClient.Collection) =
         when (collection) {
@@ -633,190 +589,165 @@ class NSClientV3Plugin @Inject constructor(
         lastLoadedSrvModified = LastModified(LastModified.Collections())
         initialLoadFinished = false
         storeLastLoadedSrvModified()
+        dataSyncSelectorV3.resetToNextFullSync()
     }
 
-    override fun nsAdd(collection: String, dataPair: DataSyncSelector.DataPair, progress: String) {
+    override suspend fun nsAdd(collection: String, dataPair: DataSyncSelector.DataPair, progress: String): Boolean =
         dbOperation(collection, dataPair, progress, Operation.CREATE)
-    }
 
-    override fun nsUpdate(collection: String, dataPair: DataSyncSelector.DataPair, progress: String) {
+    override suspend fun nsUpdate(collection: String, dataPair: DataSyncSelector.DataPair, progress: String): Boolean =
         dbOperation(collection, dataPair, progress, Operation.UPDATE)
-    }
 
     enum class Operation { CREATE, UPDATE }
 
     private val gson: Gson = GsonBuilder().create()
-    private fun dbOperationProfileStore(collection: String = "profile", dataPair: DataSyncSelector.DataPair, progress: String) {
+
+    private suspend fun slowDown() {
+        if (sp.getBoolean(R.string.key_ns_sync_slow, false)) SystemClock.sleep(250)
+        else SystemClock.sleep(10)
+    }
+
+    private suspend fun dbOperationProfileStore(collection: String = "profile", dataPair: DataSyncSelector.DataPair, progress: String): Boolean {
         val data = (dataPair as DataSyncSelector.PairProfileStore).value
-        scope.launch {
-            try {
-                rxBus.send(EventNSClientNewLog("► ADD $collection", "Sent ${dataPair.javaClass.simpleName} <i>$data</i> $progress"))
-                nsAndroidClient?.createProfileStore(data)?.let { result ->
-                    when (result.response) {
-                        200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ProfileStore"))
-                        201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ProfileStore"))
-                        404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+        try {
+            rxBus.send(EventNSClientNewLog("► ADD $collection", "Sent ${dataPair.javaClass.simpleName} <i>$data</i> $progress"))
+            nsAndroidClient?.createProfileStore(data)?.let { result ->
+                when (result.response) {
+                    200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ProfileStore"))
+                    201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ProfileStore"))
+                    404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
 
-                        else -> {
-                            rxBus.send(EventNSClientNewLog("◄ ERROR", "ProfileStore"))
-                            return@launch
-                        }
+                    else -> {
+                        rxBus.send(EventNSClientNewLog("◄ ERROR", "ProfileStore"))
+                        return true
                     }
-                    // if (result.response == 201) { // created
-                    //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                    //     storeDataForDb.nsIdDeviceStatuses.add(dataPair.value)
-                    //     storeDataForDb.scheduleNsIdUpdate()
-                    // }
-                    dataSyncSelector.confirmLastProfileStore(dataPair.id)
-                    dataSyncSelector.processChangedProfileStore()
                 }
-            } catch (e: Exception) {
-                aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+                slowDown()
             }
+        } catch (e: Exception) {
+            aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+            return false
         }
+        return true
     }
 
-    private fun dbOperationDeviceStatus(collection: String = "devicestatus", dataPair: DataSyncSelector.DataPair, progress: String) {
-        val data = (dataPair as DataSyncSelector.PairDeviceStatus).value.toNSDeviceStatus()
-        scope.launch {
-            try {
-                rxBus.send(EventNSClientNewLog("► ADD $collection", "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"))
-                nsAndroidClient?.createDeviceStatus(data)?.let { result ->
-                    when (result.response) {
-                        200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
-                        201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName} ${result.identifier}"))
-                        404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+    private suspend fun dbOperationDeviceStatus(collection: String = "devicestatus", dataPair: DataSyncSelector.PairDeviceStatus, progress: String): Boolean {
+        try {
+            val data = dataPair.value.toNSDeviceStatus()
+            rxBus.send(EventNSClientNewLog("► ADD $collection", "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"))
+            nsAndroidClient?.createDeviceStatus(data)?.let { result ->
+                when (result.response) {
+                    200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
+                    201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName} ${result.identifier}"))
+                    404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
 
-                        else -> {
-                            rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
-                            return@launch
-                        }
+                    else -> {
+                        rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
+                        return true
                     }
-                    // if (result.response == 201) { // created
-                    //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                    //     storeDataForDb.nsIdDeviceStatuses.add(dataPair.value)
-                    //     storeDataForDb.scheduleNsIdUpdate()
-                    // }
-                    dataSyncSelector.confirmLastDeviceStatusIdIfGreater(dataPair.id)
-                    dataSyncSelector.processChangedDeviceStatuses()
                 }
-            } catch (e: Exception) {
-                aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+                result.identifier?.let {
+                    dataPair.value.interfaceIDs.nightscoutId = it
+                    storeDataForDb.nsIdDeviceStatuses.add(dataPair.value)
+                }
             }
+        } catch (e: Exception) {
+            aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
         }
+        return true
     }
 
-    private fun dbOperationEntries(collection: String = "entries", dataPair: DataSyncSelector.DataPair, progress: String, operation: Operation) {
+    private suspend fun dbOperationEntries(collection: String = "entries", dataPair: DataSyncSelector.PairGlucoseValue, progress: String, operation: Operation): Boolean {
         val call = when (operation) {
-            Operation.CREATE -> nsAndroidClient?.let { return@let it::createSvg }
+            Operation.CREATE -> nsAndroidClient?.let { return@let it::createSgv }
             Operation.UPDATE -> nsAndroidClient?.let { return@let it::updateSvg }
         }
-        when (dataPair) {
-            is DataSyncSelector.PairGlucoseValue -> dataPair.value.toNSSvgV3()
-            else                                 -> null
-        }?.let { data ->
-            scope.launch {
-                try {
-                    val id = if (dataPair.value is TraceableDBEntry) (dataPair.value as TraceableDBEntry).interfaceIDs.nightscoutId else ""
-                    rxBus.send(
-                        EventNSClientNewLog(
-                            when (operation) {
-                                Operation.CREATE -> "► ADD $collection"
-                                Operation.UPDATE -> "► UPDATE $collection"
-                            },
-                            when (operation) {
-                                Operation.CREATE -> "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"
-                                Operation.UPDATE -> "Sent ${dataPair.javaClass.simpleName} $id <i>${gson.toJson(data)}</i> $progress"
-                            }
-                        )
-                    )
-                    call?.let { it(data) }?.let { result ->
-                        when (result.response) {
-                            200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
-                            201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName}"))
-                            400  -> rxBus.send(EventNSClientNewLog("◄ FAIL", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
-                            404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
-
-                            else -> {
-                                rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
-                                return@launch
-                            }
-                        }
-                        when (dataPair) {
-                            is DataSyncSelector.PairGlucoseValue -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdGlucoseValues.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastGlucoseValueIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedGlucoseValues()
-                            }
-                        }
+        try {
+            val data = dataPair.value.toNSSvgV3()
+            val id = dataPair.value.interfaceIDs.nightscoutId
+            rxBus.send(
+                EventNSClientNewLog(
+                    when (operation) {
+                        Operation.CREATE -> "► ADD $collection"
+                        Operation.UPDATE -> "► UPDATE $collection"
+                    },
+                    when (operation) {
+                        Operation.CREATE -> "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"
+                        Operation.UPDATE -> "Sent ${dataPair.javaClass.simpleName} $id <i>${gson.toJson(data)}</i> $progress"
                     }
-                } catch (e: Exception) {
-                    aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+                )
+            )
+            call?.let { it(data) }?.let { result ->
+                when (result.response) {
+                    200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
+                    201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName}"))
+                    400  -> rxBus.send(EventNSClientNewLog("◄ FAIL", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+                    404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+
+                    else -> {
+                        rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
+                        return true
+                    }
                 }
+                result.identifier?.let {
+                    dataPair.value.interfaceIDs.nightscoutId = it
+                    storeDataForDb.nsIdGlucoseValues.add(dataPair.value)
+                }
+                slowDown()
             }
+        } catch (e: Exception) {
+            aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+            return false
         }
+        return true
     }
 
-    private fun dbOperationFood(collection: String = "food", dataPair: DataSyncSelector.DataPair, progress: String, operation: Operation) {
+    private suspend fun dbOperationFood(collection: String = "food", dataPair: DataSyncSelector.PairFood, progress: String, operation: Operation): Boolean {
         val call = when (operation) {
             Operation.CREATE -> nsAndroidClient?.let { return@let it::createFood }
             Operation.UPDATE -> nsAndroidClient?.let { return@let it::updateFood }
         }
-        when (dataPair) {
-            is DataSyncSelector.PairFood -> dataPair.value.toNSFood()
-            else                         -> null
-        }?.let { data ->
-            scope.launch {
-                try {
-                    val id = if (dataPair.value is TraceableDBEntry) (dataPair.value as TraceableDBEntry).interfaceIDs.nightscoutId else ""
-                    rxBus.send(
-                        EventNSClientNewLog(
-                            when (operation) {
-                                Operation.CREATE -> "► ADD $collection"
-                                Operation.UPDATE -> "► UPDATE $collection"
-                            },
-                            when (operation) {
-                                Operation.CREATE -> "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"
-                                Operation.UPDATE -> "Sent ${dataPair.javaClass.simpleName} $id <i>${gson.toJson(data)}</i> $progress"
-                            }
-                        )
-                    )
-                    call?.let { it(data) }?.let { result ->
-                        when (result.response) {
-                            200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
-                            201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName}"))
-                            400  -> rxBus.send(EventNSClientNewLog("◄ FAIL", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
-                            404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
-
-                            else -> {
-                                rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
-                                return@launch
-                            }
-                        }
-                        when (dataPair) {
-                            is DataSyncSelector.PairFood -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdFoods.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastFoodIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedFoods()
-                            }
-                        }
+        try {
+            val data = dataPair.value.toNSFood()
+            val id = dataPair.value.interfaceIDs.nightscoutId
+            rxBus.send(
+                EventNSClientNewLog(
+                    when (operation) {
+                        Operation.CREATE -> "► ADD $collection"
+                        Operation.UPDATE -> "► UPDATE $collection"
+                    },
+                    when (operation) {
+                        Operation.CREATE -> "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"
+                        Operation.UPDATE -> "Sent ${dataPair.javaClass.simpleName} $id <i>${gson.toJson(data)}</i> $progress"
                     }
-                } catch (e: Exception) {
-                    aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+                )
+            )
+            call?.let { it(data) }?.let { result ->
+                when (result.response) {
+                    200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
+                    201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName}"))
+                    400  -> rxBus.send(EventNSClientNewLog("◄ FAIL", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+                    404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+
+                    else -> {
+                        rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
+                        return true
+                    }
                 }
+                result.identifier?.let {
+                    dataPair.value.interfaceIDs.nightscoutId = it
+                    storeDataForDb.nsIdFoods.add(dataPair.value)
+                }
+                slowDown()
             }
+        } catch (e: Exception) {
+            aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+            return false
         }
+        return true
     }
 
-    private fun dbOperationTreatments(collection: String = "treatments", dataPair: DataSyncSelector.DataPair, progress: String, operation: Operation) {
+    private suspend fun dbOperationTreatments(collection: String = "treatments", dataPair: DataSyncSelector.DataPair, progress: String, operation: Operation): Boolean {
         val call = when (operation) {
             Operation.CREATE -> nsAndroidClient?.let { return@let it::createTreatment }
             Operation.UPDATE -> nsAndroidClient?.let { return@let it::updateTreatment }
@@ -829,22 +760,12 @@ class NSClientV3Plugin @Inject constructor(
             is DataSyncSelector.PairTherapyEvent           -> dataPair.value.toNSTherapyEvent()
 
             is DataSyncSelector.PairTemporaryBasal         -> {
-                val profile = profileFunction.getProfile(dataPair.value.timestamp)
-                if (profile == null) {
-                    dataSyncSelector.confirmLastTemporaryBasalIdIfGreater(dataPair.id)
-                    dataSyncSelector.processChangedTemporaryBasals()
-                    return
-                }
+                val profile = profileFunction.getProfile(dataPair.value.timestamp) ?: return true
                 dataPair.value.toNSTemporaryBasal(profile)
             }
 
             is DataSyncSelector.PairExtendedBolus          -> {
-                val profile = profileFunction.getProfile(dataPair.value.timestamp)
-                if (profile == null) {
-                    dataSyncSelector.confirmLastExtendedBolusIdIfGreater(dataPair.id)
-                    dataSyncSelector.processChangedExtendedBoluses()
-                    return
-                }
+                val profile = profileFunction.getProfile(dataPair.value.timestamp) ?: return true
                 dataPair.value.toNSExtendedBolus(profile)
             }
 
@@ -853,151 +774,109 @@ class NSClientV3Plugin @Inject constructor(
             is DataSyncSelector.PairOfflineEvent           -> dataPair.value.toNSOfflineEvent()
             else                                           -> null
         }?.let { data ->
-            scope.launch {
-                try {
-                    val id = if (dataPair.value is TraceableDBEntry) (dataPair.value as TraceableDBEntry).interfaceIDs.nightscoutId else ""
-                    rxBus.send(
-                        EventNSClientNewLog(
-                            when (operation) {
-                                Operation.CREATE -> "► ADD $collection"
-                                Operation.UPDATE -> "► UPDATE $collection"
-                            },
-                            when (operation) {
-                                Operation.CREATE -> "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"
-                                Operation.UPDATE -> "Sent ${dataPair.javaClass.simpleName} $id <i>${gson.toJson(data)}</i> $progress"
-                            }
-                        )
-                    )
-                    call?.let { it(data) }?.let { result ->
-                        when (result.response) {
-                            200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
-                            201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName}"))
-                            400  -> rxBus.send(EventNSClientNewLog("◄ FAIL", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
-                            404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
-
-                            else -> {
-                                rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
-                                return@launch
-                            }
+            try {
+                val id = if (dataPair.value is TraceableDBEntry) (dataPair.value as TraceableDBEntry).interfaceIDs.nightscoutId else ""
+                rxBus.send(
+                    EventNSClientNewLog(
+                        when (operation) {
+                            Operation.CREATE -> "► ADD $collection"
+                            Operation.UPDATE -> "► UPDATE $collection"
+                        },
+                        when (operation) {
+                            Operation.CREATE -> "Sent ${dataPair.javaClass.simpleName} <i>${gson.toJson(data)}</i> $progress"
+                            Operation.UPDATE -> "Sent ${dataPair.javaClass.simpleName} $id <i>${gson.toJson(data)}</i> $progress"
                         }
+                    )
+                )
+                call?.let { it(data) }?.let { result ->
+                    when (result.response) {
+                        200  -> rxBus.send(EventNSClientNewLog("◄ UPDATED", "OK ${dataPair.value.javaClass.simpleName}"))
+                        201  -> rxBus.send(EventNSClientNewLog("◄ ADDED", "OK ${dataPair.value.javaClass.simpleName}"))
+                        400  -> rxBus.send(EventNSClientNewLog("◄ FAIL", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+                        404  -> rxBus.send(EventNSClientNewLog("◄ NOT_FOUND", "${dataPair.value.javaClass.simpleName} ${result.errorResponse}"))
+
+                        else -> {
+                            rxBus.send(EventNSClientNewLog("◄ ERROR", "${dataPair.value.javaClass.simpleName} "))
+                            return true
+                        }
+                    }
+                    result.identifier?.let {
                         when (dataPair) {
                             is DataSyncSelector.PairBolus                  -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdBoluses.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastBolusIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedBoluses()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdBoluses.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairCarbs                  -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdCarbs.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastCarbsIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedCarbs()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdCarbs.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairBolusCalculatorResult  -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdBolusCalculatorResults.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastBolusCalculatorResultsIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedBolusCalculatorResults()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdBolusCalculatorResults.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairTemporaryTarget        -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdTemporaryTargets.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastTempTargetsIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedTempTargets()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdTemporaryTargets.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairTherapyEvent           -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdTherapyEvents.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastTherapyEventIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedTherapyEvents()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdTherapyEvents.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairTemporaryBasal         -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdTemporaryBasals.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastTemporaryBasalIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedTemporaryBasals()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdTemporaryBasals.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairExtendedBolus          -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdExtendedBoluses.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastExtendedBolusIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedExtendedBoluses()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdExtendedBoluses.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairProfileSwitch          -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdProfileSwitches.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastProfileSwitchIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedProfileSwitches()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdProfileSwitches.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairEffectiveProfileSwitch -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdEffectiveProfileSwitches.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastEffectiveProfileSwitchIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedEffectiveProfileSwitches()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdEffectiveProfileSwitches.add(dataPair.value)
                             }
 
                             is DataSyncSelector.PairOfflineEvent           -> {
-                                // if (result.response == 201) { // created
-                                //     dataPair.value.interfaceIDs.nightscoutId = result.identifier
-                                //     storeDataForDb.nsIdOfflineEvents.add(dataPair.value)
-                                //     storeDataForDb.scheduleNsIdUpdate()
-                                // }
-                                dataSyncSelector.confirmLastOfflineEventIdIfGreater(dataPair.id)
-                                dataSyncSelector.processChangedOfflineEvents()
+                                dataPair.value.interfaceIDs.nightscoutId = it
+                                storeDataForDb.nsIdOfflineEvents.add(dataPair.value)
+                            }
+
+                            else                                           -> {
+                                throw InvalidParameterException()
                             }
                         }
                     }
-                } catch (e: Exception) {
-                    aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+                    slowDown()
                 }
+            } catch (e: Exception) {
+                aapsLogger.error(LTag.NSCLIENT, "Upload exception", e)
+                return false
             }
         }
+        return true
     }
 
-    private fun dbOperation(collection: String, dataPair: DataSyncSelector.DataPair, progress: String, operation: Operation) {
+    private suspend fun dbOperation(collection: String, dataPair: DataSyncSelector.DataPair, progress: String, operation: Operation): Boolean =
         when (collection) {
             "profile"      -> dbOperationProfileStore(dataPair = dataPair, progress = progress)
-            "devicestatus" -> dbOperationDeviceStatus(dataPair = dataPair, progress = progress)
-            "entries"      -> dbOperationEntries(dataPair = dataPair, progress = progress, operation = operation)
-            "food"         -> dbOperationFood(dataPair = dataPair, progress = progress, operation = operation)
+            "devicestatus" -> dbOperationDeviceStatus(dataPair = dataPair as DataSyncSelector.PairDeviceStatus, progress = progress)
+            "entries"      -> dbOperationEntries(dataPair = dataPair as DataSyncSelector.PairGlucoseValue, progress = progress, operation = operation)
+            "food"         -> dbOperationFood(dataPair = dataPair as DataSyncSelector.PairFood, progress = progress, operation = operation)
             "treatments"   -> dbOperationTreatments(dataPair = dataPair, progress = progress, operation = operation)
+
+            else           -> false
         }
-    }
 
     fun storeLastLoadedSrvModified() {
         sp.putString(R.string.key_ns_client_v3_last_modified, Json.encodeToString(LastModified.serializer(), lastLoadedSrvModified))
@@ -1013,13 +892,14 @@ class NSClientV3Plugin @Inject constructor(
             rxBus.send(EventNSClientNewLog("● RUN", "$blockingReason $origin"))
             return
         }
-        if (workIsRunning(arrayOf(JOB_NAME))) {
+        if (workIsRunning()) {
             rxBus.send(EventNSClientNewLog("● RUN", "Already running $origin"))
             if (!forceNew) return
             // Wait for end and start new cycle
-            while (workIsRunning(arrayOf(JOB_NAME))) Thread.sleep(5000)
+            while (workIsRunning()) Thread.sleep(5000)
         }
         rxBus.send(EventNSClientNewLog("● RUN", "Starting next round $origin"))
+        rxBus.send(EventNSClientUpdateGuiStatus())
         WorkManager.getInstance(context)
             .beginUniqueWork(
                 JOB_NAME,
@@ -1028,12 +908,11 @@ class NSClientV3Plugin @Inject constructor(
             )
             .then(OneTimeWorkRequest.Builder(LoadLastModificationWorker::class.java).build())
             .then(OneTimeWorkRequest.Builder(LoadBgWorker::class.java).build())
-            // Other Workers are enqueued after BG finish
-            // LoadTreatmentsWorker
-            // LoadFoodsWorker
-            // LoadProfileStoreWorker
-            // LoadDeviceStatusWorker
-            // DataSyncWorker
+            .then(OneTimeWorkRequest.Builder(LoadTreatmentsWorker::class.java).build())
+            .then(OneTimeWorkRequest.Builder(LoadFoodsWorker::class.java).build())
+            .then(OneTimeWorkRequest.Builder(LoadProfileStoreWorker::class.java).build())
+            .then(OneTimeWorkRequest.Builder(LoadDeviceStatusWorker::class.java).build())
+            .then(OneTimeWorkRequest.Builder(DataSyncWorker::class.java).build())
             .enqueue()
     }
 
@@ -1046,11 +925,11 @@ class NSClientV3Plugin @Inject constructor(
             rxBus.send(EventNSClientNewLog("● RUN", blockingReason))
             return
         }
-        if (workIsRunning(arrayOf(JOB_NAME))) {
+        if (workIsRunning()) {
             rxBus.send(EventNSClientNewLog("● RUN", "Already running $origin"))
             if (!forceNew) return
             // Wait for end and start new cycle
-            while (workIsRunning(arrayOf(JOB_NAME))) Thread.sleep(5000)
+            while (workIsRunning()) Thread.sleep(5000)
         }
         rxBus.send(EventNSClientNewLog("● RUN", "Starting upload $origin"))
         WorkManager.getInstance(context)
@@ -1061,11 +940,10 @@ class NSClientV3Plugin @Inject constructor(
             )
     }
 
-    private fun workIsRunning(workNames: Array<String>): Boolean {
-        for (workName in workNames)
-            for (workInfo in WorkManager.getInstance(context).getWorkInfosForUniqueWork(workName).get())
-                if (workInfo.state == WorkInfo.State.BLOCKED || workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING)
-                    return true
+    private fun workIsRunning(workName: String = JOB_NAME): Boolean {
+        for (workInfo in WorkManager.getInstance(context).getWorkInfosForUniqueWork(workName).get())
+            if (workInfo.state == WorkInfo.State.BLOCKED || workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING)
+                return true
         return false
     }
 }
