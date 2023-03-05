@@ -206,16 +206,8 @@ class GlucoseStatusProviderImpl @Inject constructor(
         var a1 = 0.0
         var a2 = 0.0
 
-        //if (sizeRecords <= 3) {                      // last 3 points make a trivial parabola
-        //    duraP = 0.0
-        //    deltaPl = 0.0
-        //    deltaPn = 0.0
-        //    bgAcceleration = 0.0
-        //    corrMax = 0.0
-        //    a0 = 0.0
-        //    a1 = 0.0
-        //    a2 = 0.0
-        //} else {
+        val fsl_min_dur = 10.0                        // minutes duration required for FSL with SGV every minute
+
         if (sizeRecords > 3) {
             //double corrMin = 0.90;                  // go backwards until the correlation coefficient goes below
             var sy   = 0.0 // y
@@ -240,7 +232,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
                 if (-ti * scaleTime > 47 * 60 ) {                       // skip records older than 47.5 minutes
                     break
                 } else if (ti < tiLast - 7.5 * 60 / scaleTime)  {       // stop scan if a CGM gap > 7.5 minutes is detected
-                    if (i < 3) {                                        // history too short for fit
+                if (i<3 || -ti*scaleTime<fsl_min_dur*60) {              // history too short for fit
                         duraP = -tiLast / 60.0
                         deltaPl = 0.0
                         deltaPn = 0.0
@@ -266,7 +258,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
                 var Da = 0.0
                 var Db = 0.0
                 var Dc = 0.0
-                if (n > 3) {
+                if (n>=4 && -ti*scaleTime>=fsl_min_dur*60) {
                     D = sx4 * (sx2 * n - sx * sx) - sx3 * (sx3 * n - sx * sx2) + sx2 * (sx3 * sx - sx2 * sx2)
                     Da = sx2y * (sx2 * n - sx * sx) - sxy * (sx3 * n - sx * sx2) + sy * (sx3 * sx - sx2 * sx2)
                     Db = sx4 * (sxy * n - sy * sx) - sx3 * (sx2y * n - sy * sx2) + sx2 * (sx2y * sx - sxy * sx2)
