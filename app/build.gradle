@@ -117,7 +117,7 @@ android {
         buildConfigField "String", "REMOTE", '"' + generateGitRemote() + '"'
         buildConfigField "String", "HEAD", '"' + generateGitBuild() + '"'
         buildConfigField "String", "COMMITTED", '"' + allCommitted() + '"'
-        buildConfigField "String", "AUTOISF_VERSION", '"2.2.8"'
+        buildConfigField "String", "AUTOISF_VERSION", '"2.2.8.1"'
     }
 
     flavorDimensions "standard"

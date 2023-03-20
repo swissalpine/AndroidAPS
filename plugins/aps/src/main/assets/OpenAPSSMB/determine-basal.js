@@ -422,7 +422,7 @@ function determine_varSMBratio(profile, bg, target_bg, loop_wanted_smb)
     var fix_SMB = profile.smb_delivery_ratio;
     var lower_SMB = Math.min(profile.smb_delivery_ratio_min, profile.smb_delivery_ratio_max);
     var higher_SMB = Math.max(profile.smb_delivery_ratio_min, profile.smb_delivery_ratio_max);
-    var higher_bg = target_bg + profile.smb_delivery_ratio_bg_range;
+    var higher_bg = target_bg + smb_delivery_ratio_bg_range;
     var new_SMB = fix_SMB;
     if ( smb_delivery_ratio_bg_range > 0 ) {
         new_SMB = lower_SMB + (higher_SMB-lower_SMB)*(bg-target_bg) / smb_delivery_ratio_bg_range;
@@ -638,7 +638,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("CR:", round(profile.carb_ratio,2));
 
     console.error("----------------------------------");
-    console.error("start autoISF 2.2.8"); //, profile.autoISF_version); vgl. auch DetermineBasalAdapter: Import nicht bekannt
+    console.error("start autoISF 2.2.8.1"); //, profile.autoISF_version); vgl. auch DetermineBasalAdapter: Import nicht bekannt
     console.error("----------------------------------");
     var loop_wanted_smb = loop_smb(profile, iob_data);
     var enableSMB = false;
@@ -1409,6 +1409,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         // if that would put us over max_iob, then reduce accordingly
         if (insulinReq > max_iob-iob_data.iob) {
             rT.reason += "max_iob " + max_iob + ", ";
+            console.error("InsReq", round(insulinReq,2), "capped at", round(max_iob-iob_data.iob,2), "to not exceed max_iob");
             insulinReq = max_iob-iob_data.iob;
         }
 
