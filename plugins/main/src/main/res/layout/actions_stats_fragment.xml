@@ -28,7 +28,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text="@string/age_label"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/cannula_age"
@@ -45,7 +48,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text=""
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/cannula_usage"
@@ -59,6 +65,8 @@
             tools:text="..." />
 
     </TableRow>
+
+
 
     <TableRow
         android:layout_width="fill_parent"
@@ -98,7 +106,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text="@string/age_label"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/insulin_age"
@@ -115,7 +126,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp"/>
+            android:paddingEnd="0dp"
+            android:text=""
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/reservoir_level"
@@ -152,6 +166,7 @@
         android:focusable="true">
 
         <TextView
+            android:id="@+id/sensor_label"
             android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:gravity="center_vertical"
@@ -167,7 +182,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text="@string/age_label"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/sensor_age"
@@ -184,7 +202,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text=""
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/sensor_level"
@@ -237,7 +258,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text="@string/age_label"
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/pb_age"
@@ -254,7 +278,10 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:paddingStart="0dp"
-            android:paddingEnd="0dp" />
+            android:paddingEnd="0dp"
+            android:text=""
+            android:textSize="14sp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/pb_level"
