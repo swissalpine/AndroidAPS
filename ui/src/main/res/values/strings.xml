@@ -87,7 +87,7 @@
     <string name="a11_correction_percentage">correct outcome with %</string>
     <string name="a11_correction_units">correct outcome with units</string>
     <string name="two_hours">2h</string>
-    <string name="result_insulin_carbs">Result: %1$s %2$s</string>
+    <string name="result_insulin_carbs">%1$s %2$s</string>
     <string name="missing_carbs">Missing %1$d g</string>
     <string name="a11y_current_bg">current blood glucose</string>
     <string name="carb_time_label">Carb time</string>
