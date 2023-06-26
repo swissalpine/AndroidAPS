@@ -124,6 +124,7 @@ class LoopDialog : DaggerDialogFragment() {
         binding.overviewEnable.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
         binding.overviewResume.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
         binding.overviewReconnect.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
+        binding.overviewSuspend30m.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
         binding.overviewSuspend1h.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
         binding.overviewSuspend2h.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
         binding.overviewSuspend3h.setOnClickListener { if (showOkCancel) onClickOkCancelEnabled(it) else onClick(it); dismiss() }
@@ -261,6 +262,7 @@ class LoopDialog : DaggerDialogFragment() {
             R.id.overview_enable         -> description = rh.gs(info.nightscout.core.ui.R.string.enableloop)
             R.id.overview_resume         -> description = rh.gs(R.string.resume)
             R.id.overview_reconnect      -> description = rh.gs(R.string.reconnect)
+            R.id.overview_suspend_30m     -> description = rh.gs(R.string.suspendloopfor30m)
             R.id.overview_suspend_1h     -> description = rh.gs(R.string.suspendloopfor1h)
             R.id.overview_suspend_2h     -> description = rh.gs(R.string.suspendloopfor2h)
             R.id.overview_suspend_3h     -> description = rh.gs(R.string.suspendloopfor3h)
@@ -357,6 +359,13 @@ class LoopDialog : DaggerDialogFragment() {
                     }
                 })
                 sp.putBoolean(info.nightscout.core.utils.R.string.key_objectiveusereconnect, true)
+                return true
+            }
+
+            R.id.overview_suspend_30m                      -> {
+                uel.log(UserEntry.Action.SUSPEND, UserEntry.Sources.LoopDialog, ValueWithUnit.Hour(1))
+                loop.suspendLoop(T.mins(30).mins().toInt())
+                rxBus.send(EventRefreshOverview("suspend_menu"))
                 return true
             }
 

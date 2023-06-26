@@ -190,6 +190,18 @@
                 android:orientation="horizontal">
 
                 <info.nightscout.core.ui.elements.SingleClickButton
+                    android:id="@+id/overview_suspend_30m"
+                    style="@style/ButtonSmallFontStyle"
+                    android:layout_width="0px"
+                    android:layout_height="fill_parent"
+                    android:layout_marginEnd="-2dp"
+                    android:layout_weight="0.5"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="5dp"
+                    android:drawableTop="@drawable/ic_loop_paused"
+                    android:text="@string/duration30m" />
+
+                <info.nightscout.core.ui.elements.SingleClickButton
                     android:id="@+id/overview_suspend_1h"
                     style="@style/ButtonSmallFontStyle"
                     android:layout_width="0px"
