@@ -18,6 +18,6 @@ fun CobInfo.generateCOBString(): String {
 fun CobInfo.displayText(rh: ResourceHelper): String? =
     displayCob?.let { displayCob ->
         var cobText = rh.gs(info.nightscout.core.ui.R.string.format_carbs, displayCob.toInt())
-        if (futureCarbs > 0) cobText += "(" + DecimalFormatter.to0Decimal(futureCarbs) + ")"
+        if (futureCarbs > 0) cobText += " (" + DecimalFormatter.to0Decimal(futureCarbs) + ")"
         cobText
     }
