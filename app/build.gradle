@@ -119,7 +119,7 @@ android {
         buildConfigField "String", "AUTOISF_VERSION", '"2.2.8.1"'
     }
 
-    flavorDimensions "standard"
+    flavorDimensions = ["standard"]
     productFlavors {
         full {
             applicationId "info.nightscout.androidaps"
