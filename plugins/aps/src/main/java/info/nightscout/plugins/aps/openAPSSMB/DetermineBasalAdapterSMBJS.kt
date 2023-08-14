@@ -59,6 +59,12 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
     private var currentTime: Long = 0
     private var flatBGsDetected = false
 
+    private var recentSteps5Minutes: Int = 0
+    private var recentSteps10Minutes: Int = 0
+    private var recentSteps15Minutes: Int = 0
+    private var recentSteps30Minutes: Int = 0
+    private var recentSteps60Minutes: Int = 0
+
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
     override var glucoseStatusParam: String? = null
@@ -299,6 +305,18 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         mGlucoseStatus.put("parabola_fit_a1", glucoseStatus.a_1)
         mGlucoseStatus.put("parabola_fit_a2", glucoseStatus.a_2)
         mGlucoseStatus.put("bg_acceleration", glucoseStatus.bg_acceleration)
+
+        this.recentSteps5Minutes = StepService.getRecentStepCount5Min()
+        this.recentSteps10Minutes = StepService.getRecentStepCount10Min()
+        this.recentSteps15Minutes = StepService.getRecentStepCount15Min()
+        this.recentSteps30Minutes = StepService.getRecentStepCount30Min()
+        this.recentSteps60Minutes = StepService.getRecentStepCount60Min()
+        this.profile.put("recentSteps5Minutes", recentSteps5Minutes)
+        this.profile.put("recentSteps10Minutes", recentSteps10Minutes)
+        this.profile.put("recentSteps15Minutes", recentSteps15Minutes)
+        this.profile.put("recentSteps30Minutes", recentSteps30Minutes)
+        this.profile.put("recentSteps60Minutes", recentSteps60Minutes)
+        this.profile.put("key_activity_detection", sp.getBoolean(R.string.key_activity_detection, false))
 
         this.mealData.put("carbs", mealData.carbs)
         this.mealData.put("mealCOB", mealData.mealCOB)

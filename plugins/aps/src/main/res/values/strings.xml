@@ -7,6 +7,7 @@
     <string name="key_openapsma_max_iob" translatable="false">openapsma_max_iob</string>
     <string name="key_sensitivity_raises_target" translatable="false">sensitivity_raises_target</string>
     <string name="key_resistance_lowers_target" translatable="false">resistance_lowers_target</string>
+    <string name="key_activity_detection" translatable="false">key_activity_detection</string>
     <string name="key_use_smb" translatable="false">use_smb</string>
     <string name="key_use_uam" translatable="false">use_uam</string>
     <string name="key_smb_interval" translatable="false">smbinterval</string>
@@ -32,6 +33,8 @@
     <string name="high_temptarget_raises_sensitivity_summary"><![CDATA[Raise sensitivity for temptargets >= 100]]></string>
     <string name="low_temptarget_lowers_sensitivity_title">Low temptarget lowers sensitivity</string>
     <string name="low_temptarget_lowers_sensitivity_summary"><![CDATA[Lower sensitivity for temptargets < 100]]></string>
+    <string name ="activity_detection_title">Activity modifies sensitivity</string>
+    <string name ="activity_detection_summary">If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased up to 20%.\nA tempTarget disables the function.\nPlease note: Inactivity will not be detected between 10pm and 9am.\nThis function does not replace an explicit sport adjustment!</string>
     <string name="openapssmb">OpenAPS SMB</string>
     <string name="openaps_smb_dynamic_isf">Dynamic ISF</string>
     <string name="smb_interval_summary">How frequently SMBs will be given in min</string>

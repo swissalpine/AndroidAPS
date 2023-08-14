@@ -1,8 +1,11 @@
 package info.nightscout.androidaps
 
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -154,6 +157,11 @@ class MainApp : DaggerApplication() {
             Widget.updateWidget(this, "ScheduleEveryMin")
         }
         handler.postDelayed(refreshWidget, 60000)
+
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        sensorManager.registerListener(info.nightscout.plugins.aps.openAPSSMB.StepService, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
+
     }
 
     private fun setRxErrorHandler() {

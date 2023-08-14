@@ -159,6 +159,13 @@
             validate:minNumber="120"
             validate:testType="numericRange" />
 
+        <SwitchPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="@string/key_activity_detection"
+            android:summary="@string/activity_detection_summary"
+            android:title="@string/activity_detection_title" />
+
         <info.nightscout.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/carbs_req_threshold_summary"
