@@ -29,7 +29,7 @@ class MedtrumActivity : MedtrumBaseActivity<ActivityMedtrumBinding>() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         binding.apply {
-            viewModel = ViewModelProvider(this@MedtrumActivity, viewModelFactory).get(MedtrumViewModel::class.java)
+            viewModel = ViewModelProvider(this@MedtrumActivity, viewModelFactory)[MedtrumViewModel::class.java]
             viewModel?.apply {
                 processIntent(intent)
 
@@ -43,13 +43,21 @@ class MedtrumActivity : MedtrumBaseActivity<ActivityMedtrumBinding>() {
                         PatchStep.ATTACH_PATCH             -> setupViewFragment(MedtrumAttachPatchFragment.newInstance())
                         PatchStep.ACTIVATE                 -> setupViewFragment(MedtrumActivateFragment.newInstance())
                         PatchStep.ACTIVATE_COMPLETE        -> setupViewFragment(MedtrumActivateCompleteFragment.newInstance())
-                        PatchStep.CANCEL,
-                        PatchStep.COMPLETE                 -> this@MedtrumActivity.finish()
                         PatchStep.ERROR                    -> Unit // Do nothing, let activity handle this
                         PatchStep.RETRY_ACTIVATION         -> setupViewFragment(MedtrumRetryActivationFragment.newInstance())
                         PatchStep.RETRY_ACTIVATION_CONNECT -> setupViewFragment(MedtrumRetryActivationConnectFragment.newInstance())
                         PatchStep.START_DEACTIVATION       -> setupViewFragment(MedtrumStartDeactivationFragment.newInstance())
                         PatchStep.DEACTIVATE               -> setupViewFragment(MedtrumDeactivatePatchFragment.newInstance())
+
+                        PatchStep.CANCEL                   -> {
+                            handleCancel()
+                            this@MedtrumActivity.finish()
+                        }
+
+                        PatchStep.COMPLETE                 -> {
+                            handleComplete()
+                            this@MedtrumActivity.finish()
+                        }
 
                         PatchStep.FORCE_DEACTIVATION       -> {
                             medtrumPump.pumpState = MedtrumPumpState.STOPPED
@@ -80,20 +88,10 @@ class MedtrumActivity : MedtrumBaseActivity<ActivityMedtrumBinding>() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
-    override fun onBackPressed() {
-        binding.viewModel?.apply {
-            // Do nothing
-        }
-    }
-
     companion object {
 
         const val EXTRA_START_PATCH_STEP = "EXTRA_START_PATCH_FRAGMENT_UI"
-        const val EXTRA_START_FROM_MENU = "EXTRA_START_FROM_MENU"
+        private const val EXTRA_START_FROM_MENU = "EXTRA_START_FROM_MENU"
 
         @JvmStatic fun createIntentFromMenu(context: Context, patchStep: PatchStep): Intent {
             return Intent(context, MedtrumActivity::class.java).apply {
