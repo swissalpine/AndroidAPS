@@ -243,6 +243,7 @@
     <string name="short_tabtitles">Nombres cortos en pestañas</string>
     <string name="overview_show_notes_field_in_dialogs_title">Mostrar el campo notas en diálogos de tratamientos</string>
     <string name="deliverpartofboluswizard">El asistente de bolos realiza el cálculo, pero solo se entrega esta parte de la insulina calculada. Útil con el algoritmo SMB.</string>
+    <string name="deliver_part_of_boluswizard_reset_time">Administrar bolo completo (100%) si la glucemia es mayor de</string>
     <string name="enable_bolus_advisor">Habilitar asistente de bolo</string>
     <string name="enable_bolus_advisor_summary">Utiliza un recordatorio para empezar a comer más tarde, en lugar del resultado del asistente durante una glucemia alta (\"pre-bolo\")</string>
     <string name="enablesuperbolus">Activar superbolo en asistente</string>
@@ -316,6 +317,11 @@
     <string name="wear_notifysmb_summary">Mostrar los SMB en el reloj como un bolo estándar</string>
     <string name="wear_predictions_summary">Mostrar las predicciones en la esfera</string>
     <string name="wear_predictions_title">Predicciones</string>
+    <string name="wear_custom_watchface">Esfera personalizada: %1$s</string>
+    <string name="wear_load_watchface">Cargar esfera</string>
+    <string name="wear_send_watchface">Enviar esfera</string>
+    <string name="wear_export_watchface">Exportar esfera</string>
+    <string name="wear_new_custom_watchface_exported">Esfera personalizada exportada</string>
     <string name="resend_all_data">Reenviar todos los datos</string>
     <string name="open_settings_on_wear">Abrir ajustes en el reloj</string>
     <!--    PersistentNotification-->

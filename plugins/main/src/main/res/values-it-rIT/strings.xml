@@ -243,6 +243,7 @@
     <string name="short_tabtitles">Accorcia titoli schede</string>
     <string name="overview_show_notes_field_in_dialogs_title">Finestre tratt.nto: mostra campo note</string>
     <string name="deliverpartofboluswizard">Il calcolatore esegue il calcolo, ma solo questa parte dell\'insulina calcolata è erogata. Utile con algoritmo SMB.</string>
+    <string name="deliver_part_of_boluswizard_reset_time">Eroga bolo completo (100%) se la glicemia è più \"vecchia\" di</string>
     <string name="enable_bolus_advisor">Abilita consiglio bolo</string>
     <string name="enable_bolus_advisor_summary">Usa un promemoria per iniziare a mangiare invece del risultato del calcolatore durante la glicemia alta (\"pre-bolo\")</string>
     <string name="enablesuperbolus">Abilita superbolo nel calcolatore</string>
@@ -315,6 +316,11 @@
     <string name="wear_notifysmb_summary">Mostra SMB sullo smartwatch come un bolo standard.</string>
     <string name="wear_predictions_summary">Mostra le predizioni sulla watchface.</string>
     <string name="wear_predictions_title">Predizioni</string>
+    <string name="wear_custom_watchface">Watchface personalizzata: %1$s</string>
+    <string name="wear_load_watchface">Carica watchface</string>
+    <string name="wear_send_watchface">Invia watchface</string>
+    <string name="wear_export_watchface">Esporta watchface</string>
+    <string name="wear_new_custom_watchface_exported">Watchface personalizzata esportata</string>
     <string name="resend_all_data">Invia di nuovo tutti i dati</string>
     <string name="open_settings_on_wear">Apri impostazioni sullo smartwatch</string>
     <!--    PersistentNotification-->

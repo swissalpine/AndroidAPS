@@ -243,6 +243,7 @@
     <string name="short_tabtitles">Raccourcir les titres des onglets</string>
     <string name="overview_show_notes_field_in_dialogs_title">Affiche les notes dans les dialogues</string>
     <string name="deliverpartofboluswizard">L\'assistant bolus effectue le calcul mais seulement ce pourcentage de l\'insuline calculée est délivré. Utile avec l\'algorithme SMB.</string>
+    <string name="deliver_part_of_boluswizard_reset_time">Faire un bolus complet (100%) si la glycémie est plus ancienne que</string>
     <string name="enable_bolus_advisor">Activer l\'assistant bolus</string>
     <string name="enable_bolus_advisor_summary">Utiliser un rappel pour commencer le repas à la place du résultat de l\'assistant quand la glycémie est élevée (\"pré-bolus\")</string>
     <string name="enablesuperbolus">Activer les Superbolus dans l’Assistant</string>
@@ -315,6 +316,11 @@
     <string name="wear_notifysmb_summary">Afficher SMB sur la montre comme un bolus standard.</string>
     <string name="wear_predictions_summary">Affichez les prédictions sur l\'écran de la montre.</string>
     <string name="wear_predictions_title">Prédictions</string>
+    <string name="wear_custom_watchface">Cadran personnalisé : %1$s</string>
+    <string name="wear_load_watchface">Charger le cadran</string>
+    <string name="wear_send_watchface">Envoyer le cadran</string>
+    <string name="wear_export_watchface">Exporter le cadran</string>
+    <string name="wear_new_custom_watchface_exported">Cadran personnalisé exporté</string>
     <string name="resend_all_data">Renvoyer toutes les données</string>
     <string name="open_settings_on_wear">Afficher les Paramètres sur la Montre</string>
     <!--    PersistentNotification-->
