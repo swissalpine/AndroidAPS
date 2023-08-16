@@ -64,6 +64,7 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
     private var recentSteps15Minutes: Int = 0
     private var recentSteps30Minutes: Int = 0
     private var recentSteps60Minutes: Int = 0
+    private var phoneMoved: Boolean = false
 
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
@@ -317,6 +318,9 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("recentSteps30Minutes", recentSteps30Minutes)
         this.profile.put("recentSteps60Minutes", recentSteps60Minutes)
         this.profile.put("key_activity_detection", sp.getBoolean(R.string.key_activity_detection, false))
+
+        this.phoneMoved = PhoneMovementDetector.phoneMoved()
+        this.profile.put("phone_moved", phoneMoved)
 
         this.mealData.put("carbs", mealData.carbs)
         this.mealData.put("mealCOB", mealData.mealCOB)

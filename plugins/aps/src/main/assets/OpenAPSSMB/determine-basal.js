@@ -553,39 +553,42 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var recentSteps15Minutes = profile.recentSteps15Minutes;
     var recentSteps30Minutes = profile.recentSteps30Minutes;
     var recentSteps60Minutes = profile.recentSteps60Minutes;
+    var phoneMoved = profile.phone_moved;
 
     if ( !activityDetection ) {
         console.log("Activity detection disabled in the settings. ");
     } else if ( profile.temptargetSet ) {
-        console.log("Activity detection disabled due to tempTarget. ");
-    } else if ( (now < 9 || now >= 22) && recentSteps60Minutes <= 200 ) {
-        console.log("No inactivity detection between 10pm and 9am. ");
+        console.log("Activity detection disabled: tempTarget. ");
+    } else if ( phoneMoved == false ) {
+        console.log("Activity detection disabled: Phone seems not to be carried for the last 15 m. ");
     } else {
         console.log("0-5 m ago: "+recentSteps5Minutes+" steps; ");
         console.log("5-10 m ago: "+recentSteps10Minutes+" steps; ");
         console.log("10-15 m ago: "+recentSteps15Minutes+" steps; ");
         console.log("Last 30 m: "+recentSteps30Minutes+" steps; ");
         console.log("Last 60 m: "+recentSteps60Minutes+" steps; ");
-        if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300
+        if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
+                console.log("No inactivity detection between 10pm and 8am. ");
+        } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300
             || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             stepActivityDetected = true;
             activityRatio = 0.7;
-            console.log("-> Activity detected (ratio: " + activityRatio + "); ");
+            console.log("-> Activity detected (ratio: " + activityRatio + "). ");
         } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
             || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
             stepActivityDetected = true;
             activityRatio = 0.85;
-            console.log("-> Light Activity detected (ratio: " + activityRatio + "); ");
+            console.log("-> Low Activity detected (ratio: " + activityRatio + "). ");
         } else if ( recentSteps60Minutes < 50 ) {
             stepInactivityDetected = true;
             activityRatio = 1.2;
-            console.log("-> Inactivity detected (ratio: " + activityRatio + "); ");
+            console.log("-> Inactivity detected (ratio: " + activityRatio + "). ");
         } else if ( recentSteps60Minutes <= 200 ) {
             stepInactivityDetected = true;
             activityRatio = 1.1;
-            console.log("-> Low inactivity detected (ratio: " + activityRatio + "); ");
+            console.log("-> Low inactivity detected (ratio: " + activityRatio + "). ");
         } else {
-            console.log("-> No specific activity or inactivity detected; ");
+            console.log("-> Normal activity level detected (ratio unchanged: " + activityRatio + "). ");
         }
     }
     console.error("----------------------------------");
