@@ -554,7 +554,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     var recentSteps30Minutes = profile.recentSteps30Minutes;
     var recentSteps60Minutes = profile.recentSteps60Minutes;
     var phoneMoved = profile.phone_moved;
-
+    var time_since_start = profile.time_since_start;
     if ( !activityDetection ) {
         console.log("Activity detection disabled in the settings. ");
     } else if ( profile.temptargetSet ) {
@@ -567,8 +567,10 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         console.log("10-15 m ago: "+recentSteps15Minutes+" steps; ");
         console.log("Last 30 m: "+recentSteps30Minutes+" steps; ");
         console.log("Last 60 m: "+recentSteps60Minutes+" steps; ");
-        if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
-                console.log("No inactivity detection between 10pm and 8am. ");
+        if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
+            console.log("Inactivity detection disabled: AAPS should have run for an hour (so far "+time_since_start+" m). ");
+        } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
+             console.log("Inactivity detection disabled between 10pm and 8am. ");
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300
             || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             stepActivityDetected = true;

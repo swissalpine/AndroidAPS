@@ -158,6 +158,10 @@ class MainApp : DaggerApplication() {
         }
         handler.postDelayed(refreshWidget, 60000)
 
+        // Anpassung
+        // Speichern des aktuellen Startzeitpunkts
+        sp.putLong(info.nightscout.plugins.aps.R.string.key_app_start, dateUtil.now())
+        // Sensoren aktivieren
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
         val phoneMovementDetector = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)

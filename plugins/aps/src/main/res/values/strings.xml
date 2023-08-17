@@ -7,7 +7,7 @@
     <string name="key_openapsma_max_iob" translatable="false">openapsma_max_iob</string>
     <string name="key_sensitivity_raises_target" translatable="false">sensitivity_raises_target</string>
     <string name="key_resistance_lowers_target" translatable="false">resistance_lowers_target</string>
-    <string name="key_activity_detection" translatable="false">key_activity_detection</string>
+    <string name="key_activity_detection" translatable="false">activity_detection</string>
     <string name="key_use_smb" translatable="false">use_smb</string>
     <string name="key_use_uam" translatable="false">use_uam</string>
     <string name="key_smb_interval" translatable="false">smbinterval</string>
@@ -25,6 +25,8 @@
     <string name="key_adjust_sensitivity" translatable="false">dynisf_adjust_sensitivity</string>
     <string name="key_openapsma_max_basal" translatable="false">openapsma_max_basal</string>
     <string name="key_openapsama_use_autosens" translatable="false">openapsama_useautosens</string>
+
+    <string name="key_app_start" translatable="false">app_start</string>
 
     <string name="dynisf_adjust_sensitivity">Adjust sensitivity and BG</string>
     <string name="DynISFAdjust_title" formatted="false">DynamicISF Adjustment Factor %</string>

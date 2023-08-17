@@ -322,6 +322,10 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.phoneMoved = PhoneMovementDetector.phoneMoved()
         this.profile.put("phone_moved", phoneMoved)
 
+        val lastAppStart = sp.getLong(R.string.key_app_start, now)
+        val elapsedTimeSinceLastStart = (now - lastAppStart) / 60000
+        this.profile.put("time_since_start", elapsedTimeSinceLastStart)
+
         this.mealData.put("carbs", mealData.carbs)
         this.mealData.put("mealCOB", mealData.mealCOB)
         this.mealData.put("slopeFromMaxDeviation", mealData.slopeFromMaxDeviation)
