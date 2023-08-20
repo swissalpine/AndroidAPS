@@ -54,6 +54,10 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.exceptions.UndeliverableException
 import io.reactivex.rxjava3.kotlin.plusAssign
 import io.reactivex.rxjava3.plugins.RxJavaPlugins
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import rxdogtag2.RxDogTag
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -86,88 +90,92 @@ class MainApp : DaggerApplication() {
 
     private var handler = Handler(HandlerThread(this::class.simpleName + "Handler").also { it.start() }.looper)
     private lateinit var refreshWidget: Runnable
+    private val scope = CoroutineScope(Dispatchers.Default + Job())
 
     override fun onCreate() {
         super.onCreate()
         aapsLogger.debug("onCreate")
-        RxDogTag.install()
-        setRxErrorHandler()
-        LocaleHelper.update(this)
-
-        var gitRemote: String? = BuildConfig.REMOTE
-        var commitHash: String? = BuildConfig.HEAD
-        if (gitRemote?.contains("NoGitSystemAvailable") == true) {
-            gitRemote = null
-            commitHash = null
-        }
-        disposable += compatDBHelper.dbChangeDisposable()
-        registerActivityLifecycleCallbacks(activityMonitor)
-        profileSwitchPlugin.setThemeMode()
-        aapsLogger.debug("Version: " + BuildConfig.VERSION_NAME)
-        aapsLogger.debug("BuildVersion: " + BuildConfig.BUILDVERSION)
-        aapsLogger.debug("Remote: " + BuildConfig.REMOTE)
-        registerLocalBroadcastReceiver()
-
-        // trigger here to see the new version on app start after an update
-        versionCheckersUtils.triggerCheckVersion()
-
-        // Register all tabs in app here
-        pluginStore.plugins = plugins
-        configBuilder.initialize()
-
-        // delayed actions to make rh context updated for translations
-        handler.postDelayed(
-            {
-                // check if identification is set
-                if (config.isDev() && sp.getStringOrNull(info.nightscout.core.utils.R.string.key_email_for_crash_report, null).isNullOrBlank())
-                    notificationStore.add(Notification(Notification.IDENTIFICATION_NOT_SET, rh.get().gs(R.string.identification_not_set), Notification.INFO))
-                // log version
-                disposable += repository.runTransaction(VersionChangeTransaction(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, gitRemote, commitHash)).subscribe()
-                // log app start
-                if (sp.getBoolean(info.nightscout.plugins.sync.R.string.key_ns_log_app_started_event, config.APS))
-                    disposable += repository
-                        .runTransaction(
-                            InsertIfNewByTimestampTherapyEventTransaction(
-                                timestamp = dateUtil.now(),
-                                type = TherapyEvent.Type.NOTE,
-                                note = rh.get().gs(info.nightscout.core.ui.R.string.androidaps_start) + " - " + Build.MANUFACTURER + " " + Build.MODEL,
-                                glucoseUnit = TherapyEvent.GlucoseUnit.MGDL
-                            )
-                        )
-                        .subscribe()
-            }, 10000
-        )
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            KeepAliveWorker.KA_0,
-            ExistingPeriodicWorkPolicy.UPDATE,
-            PeriodicWorkRequest.Builder(KeepAliveWorker::class.java, 15, TimeUnit.MINUTES)
-                .setInputData(Data.Builder().putString("schedule", KeepAliveWorker.KA_0).build())
-                .setInitialDelay(5, TimeUnit.SECONDS)
-                .build()
-        )
-        localAlertUtils.shortenSnoozeInterval()
-        localAlertUtils.preSnoozeAlarms()
-        doMigrations()
-        uel.log(UserEntry.Action.START_AAPS, UserEntry.Sources.Aaps)
         ProcessLifecycleOwner.get().lifecycle.addObserver(processLifecycleListener.get())
+        scope.launch {
+            RxDogTag.install()
+            setRxErrorHandler()
+            LocaleHelper.update(this@MainApp)
 
-        //  schedule widget update
-        refreshWidget = Runnable {
+            var gitRemote: String? = BuildConfig.REMOTE
+            var commitHash: String? = BuildConfig.HEAD
+            if (gitRemote?.contains("NoGitSystemAvailable") == true) {
+                gitRemote = null
+                commitHash = null
+            }
+            disposable += compatDBHelper.dbChangeDisposable()
+            registerActivityLifecycleCallbacks(activityMonitor)
+            profileSwitchPlugin.setThemeMode()
+            aapsLogger.debug("Version: " + BuildConfig.VERSION_NAME)
+            aapsLogger.debug("BuildVersion: " + BuildConfig.BUILDVERSION)
+            aapsLogger.debug("Remote: " + BuildConfig.REMOTE)
+            registerLocalBroadcastReceiver()
+
+            // trigger here to see the new version on app start after an update
+            versionCheckersUtils.triggerCheckVersion()
+
+            // Register all tabs in app here
+            pluginStore.plugins = plugins
+            configBuilder.initialize()
+
+            // delayed actions to make rh context updated for translations
+            handler.postDelayed(
+                {
+                    // check if identification is set
+                    if (config.isDev() && sp.getStringOrNull(info.nightscout.core.utils.R.string.key_email_for_crash_report, null).isNullOrBlank())
+                        notificationStore.add(Notification(Notification.IDENTIFICATION_NOT_SET, rh.get().gs(R.string.identification_not_set), Notification.INFO))
+                    // log version
+                    disposable += repository.runTransaction(VersionChangeTransaction(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, gitRemote, commitHash)).subscribe()
+                    // log app start
+                    if (sp.getBoolean(info.nightscout.plugins.sync.R.string.key_ns_log_app_started_event, config.APS))
+                        disposable += repository
+                            .runTransaction(
+                                InsertIfNewByTimestampTherapyEventTransaction(
+                                    timestamp = dateUtil.now(),
+                                    type = TherapyEvent.Type.NOTE,
+                                    note = rh.get().gs(info.nightscout.core.ui.R.string.androidaps_start) + " - " + Build.MANUFACTURER + " " + Build.MODEL,
+                                    glucoseUnit = TherapyEvent.GlucoseUnit.MGDL
+                                )
+                            )
+                            .subscribe()
+                }, 10000
+            )
+            WorkManager.getInstance(this@MainApp).enqueueUniquePeriodicWork(
+                KeepAliveWorker.KA_0,
+                ExistingPeriodicWorkPolicy.UPDATE,
+                PeriodicWorkRequest.Builder(KeepAliveWorker::class.java, 15, TimeUnit.MINUTES)
+                    .setInputData(Data.Builder().putString("schedule", KeepAliveWorker.KA_0).build())
+                    .setInitialDelay(5, TimeUnit.SECONDS)
+                    .build()
+            )
+            localAlertUtils.shortenSnoozeInterval()
+            localAlertUtils.preSnoozeAlarms()
+            doMigrations()
+            uel.log(UserEntry.Action.START_AAPS, UserEntry.Sources.Aaps)
+
+
+            // Anpassung
+            // Speichern des aktuellen Startzeitpunkts
+            sp.putLong(info.nightscout.plugins.aps.R.string.key_app_start, dateUtil.now())
+            // Sensoren aktivieren
+            val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+            val phoneMovementDetector = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+            sensorManager.registerListener(info.nightscout.plugins.aps.openAPSSMB.StepService, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(info.nightscout.plugins.aps.openAPSSMB.PhoneMovementDetector, phoneMovementDetector, SensorManager.SENSOR_DELAY_NORMAL)
+
+            //  schedule widget update
+            refreshWidget = Runnable {
+                handler.postDelayed(refreshWidget, 60000)
+                Widget.updateWidget(this@MainApp, "ScheduleEveryMin")
+            }
             handler.postDelayed(refreshWidget, 60000)
-            Widget.updateWidget(this, "ScheduleEveryMin")
+            config.appInitialized = true
         }
-        handler.postDelayed(refreshWidget, 60000)
-
-        // Anpassung
-        // Speichern des aktuellen Startzeitpunkts
-        sp.putLong(info.nightscout.plugins.aps.R.string.key_app_start, dateUtil.now())
-        // Sensoren aktivieren
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        val phoneMovementDetector = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        sensorManager.registerListener(info.nightscout.plugins.aps.openAPSSMB.StepService, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
-        sensorManager.registerListener(info.nightscout.plugins.aps.openAPSSMB.PhoneMovementDetector, phoneMovementDetector, SensorManager.SENSOR_DELAY_NORMAL)
-
     }
 
     private fun setRxErrorHandler() {

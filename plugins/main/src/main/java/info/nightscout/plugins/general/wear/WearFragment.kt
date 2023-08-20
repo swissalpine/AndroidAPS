@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import dagger.android.support.DaggerFragment
 import info.nightscout.core.ui.toast.ToastUtils
 import info.nightscout.core.utils.fabric.FabricPrivacy
@@ -12,7 +13,6 @@ import info.nightscout.plugins.R
 import info.nightscout.plugins.databinding.WearFragmentBinding
 import info.nightscout.rx.AapsSchedulers
 import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.events.EventMobileDataToWear
 import info.nightscout.rx.events.EventMobileToWear
 import info.nightscout.rx.events.EventWearUpdateGui
 import info.nightscout.rx.logging.AAPSLogger
@@ -68,8 +68,7 @@ class WearFragment : DaggerFragment() {
             updateGui()
         }
         binding.exportCustom.setOnClickListener {
-            wearPlugin.savedCustomWatchface?.let { importExportPrefs.exportCustomWatchface(it) }
-                ?: apply { rxBus.send(EventMobileToWear(EventData.ActionrequestCustomWatchface(true)))}
+            rxBus.send(EventMobileToWear(EventData.ActionrequestCustomWatchface(true)))
         }
     }
 
@@ -79,10 +78,12 @@ class WearFragment : DaggerFragment() {
             .toObservable(EventWearUpdateGui::class.java)
             .observeOn(aapsSchedulers.main)
             .subscribe({
-                           it.customWatchfaceData?.let { loadCustom(it) }
                            if (it.exportFile)
                                ToastUtils.okToast(activity, rh.gs(R.string.wear_new_custom_watchface_exported))
-                           updateGui()
+                           else {
+                               it.customWatchfaceData?.let { loadCustom(it) }
+                               updateGui()
+                           }
                        }, fabricPrivacy::logException)
         if (wearPlugin.savedCustomWatchface == null)
             rxBus.send(EventMobileToWear(EventData.ActionrequestCustomWatchface(false)))
@@ -104,6 +105,7 @@ class WearFragment : DaggerFragment() {
     private fun updateGui() {
         _binding ?: return
         wearPlugin.savedCustomWatchface?.let {
+            wearPlugin.checkCustomWatchfacePreferences()
             binding.customName.text = rh.gs(R.string.wear_custom_watchface, it.metadata[CustomWatchfaceMetadataKey.CWF_NAME])
             binding.coverChart.setImageDrawable(it.drawableDatas[CustomWatchfaceDrawableDataKey.CUSTOM_WATCHFACE]?.toDrawable(resources))
         } ?:apply {
