@@ -570,7 +570,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
             console.log("Inactivity detection disabled: AAPS should have run for an hour (so far "+time_since_start+" m). ");
         } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
-             console.log("Inactivity detection disabled between 10pm and 8am. ");
+            console.log("Inactivity detection disabled between 10pm and 8am. ");
+        } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
+            console.log("Inactivity detection disabled: bg < target. ");
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300
             || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             stepActivityDetected = true;
