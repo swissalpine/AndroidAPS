@@ -183,7 +183,10 @@ enum class JsonKeys(val key: String, val viewType: ViewType, @StringRes val comm
     FONT("font", ViewType.TEXTVIEW, null),
     FONTSTYLE("fontStyle", ViewType.TEXTVIEW, null),
     FONTCOLOR("fontColor", ViewType.TEXTVIEW, null),
-    COLOR("color", ViewType.IMAGEVIEW, null)
+    COLOR("color", ViewType.IMAGEVIEW, null),
+    ALLCAPS("allCaps", ViewType.TEXTVIEW, null),
+    DAYNAMEFORMAT("dayNameFormat", ViewType.NONE, null),
+    MONTHFORMAT("monthFormat", ViewType.NONE, null)
 }
 
 enum class JsonKeyValues(val key: String, val jsonKey: JsonKeys) {
@@ -260,13 +263,13 @@ class ZipWatchfaceFormat {
                 }
 
                 // Valid CWF file must contains a valid json file with a name within metadata and a custom watchface image
-                if (metadata.containsKey(CwfMetadataKey.CWF_NAME) && drawableDatas.containsKey(CwfDrawableFileMap.CUSTOM_WATCHFACE))
-                    return CwfData(json.toString(4), metadata, drawableDatas)
+                return if (metadata.containsKey(CwfMetadataKey.CWF_NAME) && drawableDatas.containsKey(CwfDrawableFileMap.CUSTOM_WATCHFACE))
+                    CwfData(json.toString(4), metadata, drawableDatas)
                 else
-                    return null
+                    null
 
             } catch (e: Exception) {
-                return null
+                return null     // mainly IOException
             }
         }
 
@@ -292,6 +295,7 @@ class ZipWatchfaceFormat {
                 zipOutputStream.close()
                 outputStream.close()
             } catch (_: Exception) {
+                // Ignore file
             }
 
         }
@@ -299,13 +303,9 @@ class ZipWatchfaceFormat {
         fun loadMetadata(contents: JSONObject): CwfMetadataMap {
             val metadata: CwfMetadataMap = mutableMapOf()
 
-            if (contents.has(JsonKeys.METADATA.key)) {
-                val meta = contents.getJSONObject(JsonKeys.METADATA.key)
-                for (key in meta.keys()) {
-                    val metaKey = CwfMetadataKey.fromKey(key)
-                    if (metaKey != null) {
-                        metadata[metaKey] = meta.getString(key)
-                    }
+            contents.optJSONObject(JsonKeys.METADATA.key)?.also { jsonObject ->                     // optJSONObject doesn't throw Exception
+                for (key in jsonObject.keys()) {
+                    CwfMetadataKey.fromKey(key)?.let { metadata[it] = jsonObject.optString(key) }   // optString doesn't throw Exception
                 }
             }
             return metadata
