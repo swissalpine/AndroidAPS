@@ -302,7 +302,6 @@ class GlucoseStatusProviderImpl @Inject constructor(
                     }
                 }
             }
-            ppDebug = ppDebug + " coeffs=(" + bestA + " / " + bestB + " / " + bestC + "); bg date=" + time0
         }
         // Ende
 
@@ -329,8 +328,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
             a_0 = a0,
             a_1 = a1,
             a_2 = a2,
-            pp_debug = ppDebug
-        ).also { aapsLogger.debug(LTag.GLUCOSE, it.log()) }.asRounded()
+        ).also { aapsLogger.debug(LTag.GLUCOSE, it.log(decimalFormatter)) }.asRounded()
     }
 
     /* Real BG (previous) version

@@ -31,6 +31,7 @@ import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.logging.UserEntryLogger
 import info.nightscout.interfaces.profile.DefaultValueHelper
 import info.nightscout.interfaces.profile.Profile
+import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.protection.ProtectionCheck
 import info.nightscout.interfaces.protection.ProtectionCheck.Protection.BOLUS
 import info.nightscout.interfaces.pump.DetailedBolusInfo
@@ -64,6 +65,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var loop: Loop
     @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
+    @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var profileUtil: ProfileUtil
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var glucoseStatusProvider: GlucoseStatusProvider
@@ -431,8 +433,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 timestamp = System.currentTimeMillis(),
                                 duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
                                 reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
-                                lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
-                                highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                                lowTarget = profileUtil.convertToMgdl(hypoTT, profileUtil.units),
+                                highTarget = profileUtil.convertToMgdl(hypoTT, profileUtil.units)
                             )).subscribe({ result ->
                                 result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
                                 result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
