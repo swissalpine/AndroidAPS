@@ -20,12 +20,13 @@ import info.nightscout.rx.events.EventWearUpdateGui
 import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.rx.logging.LTag
 import info.nightscout.rx.weardata.CUSTOM_VERSION
-import info.nightscout.rx.weardata.CwfDrawableFileMap
+import info.nightscout.rx.weardata.ResFileMap
 import info.nightscout.rx.weardata.CwfMetadataKey
 import info.nightscout.rx.weardata.CwfMetadataMap
 import info.nightscout.rx.weardata.JsonKeyValues
 import info.nightscout.rx.weardata.JsonKeys
 import info.nightscout.rx.weardata.ViewKeys
+import info.nightscout.rx.weardata.ZipWatchfaceFormat
 import info.nightscout.shared.interfaces.ResourceHelper
 import info.nightscout.shared.sharedPreferences.SP
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -86,13 +87,14 @@ class CwfInfosActivity : TranslatedDaggerAppCompatActivity() {
         wearPlugin.savedCustomWatchface?.let {
             val cwfAuthorization = sp.getBoolean(info.nightscout.core.utils.R.string.key_wear_custom_watchface_autorization, false)
             val metadata = it.metadata
-            val drawable = it.drawableDatas[CwfDrawableFileMap.CUSTOM_WATCHFACE]?.toDrawable(resources)
+            val drawable = it.resDatas[ResFileMap.CUSTOM_WATCHFACE.fileName]?.toDrawable(resources)
             binding.customWatchface.setImageDrawable(drawable)
             title = rh.gs(CwfMetadataKey.CWF_NAME.label, metadata[CwfMetadataKey.CWF_NAME])
             metadata[CwfMetadataKey.CWF_AUTHOR_VERSION]?.let { authorVersion ->
                 title = "${metadata[CwfMetadataKey.CWF_NAME]} ($authorVersion)"
             }
-            binding.filelistName.text = rh.gs(CwfMetadataKey.CWF_FILENAME.label, metadata[CwfMetadataKey.CWF_FILENAME] ?: "")
+            val fileName = metadata[CwfMetadataKey.CWF_FILENAME]?.let { "$it${ZipWatchfaceFormat.CWF_EXTENTION}"} ?:""
+            binding.filelistName.text = rh.gs(CwfMetadataKey.CWF_FILENAME.label, fileName)
             binding.author.text = rh.gs(CwfMetadataKey.CWF_AUTHOR.label, metadata[CwfMetadataKey.CWF_AUTHOR] ?: "")
             binding.createdAt.text = rh.gs(CwfMetadataKey.CWF_CREATED_AT.label, metadata[CwfMetadataKey.CWF_CREATED_AT] ?: "")
             binding.cwfVersion.text = rh.gs(CwfMetadataKey.CWF_VERSION.label, metadata[CwfMetadataKey.CWF_VERSION] ?: "")

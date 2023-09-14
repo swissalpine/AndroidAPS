@@ -31,7 +31,6 @@ import info.nightscout.interfaces.plugin.ActivePlugin
 import info.nightscout.interfaces.logging.UserEntryLogger
 import info.nightscout.interfaces.profile.DefaultValueHelper
 import info.nightscout.interfaces.profile.Profile
-import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.protection.ProtectionCheck
 import info.nightscout.interfaces.protection.ProtectionCheck.Protection.BOLUS
 import info.nightscout.interfaces.pump.DetailedBolusInfo
@@ -45,6 +44,7 @@ import info.nightscout.interfaces.utils.HtmlHelper
 import info.nightscout.rx.bus.RxBus
 import info.nightscout.rx.events.EventRefreshOverview
 import info.nightscout.rx.logging.LTag
+import info.nightscout.shared.interfaces.ProfileUtil
 import info.nightscout.shared.interfaces.ResourceHelper
 import info.nightscout.shared.utils.T
 import info.nightscout.ui.R
@@ -64,7 +64,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var loop: Loop
     @Inject lateinit var constraintChecker: Constraints
     @Inject lateinit var defaultValueHelper: DefaultValueHelper
-    @Inject lateinit var profileFunction: ProfileFunction
+    @Inject lateinit var profileUtil: ProfileUtil
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var glucoseStatusProvider: GlucoseStatusProvider
     @Inject lateinit var uel: UserEntryLogger
@@ -74,6 +74,7 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var rxBus: RxBus
     @Inject lateinit var protectionCheck: ProtectionCheck
     @Inject lateinit var uiInteraction: UiInteraction
+    @Inject lateinit var decimalFormatter: DecimalFormatter
     @Inject lateinit var activePlugin: ActivePlugin
 
     private var queryingProtection = false
@@ -243,7 +244,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         if (_binding == null) return false
         val carbs = binding.carbs.value.toInt()
         val carbsAfterConstraints = constraintChecker.applyCarbsConstraints(Constraint(carbs)).value()
-        val units = profileFunction.getUnits()
+        val units = profileUtil.units
         val activityTTDuration = defaultValueHelper.determineActivityTTDuration()
         val activityTT = defaultValueHelper.determineActivityTT()
         val eatingSoonTTDuration = defaultValueHelper.determineEatingSoonTTDuration()
@@ -262,7 +263,10 @@ class CarbsDialog : DialogFragmentWithDate() {
         val activitySelected = binding.activityTt.isChecked
         if (activitySelected)
             actions.add(
-                rh.gs(R.string.temp_target_short) + ": " + (DecimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + rh.gs(info.nightscout.core.ui.R.string.format_mins, activityTTDuration) + ")").formatColor(
+                rh.gs(R.string.temp_target_short) + ": " + (decimalFormatter.to1Decimal(activityTT) + " " + unitLabel + " (" + rh.gs(
+                    info.nightscout.core.ui.R.string.format_mins,
+                    activityTTDuration
+                ) + ")").formatColor(
                     context,
                     rh,
                     info.nightscout.core.ui.R.attr.tempTargetConfirmation
@@ -271,7 +275,7 @@ class CarbsDialog : DialogFragmentWithDate() {
         val eatingSoonSelected = binding.eatingSoonTt.isChecked
         if (eatingSoonSelected)
             actions.add(
-                rh.gs(R.string.temp_target_short) + ": " + (DecimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + rh.gs(
+                rh.gs(R.string.temp_target_short) + ": " + (decimalFormatter.to1Decimal(eatingSoonTT) + " " + unitLabel + " (" + rh.gs(
                     info.nightscout.core.ui.R.string.format_mins,
                     eatingSoonTTDuration
                 ) + ")").formatColor(context, rh, info.nightscout.core.ui.R.attr.tempTargetConfirmation)
@@ -279,7 +283,10 @@ class CarbsDialog : DialogFragmentWithDate() {
         val hypoSelected = binding.hypoTt.isChecked
         if (hypoSelected)
             actions.add(
-                rh.gs(R.string.temp_target_short) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(info.nightscout.core.ui.R.string.format_mins, hypoTTDuration) + ")").formatColor(
+                rh.gs(R.string.temp_target_short) + ": " + (decimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(
+                    info.nightscout.core.ui.R.string.format_mins,
+                    hypoTTDuration
+                ) + ")").formatColor(
                     context,
                     rh,
                     info.nightscout.core.ui.R.attr.tempTargetConfirmation
@@ -289,8 +296,12 @@ class CarbsDialog : DialogFragmentWithDate() {
         val hypoActionSelected = binding.hypoAction.isChecked
         if (hypoActionSelected)
             actions.add(
-                rh.gs(R.string.temp_target_short) + ": " + (DecimalFormatter.to1Decimal(hypoTT) + " " + unitLabel +
-                    " (" + rh.gs(info.nightscout.core.ui.R.string.format_mins, hypoTTDuration) + ")  + TBR: 50% (60 min)").formatColor( context, rh,
+                rh.gs(R.string.temp_target_short) + ": " + (decimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(
+                    info.nightscout.core.ui.R.string.format_mins,
+                    hypoTTDuration
+                ) + ")  + TBR: 50% (60 min)").formatColor(
+                    context,
+                    rh,
                     info.nightscout.core.ui.R.attr.tempTargetConfirmation
                 )
             )
@@ -329,8 +340,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                                     timestamp = System.currentTimeMillis(),
                                     duration = TimeUnit.MINUTES.toMillis(activityTTDuration.toLong()),
                                     reason = TemporaryTarget.Reason.ACTIVITY,
-                                    lowTarget = Profile.toMgdl(activityTT, profileFunction.getUnits()),
-                                    highTarget = Profile.toMgdl(activityTT, profileFunction.getUnits())
+                                    lowTarget = profileUtil.convertToMgdl(activityTT, profileUtil.units),
+                                    highTarget = profileUtil.convertToMgdl(activityTT, profileUtil.units)
                                 )
                             ).subscribe({ result ->
                                             result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
@@ -352,8 +363,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                                     timestamp = System.currentTimeMillis(),
                                     duration = TimeUnit.MINUTES.toMillis(eatingSoonTTDuration.toLong()),
                                     reason = TemporaryTarget.Reason.EATING_SOON,
-                                    lowTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits()),
-                                    highTarget = Profile.toMgdl(eatingSoonTT, profileFunction.getUnits())
+                                    lowTarget = profileUtil.convertToMgdl(eatingSoonTT, profileUtil.units),
+                                    highTarget = profileUtil.convertToMgdl(eatingSoonTT, profileUtil.units)
                                 )
                             ).subscribe({ result ->
                                             result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
@@ -375,8 +386,8 @@ class CarbsDialog : DialogFragmentWithDate() {
                                     timestamp = System.currentTimeMillis(),
                                     duration = TimeUnit.MINUTES.toMillis(hypoTTDuration.toLong()),
                                     reason = TemporaryTarget.Reason.HYPOGLYCEMIA,
-                                    lowTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits()),
-                                    highTarget = Profile.toMgdl(hypoTT, profileFunction.getUnits())
+                                    lowTarget = profileUtil.convertToMgdl(hypoTT, profileUtil.units),
+                                    highTarget = profileUtil.convertToMgdl(hypoTT, profileUtil.units)
                                 )
                             ).subscribe({ result ->
                                             result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }

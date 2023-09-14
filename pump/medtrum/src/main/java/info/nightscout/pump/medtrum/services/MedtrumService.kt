@@ -112,6 +112,7 @@ class MedtrumService : DaggerService(), BLECommCallback {
                                aapsLogger.debug(LTag.PUMPCOMM, "Serial number changed, reporting new pump!")
                                medtrumPump.loadUserSettingsFromSP()
                                medtrumPump.deviceType = MedtrumSnUtil().getDeviceTypeFromSerial(medtrumPump.pumpSN)
+                               medtrumPump.resetPatchParameters()
                                pumpSync.connectNewPump()
                                medtrumPump.setFakeTBRIfNeeded()
                            }
@@ -135,20 +136,13 @@ class MedtrumService : DaggerService(), BLECommCallback {
                            }
                        }, fabricPrivacy::logException)
         scope.launch {
-            medtrumPump.pumpStateFlow.collect { state ->
-                handlePumpStateUpdate(state)
+            medtrumPump.pumpStateFlow.collect { pumpState ->
+                handlePumpStateUpdate(pumpState)
             }
         }
         scope.launch {
-            medtrumPump.connectionStateFlow.collect { state ->
-                if (medtrumPlugin.isInitialized()) {
-                    when (state) {
-                        ConnectionState.CONNECTED     -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.CONNECTED))
-                        ConnectionState.DISCONNECTED  -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.DISCONNECTED))
-                        ConnectionState.CONNECTING    -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.CONNECTING))
-                        ConnectionState.DISCONNECTING -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.DISCONNECTING))
-                    }
-                }
+            medtrumPump.connectionStateFlow.collect { connectionState ->
+                handleConnectionStateChange(connectionState)
             }
         }
 
@@ -163,23 +157,29 @@ class MedtrumService : DaggerService(), BLECommCallback {
 
     fun connect(from: String): Boolean {
         aapsLogger.debug(LTag.PUMP, "connect: called from: $from")
-        if (currentState is IdleState) {
-            medtrumPump.connectionState = ConnectionState.CONNECTING
-            return bleComm.connect(from, medtrumPump.pumpSN)
-        } else if (currentState is ReadyState) {
-            aapsLogger.error(LTag.PUMPCOMM, "Connect attempt when in ReadyState from: $from")
-            if (isConnected) {
-                aapsLogger.debug(LTag.PUMP, "connect: already connected")
-                return true
-            } else {
-                aapsLogger.debug(LTag.PUMP, "connect: not connected, resetting state and trying to connect")
-                toState(IdleState())
+        when (currentState) {
+            is IdleState  -> {
                 medtrumPump.connectionState = ConnectionState.CONNECTING
                 return bleComm.connect(from, medtrumPump.pumpSN)
             }
-        } else {
-            aapsLogger.error(LTag.PUMPCOMM, "Connect attempt when in state: $currentState from: $from")
-            return false
+
+            is ReadyState -> {
+                aapsLogger.error(LTag.PUMPCOMM, "Connect attempt when in ReadyState from: $from")
+                return if (isConnected) {
+                    aapsLogger.debug(LTag.PUMP, "connect: already connected")
+                    true
+                } else {
+                    aapsLogger.debug(LTag.PUMP, "connect: not connected, resetting state and trying to connect")
+                    toState(IdleState())
+                    medtrumPump.connectionState = ConnectionState.CONNECTING
+                    bleComm.connect(from, medtrumPump.pumpSN)
+                }
+            }
+
+            else          -> {
+                aapsLogger.error(LTag.PUMPCOMM, "Connect attempt when in state: $currentState from: $from")
+                return false
+            }
         }
     }
 
@@ -247,8 +247,8 @@ class MedtrumService : DaggerService(), BLECommCallback {
             timeUpdateNotification(result)
         }
         // Do this here, because TBR can be cancelled due to time change by connect flow
-        if (needLoadHistory) {
-            if (result) result = loadEvents()
+        if (needLoadHistory && result) {
+            result = loadEvents()
         }
         if (result) medtrumPump.needCheckTimeUpdate = false
         return result
@@ -374,10 +374,13 @@ class MedtrumService : DaggerService(), BLECommCallback {
 
         bolusingEvent.percent = 99
         val bolusDurationInMSec = (insulin * 60 * 1000)
-        val expectedEnd = bolusStart + bolusDurationInMSec + 2000
+        val expectedEnd = bolusStart + bolusDurationInMSec + 1000
         while (System.currentTimeMillis() < expectedEnd && !medtrumPump.bolusDone) {
             SystemClock.sleep(1000)
         }
+
+        // Allow time for notification packet with new sequnce number to arrive
+        SystemClock.sleep(2000)
 
         bolusingEvent.t = medtrumPump.bolusingTreatment
         medtrumPump.bolusingTreatment = null
@@ -532,6 +535,9 @@ class MedtrumService : DaggerService(), BLECommCallback {
                 )
                 medtrumPump.setFakeTBRIfNeeded()
                 medtrumPump.clearAlarmState()
+
+                // Reset sequence numbers, make sure AAPS history can be synced properly on next activation
+                medtrumPump.resetPatchParameters()
             }
 
             MedtrumPumpState.IDLE,
@@ -606,6 +612,17 @@ class MedtrumService : DaggerService(), BLECommCallback {
         }
     }
 
+    private fun handleConnectionStateChange(connectionState: ConnectionState) {
+        if (medtrumPlugin.isInitialized()) {
+            when (connectionState) {
+                ConnectionState.CONNECTED     -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.CONNECTED))
+                ConnectionState.DISCONNECTED  -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.DISCONNECTED))
+                ConnectionState.CONNECTING    -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.CONNECTING))
+                ConnectionState.DISCONNECTING -> rxBus.send(EventPumpStatusChanged(EventPumpStatusChanged.Status.DISCONNECTING))
+            }
+        }
+    }
+
     /** BLECommCallbacks */
     override fun onBLEConnected() {
         aapsLogger.debug(LTag.PUMPCOMM, "<<<<< onBLEConnected")
@@ -676,7 +693,10 @@ class MedtrumService : DaggerService(), BLECommCallback {
         protected var responseSuccess = false
         protected var sendRetryCounter = 0
 
-        open fun onEnter() {}
+        open fun onEnter() {
+            // Used when a state is entered
+        }
+
         open fun onIndication(data: ByteArray) {
             aapsLogger.warn(LTag.PUMPCOMM, "onIndication: " + this.toString() + "Should not be called here!")
         }

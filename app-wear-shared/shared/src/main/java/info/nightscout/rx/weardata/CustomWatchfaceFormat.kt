@@ -2,10 +2,10 @@ package info.nightscout.rx.weardata
 
 import android.content.res.Resources
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.PictureDrawable
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.caverock.androidsvg.SVG
 import info.nightscout.shared.R
@@ -22,53 +22,70 @@ import java.util.zip.ZipOutputStream
 
 val CUSTOM_VERSION = "1.0"
 
-enum class CwfDrawableFileMap(val key: String, @DrawableRes val icon: Int?, val fileName: String) {
-    UNKNOWN("unknown", null, "Unknown"),
-    CUSTOM_WATCHFACE("customWatchface", R.drawable.watchface_custom, "CustomWatchface"),
-    BACKGROUND(ViewKeys.BACKGROUND.key, R.drawable.background, "Background"),
-    BACKGROUND_HIGH(ViewKeys.BACKGROUND.key, R.drawable.background, "BackgroundHigh"),
-    BACKGROUND_LOW(ViewKeys.BACKGROUND.key, R.drawable.background, "BackgroundLow"),
-    COVER_CHART(ViewKeys.COVER_CHART.key, null, "CoverChart"),
-    COVER_PLATE(ViewKeys.COVER_PLATE.key, R.drawable.simplified_dial, "CoverPlate"),
-    HOUR_HAND(ViewKeys.HOUR_HAND.key, R.drawable.hour_hand, "HourHand"),
-    MINUTE_HAND(ViewKeys.MINUTE_HAND.key, R.drawable.minute_hand, "MinuteHand"),
-    SECOND_HAND(ViewKeys.SECOND_HAND.key, R.drawable.second_hand, "SecondHand");
+enum class ResFileMap(val fileName: String) {
+    UNKNOWN("Unknown"),
+    CUSTOM_WATCHFACE("CustomWatchface"),
+    BACKGROUND("Background"),
+    BACKGROUND_HIGH("BackgroundHigh"),
+    BACKGROUND_LOW("BackgroundLow"),
+    COVER_CHART("CoverChart"),
+    COVER_CHART_HIGH("CoverChartHigh"),
+    COVER_CHART_LOW("CoverChartLow"),
+    COVER_PLATE("CoverPlate"),
+    COVER_PLATE_HIGH("CoverPlateHigh"),
+    COVER_PLATE_LOW("CoverPlateLow"),
+    HOUR_HAND("HourHand"),
+    HOUR_HAND_HIGH("HourHandHigh"),
+    HOUR_HAND_LOW("HourHandLow"),
+    MINUTE_HAND("MinuteHand"),
+    MINUTE_HAND_HIGH("MinuteHandHigh"),
+    MINUTE_HAND_LOW("MinuteHandLow"),
+    SECOND_HAND("SecondHand"),
+    SECOND_HAND_HIGH("SecondHandHigh"),
+    SECOND_HAND_LOW("SecondHandLow"),
+    ARROW_NONE("ArrowNone"),
+    ARROW_DOUBLE_UP("ArrowDoubleUp"),
+    ARROW_SINGLE_UP("ArrowSingleUp"),
+    ARROW_FORTY_FIVE_UP("Arrow45Up"),
+    ARROW_FLAT("ArrowFlat"),
+    ARROW_FORTY_FIVE_DOWN("Arrow45Down"),
+    ARROW_SINGLE_DOWN("ArrowSingleDown"),
+    ARROW_DOUBLE_DOWN("ArrowDoubleDown");
 
     companion object {
 
-        fun fromKey(key: String): CwfDrawableFileMap =
-            values().firstOrNull { it.key == key } ?: UNKNOWN
-
-        fun fromFileName(file: String): CwfDrawableFileMap = values().firstOrNull { it.fileName == file.substringBeforeLast(".") } ?: UNKNOWN
+        fun fromFileName(file: String): ResFileMap = values().firstOrNull { it.fileName == file.substringBeforeLast(".") } ?: UNKNOWN
     }
 }
 
-enum class DrawableFormat(val extension: String) {
+enum class ResFormat(val extension: String) {
     UNKNOWN(""),
     SVG("svg"),
     JPG("jpg"),
-    PNG("png");
+    PNG("png"),
+    TTF("ttf"),
+    OTF("otf");
 
     companion object {
 
-        fun fromFileName(fileName: String): DrawableFormat =
-            values().firstOrNull { it.extension == fileName.substringAfterLast(".") } ?: UNKNOWN
+        fun fromFileName(fileName: String): ResFormat =
+            values().firstOrNull { it.extension == fileName.substringAfterLast(".").lowercase() } ?: UNKNOWN
 
     }
 }
 
 @Serializable
-data class DrawableData(val value: ByteArray, val format: DrawableFormat) {
+data class ResData(val value: ByteArray, val format: ResFormat) {
 
     fun toDrawable(resources: Resources): Drawable? {
         try {
             return when (format) {
-                DrawableFormat.PNG, DrawableFormat.JPG -> {
+                ResFormat.PNG, ResFormat.JPG -> {
                     val bitmap = BitmapFactory.decodeByteArray(value, 0, value.size)
                     BitmapDrawable(resources, bitmap)
                 }
 
-                DrawableFormat.SVG                     -> {
+                ResFormat.SVG                -> {
                     val svg = SVG.getFromInputStream(ByteArrayInputStream(value))
                     val picture = svg.renderToPicture()
                     PictureDrawable(picture).apply {
@@ -76,7 +93,37 @@ data class DrawableData(val value: ByteArray, val format: DrawableFormat) {
                     }
                 }
 
-                else                                   -> null
+                else                         -> null
+            }
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
+    fun toTypeface(): Typeface? {
+        try {
+            return when (format) {
+                ResFormat.TTF, ResFormat.OTF -> {
+                    // Workaround with temporary File, Typeface.createFromFileDescriptor(null, value, 0, value.size) more simple not available
+                    File.createTempFile("temp", format.extension).let { tempFile ->
+                        FileOutputStream(tempFile).let { fileOutputStream ->
+                            fileOutputStream.write(value)
+                            fileOutputStream.close()
+                        }
+
+                        Typeface.createFromFile(tempFile).let {
+                            if (!tempFile.delete()) {
+                                // delete tempfile after usage
+                            }
+                            it
+                        }
+                    }
+                }
+
+                else          -> {
+                    null
+
+                }
             }
         } catch (e: Exception) {
             return null
@@ -84,11 +131,11 @@ data class DrawableData(val value: ByteArray, val format: DrawableFormat) {
     }
 }
 
-typealias CwfDrawableDataMap = MutableMap<CwfDrawableFileMap, DrawableData>
+typealias CwfResDataMap = MutableMap<String, ResData>
 typealias CwfMetadataMap = MutableMap<CwfMetadataKey, String>
 
 @Serializable
-data class CwfData(val json: String, var metadata: CwfMetadataMap, val drawableDatas: CwfDrawableDataMap)
+data class CwfData(val json: String, var metadata: CwfMetadataMap, val resDatas: CwfResDataMap)
 
 enum class CwfMetadataKey(val key: String, @StringRes val label: Int, val isPref: Boolean) {
 
@@ -98,7 +145,7 @@ enum class CwfMetadataKey(val key: String, @StringRes val label: Int, val isPref
     CWF_CREATED_AT("created_at", R.string.metadata_label_watchface_created_at, false),
     CWF_VERSION("cwf_version", R.string.metadata_label_plugin_version, false),
     CWF_AUTHOR_VERSION("author_version", R.string.metadata_label_watchface_name_version, false),
-    CWF_COMMENT("comment", R.string.metadata_label_watchface_comment, false), // label not planed to be used for CWF_COMMENT
+    CWF_COMMENT("comment", R.string.metadata_label_watchface_infos, false),
     CWF_AUTHORIZATION("cwf_authorization", R.string.metadata_label_watchface_authorization, false),
     CWF_PREF_WATCH_SHOW_DETAILED_IOB("key_show_detailed_iob", R.string.pref_show_detailed_iob, true),
     CWF_PREF_WATCH_SHOW_DETAILED_DELTA("key_show_detailed_delta", R.string.pref_show_detailed_delta, true),
@@ -156,68 +203,60 @@ enum class ViewKeys(val key: String, @StringRes val comment: Int) {
     COVER_PLATE("cover_plate", R.string.cwf_comment_cover_plate),
     HOUR_HAND("hour_hand", R.string.cwf_comment_hour_hand),
     MINUTE_HAND("minute_hand", R.string.cwf_comment_minute_hand),
-    SECOND_HAND("second_hand", R.string.cwf_comment_second_hand);
+    SECOND_HAND("second_hand", R.string.cwf_comment_second_hand)
 }
 
-enum class JsonKeys(val key: String, val viewType: ViewType, @StringRes val comment: Int?) {
-    METADATA("metadata", ViewType.NONE, null),
-    ENABLESECOND("enableSecond", ViewType.NONE, null),
-    HIGHCOLOR("highColor", ViewType.NONE, null),
-    MIDCOLOR("midColor", ViewType.NONE, null),
-    LOWCOLOR("lowColor", ViewType.NONE, null),
-    LOWBATCOLOR("lowBatColor", ViewType.NONE, null),
-    CARBCOLOR("carbColor", ViewType.NONE, null),
-    BASALBACKGROUNDCOLOR("basalBackgroundColor", ViewType.NONE, null),
-    BASALCENTERCOLOR("basalCenterColor", ViewType.NONE, null),
-    GRIDCOLOR("gridColor", ViewType.NONE, null),
-    POINTSIZE("pointSize", ViewType.NONE, null),
-    WIDTH("width", ViewType.ALLVIEWS, null),
-    HEIGHT("height", ViewType.ALLVIEWS, null),
-    TOPMARGIN("topmargin", ViewType.ALLVIEWS, null),
-    LEFTMARGIN("leftmargin", ViewType.ALLVIEWS, null),
-    ROTATION("rotation", ViewType.TEXTVIEW, null),
-    VISIBILITY("visibility", ViewType.ALLVIEWS, null),
-    TEXTSIZE("textsize", ViewType.TEXTVIEW, null),
-    TEXTVALUE("textvalue", ViewType.TEXTVIEW, null),
-    GRAVITY("gravity", ViewType.TEXTVIEW, null),
-    FONT("font", ViewType.TEXTVIEW, null),
-    FONTSTYLE("fontStyle", ViewType.TEXTVIEW, null),
-    FONTCOLOR("fontColor", ViewType.TEXTVIEW, null),
-    COLOR("color", ViewType.IMAGEVIEW, null),
-    ALLCAPS("allCaps", ViewType.TEXTVIEW, null),
-    DAYNAMEFORMAT("dayNameFormat", ViewType.NONE, null),
-    MONTHFORMAT("monthFormat", ViewType.NONE, null)
+enum class JsonKeys(val key: String) {
+    METADATA("metadata"),
+    ENABLESECOND("enableSecond"),
+    HIGHCOLOR("highColor"),
+    MIDCOLOR("midColor"),
+    LOWCOLOR("lowColor"),
+    LOWBATCOLOR("lowBatColor"),
+    CARBCOLOR("carbColor"),
+    BASALBACKGROUNDCOLOR("basalBackgroundColor"),
+    BASALCENTERCOLOR("basalCenterColor"),
+    GRIDCOLOR("gridColor"),
+    POINTSIZE("pointSize"),
+    WIDTH("width"),
+    HEIGHT("height"),
+    TOPMARGIN("topmargin"),
+    LEFTMARGIN("leftmargin"),
+    ROTATION("rotation"),
+    VISIBILITY("visibility"),
+    TEXTSIZE("textsize"),
+    TEXTVALUE("textvalue"),
+    GRAVITY("gravity"),
+    FONT("font"),
+    FONTSTYLE("fontStyle"),
+    FONTCOLOR("fontColor"),
+    COLOR("color"),
+    ALLCAPS("allCaps"),
+    DAYNAMEFORMAT("dayNameFormat"),
+    MONTHFORMAT("monthFormat")
 }
 
-enum class JsonKeyValues(val key: String, val jsonKey: JsonKeys) {
-    GONE("gone", JsonKeys.VISIBILITY),
-    VISIBLE("visible", JsonKeys.VISIBILITY),
-    INVISIBLE("invisible", JsonKeys.VISIBILITY),
-    CENTER("center", JsonKeys.GRAVITY),
-    LEFT("left", JsonKeys.GRAVITY),
-    RIGHT("right", JsonKeys.GRAVITY),
-    SANS_SERIF("sans_serif", JsonKeys.FONT),
-    DEFAULT("default", JsonKeys.FONT),
-    DEFAULT_BOLD("default_bold", JsonKeys.FONT),
-    MONOSPACE("monospace", JsonKeys.FONT),
-    SERIF("serif", JsonKeys.FONT),
-    ROBOTO_CONDENSED_BOLD("roboto_condensed_bold", JsonKeys.FONT),
-    ROBOTO_CONDENSED_LIGHT("roboto_condensed_light", JsonKeys.FONT),
-    ROBOTO_CONDENSED_REGULAR("roboto_condensed_regular", JsonKeys.FONT),
-    ROBOTO_SLAB_LIGHT("roboto_slab_light", JsonKeys.FONT),
-    NORMAL("normal", JsonKeys.FONTSTYLE),
-    BOLD("bold", JsonKeys.FONTSTYLE),
-    BOLD_ITALIC("bold_italic", JsonKeys.FONTSTYLE),
-    ITALIC("italic", JsonKeys.FONTSTYLE),
-    BGCOLOR("bgColor", JsonKeys.COLOR),
-    BGCOLOR1("bgColor", JsonKeys.FONTCOLOR)
-}
-
-enum class ViewType(@StringRes val comment: Int?) {
-    NONE(null),
-    TEXTVIEW(null),
-    IMAGEVIEW(null),
-    ALLVIEWS(null)
+enum class JsonKeyValues(val key: String) {
+    GONE("gone"),
+    VISIBLE("visible"),
+    INVISIBLE("invisible"),
+    CENTER("center"),
+    LEFT("left"),
+    RIGHT("right"),
+    SANS_SERIF("sans_serif"),
+    DEFAULT("default"),
+    DEFAULT_BOLD("default_bold"),
+    MONOSPACE("monospace"),
+    SERIF("serif"),
+    ROBOTO_CONDENSED_BOLD("roboto_condensed_bold"),
+    ROBOTO_CONDENSED_LIGHT("roboto_condensed_light"),
+    ROBOTO_CONDENSED_REGULAR("roboto_condensed_regular"),
+    ROBOTO_SLAB_LIGHT("roboto_slab_light"),
+    NORMAL("normal"),
+    BOLD("bold"),
+    BOLD_ITALIC("bold_italic"),
+    ITALIC("italic"),
+    BGCOLOR("bgColor")
 }
 
 class ZipWatchfaceFormat {
@@ -226,13 +265,12 @@ class ZipWatchfaceFormat {
         const val CWF_EXTENTION = ".zip"
         const val CWF_JSON_FILE = "CustomWatchface.json"
 
-        fun loadCustomWatchface(cwfFile: File, authorization: Boolean): CwfData? {
+        fun loadCustomWatchface(zipInputStream: ZipInputStream, zipName: String, authorization: Boolean): CwfData? {
             var json = JSONObject()
             var metadata: CwfMetadataMap = mutableMapOf()
-            val drawableDatas: CwfDrawableDataMap = mutableMapOf()
+            val resDatas: CwfResDataMap = mutableMapOf()
 
             try {
-                val zipInputStream = ZipInputStream(cwfFile.inputStream())
                 var zipEntry: ZipEntry? = zipInputStream.nextEntry
                 while (zipEntry != null) {
                     val entryName = zipEntry.name
@@ -250,21 +288,22 @@ class ZipWatchfaceFormat {
                         val jsonString = byteArrayOutputStream.toByteArray().toString(Charsets.UTF_8)
                         json = JSONObject(jsonString)
                         metadata = loadMetadata(json)
-                        metadata[CwfMetadataKey.CWF_FILENAME] = cwfFile.name
+                        metadata[CwfMetadataKey.CWF_FILENAME] = zipName.substringBeforeLast(".")
                         metadata[CwfMetadataKey.CWF_AUTHORIZATION] = authorization.toString()
                     } else {
-                        val cwfDrawableFileMap = CwfDrawableFileMap.fromFileName(entryName)
-                        val drawableFormat = DrawableFormat.fromFileName(entryName)
-                        if (cwfDrawableFileMap != CwfDrawableFileMap.UNKNOWN && drawableFormat != DrawableFormat.UNKNOWN) {
-                            drawableDatas[cwfDrawableFileMap] = DrawableData(byteArrayOutputStream.toByteArray(), drawableFormat)
-                        }
+                        val cwfResFileMap = ResFileMap.fromFileName(entryName)
+                        val drawableFormat = ResFormat.fromFileName(entryName)
+                        if (cwfResFileMap != ResFileMap.UNKNOWN && drawableFormat != ResFormat.UNKNOWN) {
+                            resDatas[cwfResFileMap.fileName] = ResData(byteArrayOutputStream.toByteArray(), drawableFormat)
+                        } else if (drawableFormat != ResFormat.UNKNOWN)
+                            resDatas[entryName.substringBeforeLast(".")] = ResData(byteArrayOutputStream.toByteArray(), drawableFormat)
                     }
                     zipEntry = zipInputStream.nextEntry
                 }
 
                 // Valid CWF file must contains a valid json file with a name within metadata and a custom watchface image
-                return if (metadata.containsKey(CwfMetadataKey.CWF_NAME) && drawableDatas.containsKey(CwfDrawableFileMap.CUSTOM_WATCHFACE))
-                    CwfData(json.toString(4), metadata, drawableDatas)
+                return if (metadata.containsKey(CwfMetadataKey.CWF_NAME) && resDatas.containsKey(ResFileMap.CUSTOM_WATCHFACE.fileName))
+                    CwfData(json.toString(4), metadata, resDatas)
                 else
                     null
 
@@ -279,17 +318,15 @@ class ZipWatchfaceFormat {
                 val outputStream = FileOutputStream(file)
                 val zipOutputStream = ZipOutputStream(BufferedOutputStream(outputStream))
 
-                // Ajouter le fichier JSON au ZIP
                 val jsonEntry = ZipEntry(CWF_JSON_FILE)
                 zipOutputStream.putNextEntry(jsonEntry)
                 zipOutputStream.write(customWatchface.json.toByteArray())
                 zipOutputStream.closeEntry()
 
-                // Ajouter les fichiers divers au ZIP
-                for (drawableData in customWatchface.drawableDatas) {
-                    val fileEntry = ZipEntry("${drawableData.key.fileName}.${drawableData.value.format.extension}")
+                for (resData in customWatchface.resDatas) {
+                    val fileEntry = ZipEntry("${resData.key}.${resData.value.format.extension}")
                     zipOutputStream.putNextEntry(fileEntry)
-                    zipOutputStream.write(drawableData.value.value)
+                    zipOutputStream.write(resData.value.value)
                     zipOutputStream.closeEntry()
                 }
                 zipOutputStream.close()
@@ -311,5 +348,4 @@ class ZipWatchfaceFormat {
             return metadata
         }
     }
-
 }
