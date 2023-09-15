@@ -1154,10 +1154,15 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             else if (config.NSCLIENT) JsonHelper.safeGetDouble(processedDeviceStatusData.getAPSResult(injector).json, "variable_sens")
             else 0.0
 
+        // Anpassung: mg/dl ohne Kommastelle, mmol/l mit Kommastelle
+        var formatVariableSense = "%1$.0f→%2$.0f"
+        if (profileFunction.getUnits() == GlucoseUnit.MMOL)
+            formatVariableSense = "%1$.1f→%2$.1f"
+        // Anpassung Ende
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             binding.infoLayout.variableSensitivity.text =
                 String.format(
-                    Locale.getDefault(), "%1$.1f→%2$.1f",
+                    Locale.getDefault(), formatVariableSense, // Anpassung: "%1$.1f→%2$.1f"
                     profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
                     profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
                 )

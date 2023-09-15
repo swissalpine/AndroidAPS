@@ -270,11 +270,16 @@ class Widget : AppWidgetProvider() {
         if (request is VariableSensitivityResult) {
             val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
             val variableSens = request.variableSens
+            // Anpassung: mg/dl ohne Kommastelle, mmol/l mit Kommastelle
+            var formatVariableSense = "%1$.0f→%2$.0f"
+            if (profileFunction.getUnits() == GlucoseUnit.MMOL)
+                formatVariableSense = "%1$.1f→%2$.1f"
+            // Anpassung Ende
             if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
                 views.setTextViewText(
                     R.id.variable_sensitivity,
                     String.format(
-                        Locale.getDefault(), "%1$.1f→%2$.1f",
+                        Locale.getDefault(), formatVariableSense, // Anpassung: "%1$.1f→%2$.1f"
                         profileUtil.fromMgdlToUnits(isfMgdl),
                         profileUtil.fromMgdlToUnits(variableSens)
                     )
