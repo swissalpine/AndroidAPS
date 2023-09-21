@@ -1,7 +1,9 @@
 package info.nightscout.plugins.general.autotune
 
+import app.aaps.shared.tests.TestBaseWithProfile
 import info.nightscout.core.extensions.shiftBlock
 import info.nightscout.core.profile.ProfileSealed
+import info.nightscout.core.utils.JsonHelper
 import info.nightscout.database.entities.Bolus
 import info.nightscout.database.entities.Carbs
 import info.nightscout.database.entities.GlucoseValue
@@ -12,13 +14,11 @@ import info.nightscout.interfaces.GlucoseUnit
 import info.nightscout.interfaces.iob.IobTotal
 import info.nightscout.interfaces.profile.ProfileFunction
 import info.nightscout.interfaces.profile.PureProfile
-import info.nightscout.interfaces.utils.JsonHelper
 import info.nightscout.plugins.general.autotune.data.PreppedGlucose
 import info.nightscout.rx.logging.AAPSLogger
 import info.nightscout.shared.sharedPreferences.SP
 import info.nightscout.shared.utils.DateUtil
 import info.nightscout.shared.utils.T
-import info.nightscout.sharedtests.TestBaseWithProfile
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.Assertions
