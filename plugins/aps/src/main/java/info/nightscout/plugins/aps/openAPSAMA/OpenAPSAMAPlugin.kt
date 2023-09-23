@@ -1,8 +1,8 @@
 package info.nightscout.plugins.aps.openAPSAMA
 
 import android.content.Context
+import app.aaps.annotations.OpenForTesting
 import dagger.android.HasAndroidInjector
-import info.nightscout.annotations.OpenForTesting
 import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.core.extensions.target
 import info.nightscout.core.utils.MidnightUtils
@@ -270,7 +270,7 @@ class OpenAPSAMAPlugin @Inject constructor(
     }
 
     override fun isAutosensModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
-        val enabled = sp.getBoolean(R.string.key_openapsama_use_autosens, false)
+        val enabled = sp.getBoolean(info.nightscout.core.utils.R.string.key_use_autosens, false)
         if (!enabled) value.set(false, rh.gs(R.string.autosens_disabled_in_preferences), this)
         return value
     }
