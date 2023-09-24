@@ -1,16 +1,16 @@
 package info.nightscout.insulin
 
+import app.aaps.interfaces.configuration.Config
+import app.aaps.interfaces.insulin.Insulin
+import app.aaps.interfaces.logging.AAPSLogger
+import app.aaps.interfaces.profile.ProfileFunction
+import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.interfaces.rx.bus.RxBus
+import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.interfaces.utils.HardLimits
+import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.interfaces.Config
-import info.nightscout.interfaces.insulin.Insulin
-import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.ui.UiInteraction
-import info.nightscout.interfaces.utils.HardLimits
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.logging.AAPSLogger
-import info.nightscout.shared.interfaces.ResourceHelper
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -47,24 +47,24 @@ class InsulinOrefUltraRapidActingPluginTest {
 
     @Test
     fun `simple peak test`() {
-        Assertions.assertEquals(55, sut.peak)
+        assertThat(sut.peak).isEqualTo(55)
     }
 
     @Test
     fun getIdTest() {
-        Assertions.assertEquals(Insulin.InsulinType.OREF_ULTRA_RAPID_ACTING, sut.id)
+        assertThat(sut.id).isEqualTo(Insulin.InsulinType.OREF_ULTRA_RAPID_ACTING)
     }
 
     @Test
     fun commentStandardTextTest() {
         `when`(rh.gs(eq(R.string.ultra_fast_acting_insulin_comment))).thenReturn("Fiasp")
-        Assertions.assertEquals("Fiasp", sut.commentStandardText())
+        assertThat(sut.commentStandardText()).isEqualTo("Fiasp")
     }
 
     @Test
     fun getFriendlyNameTest() {
         `when`(rh.gs(eq(R.string.ultra_rapid_oref))).thenReturn("Ultra-Rapid Oref")
-        Assertions.assertEquals("Ultra-Rapid Oref", sut.friendlyName)
+        assertThat(sut.friendlyName).isEqualTo("Ultra-Rapid Oref")
     }
 
 }

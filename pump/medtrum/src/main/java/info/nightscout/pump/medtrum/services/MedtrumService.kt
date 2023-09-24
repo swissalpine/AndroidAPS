@@ -6,21 +6,34 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.os.SystemClock
+import app.aaps.interfaces.constraints.ConstraintsChecker
+import app.aaps.interfaces.logging.AAPSLogger
+import app.aaps.interfaces.logging.LTag
+import app.aaps.interfaces.notifications.Notification
+import app.aaps.interfaces.plugin.ActivePlugin
+import app.aaps.interfaces.profile.Profile
+import app.aaps.interfaces.profile.ProfileFunction
+import app.aaps.interfaces.pump.BolusProgressData
+import app.aaps.interfaces.pump.DetailedBolusInfo
+import app.aaps.interfaces.pump.DetailedBolusInfoStorage
+import app.aaps.interfaces.pump.PumpSync
+import app.aaps.interfaces.queue.Callback
+import app.aaps.interfaces.queue.CommandQueue
+import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.interfaces.rx.AapsSchedulers
+import app.aaps.interfaces.rx.bus.RxBus
+import app.aaps.interfaces.rx.events.EventAppExit
+import app.aaps.interfaces.rx.events.EventDismissNotification
+import app.aaps.interfaces.rx.events.EventOverviewBolusProgress
+import app.aaps.interfaces.rx.events.EventPreferenceChange
+import app.aaps.interfaces.rx.events.EventPumpStatusChanged
+import app.aaps.interfaces.sharedPreferences.SP
+import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.interfaces.utils.DateUtil
+import app.aaps.interfaces.utils.T
 import dagger.android.DaggerService
 import dagger.android.HasAndroidInjector
 import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.interfaces.constraints.ConstraintsChecker
-import info.nightscout.interfaces.notifications.Notification
-import info.nightscout.interfaces.plugin.ActivePlugin
-import info.nightscout.interfaces.profile.Profile
-import info.nightscout.interfaces.profile.ProfileFunction
-import info.nightscout.interfaces.pump.BolusProgressData
-import info.nightscout.interfaces.pump.DetailedBolusInfo
-import info.nightscout.interfaces.pump.DetailedBolusInfoStorage
-import info.nightscout.interfaces.pump.PumpSync
-import info.nightscout.interfaces.queue.Callback
-import info.nightscout.interfaces.queue.CommandQueue
-import info.nightscout.interfaces.ui.UiInteraction
 import info.nightscout.pump.medtrum.MedtrumPlugin
 import info.nightscout.pump.medtrum.MedtrumPump
 import info.nightscout.pump.medtrum.R
@@ -49,19 +62,6 @@ import info.nightscout.pump.medtrum.comm.packets.StopPatchPacket
 import info.nightscout.pump.medtrum.comm.packets.SubscribePacket
 import info.nightscout.pump.medtrum.comm.packets.SynchronizePacket
 import info.nightscout.pump.medtrum.util.MedtrumSnUtil
-import info.nightscout.rx.AapsSchedulers
-import info.nightscout.rx.bus.RxBus
-import info.nightscout.rx.events.EventAppExit
-import info.nightscout.rx.events.EventDismissNotification
-import info.nightscout.rx.events.EventOverviewBolusProgress
-import info.nightscout.rx.events.EventPreferenceChange
-import info.nightscout.rx.events.EventPumpStatusChanged
-import info.nightscout.rx.logging.AAPSLogger
-import info.nightscout.rx.logging.LTag
-import info.nightscout.shared.interfaces.ResourceHelper
-import info.nightscout.shared.sharedPreferences.SP
-import info.nightscout.shared.utils.DateUtil
-import info.nightscout.shared.utils.T
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import kotlinx.coroutines.CoroutineScope
@@ -133,7 +133,7 @@ class MedtrumService : DaggerService(), BLECommCallback {
                                medtrumPump.deviceType = MedtrumSnUtil().getDeviceTypeFromSerial(medtrumPump.pumpSN)
                                medtrumPump.resetPatchParameters()
                                pumpSync.connectNewPump()
-                               medtrumPump.setFakeTBRIfNeeded()
+                               medtrumPump.setFakeTBRIfNotSet()
                            }
                            if (event.isChanged(rh.gs(R.string.key_alarm_setting))
                                || event.isChanged(rh.gs(R.string.key_patch_expiration))
@@ -584,7 +584,7 @@ class MedtrumService : DaggerService(), BLECommCallback {
                     rh.gs(R.string.patch_not_active),
                     Notification.URGENT,
                 )
-                medtrumPump.setFakeTBRIfNeeded()
+                medtrumPump.setFakeTBRIfNotSet()
                 medtrumPump.clearAlarmState()
 
                 // Reset sequence numbers, make sure AAPS history can be synced properly on next activation
@@ -599,7 +599,7 @@ class MedtrumService : DaggerService(), BLECommCallback {
             MedtrumPumpState.EJECTED              -> {
                 rxBus.send(EventDismissNotification(Notification.PUMP_ERROR))
                 rxBus.send(EventDismissNotification(Notification.PUMP_SUSPENDED))
-                medtrumPump.setFakeTBRIfNeeded()
+                medtrumPump.setFakeTBRIfNotSet()
                 medtrumPump.clearAlarmState()
             }
 
@@ -620,7 +620,8 @@ class MedtrumService : DaggerService(), BLECommCallback {
                     rh.gs(R.string.pump_is_suspended),
                     Notification.NORMAL,
                 )
-                // Pump will report proper TBR for this
+                // Pump will report proper TBR for this from loadEvents()
+                commandQueue.loadEvents(null)
             }
 
             MedtrumPumpState.HOURLY_MAX_SUSPENDED -> {
@@ -629,7 +630,8 @@ class MedtrumService : DaggerService(), BLECommCallback {
                     rh.gs(R.string.pump_is_suspended_hour_max),
                     Notification.NORMAL,
                 )
-                // Pump will report proper TBR for this
+                // Pump will report proper TBR for this from loadEvents()
+                commandQueue.loadEvents(null)
             }
 
             MedtrumPumpState.DAILY_MAX_SUSPENDED  -> {
@@ -638,7 +640,8 @@ class MedtrumService : DaggerService(), BLECommCallback {
                     rh.gs(R.string.pump_is_suspended_day_max),
                     Notification.NORMAL,
                 )
-                // Pump will report proper TBR for this
+                // Pump will report proper TBR for this from loadEvents()
+                commandQueue.loadEvents(null)
             }
 
             MedtrumPumpState.OCCLUSION,
@@ -658,7 +661,13 @@ class MedtrumService : DaggerService(), BLECommCallback {
                     Notification.URGENT,
                     info.nightscout.core.ui.R.raw.alarm
                 )
-                medtrumPump.setFakeTBRIfNeeded()
+                // Get pump status, use readStatus here as for loadEvents() we cannot be sure callback is executed
+                commandQueue.readStatus(rh.gs(info.nightscout.core.ui.R.string.device_changed), object : Callback() {
+                    override fun run() {
+                        // Make sure a 0 temp is set
+                        medtrumPump.setFakeTBRIfNotSet()
+                    }
+                })
             }
         }
     }
