@@ -2,19 +2,19 @@ package info.nightscout.implementation.queue
 
 import android.content.Context
 import android.os.PowerManager
-import app.aaps.interfaces.androidPermissions.AndroidPermission
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.db.PersistenceLayer
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.defs.PumpDescription
-import app.aaps.interfaces.queue.Command
-import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.interfaces.androidPermissions.AndroidPermission
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.db.PersistenceLayer
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.defs.PumpDescription
+import app.aaps.core.interfaces.queue.Command
+import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.shared.tests.TestBaseWithProfile
 import app.aaps.shared.tests.TestPumpPlugin
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.implementation.queue.commands.CommandTempBasalAbsolute
 import org.junit.jupiter.api.BeforeEach
@@ -74,7 +74,7 @@ class QueueThreadTest : TestBaseWithProfile() {
         val percentageConstraint = ConstraintObject(0, aapsLogger)
         Mockito.`when`(constraintChecker.applyBasalPercentConstraints(anyObject(), anyObject()))
             .thenReturn(percentageConstraint)
-        Mockito.`when`(rh.gs(ArgumentMatchers.eq(info.nightscout.core.ui.R.string.temp_basal_absolute), anyObject(), anyObject())).thenReturn("TEMP BASAL %1\$.2f U/h %2\$d min")
+        Mockito.`when`(rh.gs(ArgumentMatchers.eq(app.aaps.core.ui.R.string.temp_basal_absolute), anyObject(), anyObject())).thenReturn("TEMP BASAL %1\$.2f U/h %2\$d min")
 
         sut = QueueThread(commandQueue, context, aapsLogger, rxBus, activePlugin, rh, sp, androidPermission, config)
     }

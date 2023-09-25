@@ -9,9 +9,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
-import app.aaps.interfaces.extensions.toVisibility
+import app.aaps.core.main.utils.CryptoUtil
+import app.aaps.core.interfaces.extensions.toVisibility
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.CryptoUtil
 
 class SWEditEncryptedPassword(injector: HasAndroidInjector, private val cryptoUtil: CryptoUtil) : SWItem(injector, Type.STRING) {
 
@@ -29,10 +29,10 @@ class SWEditEncryptedPassword(injector: HasAndroidInjector, private val cryptoUt
         val isPasswordSet = sp.contains(info.nightscout.core.utils.R.string.key_master_password) && sp.getString(info.nightscout.core.utils.R.string.key_master_password, "") != ""
 
         button = Button(context)
-        button?.setText(info.nightscout.core.ui.R.string.unlock_settings)
+        button?.setText(app.aaps.core.ui.R.string.unlock_settings)
         button?.setOnClickListener {
             scanForActivity(context)?.let { activity ->
-                passwordCheck.queryPassword(activity, info.nightscout.core.ui.R.string.master_password, info.nightscout.core.utils.R.string.key_master_password, {
+                passwordCheck.queryPassword(activity, app.aaps.core.ui.R.string.master_password, info.nightscout.core.utils.R.string.key_master_password, {
                     button?.visibility = View.GONE
                     editText?.visibility = View.VISIBLE
                     editText2?.visibility = View.VISIBLE
@@ -72,7 +72,7 @@ class SWEditEncryptedPassword(injector: HasAndroidInjector, private val cryptoUt
 
         c2 = TextView(context)
         c2?.id = View.generateViewId()
-        c2?.setText(info.nightscout.core.ui.R.string.confirm)
+        c2?.setText(app.aaps.core.ui.R.string.confirm)
         c2?.visibility = isPasswordSet.not().toVisibility()
         layout.addView(c2)
 

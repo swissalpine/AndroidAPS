@@ -1,7 +1,7 @@
 package info.nightscout.automation.actions
 
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.queue.Callback
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.queue.Callback
 import info.nightscout.automation.R
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -17,14 +17,14 @@ class ActionLoopEnableTest : ActionsTestBase() {
     fun setup() {
 
         testPumpPlugin.pumpDescription.isTempBasalCapable = true
-        `when`(rh.gs(info.nightscout.core.ui.R.string.enableloop)).thenReturn("Enable loop")
+        `when`(rh.gs(app.aaps.core.ui.R.string.enableloop)).thenReturn("Enable loop")
         `when`(context.getString(R.string.alreadyenabled)).thenReturn("Already enabled")
 
         sut = ActionLoopEnable(injector)
     }
 
     @Test fun friendlyNameTest() {
-        Assertions.assertEquals(info.nightscout.core.ui.R.string.enableloop, sut.friendlyName())
+        Assertions.assertEquals(app.aaps.core.ui.R.string.enableloop, sut.friendlyName())
     }
 
     @Test fun shortDescriptionTest() {

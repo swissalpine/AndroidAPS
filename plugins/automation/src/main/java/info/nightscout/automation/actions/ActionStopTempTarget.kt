@@ -1,14 +1,14 @@
 package info.nightscout.automation.actions
 
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.UserEntry.Sources
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.UserEntry.Sources
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -23,8 +23,8 @@ class ActionStopTempTarget(injector: HasAndroidInjector) : Action(injector) {
 
     private val disposable = CompositeDisposable()
 
-    override fun friendlyName(): Int = info.nightscout.core.ui.R.string.stoptemptarget
-    override fun shortDescription(): String = rh.gs(info.nightscout.core.ui.R.string.stoptemptarget)
+    override fun friendlyName(): Int = app.aaps.core.ui.R.string.stoptemptarget
+    override fun shortDescription(): String = rh.gs(app.aaps.core.ui.R.string.stoptemptarget)
     override fun icon(): Int = R.drawable.ic_stop_24dp
 
     override fun doAction(callback: Callback) {
@@ -35,7 +35,7 @@ class ActionStopTempTarget(injector: HasAndroidInjector) : Action(injector) {
                        }, {
                            aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
                        })
-        callback.result(PumpEnactResult(injector).success(true).comment(info.nightscout.core.ui.R.string.ok)).run()
+        callback.result(PumpEnactResult(injector).success(true).comment(app.aaps.core.ui.R.string.ok)).run()
     }
 
     override fun isValid(): Boolean = true

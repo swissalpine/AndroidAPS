@@ -1,10 +1,10 @@
 package info.nightscout.implementation.protection
 
 import androidx.fragment.app.FragmentActivity
-import app.aaps.interfaces.protection.PasswordCheck
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.protection.PasswordCheck
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
 import dagger.Reusable
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -37,15 +37,15 @@ class ProtectionCheckImpl @Inject constructor(
     )
 
     private val titlePassResourceIDs = listOf(
-        info.nightscout.core.ui.R.string.settings_password,
-        info.nightscout.core.ui.R.string.application_password,
-        info.nightscout.core.ui.R.string.bolus_password
+        app.aaps.core.ui.R.string.settings_password,
+        app.aaps.core.ui.R.string.application_password,
+        app.aaps.core.ui.R.string.bolus_password
     )
 
     private val titlePinResourceIDs = listOf(
-        info.nightscout.core.ui.R.string.settings_pin,
-        info.nightscout.core.ui.R.string.application_pin,
-        info.nightscout.core.ui.R.string.bolus_pin
+        app.aaps.core.ui.R.string.settings_pin,
+        app.aaps.core.ui.R.string.application_pin,
+        app.aaps.core.ui.R.string.bolus_pin
     )
 
     override fun isLocked(protection: ProtectionCheck.Protection): Boolean {
@@ -95,7 +95,7 @@ class ProtectionCheckImpl @Inject constructor(
             ProtectionCheck.ProtectionType.MASTER_PASSWORD ->
                 passwordCheck.queryPassword(
                     activity,
-                    info.nightscout.core.ui.R.string.master_password,
+                    app.aaps.core.ui.R.string.master_password,
                     info.nightscout.core.utils.R.string.key_master_password,
                     { onOk(protection); ok?.run() },
                     { cancel?.run() },

@@ -2,18 +2,19 @@ package info.nightscout.androidaps.plugins.pump.eopatch.alarm
 
 import android.content.Context
 import android.content.Intent
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.defs.PumpType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.defs.PumpType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
 import info.nightscout.androidaps.plugins.pump.eopatch.EoPatchRxBus
 import info.nightscout.androidaps.plugins.pump.eopatch.R
 import info.nightscout.androidaps.plugins.pump.eopatch.alarm.AlarmCode.A005
@@ -29,7 +30,6 @@ import info.nightscout.androidaps.plugins.pump.eopatch.event.EventEoPatchAlarm
 import info.nightscout.androidaps.plugins.pump.eopatch.extension.takeOne
 import info.nightscout.androidaps.plugins.pump.eopatch.ui.AlarmHelperActivity
 import info.nightscout.androidaps.plugins.pump.eopatch.vo.Alarms
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -146,7 +146,7 @@ class AlarmManager @Inject constructor() : IAlarmManager {
 
     private fun showAlarmDialog(alarmCode: AlarmCode) {
         val i = Intent(context, AlarmHelperActivity::class.java)
-        i.putExtra("soundid", info.nightscout.core.ui.R.raw.error)
+        i.putExtra("soundid", app.aaps.core.ui.R.raw.error)
         i.putExtra("code", alarmCode.name)
         i.putExtra("status", resourceHelper.gs(alarmCode.resId))
         i.putExtra("title", resourceHelper.gs(R.string.string_alarm))
@@ -198,7 +198,7 @@ class AlarmManager @Inject constructor() : IAlarmManager {
                         }
                 )
             },
-            soundId = info.nightscout.core.ui.R.raw.error,
+            soundId = app.aaps.core.ui.R.raw.error,
             date = pm.getAlarms().getOccuredAlarmTimestamp(alarmCode)
         )
 

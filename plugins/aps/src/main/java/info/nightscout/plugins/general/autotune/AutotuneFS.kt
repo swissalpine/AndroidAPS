@@ -1,8 +1,8 @@
 package info.nightscout.plugins.general.autotune
 
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.logging.LoggerUtils
-import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.logging.LoggerUtils
+import app.aaps.core.interfaces.resources.ResourceHelper
 import info.nightscout.plugins.general.autotune.data.ATProfile
 import info.nightscout.plugins.general.autotune.data.PreppedGlucose
 import org.json.JSONException
@@ -96,7 +96,7 @@ class AutotuneFS @Inject constructor(
     fun exportTunedProfile(tunedProfile: ATProfile) {
         createAutotunefile(TUNEDPROFILE + formatDate(tunedProfile.from) + ".json", tunedProfile.profileToOrefJSON())
         try {
-            createAutotunefile(rh.gs(info.nightscout.core.ui.R.string.autotune_tunedprofile_name) + ".json", tunedProfile.profileToOrefJSON(), true)
+            createAutotunefile(rh.gs(app.aaps.core.ui.R.string.autotune_tunedprofile_name) + ".json", tunedProfile.profileToOrefJSON(), true)
         } catch (e: JSONException) {
         }
     }

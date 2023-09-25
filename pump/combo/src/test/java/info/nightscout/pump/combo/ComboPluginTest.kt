@@ -1,19 +1,19 @@
 package info.nightscout.pump.combo
 
 import android.content.Context
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.shared.tests.TestBase
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.pump.combo.ruffyscripter.RuffyScripter
 import info.nightscout.pump.combo.ruffyscripter.history.Bolus
 import org.junit.jupiter.api.Assertions
@@ -46,7 +46,7 @@ class ComboPluginTest : TestBase() {
 
     @BeforeEach
     fun prepareMocks() {
-        `when`(rh.gs(info.nightscout.core.ui.R.string.no_valid_basal_rate)).thenReturn("No valid basal rate read from pump")
+        `when`(rh.gs(app.aaps.core.ui.R.string.no_valid_basal_rate)).thenReturn("No valid basal rate read from pump")
         `when`(context.getString(R.string.combo_pump_unsupported_operation)).thenReturn("Requested operation not supported by pump")
         comboPlugin = ComboPlugin(injector, aapsLogger, rxBus, rh, profileFunction, sp, commandQueue, pumpSync, dateUtil, ruffyScripter, uiInteraction)
     }

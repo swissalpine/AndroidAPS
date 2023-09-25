@@ -1,6 +1,6 @@
 package info.nightscout.androidaps.plugins.pump.insight.utils
 
-import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.resources.ResourceHelper
 import info.nightscout.androidaps.insight.R
 import info.nightscout.androidaps.plugins.pump.insight.descriptors.Alert
 import info.nightscout.androidaps.plugins.pump.insight.descriptors.AlertCategory
@@ -110,7 +110,7 @@ class AlertUtils @Inject constructor(private val rh: ResourceHelper) {
 
     fun getAlertIcon(alertCategory: AlertCategory) = when (alertCategory) {
         AlertCategory.ERROR       -> R.drawable.ic_error
-        AlertCategory.MAINTENANCE -> info.nightscout.core.ui.R.drawable.ic_maintenance
+        AlertCategory.MAINTENANCE -> app.aaps.core.ui.R.drawable.ic_maintenance
         AlertCategory.WARNING     -> R.drawable.ic_warning
         AlertCategory.REMINDER    -> R.drawable.ic_reminder
     }

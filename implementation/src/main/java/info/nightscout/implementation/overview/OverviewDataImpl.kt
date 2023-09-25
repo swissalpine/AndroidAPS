@@ -4,41 +4,41 @@ import android.content.Context
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.aps.AutosensData
-import app.aaps.interfaces.aps.AutosensDataStore
-import app.aaps.interfaces.iob.CobInfo
-import app.aaps.interfaces.iob.InMemoryGlucoseValue
-import app.aaps.interfaces.iob.IobCobCalculator
-import app.aaps.interfaces.iob.IobTotal
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.DefaultValueHelper
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.DecimalFormatter
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.aps.AutosensData
+import app.aaps.core.interfaces.aps.AutosensDataStore
+import app.aaps.core.interfaces.iob.CobInfo
+import app.aaps.core.interfaces.iob.InMemoryGlucoseValue
+import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.iob.IobTotal
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.DefaultValueHelper
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.R
+import app.aaps.core.main.extensions.convertedToPercent
+import app.aaps.core.main.extensions.isInProgress
+import app.aaps.core.main.extensions.toStringFull
+import app.aaps.core.main.extensions.toStringShort
+import app.aaps.core.main.extensions.valueToUnits
+import app.aaps.core.main.graph.OverviewData
+import app.aaps.core.main.graph.data.DataPointWithLabelInterface
+import app.aaps.core.main.graph.data.DeviationDataPoint
+import app.aaps.core.main.graph.data.FixedLineGraphSeries
+import app.aaps.core.main.graph.data.PointsWithLabelGraphSeries
+import app.aaps.core.main.graph.data.Scale
+import app.aaps.core.main.graph.data.ScaledDataPoint
+import app.aaps.core.main.iob.round
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.GlucoseValue
+import app.aaps.database.entities.TemporaryTarget
 import com.jjoe64.graphview.series.BarGraphSeries
 import com.jjoe64.graphview.series.DataPoint
 import com.jjoe64.graphview.series.LineGraphSeries
-import info.nightscout.core.extensions.convertedToPercent
-import info.nightscout.core.extensions.isInProgress
-import info.nightscout.core.extensions.toStringFull
-import info.nightscout.core.extensions.toStringShort
-import info.nightscout.core.extensions.valueToUnits
-import info.nightscout.core.graph.OverviewData
-import info.nightscout.core.graph.data.DataPointWithLabelInterface
-import info.nightscout.core.graph.data.DeviationDataPoint
-import info.nightscout.core.graph.data.FixedLineGraphSeries
-import info.nightscout.core.graph.data.PointsWithLabelGraphSeries
-import info.nightscout.core.graph.data.Scale
-import info.nightscout.core.graph.data.ScaledDataPoint
-import info.nightscout.core.iob.round
-import info.nightscout.core.main.R
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.GlucoseValue
-import info.nightscout.database.entities.TemporaryTarget
 import info.nightscout.database.impl.AppRepository
 import java.util.Calendar
 import javax.inject.Inject
@@ -159,16 +159,16 @@ class OverviewDataImpl @Inject constructor(
     @ColorInt
     override fun lastBgColor(context: Context?, autosensDataStore: AutosensDataStore): Int =
         when {
-            isLow(autosensDataStore)  -> rh.gac(context, info.nightscout.core.ui.R.attr.bgLow)
-            isHigh(autosensDataStore) -> rh.gac(context, info.nightscout.core.ui.R.attr.highColor)
-            else                      -> rh.gac(context, info.nightscout.core.ui.R.attr.bgInRange)
+            isLow(autosensDataStore)  -> rh.gac(context, app.aaps.core.ui.R.attr.bgLow)
+            isHigh(autosensDataStore) -> rh.gac(context, app.aaps.core.ui.R.attr.highColor)
+            else                      -> rh.gac(context, app.aaps.core.ui.R.attr.bgInRange)
         }
 
     override fun lastBgDescription(autosensDataStore: AutosensDataStore): String =
         when {
-            isLow(autosensDataStore)  -> rh.gs(info.nightscout.core.ui.R.string.a11y_low)
-            isHigh(autosensDataStore) -> rh.gs(info.nightscout.core.ui.R.string.a11y_high)
-            else                      -> rh.gs(info.nightscout.core.ui.R.string.a11y_inrange)
+            isLow(autosensDataStore)  -> rh.gs(app.aaps.core.ui.R.string.a11y_low)
+            isHigh(autosensDataStore) -> rh.gs(app.aaps.core.ui.R.string.a11y_high)
+            else                      -> rh.gs(app.aaps.core.ui.R.string.a11y_inrange)
         }
 
     override fun isActualBg(autosensDataStore: AutosensDataStore): Boolean =
@@ -185,17 +185,17 @@ class OverviewDataImpl @Inject constructor(
             var temporaryBasal = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())
             if (temporaryBasal?.isInProgress == false) temporaryBasal = null
             temporaryBasal?.let { it.toStringShort(decimalFormatter) }
-                ?: rh.gs(info.nightscout.core.ui.R.string.pump_base_basal_rate, profile.getBasal())
-        } ?: rh.gs(info.nightscout.core.ui.R.string.value_unavailable_short)
+                ?: rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())
+        } ?: rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
 
     override fun temporaryBasalDialogText(iobCobCalculator: IobCobCalculator): String =
         profileFunction.getProfile()?.let { profile ->
             iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let { temporaryBasal ->
-                "${rh.gs(info.nightscout.core.ui.R.string.base_basal_rate_label)}: ${rh.gs(info.nightscout.core.ui.R.string.pump_base_basal_rate, profile.getBasal())}" +
-                    "\n" + rh.gs(info.nightscout.core.ui.R.string.tempbasal_label) + ": " + temporaryBasal.toStringFull(profile, dateUtil, decimalFormatter)
+                "${rh.gs(app.aaps.core.ui.R.string.base_basal_rate_label)}: ${rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())}" +
+                    "\n" + rh.gs(app.aaps.core.ui.R.string.tempbasal_label) + ": " + temporaryBasal.toStringFull(profile, dateUtil, decimalFormatter)
             }
-                ?: "${rh.gs(info.nightscout.core.ui.R.string.base_basal_rate_label)}: ${rh.gs(info.nightscout.core.ui.R.string.pump_base_basal_rate, profile.getBasal())}"
-        } ?: rh.gs(info.nightscout.core.ui.R.string.value_unavailable_short)
+                ?: "${rh.gs(app.aaps.core.ui.R.string.base_basal_rate_label)}: ${rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, profile.getBasal())}"
+        } ?: rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
 
     @DrawableRes override fun temporaryBasalIcon(iobCobCalculator: IobCobCalculator): Int =
         profileFunction.getProfile()?.let { profile ->
@@ -211,11 +211,11 @@ class OverviewDataImpl @Inject constructor(
 
     @AttrRes override fun temporaryBasalColor(context: Context?, iobCobCalculator: IobCobCalculator): Int = iobCobCalculator.getTempBasalIncludingConvertedExtended(dateUtil.now())?.let {
         rh.gac(
-            context, info.nightscout.core.ui.R
+            context, app.aaps.core.ui.R
                 .attr.basal
         )
     }
-        ?: rh.gac(context, info.nightscout.core.ui.R.attr.defaultTextColor)
+        ?: rh.gac(context, app.aaps.core.ui.R.attr.defaultTextColor)
 
     /*
      * EXTENDED BOLUS
@@ -224,7 +224,7 @@ class OverviewDataImpl @Inject constructor(
     override fun extendedBolusText(iobCobCalculator: IobCobCalculator): String =
         iobCobCalculator.getExtendedBolus(dateUtil.now())?.let { extendedBolus ->
             if (!extendedBolus.isInProgress(dateUtil)) ""
-            else if (!activePlugin.activePump.isFakingTempsByExtendedBoluses) rh.gs(info.nightscout.core.ui.R.string.pump_base_basal_rate, extendedBolus.rate)
+            else if (!activePlugin.activePump.isFakingTempsByExtendedBoluses) rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, extendedBolus.rate)
             else ""
         } ?: ""
 
@@ -245,12 +245,12 @@ class OverviewDataImpl @Inject constructor(
         }
 
     override fun iobText(iobCobCalculator: IobCobCalculator): String =
-        rh.gs(info.nightscout.core.ui.R.string.format_insulin_units, bolusIob(iobCobCalculator).iob + basalIob(iobCobCalculator).basaliob)
+        rh.gs(app.aaps.core.ui.R.string.format_insulin_units, bolusIob(iobCobCalculator).iob + basalIob(iobCobCalculator).basaliob)
 
     override fun iobDialogText(iobCobCalculator: IobCobCalculator): String =
-        rh.gs(info.nightscout.core.ui.R.string.format_insulin_units, bolusIob(iobCobCalculator).iob + basalIob(iobCobCalculator).basaliob) + "\n" +
-            rh.gs(info.nightscout.core.ui.R.string.bolus) + ": " + rh.gs(info.nightscout.core.ui.R.string.format_insulin_units, bolusIob(iobCobCalculator).iob) + "\n" +
-            rh.gs(info.nightscout.core.ui.R.string.basal) + ": " + rh.gs(info.nightscout.core.ui.R.string.format_insulin_units, basalIob(iobCobCalculator).basaliob)
+        rh.gs(app.aaps.core.ui.R.string.format_insulin_units, bolusIob(iobCobCalculator).iob + basalIob(iobCobCalculator).basaliob) + "\n" +
+            rh.gs(app.aaps.core.ui.R.string.bolus) + ": " + rh.gs(app.aaps.core.ui.R.string.format_insulin_units, bolusIob(iobCobCalculator).iob) + "\n" +
+            rh.gs(app.aaps.core.ui.R.string.basal) + ": " + rh.gs(app.aaps.core.ui.R.string.format_insulin_units, basalIob(iobCobCalculator).basaliob)
 
     /*
      * TEMP TARGET

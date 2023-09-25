@@ -5,18 +5,18 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.widget.TextView
 import androidx.annotation.StringRes
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.extensions.runOnUiThread
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.pump.WarnColors
-import app.aaps.interfaces.pump.defs.PumpType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.stats.TddCalculator
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.DecimalFormatter
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.TherapyEvent
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.extensions.runOnUiThread
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.pump.WarnColors
+import app.aaps.core.interfaces.pump.defs.PumpType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.stats.TddCalculator
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.TherapyEvent
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.plugins.R
 import java.util.concurrent.TimeUnit
@@ -88,7 +88,7 @@ class StatusLightHandler @Inject constructor(
             )
         }
 
-        val insulinUnit = rh.gs(info.nightscout.core.ui.R.string.insulin_unit_shortname)
+        val insulinUnit = rh.gs(app.aaps.core.ui.R.string.insulin_unit_shortname)
         if (pump.pumpDescription.isPatchPump) {
             handlePatchReservoirLevel(
                 reservoirLevel,
@@ -120,8 +120,8 @@ class StatusLightHandler @Inject constructor(
             if (pump.model().supportBatteryLevel || erosBatteryLinkAvailable) {
                 handleLevel(batteryLevel, R.string.key_statuslights_bat_critical, 26.0, R.string.key_statuslights_bat_warning, 51.0, pump.batteryLevel.toDouble(), "%")
             } else {
-                batteryLevel?.text = rh.gs(info.nightscout.core.ui.R.string.value_unavailable_short)
-                batteryLevel?.setTextColor(rh.gac(batteryLevel.context, info.nightscout.core.ui.R.attr.defaultTextColor))
+                batteryLevel?.text = rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
+                batteryLevel?.setTextColor(rh.gac(batteryLevel.context, app.aaps.core.ui.R.attr.defaultTextColor))
             }
         }
     }
@@ -134,7 +134,7 @@ class StatusLightHandler @Inject constructor(
             warnColors.setColorByAge(view, therapyEvent.value, warn, urgent)
             view?.text = therapyEvent.value.age(rh.shortTextMode(), rh, dateUtil)
         } else {
-            view?.text = if (rh.shortTextMode()) "-" else rh.gs(info.nightscout.core.ui.R.string.value_unavailable_short)
+            view?.text = if (rh.shortTextMode()) "-" else rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
         }
     }
 
@@ -155,7 +155,7 @@ class StatusLightHandler @Inject constructor(
     ) {
         if (level >= maxReading) {
             view?.text = decimalFormatter.to0Decimal(maxReading, units)
-            view?.setTextColor(rh.gac(view.context, info.nightscout.core.ui.R.attr.defaultTextColor))
+            view?.setTextColor(rh.gac(view.context, app.aaps.core.ui.R.attr.defaultTextColor))
         } else {
             handleLevel(view, criticalSetting, criticalDefaultValue, warnSetting, warnDefaultValue, level, units)
         }
@@ -176,11 +176,11 @@ class StatusLightHandler @Inject constructor(
 
     private fun TherapyEvent.age(useShortText: Boolean, rh: ResourceHelper, dateUtil: DateUtil): String {
         val diff = dateUtil.computeDiff(timestamp, System.currentTimeMillis())
-        var days = " " + rh.gs(app.aaps.interfaces.R.string.days) + " "
-        var hours = " " + rh.gs(app.aaps.interfaces.R.string.hours) + " "
+        var days = " " + rh.gs(app.aaps.core.interfaces.R.string.days) + " "
+        var hours = " " + rh.gs(app.aaps.core.interfaces.R.string.hours) + " "
         if (useShortText) {
-            days = rh.gs(app.aaps.interfaces.R.string.shortday)
-            hours = rh.gs(app.aaps.interfaces.R.string.shorthour)
+            days = rh.gs(app.aaps.core.interfaces.R.string.shortday)
+            hours = rh.gs(app.aaps.core.interfaces.R.string.shorthour)
         }
         return diff[TimeUnit.DAYS].toString() + days + diff[TimeUnit.HOURS] + hours
     }

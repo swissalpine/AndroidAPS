@@ -1,27 +1,27 @@
 package info.nightscout.plugins.general.wear
 
 import android.content.Context
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventAutosensCalculationFinished
-import app.aaps.interfaces.rx.events.EventDismissBolusProgressIfRunning
-import app.aaps.interfaces.rx.events.EventLoopUpdateGui
-import app.aaps.interfaces.rx.events.EventMobileDataToWear
-import app.aaps.interfaces.rx.events.EventMobileToWear
-import app.aaps.interfaces.rx.events.EventOverviewBolusProgress
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.rx.events.EventWearUpdateGui
-import app.aaps.interfaces.rx.weardata.CwfData
-import app.aaps.interfaces.rx.weardata.CwfMetadataKey
-import app.aaps.interfaces.rx.weardata.EventData
-import app.aaps.interfaces.sharedPreferences.SP
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventAutosensCalculationFinished
+import app.aaps.core.interfaces.rx.events.EventDismissBolusProgressIfRunning
+import app.aaps.core.interfaces.rx.events.EventLoopUpdateGui
+import app.aaps.core.interfaces.rx.events.EventMobileDataToWear
+import app.aaps.core.interfaces.rx.events.EventMobileToWear
+import app.aaps.core.interfaces.rx.events.EventOverviewBolusProgress
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventWearUpdateGui
+import app.aaps.core.interfaces.rx.weardata.CwfData
+import app.aaps.core.interfaces.rx.weardata.CwfMetadataKey
+import app.aaps.core.interfaces.rx.weardata.EventData
+import app.aaps.core.interfaces.sharedPreferences.SP
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.plugins.R
 import info.nightscout.plugins.general.wear.wearintegration.DataHandlerMobile
 import info.nightscout.plugins.general.wear.wearintegration.DataLayerListenerServiceMobileHelper
@@ -47,8 +47,8 @@ class WearPlugin @Inject constructor(
     PluginDescription()
         .mainType(PluginType.GENERAL)
         .fragmentClass(WearFragment::class.java.name)
-        .pluginIcon(info.nightscout.core.main.R.drawable.ic_watch)
-        .pluginName(info.nightscout.core.ui.R.string.wear)
+        .pluginIcon(app.aaps.core.main.R.drawable.ic_watch)
+        .pluginName(app.aaps.core.ui.R.string.wear)
         .shortName(R.string.wear_shortname)
         .preferencesId(R.xml.pref_wear)
         .description(R.string.description_wear),
@@ -69,7 +69,7 @@ class WearPlugin @Inject constructor(
             .subscribe({ event: EventDismissBolusProgressIfRunning ->
                            event.resultSuccess?.let {
                                val status =
-                                   if (it) rh.gs(info.nightscout.core.ui.R.string.success)
+                                   if (it) rh.gs(app.aaps.core.ui.R.string.success)
                                    else rh.gs(R.string.no_success)
                                if (isEnabled()) rxBus.send(EventMobileToWear(EventData.BolusProgress(percent = 100, status = status)))
                            }

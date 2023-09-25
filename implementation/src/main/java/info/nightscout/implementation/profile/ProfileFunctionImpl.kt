@@ -1,27 +1,27 @@
 package info.nightscout.implementation.profile
 
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.nsclient.ProcessedDeviceStatusData
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.Profile
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.profile.ProfileStore
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventEffectiveProfileSwitchChanged
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.HardLimits
-import app.aaps.interfaces.utils.T
-import info.nightscout.core.extensions.fromConstant
-import info.nightscout.core.profile.ProfileSealed
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.ProfileSwitch
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.nsclient.ProcessedDeviceStatusData
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.profile.ProfileStore
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventEffectiveProfileSwitchChanged
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.HardLimits
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.extensions.fromConstant
+import app.aaps.core.main.profile.ProfileSealed
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.ProfileSwitch
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InsertOrUpdateProfileSwitch
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -71,7 +71,7 @@ class ProfileFunctionImpl @Inject constructor(
         getProfileName(System.currentTimeMillis(), customized = true, showRemainingTime = true)
 
     private fun getProfileName(time: Long, customized: Boolean, showRemainingTime: Boolean): String {
-        var profileName = rh.gs(info.nightscout.core.ui.R.string.no_profile_set)
+        var profileName = rh.gs(app.aaps.core.ui.R.string.no_profile_set)
 
         val profileSwitch = repository.getEffectiveProfileSwitchActiveAt(time).blockingGet()
         if (profileSwitch is ValueWrapper.Existing) {
@@ -181,7 +181,7 @@ class ProfileFunctionImpl @Inject constructor(
         val profileStore = activePlugin.activeProfileSource.profile ?: return false
         val ps = buildProfileSwitch(profileStore, profile.profileName, durationInMinutes, percentage, 0, dateUtil.now()) ?: return false
         val validity = ProfileSealed.PS(ps).isValid(
-            rh.gs(info.nightscout.core.ui.R.string.careportal_profileswitch),
+            rh.gs(app.aaps.core.ui.R.string.careportal_profileswitch),
             activePlugin.activePump,
             config,
             rh,

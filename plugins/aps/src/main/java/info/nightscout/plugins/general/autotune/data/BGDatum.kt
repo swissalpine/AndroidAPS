@@ -1,9 +1,9 @@
 package info.nightscout.plugins.general.autotune.data
 
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
-import info.nightscout.database.entities.GlucoseValue
-import info.nightscout.database.entities.GlucoseValue.TrendArrow
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.database.entities.GlucoseValue
+import app.aaps.database.entities.GlucoseValue.TrendArrow
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.TimeZone

@@ -1,21 +1,21 @@
 package info.nightscout.plugins.constraints.safety
 
-import app.aaps.interfaces.aps.ApsMode
-import app.aaps.interfaces.bgQualityCheck.BgQualityCheck
-import app.aaps.interfaces.constraints.Constraint
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.iob.GlucoseStatusProvider
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profiling.Profiler
-import app.aaps.interfaces.pump.defs.PumpDescription
-import app.aaps.interfaces.stats.TddCalculator
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.HardLimits
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.interfaces.aps.ApsMode
+import app.aaps.core.interfaces.bgQualityCheck.BgQualityCheck
+import app.aaps.core.interfaces.constraints.Constraint
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.iob.GlucoseStatusProvider
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profiling.Profiler
+import app.aaps.core.interfaces.pump.defs.PumpDescription
+import app.aaps.core.interfaces.stats.TddCalculator
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.shared.tests.TestBaseWithProfile
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.plugins.aps.openAPSAMA.OpenAPSAMAPlugin
 import info.nightscout.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
@@ -51,16 +51,16 @@ class SafetyPluginTest : TestBaseWithProfile() {
     @BeforeEach
     fun prepare() {
         `when`(rh.gs(info.nightscout.plugins.constraints.R.string.hardlimit)).thenReturn("hard limit")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.itmustbepositivevalue)).thenReturn("it must be positive value")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.pumplimit)).thenReturn("pump limit")
+        `when`(rh.gs(app.aaps.core.ui.R.string.itmustbepositivevalue)).thenReturn("it must be positive value")
+        `when`(rh.gs(app.aaps.core.ui.R.string.pumplimit)).thenReturn("pump limit")
         `when`(rh.gs(info.nightscout.plugins.constraints.R.string.maxvalueinpreferences)).thenReturn("max value in preferences")
         `when`(rh.gs(info.nightscout.plugins.aps.R.string.max_daily_basal_multiplier)).thenReturn("max daily basal multiplier")
         `when`(rh.gs(info.nightscout.plugins.aps.R.string.max_basal_multiplier)).thenReturn("max basal multiplier")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.limitingbolus)).thenReturn("Limiting bolus to %1\$.1f U because of %2\$s")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.limitingbasalratio)).thenReturn("Limiting max basal rate to %1\$.2f U/h because of %2\$s")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.limiting_iob)).thenReturn("Limiting IOB to %1\$.1f U because of %2\$s")
+        `when`(rh.gs(app.aaps.core.ui.R.string.limitingbolus)).thenReturn("Limiting bolus to %1\$.1f U because of %2\$s")
+        `when`(rh.gs(app.aaps.core.ui.R.string.limitingbasalratio)).thenReturn("Limiting max basal rate to %1\$.2f U/h because of %2\$s")
+        `when`(rh.gs(app.aaps.core.ui.R.string.limiting_iob)).thenReturn("Limiting IOB to %1\$.1f U because of %2\$s")
         `when`(rh.gs(info.nightscout.plugins.constraints.R.string.limitingcarbs)).thenReturn("Limiting carbs to %1\$d g because of %2\$s")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.limitingpercentrate)).thenReturn("Limiting max percent rate to %1\$d%% because of %2\$s")
+        `when`(rh.gs(app.aaps.core.ui.R.string.limitingpercentrate)).thenReturn("Limiting max percent rate to %1\$d%% because of %2\$s")
         `when`(rh.gs(info.nightscout.plugins.constraints.R.string.pumpisnottempbasalcapable)).thenReturn("Pump is not temp basal capable")
         `when`(rh.gs(info.nightscout.plugins.aps.R.string.increasing_max_basal)).thenReturn("Increasing max basal value because setting is lower than your max basal in profile")
         `when`(rh.gs(info.nightscout.plugins.aps.R.string.smb_disabled_in_preferences)).thenReturn("SMB disabled in preferences")
@@ -69,7 +69,7 @@ class SafetyPluginTest : TestBaseWithProfile() {
         `when`(rh.gs(info.nightscout.plugins.constraints.R.string.smbalwaysdisabled)).thenReturn("SMB always and after carbs disabled because active BG source doesn\\'t support advanced filtering")
         `when`(rh.gs(info.nightscout.plugins.constraints.R.string.smbnotallowedinopenloopmode)).thenReturn("SMB not allowed in open loop mode")
         `when`(rh.gs(info.nightscout.core.utils.R.string.key_child)).thenReturn("child")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.lowglucosesuspend)).thenReturn("Low Glucose Suspend")
+        `when`(rh.gs(app.aaps.core.ui.R.string.lowglucosesuspend)).thenReturn("Low Glucose Suspend")
 
         `when`(activePlugin.activePump).thenReturn(virtualPumpPlugin)
         `when`(virtualPumpPlugin.pumpDescription).thenReturn(pumpDescription)

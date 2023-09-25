@@ -4,11 +4,11 @@ import java.util.Locale;
 
 import javax.inject.Inject;
 
-import app.aaps.interfaces.logging.AAPSLogger;
-import app.aaps.interfaces.logging.LTag;
-import app.aaps.interfaces.plugin.ActivePlugin;
-import app.aaps.interfaces.sharedPreferences.SP;
-import app.aaps.interfaces.utils.Round;
+import app.aaps.core.interfaces.logging.AAPSLogger;
+import app.aaps.core.interfaces.logging.LTag;
+import app.aaps.core.interfaces.plugin.ActivePlugin;
+import app.aaps.core.interfaces.sharedPreferences.SP;
+import app.aaps.core.interfaces.utils.Round;
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.RFSpy;
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.ble.RileyLinkCommunicationException;
@@ -275,7 +275,7 @@ public abstract class RileyLinkCommunicationManager<T extends RLMessage> {
         for (int k = 0; k < results.trials.size(); k++) {
             FrequencyTrial one = results.trials.get(k);
 
-            stringBuilder.append(String.format("Scan Result[%s]: Freq=%s, avg RSSI = %s\n", String.valueOf(k), String.valueOf(one.frequencyMHz), one.averageRSSI + ", RSSIs =" + one.rssiList));
+            stringBuilder.append(String.format("Scan Result[%s]: Freq=%s, avg RSSI = %s\n", k, one.frequencyMHz, one.averageRSSI + ", RSSIs =" + one.rssiList));
         }
 
         aapsLogger.info(LTag.PUMPBTCOMM, stringBuilder.toString());

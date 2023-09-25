@@ -16,21 +16,24 @@ import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
+import app.aaps.core.interfaces.alerts.LocalAlertUtils
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.configuration.ConfigBuilder
+import app.aaps.core.interfaces.extensions.runOnUiThread
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.versionChecker.VersionCheckerUtils
+import app.aaps.core.ui.locale.LocaleHelper
+import app.aaps.database.entities.TherapyEvent
+import app.aaps.database.entities.UserEntry
 import app.aaps.di.DaggerAppComponent
-import app.aaps.interfaces.alerts.LocalAlertUtils
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.configuration.ConfigBuilder
-import app.aaps.interfaces.extensions.runOnUiThread
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.versionChecker.VersionCheckerUtils
 import app.aaps.receivers.BTReceiver
 import app.aaps.receivers.ChargingStateReceiver
 import app.aaps.receivers.KeepAliveWorker
@@ -39,9 +42,6 @@ import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 import info.nightscout.androidaps.BuildConfig
 import info.nightscout.androidaps.R
-import info.nightscout.core.ui.locale.LocaleHelper
-import info.nightscout.database.entities.TherapyEvent
-import info.nightscout.database.entities.UserEntry
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InsertIfNewByTimestampTherapyEventTransaction
 import info.nightscout.database.impl.transactions.VersionChangeTransaction
@@ -141,7 +141,7 @@ class MainApp : DaggerApplication() {
                                 InsertIfNewByTimestampTherapyEventTransaction(
                                     timestamp = dateUtil.now(),
                                     type = TherapyEvent.Type.NOTE,
-                                    note = rh.get().gs(info.nightscout.core.ui.R.string.androidaps_start) + " - " + Build.MANUFACTURER + " " + Build.MODEL,
+                                    note = rh.get().gs(app.aaps.core.ui.R.string.androidaps_start) + " - " + Build.MANUFACTURER + " " + Build.MODEL,
                                     glucoseUnit = TherapyEvent.GlucoseUnit.MGDL
                                 )
                             )
@@ -215,7 +215,7 @@ class MainApp : DaggerApplication() {
         // set values for different builds
         if (!sp.contains(R.string.key_ns_alarms)) sp.putBoolean(R.string.key_ns_alarms, config.NSCLIENT)
         if (!sp.contains(R.string.key_ns_announcements)) sp.putBoolean(R.string.key_ns_announcements, config.NSCLIENT)
-        if (!sp.contains(info.nightscout.core.ui.R.string.key_language)) sp.putString(info.nightscout.core.ui.R.string.key_language, "default")
+        if (!sp.contains(app.aaps.core.ui.R.string.key_language)) sp.putString(app.aaps.core.ui.R.string.key_language, "default")
         // 3.1.0
         if (sp.contains("ns_wifionly")) {
             if (sp.getBoolean("ns_wifionly", false)) {

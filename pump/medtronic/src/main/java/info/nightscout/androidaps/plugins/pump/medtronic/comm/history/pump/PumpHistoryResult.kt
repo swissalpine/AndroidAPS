@@ -1,8 +1,8 @@
 package info.nightscout.androidaps.plugins.pump.medtronic.comm.history.pump
 
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import info.nightscout.core.utils.DateTimeUtil
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.utils.DateTimeUtil
 
 /**
  * History page contains data, sorted from newest to oldest (0=newest..n=oldest)

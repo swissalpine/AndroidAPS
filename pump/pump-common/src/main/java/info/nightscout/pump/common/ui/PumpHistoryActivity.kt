@@ -11,10 +11,10 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.plugin.ActivePlugin
-import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.pump.common.R
 import info.nightscout.pump.common.databinding.PumpHistoryActivityBinding
 import info.nightscout.pump.common.defs.PumpHistoryEntryGroup
@@ -104,7 +104,7 @@ class PumpHistoryActivity : TranslatedDaggerAppCompatActivity() {
         binding.pumpHistoryRecyclerView.adapter = recyclerViewAdapter
         binding.pumpHistoryStatus.visibility = View.GONE
         typeListFull = getTypeList(historyDataProvider.getAllowedPumpHistoryGroups())
-        val spinnerAdapter = ArrayAdapter(this, info.nightscout.core.ui.R.layout.spinner_centered, typeListFull!!)
+        val spinnerAdapter = ArrayAdapter(this, app.aaps.core.ui.R.layout.spinner_centered, typeListFull!!)
 
         binding.pumpHistoryText.text = historyDataProvider.getText(PumpHistoryText.PUMP_HISTORY)
 

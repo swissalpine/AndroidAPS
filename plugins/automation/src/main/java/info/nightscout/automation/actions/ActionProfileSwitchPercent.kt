@@ -2,11 +2,15 @@ package info.nightscout.automation.actions
 
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.database.entities.ValueWithUnit
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
 import info.nightscout.automation.elements.Comparator
@@ -15,10 +19,6 @@ import info.nightscout.automation.elements.InputPercent
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
 import info.nightscout.automation.triggers.TriggerProfilePercent
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.UserEntry.Sources
-import info.nightscout.database.entities.ValueWithUnit
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -33,9 +33,9 @@ class ActionProfileSwitchPercent(injector: HasAndroidInjector) : Action(injector
     override fun friendlyName(): Int = R.string.profilepercentage
     override fun shortDescription(): String =
         if (duration.value == 0) rh.gs(R.string.startprofileforever, pct.value.toInt())
-        else rh.gs(info.nightscout.core.ui.R.string.startprofile, pct.value.toInt(), duration.value)
+        else rh.gs(app.aaps.core.ui.R.string.startprofile, pct.value.toInt(), duration.value)
 
-    @DrawableRes override fun icon(): Int = info.nightscout.core.ui.R.drawable.ic_actions_profileswitch
+    @DrawableRes override fun icon(): Int = app.aaps.core.ui.R.drawable.ic_actions_profileswitch
 
     init {
         precondition = TriggerProfilePercent(injector, 100.0, Comparator.Compare.IS_EQUAL)
@@ -46,21 +46,21 @@ class ActionProfileSwitchPercent(injector: HasAndroidInjector) : Action(injector
             uel.log(
                 UserEntry.Action.PROFILE_SWITCH,
                 Sources.Automation,
-                title + ": " + rh.gs(info.nightscout.core.ui.R.string.startprofile, pct.value.toInt(), duration.value),
+                title + ": " + rh.gs(app.aaps.core.ui.R.string.startprofile, pct.value.toInt(), duration.value),
                 ValueWithUnit.Percent(pct.value.toInt()),
                 ValueWithUnit.Minute(duration.value)
             )
-            callback.result(PumpEnactResult(injector).success(true).comment(info.nightscout.core.ui.R.string.ok)).run()
+            callback.result(PumpEnactResult(injector).success(true).comment(app.aaps.core.ui.R.string.ok)).run()
         } else {
             aapsLogger.error(LTag.AUTOMATION, "Final profile not valid")
-            callback.result(PumpEnactResult(injector).success(false).comment(info.nightscout.core.ui.R.string.ok)).run()
+            callback.result(PumpEnactResult(injector).success(false).comment(app.aaps.core.ui.R.string.ok)).run()
         }
     }
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
             .add(LabelWithElement(rh, rh.gs(R.string.percent_u), "", pct))
-            .add(LabelWithElement(rh, rh.gs(info.nightscout.core.ui.R.string.duration_min_label), "", duration))
+            .add(LabelWithElement(rh, rh.gs(app.aaps.core.ui.R.string.duration_min_label), "", duration))
             .build(root)
     }
 

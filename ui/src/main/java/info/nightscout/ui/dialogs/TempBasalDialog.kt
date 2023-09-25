@@ -5,28 +5,28 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.defs.PumpDescription
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.SafeParse
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.defs.PumpDescription
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.SafeParse
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.main.utils.extensions.formatColor
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.ui.toast.ToastUtils
+import app.aaps.core.utils.HtmlHelper
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.ValueWithUnit
 import com.google.common.base.Joiner
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.ui.toast.ToastUtils
-import info.nightscout.core.utils.HtmlHelper
-import info.nightscout.core.utils.extensions.formatColor
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.ValueWithUnit
 import info.nightscout.ui.R
 import info.nightscout.ui.databinding.DialogTempbasalBinding
 import java.text.DecimalFormat
@@ -121,23 +121,23 @@ class TempBasalDialog : DialogFragmentWithDate() {
         if (isPercentPump) {
             val basalPercentInput = SafeParse.stringToInt(binding.basalPercentInput.text)
             percent = constraintChecker.applyBasalPercentConstraints(ConstraintObject(basalPercentInput, aapsLogger), profile).value()
-            actions.add(rh.gs(info.nightscout.core.ui.R.string.tempbasal_label) + ": $percent%")
-            actions.add(rh.gs(info.nightscout.core.ui.R.string.duration) + ": " + rh.gs(info.nightscout.core.ui.R.string.format_mins, durationInMinutes))
-            if (percent != basalPercentInput) actions.add(rh.gs(info.nightscout.core.ui.R.string.constraint_applied))
+            actions.add(rh.gs(app.aaps.core.ui.R.string.tempbasal_label) + ": $percent%")
+            actions.add(rh.gs(app.aaps.core.ui.R.string.duration) + ": " + rh.gs(app.aaps.core.ui.R.string.format_mins, durationInMinutes))
+            if (percent != basalPercentInput) actions.add(rh.gs(app.aaps.core.ui.R.string.constraint_applied))
         } else {
             val basalAbsoluteInput = SafeParse.stringToDouble(binding.basalAbsoluteInput.text)
             absolute = constraintChecker.applyBasalConstraints(ConstraintObject(basalAbsoluteInput, aapsLogger), profile).value()
-            actions.add(rh.gs(info.nightscout.core.ui.R.string.tempbasal_label) + ": " + rh.gs(info.nightscout.core.ui.R.string.pump_base_basal_rate, absolute))
-            actions.add(rh.gs(info.nightscout.core.ui.R.string.duration) + ": " + rh.gs(info.nightscout.core.ui.R.string.format_mins, durationInMinutes))
+            actions.add(rh.gs(app.aaps.core.ui.R.string.tempbasal_label) + ": " + rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, absolute))
+            actions.add(rh.gs(app.aaps.core.ui.R.string.duration) + ": " + rh.gs(app.aaps.core.ui.R.string.format_mins, durationInMinutes))
             if (abs(absolute - basalAbsoluteInput) > 0.01)
-                actions.add(rh.gs(info.nightscout.core.ui.R.string.constraint_applied).formatColor(context, rh, info.nightscout.core.ui.R.attr.warningColor))
+                actions.add(rh.gs(app.aaps.core.ui.R.string.constraint_applied).formatColor(context, rh, app.aaps.core.ui.R.attr.warningColor))
         }
         activity?.let { activity ->
-            OKDialog.showConfirmation(activity, rh.gs(info.nightscout.core.ui.R.string.tempbasal_label), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
+            OKDialog.showConfirmation(activity, rh.gs(app.aaps.core.ui.R.string.tempbasal_label), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                 val callback: Callback = object : Callback() {
                     override fun run() {
                         if (!result.success) {
-                            uiInteraction.runAlarm(result.comment, rh.gs(info.nightscout.core.ui.R.string.temp_basal_delivery_error), info.nightscout.core.ui.R.raw.boluserror)
+                            uiInteraction.runAlarm(result.comment, rh.gs(app.aaps.core.ui.R.string.temp_basal_delivery_error), app.aaps.core.ui.R.raw.boluserror)
                         }
                     }
                 }

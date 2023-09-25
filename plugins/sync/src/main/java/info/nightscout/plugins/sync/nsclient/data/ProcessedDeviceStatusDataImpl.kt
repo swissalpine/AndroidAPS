@@ -1,18 +1,18 @@
 package info.nightscout.plugins.sync.nsclient.data
 
 import android.text.Spanned
-import app.aaps.interfaces.aps.APSResult
-import app.aaps.interfaces.nsclient.NSSettingsStatus
-import app.aaps.interfaces.nsclient.ProcessedDeviceStatusData
-import app.aaps.interfaces.objects.Instantiator
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.Round
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.aps.APSResult
+import app.aaps.core.interfaces.nsclient.NSSettingsStatus
+import app.aaps.core.interfaces.nsclient.ProcessedDeviceStatusData
+import app.aaps.core.interfaces.objects.Instantiator
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.Round
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.utils.HtmlHelper
+import app.aaps.core.utils.JsonHelper
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.HtmlHelper
-import info.nightscout.core.utils.JsonHelper
 import info.nightscout.plugins.sync.R
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,8 +38,8 @@ class ProcessedDeviceStatusDataImpl @Inject constructor(
 
         //String[] ALL_STATUS_FIELDS = {"reservoir", "battery", "clock", "status", "device"};
         val string = StringBuilder()
-            .append("<span style=\"color:${rh.gac(info.nightscout.core.ui.R.attr.nsTitleColor)}\">")
-            .append(rh.gs(info.nightscout.core.ui.R.string.pump))
+            .append("<span style=\"color:${rh.gac(app.aaps.core.ui.R.attr.nsTitleColor)}\">")
+            .append(rh.gs(app.aaps.core.ui.R.string.pump))
             .append(": </span>")
 
         val pumpData = pumpData ?: return HtmlHelper.fromHtml(string.toString())
@@ -57,7 +57,7 @@ class ProcessedDeviceStatusDataImpl @Inject constructor(
             else                                                                                                                   -> ProcessedDeviceStatusData.Levels.INFO
         }
         string.append("<span style=\"color:${level.toColor()}\">")
-        // val insulinUnit = rh.gs(info.nightscout.core.ui.R.string.insulin_unit_shortname)
+        // val insulinUnit = rh.gs(app.aaps.core.ui.R.string.insulin_unit_shortname)
         // val fields = nsSettingsStatus.pumpExtendedSettingsFields()
         // Removed here. Same value is in StatusLights
         // if (pumpData.reservoirDisplayOverride != "") string.append(pumpData.reservoirDisplayOverride).append("$insulinUnit ")
@@ -95,7 +95,7 @@ class ProcessedDeviceStatusDataImpl @Inject constructor(
     override val openApsStatus: Spanned
         get() {
             val string = StringBuilder()
-                .append("<span style=\"color:${rh.gac(info.nightscout.core.ui.R.attr.nsTitleColor)}\">")
+                .append("<span style=\"color:${rh.gac(app.aaps.core.ui.R.attr.nsTitleColor)}\">")
                 .append(rh.gs(R.string.openaps_short))
                 .append(": </span>")
 
@@ -138,7 +138,7 @@ class ProcessedDeviceStatusDataImpl @Inject constructor(
         get() {
             var isCharging = false
             val string = StringBuilder()
-            string.append("<span style=\"color:${rh.gac(info.nightscout.core.ui.R.attr.nsTitleColor)}\">")
+            string.append("<span style=\"color:${rh.gac(app.aaps.core.ui.R.attr.nsTitleColor)}\">")
             string.append(rh.gs(R.string.uploader_short))
             string.append(": </span>")
             val iterator: Iterator<*> = uploaderMap.entries.iterator()

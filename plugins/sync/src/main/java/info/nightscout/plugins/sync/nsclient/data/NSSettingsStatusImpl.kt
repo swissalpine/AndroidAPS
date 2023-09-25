@@ -4,22 +4,22 @@ package info.nightscout.plugins.sync.nsclient.data
 
 import android.content.Context
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.nsclient.NSSettingsStatus
-import app.aaps.interfaces.profile.DefaultValueHelper
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventDismissNotification
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.UserEntry.Action
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.nsclient.NSSettingsStatus
+import app.aaps.core.interfaces.profile.DefaultValueHelper
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventDismissNotification
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.UserEntry.Action
 import info.nightscout.plugins.sync.R
 import org.json.JSONException
 import org.json.JSONObject
@@ -249,7 +249,7 @@ class NSSettingsStatusImpl @Inject constructor(
             uel.log(Action.NS_SETTINGS_COPIED, UserEntry.Sources.NSClient)
         }
 
-        if (context != null) OKDialog.showConfirmation(context, rh.gs(info.nightscout.core.ui.R.string.statuslights), rh.gs(R.string.copy_existing_values), action)
+        if (context != null) OKDialog.showConfirmation(context, rh.gs(app.aaps.core.ui.R.string.statuslights), rh.gs(R.string.copy_existing_values), action)
         else action.run()
     }
 }

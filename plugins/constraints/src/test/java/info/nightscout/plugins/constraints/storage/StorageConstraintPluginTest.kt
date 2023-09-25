@@ -1,13 +1,13 @@
 package info.nightscout.plugins.constraints.storage
 
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock

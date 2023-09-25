@@ -1,18 +1,18 @@
 package info.nightscout.plugins.sync.nsclientV3.extensions
 
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.nsclient.ProcessedDeviceStatusData
-import app.aaps.interfaces.objects.Instantiator
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.nsclient.ProcessedDeviceStatusData
+import app.aaps.core.interfaces.objects.Instantiator
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.nssdk.interfaces.RunningConfiguration
+import app.aaps.core.nssdk.mapper.convertToRemoteAndBack
+import app.aaps.database.entities.DeviceStatus
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
-import info.nightscout.database.entities.DeviceStatus
 import info.nightscout.plugins.sync.nsclient.data.NSDeviceStatusHandler
 import info.nightscout.plugins.sync.nsclient.data.ProcessedDeviceStatusDataImpl
-import info.nightscout.sdk.interfaces.RunningConfiguration
-import info.nightscout.sdk.mapper.convertToRemoteAndBack
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock

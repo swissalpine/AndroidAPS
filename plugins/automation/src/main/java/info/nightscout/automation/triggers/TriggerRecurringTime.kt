@@ -1,8 +1,11 @@
 package info.nightscout.automation.triggers
 
 import android.widget.LinearLayout
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.utils.MidnightTime
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.utils.MidnightTime
+import app.aaps.core.ui.elements.WeekDay
+import app.aaps.core.utils.JsonHelper
+import app.aaps.core.utils.MidnightUtils
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
@@ -10,9 +13,6 @@ import info.nightscout.automation.elements.InputTime
 import info.nightscout.automation.elements.InputWeekDay
 import info.nightscout.automation.elements.LayoutBuilder
 import info.nightscout.automation.elements.StaticLabel
-import info.nightscout.core.ui.elements.WeekDay
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.core.utils.MidnightUtils
 import org.json.JSONObject
 import java.util.Calendar
 import java.util.Objects
@@ -86,7 +86,7 @@ class TriggerRecurringTime(injector: HasAndroidInjector) : Trigger(injector) {
         return if (counter == 0) rh.gs(R.string.never) else sb.toString()
     }
 
-    override fun icon(): Optional<Int> = Optional.of(info.nightscout.core.main.R.drawable.ic_access_alarm_24dp)
+    override fun icon(): Optional<Int> = Optional.of(app.aaps.core.main.R.drawable.ic_access_alarm_24dp)
 
     override fun duplicate(): Trigger = TriggerRecurringTime(injector, this)
 

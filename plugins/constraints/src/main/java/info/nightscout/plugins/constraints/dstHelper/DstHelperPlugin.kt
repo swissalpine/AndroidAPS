@@ -1,18 +1,18 @@
 package info.nightscout.plugins.constraints.dstHelper
 
-import app.aaps.interfaces.aps.Loop
-import app.aaps.interfaces.constraints.Constraint
-import app.aaps.interfaces.constraints.PluginConstraints
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.constraints.Constraint
+import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.T
 import dagger.android.HasAndroidInjector
 import info.nightscout.plugins.constraints.R
 import java.util.Calendar
@@ -54,7 +54,7 @@ class DstHelperPlugin @Inject constructor(
         if (willBeDST(cal)) {
             val snoozedTo: Long = sp.getLong(R.string.key_snooze_dst_in24h, 0L)
             if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo) {
-                activePlugin.activeOverview.addNotification(Notification.DST_IN_24H, rh.gs(R.string.dst_in_24h_warning), Notification.LOW, info.nightscout.core.ui.R.string.snooze) {
+                activePlugin.activeOverview.addNotification(Notification.DST_IN_24H, rh.gs(R.string.dst_in_24h_warning), Notification.LOW, app.aaps.core.ui.R.string.snooze) {
                     sp.putLong(R.string.key_snooze_dst_in24h, System.currentTimeMillis() + T.hours(24).msecs())
                 }
             }
@@ -67,7 +67,7 @@ class DstHelperPlugin @Inject constructor(
             if (!loop.isSuspended) {
                 val snoozedTo: Long = sp.getLong(R.string.key_snooze_loop_disabled, 0L)
                 if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo) {
-                    activePlugin.activeOverview.addNotification(Notification.DST_LOOP_DISABLED, rh.gs(R.string.dst_loop_disabled_warning), Notification.LOW, info.nightscout.core.ui.R.string.snooze) {
+                    activePlugin.activeOverview.addNotification(Notification.DST_LOOP_DISABLED, rh.gs(R.string.dst_loop_disabled_warning), Notification.LOW, app.aaps.core.ui.R.string.snooze) {
                         sp.putLong(R.string.key_snooze_loop_disabled, System.currentTimeMillis() + T.hours(24).msecs())
                     }
                 }

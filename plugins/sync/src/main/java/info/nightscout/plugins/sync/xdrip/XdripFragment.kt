@@ -12,17 +12,17 @@ import android.view.ViewGroup
 import androidx.core.view.MenuCompat
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginFragment
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.sharedPreferences.SP
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginFragment
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.sharedPreferences.SP
 import dagger.android.support.DaggerFragment
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.utils.fabric.FabricPrivacy
+import app.aaps.core.ui.dialogs.OKDialog
 import info.nightscout.plugins.sync.R
 import info.nightscout.plugins.sync.databinding.XdripFragmentBinding
 import info.nightscout.plugins.sync.xdrip.events.EventXdripUpdateGUI
@@ -110,6 +110,6 @@ class XdripFragment : DaggerFragment(), MenuProvider, PluginFragment {
         if (_binding == null) return
         binding.log.text = xdripPlugin.textLog()
         val size = dataSyncSelector.queueSize()
-        binding.queue.text = if (size >= 0) size.toString() else rh.gs(info.nightscout.core.ui.R.string.value_unavailable_short)
+        binding.queue.text = if (size >= 0) size.toString() else rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
     }
 }

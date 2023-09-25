@@ -10,13 +10,13 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.MidnightTime
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.MidnightTime
+import app.aaps.core.utils.MidnightUtils
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import info.nightscout.automation.R
-import info.nightscout.core.utils.MidnightUtils
 import java.util.Calendar
 
 class InputTimeRange(private val rh: ResourceHelper, private val dateUtil: DateUtil) : Element {
@@ -61,7 +61,7 @@ class InputTimeRange(private val rh: ResourceHelper, private val dateUtil: DateU
                     })
                 addView(TextView(root.context).apply {
                     @Suppress("SetTextI18n")
-                    text = rh.gs(info.nightscout.core.ui.R.string.and) + "      " + dateUtil.timeString(toMills(end))
+                    text = rh.gs(app.aaps.core.ui.R.string.and) + "      " + dateUtil.timeString(toMills(end))
                     setPadding(px, px, px, px)
                     setOnClickListener {
                         getFragmentManager(root.context)?.let { fm ->

@@ -2,25 +2,25 @@ package info.nightscout.automation.actions
 
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.iob.GlucoseStatusProvider
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.iob.GlucoseStatusProvider
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.extensions.fromConstant
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.TherapyEvent
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.ValueWithUnit
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.elements.InputCarePortalMenu
 import info.nightscout.automation.elements.InputDuration
 import info.nightscout.automation.elements.InputString
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
-import info.nightscout.core.extensions.fromConstant
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.TherapyEvent
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.ValueWithUnit
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InsertIfNewByTimestampTherapyEventTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -48,7 +48,7 @@ class ActionCarePortalEvent(injector: HasAndroidInjector) : Action(injector) {
         cpEvent = InputCarePortalMenu(rh, actionCPEvent.cpEvent.value)
     }
 
-    override fun friendlyName(): Int = info.nightscout.core.ui.R.string.careportal
+    override fun friendlyName(): Int = app.aaps.core.ui.R.string.careportal
     override fun shortDescription(): String = rh.gs(cpEvent.value.stringResWithValue, note.value)
 
     @DrawableRes override fun icon(): Int = cpEvent.value.drawableRes
@@ -110,8 +110,8 @@ class ActionCarePortalEvent(injector: HasAndroidInjector) : Action(injector) {
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
             .add(cpEvent)
-            .add(LabelWithElement(rh, rh.gs(info.nightscout.core.ui.R.string.duration_min_label), "", duration))
-            .add(LabelWithElement(rh, rh.gs(info.nightscout.core.ui.R.string.notes_label), "", note))
+            .add(LabelWithElement(rh, rh.gs(app.aaps.core.ui.R.string.duration_min_label), "", duration))
+            .add(LabelWithElement(rh, rh.gs(app.aaps.core.ui.R.string.notes_label), "", note))
             .build(root)
     }
 

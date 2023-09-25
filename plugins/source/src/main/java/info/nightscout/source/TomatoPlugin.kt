@@ -3,20 +3,20 @@ package info.nightscout.source
 import android.content.Context
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.source.BgSource
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.source.BgSource
+import app.aaps.core.main.utils.worker.LoggingWorker
+import app.aaps.database.entities.GlucoseValue
+import app.aaps.database.transactions.TransactionGlucoseValue
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.worker.LoggingWorker
-import info.nightscout.database.entities.GlucoseValue
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.CgmSourceTransaction
-import info.nightscout.database.transactions.TransactionGlucoseValue
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +30,7 @@ class TomatoPlugin @Inject constructor(
     PluginDescription()
         .mainType(PluginType.BGSOURCE)
         .fragmentClass(BGSourceFragment::class.java.name)
-        .pluginIcon(info.nightscout.core.main.R.drawable.ic_sensor)
+        .pluginIcon(app.aaps.core.main.R.drawable.ic_sensor)
         .preferencesId(R.xml.pref_bgsource)
         .pluginName(R.string.tomato)
         .shortName(R.string.tomato_short)

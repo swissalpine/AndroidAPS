@@ -8,32 +8,32 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.extensions.toVisibility
-import app.aaps.interfaces.extensions.toVisibilityKeepSpace
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.overview.OverviewMenus
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.DefaultValueHelper
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventAutosensCalculationFinished
-import app.aaps.interfaces.rx.events.EventCustomCalculationFinished
-import app.aaps.interfaces.rx.events.EventRefreshOverview
-import app.aaps.interfaces.rx.events.EventScale
-import app.aaps.interfaces.rx.events.EventUpdateOverviewGraph
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.main.events.EventIobCalculationProgress
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.main.workflow.CalculationWorkflow
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.extensions.toVisibilityKeepSpace
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.overview.OverviewMenus
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.DefaultValueHelper
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventAutosensCalculationFinished
+import app.aaps.core.interfaces.rx.events.EventCustomCalculationFinished
+import app.aaps.core.interfaces.rx.events.EventRefreshOverview
+import app.aaps.core.interfaces.rx.events.EventScale
+import app.aaps.core.interfaces.rx.events.EventUpdateOverviewGraph
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.jjoe64.graphview.GraphView
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.databinding.ActivityHistorybrowseBinding
-import info.nightscout.core.events.EventIobCalculationProgress
-import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.core.workflow.CalculationWorkflow
+import app.aaps.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.plugins.general.overview.graphData.GraphData
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
@@ -113,7 +113,7 @@ class HistoryBrowseActivity : TranslatedDaggerAppCompatActivity() {
         binding.date.setOnClickListener {
             MaterialDatePicker.Builder.datePicker()
                 .setSelection(dateUtil.timeStampToUtcDateMillis(historyBrowserData.overviewData.fromTime))
-                .setTheme(info.nightscout.core.ui.R.style.DatePicker)
+                .setTheme(app.aaps.core.ui.R.style.DatePicker)
                 .build()
                 .apply {
                     addOnPositiveButtonClickListener { selection ->
@@ -133,7 +133,7 @@ class HistoryBrowseActivity : TranslatedDaggerAppCompatActivity() {
             windowManager.defaultDisplay.getMetrics(dm)
 
         axisWidth = if (dm.densityDpi <= 120) 3 else if (dm.densityDpi <= 160) 10 else if (dm.densityDpi <= 320) 35 else if (dm.densityDpi <= 420) 50 else if (dm.densityDpi <= 560) 70 else 80
-        binding.bgGraph.gridLabelRenderer?.gridColor = rh.gac(this, info.nightscout.core.ui.R.attr.graphGrid)
+        binding.bgGraph.gridLabelRenderer?.gridColor = rh.gac(this, app.aaps.core.ui.R.attr.graphGrid)
         binding.bgGraph.gridLabelRenderer?.reloadStyles()
         binding.bgGraph.gridLabelRenderer?.labelVerticalWidth = axisWidth
 
@@ -214,12 +214,12 @@ class HistoryBrowseActivity : TranslatedDaggerAppCompatActivity() {
 
                 val graph = GraphView(this)
                 graph.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, rh.dpToPx(100)).also { it.setMargins(0, rh.dpToPx(15), 0, rh.dpToPx(10)) }
-                graph.gridLabelRenderer?.gridColor = rh.gac(info.nightscout.core.ui.R.attr.graphGrid)
+                graph.gridLabelRenderer?.gridColor = rh.gac(app.aaps.core.ui.R.attr.graphGrid)
                 graph.gridLabelRenderer?.reloadStyles()
                 graph.gridLabelRenderer?.isHorizontalLabelsVisible = false
                 graph.gridLabelRenderer?.labelVerticalWidth = axisWidth
                 graph.gridLabelRenderer?.numVerticalLabels = 3
-                graph.viewport.backgroundColor = rh.gac(this, info.nightscout.core.ui.R.attr.viewPortBackgroundColor)
+                graph.viewport.backgroundColor = rh.gac(this, app.aaps.core.ui.R.attr.viewPortBackgroundColor)
                 relativeLayout.addView(graph)
 
                 val label = TextView(this)

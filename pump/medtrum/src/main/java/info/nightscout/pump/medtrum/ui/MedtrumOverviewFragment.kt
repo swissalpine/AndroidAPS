@@ -3,11 +3,11 @@ package info.nightscout.pump.medtrum.ui
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.ViewModelProvider
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import info.nightscout.core.ui.dialogs.OKDialog
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.ui.dialogs.OKDialog
 import info.nightscout.pump.medtrum.MedtrumPump
 import info.nightscout.pump.medtrum.R
 import info.nightscout.pump.medtrum.code.EventType
@@ -67,11 +67,11 @@ class MedtrumOverviewFragment : MedtrumBaseFragment<FragmentMedtrumOverviewBindi
                         }
 
                         EventType.PROFILE_NOT_SET      -> {
-                            OKDialog.show(requireActivity(), rh.gs(info.nightscout.core.ui.R.string.message), rh.gs(R.string.no_profile_selected))
+                            OKDialog.show(requireActivity(), rh.gs(app.aaps.core.ui.R.string.message), rh.gs(R.string.no_profile_selected))
                         }
 
                         EventType.SERIAL_NOT_SET       -> {
-                            OKDialog.show(requireActivity(), rh.gs(info.nightscout.core.ui.R.string.message), rh.gs(R.string.no_sn_in_settings))
+                            OKDialog.show(requireActivity(), rh.gs(app.aaps.core.ui.R.string.message), rh.gs(R.string.no_sn_in_settings))
                         }
                     }
                 }

@@ -5,29 +5,30 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.aps.Loop
-import app.aaps.interfaces.automation.Automation
-import app.aaps.interfaces.automation.AutomationEvent
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventBTChange
-import app.aaps.interfaces.rx.events.EventChargingState
-import app.aaps.interfaces.rx.events.EventNetworkChange
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.automation.Automation
+import app.aaps.core.interfaces.automation.AutomationEvent
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventBTChange
+import app.aaps.core.interfaces.rx.events.EventChargingState
+import app.aaps.core.interfaces.rx.events.EventNetworkChange
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.actions.Action
 import info.nightscout.automation.actions.ActionAlarm
@@ -66,7 +67,6 @@ import info.nightscout.automation.triggers.TriggerTime
 import info.nightscout.automation.triggers.TriggerTimeRange
 import info.nightscout.automation.triggers.TriggerWifiSsid
 import info.nightscout.automation.ui.TimerUtil
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import org.json.JSONArray
@@ -99,7 +99,7 @@ class AutomationPlugin @Inject constructor(
     PluginDescription()
         .mainType(PluginType.GENERAL)
         .fragmentClass(AutomationFragment::class.qualifiedName)
-        .pluginIcon(info.nightscout.core.main.R.drawable.ic_automation)
+        .pluginIcon(app.aaps.core.main.R.drawable.ic_automation)
         .pluginName(R.string.automation)
         .shortName(R.string.automation_short)
         .showInList(config.APS)
@@ -226,19 +226,19 @@ class AutomationPlugin @Inject constructor(
         var commonEventsEnabled = true
         if (loop.isSuspended || !(loop as PluginBase).isEnabled()) {
             aapsLogger.debug(LTag.AUTOMATION, "Loop deactivated")
-            executionLog.add(rh.gs(info.nightscout.core.ui.R.string.loopisdisabled))
+            executionLog.add(rh.gs(app.aaps.core.ui.R.string.loopisdisabled))
             rxBus.send(EventAutomationUpdateGui())
             commonEventsEnabled = false
         }
         if (loop.isDisconnected || !(loop as PluginBase).isEnabled()) {
             aapsLogger.debug(LTag.AUTOMATION, "Loop disconnected")
-            executionLog.add(rh.gs(info.nightscout.core.ui.R.string.disconnected))
+            executionLog.add(rh.gs(app.aaps.core.ui.R.string.disconnected))
             rxBus.send(EventAutomationUpdateGui())
             commonEventsEnabled = false
         }
         if (activePlugin.activePump.isSuspended()) {
             aapsLogger.debug(LTag.AUTOMATION, "Pump suspended")
-            executionLog.add(rh.gs(info.nightscout.core.ui.R.string.waitingforpump))
+            executionLog.add(rh.gs(app.aaps.core.ui.R.string.waitingforpump))
             rxBus.send(EventAutomationUpdateGui())
             commonEventsEnabled = false
         }
@@ -425,7 +425,7 @@ class AutomationPlugin @Inject constructor(
      */
     override fun scheduleAutomationEventEatReminder() {
         val event = AutomationEventObject(injector).apply {
-            title = rh.gs(info.nightscout.core.ui.R.string.bolus_advisor)
+            title = rh.gs(app.aaps.core.ui.R.string.bolus_advisor)
             readOnly = true
             systemAction = true
             autoRemove = true
@@ -482,14 +482,14 @@ class AutomationPlugin @Inject constructor(
      */
     override fun removeAutomationEventEatReminder() {
         val event = AutomationEventObject(injector).apply {
-            title = rh.gs(info.nightscout.core.ui.R.string.bolus_advisor)
+            title = rh.gs(app.aaps.core.ui.R.string.bolus_advisor)
         }
         removeIfExists(event)
     }
 
     override fun scheduleAutomationEventBolusReminder() {
         val event = AutomationEventObject(injector).apply {
-            title = rh.gs(info.nightscout.core.ui.R.string.bolus_reminder)
+            title = rh.gs(app.aaps.core.ui.R.string.bolus_reminder)
             readOnly = true
             systemAction = true
             autoRemove = true
@@ -512,7 +512,7 @@ class AutomationPlugin @Inject constructor(
 
     override fun removeAutomationEventBolusReminder() {
         val event = AutomationEventObject(injector).apply {
-            title = rh.gs(info.nightscout.core.ui.R.string.bolus_reminder)
+            title = rh.gs(app.aaps.core.ui.R.string.bolus_reminder)
         }
         removeIfExists(event)
     }

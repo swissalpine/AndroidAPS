@@ -1,7 +1,11 @@
 package info.nightscout.automation.triggers
 
 import android.widget.LinearLayout
-import app.aaps.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.utils.JsonHelper
+import app.aaps.core.utils.JsonHelper.safeGetString
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.Bolus
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
@@ -10,10 +14,6 @@ import info.nightscout.automation.elements.InputDuration
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
 import info.nightscout.automation.elements.StaticLabel
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.core.utils.JsonHelper.safeGetString
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.Bolus
 import org.json.JSONObject
 
 class TriggerBolusAgo(injector: HasAndroidInjector) : Trigger(injector) {
@@ -75,7 +75,7 @@ class TriggerBolusAgo(injector: HasAndroidInjector) : Trigger(injector) {
     override fun friendlyDescription(): String =
         rh.gs(R.string.lastboluscompared, rh.gs(comparator.value.stringRes), minutesAgo.getMinutes())
 
-    override fun icon(): Optional<Int> = Optional.of(info.nightscout.core.main.R.drawable.ic_bolus)
+    override fun icon(): Optional<Int> = Optional.of(app.aaps.core.main.R.drawable.ic_bolus)
 
     override fun duplicate(): Trigger = TriggerBolusAgo(injector, this)
 
@@ -83,7 +83,7 @@ class TriggerBolusAgo(injector: HasAndroidInjector) : Trigger(injector) {
         LayoutBuilder()
             .add(StaticLabel(rh, R.string.lastboluslabel, this))
             .add(comparator)
-            .add(LabelWithElement(rh, rh.gs(R.string.lastboluslabel) + ": ", rh.gs(app.aaps.interfaces.R.string.unit_minutes), minutesAgo))
+            .add(LabelWithElement(rh, rh.gs(R.string.lastboluslabel) + ": ", rh.gs(app.aaps.core.interfaces.R.string.unit_minutes), minutesAgo))
             .build(root)
     }
 }

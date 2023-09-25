@@ -2,11 +2,11 @@ package info.nightscout.implementation
 
 import android.content.Context
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.HardLimits
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.HardLimits
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InsertTherapyEventAnnouncementTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -94,12 +94,12 @@ class HardLimitsImpl @Inject constructor(
         if (newValue < lowLimit || newValue > highLimit) {
             newValue = max(newValue, lowLimit)
             newValue = min(newValue, highLimit)
-            var msg = rh.gs(info.nightscout.core.ui.R.string.valueoutofrange, rh.gs(valueName))
+            var msg = rh.gs(app.aaps.core.ui.R.string.valueoutofrange, rh.gs(valueName))
             msg += ".\n"
-            msg += rh.gs(info.nightscout.core.ui.R.string.valuelimitedto, value, newValue)
+            msg += rh.gs(app.aaps.core.ui.R.string.valuelimitedto, value, newValue)
             aapsLogger.error(msg)
             disposable += repository.runTransaction(InsertTherapyEventAnnouncementTransaction(msg)).subscribe()
-            uiInteraction.showToastAndNotification(context, msg, info.nightscout.core.ui.R.raw.error)
+            uiInteraction.showToastAndNotification(context, msg, app.aaps.core.ui.R.raw.error)
         }
         return newValue
     }

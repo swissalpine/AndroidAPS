@@ -1,11 +1,11 @@
 package info.nightscout.automation.actions
 
 import android.content.Context
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.shared.tests.TestBase
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
@@ -46,15 +46,15 @@ class ActionAlarmTest : TestBase() {
 
     @BeforeEach
     fun setup() {
-        `when`(context.getString(info.nightscout.core.ui.R.string.ok)).thenReturn("OK")
-        `when`(context.getString(info.nightscout.core.ui.R.string.alarm)).thenReturn("Alarm")
+        `when`(context.getString(app.aaps.core.ui.R.string.ok)).thenReturn("OK")
+        `when`(context.getString(app.aaps.core.ui.R.string.alarm)).thenReturn("Alarm")
         `when`(rh.gs(ArgumentMatchers.eq(R.string.alarm_message), ArgumentMatchers.anyString())).thenReturn("Alarm: %s")
         timerUtil = TimerUtil(context)
         sut = ActionAlarm(injector)
     }
 
     @Test fun friendlyNameTest() {
-        Assertions.assertEquals(info.nightscout.core.ui.R.string.alarm, sut.friendlyName())
+        Assertions.assertEquals(app.aaps.core.ui.R.string.alarm, sut.friendlyName())
     }
 
     @Test fun shortDescriptionTest() {
@@ -63,7 +63,7 @@ class ActionAlarmTest : TestBase() {
     }
 
     @Test fun iconTest() {
-        Assertions.assertEquals(info.nightscout.core.main.R.drawable.ic_access_alarm_24dp, sut.icon())
+        Assertions.assertEquals(app.aaps.core.main.R.drawable.ic_access_alarm_24dp, sut.icon())
     }
 
     @Test fun doActionTest() {

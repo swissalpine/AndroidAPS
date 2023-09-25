@@ -1,13 +1,13 @@
 package info.nightscout.pump.medtrum.ui.viewmodel
 
 import androidx.lifecycle.LiveData
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
 import info.nightscout.pump.medtrum.MedtrumPlugin
 import info.nightscout.pump.medtrum.MedtrumPump
 import info.nightscout.pump.medtrum.R
@@ -131,8 +131,8 @@ class MedtrumOverviewViewModel @Inject constructor(
                 if (!medtrumPump.bolusDone && medtrumPlugin.isInitialized()) {
                     _activeBolusStatus.postValue(
                         dateUtil.timeString(medtrumPump.bolusStartTime) + " " + dateUtil.sinceString(medtrumPump.bolusStartTime, rh)
-                            + " " + rh.gs(info.nightscout.core.ui.R.string.format_insulin_units, bolusAmount) + " / " + rh.gs(
-                            info.nightscout.core.ui.R.string.format_insulin_units, medtrumPump.bolusAmountToBeDelivered
+                            + " " + rh.gs(app.aaps.core.ui.R.string.format_insulin_units, bolusAmount) + " / " + rh.gs(
+                            app.aaps.core.ui.R.string.format_insulin_units, medtrumPump.bolusAmountToBeDelivered
                         )
                     )
                 }
@@ -179,7 +179,7 @@ class MedtrumOverviewViewModel @Inject constructor(
         if (medtrumPump.lastConnection != 0L) {
             val agoMilliseconds = System.currentTimeMillis() - medtrumPump.lastConnection
             val agoMinutes = agoMilliseconds / 1000 / 60
-            _lastConnectionMinAgo.postValue(rh.gs(app.aaps.interfaces.R.string.minago, agoMinutes))
+            _lastConnectionMinAgo.postValue(rh.gs(app.aaps.core.interfaces.R.string.minago, agoMinutes))
         }
         if (medtrumPump.lastBolusTime != 0L) {
             val agoMilliseconds = System.currentTimeMillis() - medtrumPump.lastBolusTime
@@ -188,7 +188,7 @@ class MedtrumOverviewViewModel @Inject constructor(
             // max 6h back
                 _lastBolus.postValue(
                     dateUtil.timeString(medtrumPump.lastBolusTime) + " " + dateUtil.sinceString(medtrumPump.lastBolusTime, rh) + " " + rh.gs(
-                        info.nightscout.core.ui.R.string.format_insulin_units, medtrumPump.lastBolusAmount
+                        app.aaps.core.ui.R.string.format_insulin_units, medtrumPump.lastBolusAmount
                     )
                 )
             else _lastBolus.postValue("")

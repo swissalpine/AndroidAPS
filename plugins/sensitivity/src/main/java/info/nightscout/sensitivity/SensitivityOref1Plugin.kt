@@ -1,25 +1,25 @@
 package info.nightscout.sensitivity
 
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.aps.AutosensDataStore
-import app.aaps.interfaces.aps.AutosensResult
-import app.aaps.interfaces.aps.SMBDefaults
-import app.aaps.interfaces.aps.Sensitivity.SensitivityType
-import app.aaps.interfaces.configuration.Constants
-import app.aaps.interfaces.constraints.Constraint
-import app.aaps.interfaces.constraints.PluginConstraints
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.aps.AutosensDataStore
+import app.aaps.core.interfaces.aps.AutosensResult
+import app.aaps.core.interfaces.aps.SMBDefaults
+import app.aaps.core.interfaces.aps.Sensitivity.SensitivityType
+import app.aaps.core.interfaces.configuration.Constants
+import app.aaps.core.interfaces.constraints.Constraint
+import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.utils.MidnightUtils
+import app.aaps.core.utils.Percentile
+import app.aaps.database.entities.TherapyEvent
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.MidnightUtils
-import info.nightscout.core.utils.Percentile
-import info.nightscout.database.entities.TherapyEvent
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.sensitivity.extensions.isPSEvent5minBack
 import info.nightscout.sensitivity.extensions.isTherapyEventEvent5minBack
@@ -43,7 +43,7 @@ class SensitivityOref1Plugin @Inject constructor(
 ) : AbstractSensitivityPlugin(
     PluginDescription()
         .mainType(PluginType.SENSITIVITY)
-        .pluginIcon(info.nightscout.core.ui.R.drawable.ic_generic_icon)
+        .pluginIcon(app.aaps.core.ui.R.drawable.ic_generic_icon)
         .pluginName(R.string.sensitivity_oref1)
         .shortName(R.string.sensitivity_shortname)
         .enableByDefault(true)

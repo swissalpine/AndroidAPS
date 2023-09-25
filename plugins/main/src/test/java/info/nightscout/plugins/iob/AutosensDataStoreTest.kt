@@ -2,18 +2,18 @@ package info.nightscout.plugins.iob
 
 import android.content.Context
 import androidx.collection.LongSparseArray
-import app.aaps.interfaces.aps.AutosensData
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.aps.AutosensData
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.database.entities.GlucoseValue
 import app.aaps.shared.impl.utils.DateUtilImpl
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.database.entities.GlucoseValue
 import info.nightscout.plugins.iob.iobCobCalculator.data.AutosensDataObject
 import info.nightscout.plugins.iob.iobCobCalculator.data.AutosensDataStoreObject
 import org.junit.jupiter.api.BeforeEach

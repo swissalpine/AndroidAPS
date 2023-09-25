@@ -7,20 +7,20 @@ import app.aaps.configuration.R
 import app.aaps.configuration.maintenance.data.PrefMetadataMap
 import app.aaps.configuration.maintenance.data.PrefsStatusImpl
 import app.aaps.configuration.maintenance.formats.EncryptedPrefsFormat
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.maintenance.PrefFileListProvider
-import app.aaps.interfaces.maintenance.PrefMetadata
-import app.aaps.interfaces.maintenance.PrefsFile
-import app.aaps.interfaces.maintenance.PrefsImportDir
-import app.aaps.interfaces.maintenance.PrefsMetadataKey
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.weardata.CwfData
-import app.aaps.interfaces.rx.weardata.EventData
-import app.aaps.interfaces.rx.weardata.ZipWatchfaceFormat
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.storage.Storage
-import app.aaps.interfaces.versionChecker.VersionCheckerUtils
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.maintenance.PrefFileListProvider
+import app.aaps.core.interfaces.maintenance.PrefMetadata
+import app.aaps.core.interfaces.maintenance.PrefsFile
+import app.aaps.core.interfaces.maintenance.PrefsImportDir
+import app.aaps.core.interfaces.maintenance.PrefsMetadataKey
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.weardata.CwfData
+import app.aaps.core.interfaces.rx.weardata.EventData
+import app.aaps.core.interfaces.rx.weardata.ZipWatchfaceFormat
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.storage.Storage
+import app.aaps.core.interfaces.versionChecker.VersionCheckerUtils
 import dagger.Lazy
 import dagger.Reusable
 import org.joda.time.DateTime
@@ -235,9 +235,9 @@ class PrefFileListProviderImpl @Inject constructor(
         return if (hours == 0) {
             rh.gs(R.string.exported_less_than_hour_ago)
         } else if ((hours < 24) && (hours > 0)) {
-            rh.gs(R.string.exported_ago, rh.gq(info.nightscout.core.ui.R.plurals.hours, hours, hours))
+            rh.gs(R.string.exported_ago, rh.gq(app.aaps.core.ui.R.plurals.hours, hours, hours))
         } else if ((days < IMPORT_AGE_NOT_YET_OLD_DAYS) && (days > 0)) {
-            rh.gs(R.string.exported_ago, rh.gq(info.nightscout.core.ui.R.plurals.days, days, days))
+            rh.gs(R.string.exported_ago, rh.gq(app.aaps.core.ui.R.plurals.days, days, days))
         } else {
             rh.gs(R.string.exported_at, utcTime.substring(0, 10))
         }

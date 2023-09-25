@@ -1,8 +1,9 @@
 package info.nightscout.automation.triggers
 
 import android.widget.LinearLayout
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.logging.LTag
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.utils.JsonHelper
 import com.google.common.base.Optional
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
@@ -11,7 +12,6 @@ import info.nightscout.automation.elements.InputBg
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
 import info.nightscout.automation.elements.StaticLabel
-import info.nightscout.core.utils.JsonHelper
 import org.json.JSONObject
 
 class TriggerBg(injector: HasAndroidInjector) : Trigger(injector) {
@@ -76,7 +76,7 @@ class TriggerBg(injector: HasAndroidInjector) : Trigger(injector) {
         return this
     }
 
-    override fun friendlyName(): Int = info.nightscout.core.ui.R.string.glucose
+    override fun friendlyName(): Int = app.aaps.core.ui.R.string.glucose
 
     override fun friendlyDescription(): String {
         return if (comparator.value == Comparator.Compare.IS_NOT_AVAILABLE)
@@ -85,13 +85,13 @@ class TriggerBg(injector: HasAndroidInjector) : Trigger(injector) {
             rh.gs(if (bg.units == GlucoseUnit.MGDL) R.string.glucosecomparedmgdl else R.string.glucosecomparedmmol, rh.gs(comparator.value.stringRes), bg.value, bg.units)
     }
 
-    override fun icon(): Optional<Int> = Optional.of(info.nightscout.core.main.R.drawable.ic_cp_bgcheck)
+    override fun icon(): Optional<Int> = Optional.of(app.aaps.core.main.R.drawable.ic_cp_bgcheck)
 
     override fun duplicate(): Trigger = TriggerBg(injector, this)
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
-            .add(StaticLabel(rh, info.nightscout.core.ui.R.string.glucose, this))
+            .add(StaticLabel(rh, app.aaps.core.ui.R.string.glucose, this))
             .add(comparator)
             .add(LabelWithElement(rh, rh.gs(R.string.glucose_u, bg.units), "", bg))
             .build(root)

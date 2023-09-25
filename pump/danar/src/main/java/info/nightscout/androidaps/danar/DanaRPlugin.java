@@ -12,31 +12,31 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import app.aaps.annotations.OpenForTesting;
-import app.aaps.interfaces.constraints.ConstraintsChecker;
-import app.aaps.interfaces.logging.AAPSLogger;
-import app.aaps.interfaces.logging.LTag;
-import app.aaps.interfaces.plugin.ActivePlugin;
-import app.aaps.interfaces.profile.Profile;
-import app.aaps.interfaces.pump.DetailedBolusInfo;
-import app.aaps.interfaces.pump.PumpEnactResult;
-import app.aaps.interfaces.pump.PumpSync;
-import app.aaps.interfaces.pump.defs.PumpType;
-import app.aaps.interfaces.queue.CommandQueue;
-import app.aaps.interfaces.resources.ResourceHelper;
-import app.aaps.interfaces.rx.AapsSchedulers;
-import app.aaps.interfaces.rx.bus.RxBus;
-import app.aaps.interfaces.rx.events.EventAppExit;
-import app.aaps.interfaces.rx.events.EventOverviewBolusProgress;
-import app.aaps.interfaces.rx.events.EventPreferenceChange;
-import app.aaps.interfaces.sharedPreferences.SP;
-import app.aaps.interfaces.ui.UiInteraction;
-import app.aaps.interfaces.utils.DateUtil;
-import app.aaps.interfaces.utils.DecimalFormatter;
-import app.aaps.interfaces.utils.Round;
+import app.aaps.core.main.constraints.ConstraintObject;
+import app.aaps.core.main.utils.fabric.FabricPrivacy;
+import app.aaps.core.interfaces.constraints.ConstraintsChecker;
+import app.aaps.core.interfaces.logging.AAPSLogger;
+import app.aaps.core.interfaces.logging.LTag;
+import app.aaps.core.interfaces.plugin.ActivePlugin;
+import app.aaps.core.interfaces.profile.Profile;
+import app.aaps.core.interfaces.pump.DetailedBolusInfo;
+import app.aaps.core.interfaces.pump.PumpEnactResult;
+import app.aaps.core.interfaces.pump.PumpSync;
+import app.aaps.core.interfaces.pump.defs.PumpType;
+import app.aaps.core.interfaces.queue.CommandQueue;
+import app.aaps.core.interfaces.resources.ResourceHelper;
+import app.aaps.core.interfaces.rx.AapsSchedulers;
+import app.aaps.core.interfaces.rx.bus.RxBus;
+import app.aaps.core.interfaces.rx.events.EventAppExit;
+import app.aaps.core.interfaces.rx.events.EventOverviewBolusProgress;
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange;
+import app.aaps.core.interfaces.sharedPreferences.SP;
+import app.aaps.core.interfaces.ui.UiInteraction;
+import app.aaps.core.interfaces.utils.DateUtil;
+import app.aaps.core.interfaces.utils.DecimalFormatter;
+import app.aaps.core.interfaces.utils.Round;
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.danar.services.DanaRExecutionService;
-import info.nightscout.core.constraints.ConstraintObject;
-import info.nightscout.core.utils.fabric.FabricPrivacy;
 import info.nightscout.pump.dana.DanaPump;
 import info.nightscout.pump.dana.database.DanaHistoryDatabase;
 
@@ -172,7 +172,7 @@ public class DanaRPlugin extends AbstractDanaRPlugin {
             if (!result.getSuccess())
                 result.comment(rh.gs(info.nightscout.pump.dana.R.string.boluserrorcode, detailedBolusInfo.insulin, t.getInsulin(), danaPump.getBolusStartErrorCode()));
             else
-                result.comment(info.nightscout.core.ui.R.string.ok);
+                result.comment(app.aaps.core.ui.R.string.ok);
             aapsLogger.debug(LTag.PUMP, "deliverTreatment: OK. Asked: " + detailedBolusInfo.insulin + " Delivered: " + result.getBolusDelivered());
             detailedBolusInfo.insulin = t.getInsulin();
             detailedBolusInfo.timestamp = System.currentTimeMillis();
@@ -194,7 +194,7 @@ public class DanaRPlugin extends AbstractDanaRPlugin {
             return result;
         } else {
             PumpEnactResult result = new PumpEnactResult(getInjector());
-            result.success(false).bolusDelivered(0d).comment(info.nightscout.core.ui.R.string.invalid_input);
+            result.success(false).bolusDelivered(0d).comment(app.aaps.core.ui.R.string.invalid_input);
             aapsLogger.error("deliverTreatment: Invalid input");
             return result;
         }
@@ -328,7 +328,7 @@ public class DanaRPlugin extends AbstractDanaRPlugin {
             return cancelExtendedBolus();
         }
         PumpEnactResult result = new PumpEnactResult(getInjector());
-        result.success(true).enacted(false).comment(info.nightscout.core.ui.R.string.ok).isTempCancel(true);
+        result.success(true).enacted(false).comment(app.aaps.core.ui.R.string.ok).isTempCancel(true);
         return result;
     }
 
@@ -348,11 +348,11 @@ public class DanaRPlugin extends AbstractDanaRPlugin {
                         getPumpDescription().getPumpType(),
                         serialNumber()
                 );
-                result.success(true).enacted(true).isTempCancel(true).comment(info.nightscout.core.ui.R.string.ok);
+                result.success(true).enacted(true).isTempCancel(true).comment(app.aaps.core.ui.R.string.ok);
             } else
-                result.success(false).enacted(false).isTempCancel(true).comment(info.nightscout.core.ui.R.string.canceling_eb_failed);
+                result.success(false).enacted(false).isTempCancel(true).comment(app.aaps.core.ui.R.string.canceling_eb_failed);
         } else {
-            result.success(true).isTempCancel(true).comment(info.nightscout.core.ui.R.string.ok);
+            result.success(true).isTempCancel(true).comment(app.aaps.core.ui.R.string.ok);
             aapsLogger.debug(LTag.PUMP, "cancelRealTempBasal: OK");
         }
         return result;

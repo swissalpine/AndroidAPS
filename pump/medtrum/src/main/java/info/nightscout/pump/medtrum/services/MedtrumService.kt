@@ -6,34 +6,34 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.os.SystemClock
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.Profile
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.pump.BolusProgressData
-import app.aaps.interfaces.pump.DetailedBolusInfo
-import app.aaps.interfaces.pump.DetailedBolusInfoStorage
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventAppExit
-import app.aaps.interfaces.rx.events.EventDismissNotification
-import app.aaps.interfaces.rx.events.EventOverviewBolusProgress
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.rx.events.EventPumpStatusChanged
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.pump.BolusProgressData
+import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.pump.DetailedBolusInfoStorage
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventAppExit
+import app.aaps.core.interfaces.rx.events.EventDismissNotification
+import app.aaps.core.interfaces.rx.events.EventOverviewBolusProgress
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventPumpStatusChanged
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
 import dagger.android.DaggerService
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.pump.medtrum.MedtrumPlugin
 import info.nightscout.pump.medtrum.MedtrumPump
 import info.nightscout.pump.medtrum.R
@@ -242,9 +242,9 @@ class MedtrumService : DaggerService(), BLECommCallback {
             }
             medtrumPump.bolusingTreatment = EventOverviewBolusProgress.Treatment(0.0, 0, detailedBolusInfo?.bolusType == DetailedBolusInfo.BolusType.SMB, detailedBolusInfo?.id ?: 0)
             if (detailedBolusInfo?.bolusType == DetailedBolusInfo.BolusType.SMB) {
-                rxBus.send(EventPumpStatusChanged(rh.gs(info.nightscout.core.ui.R.string.smb_bolus_u, detailedBolusInfo.insulin)))
+                rxBus.send(EventPumpStatusChanged(rh.gs(app.aaps.core.ui.R.string.smb_bolus_u, detailedBolusInfo.insulin)))
             } else {
-                rxBus.send(EventPumpStatusChanged(rh.gs(info.nightscout.core.ui.R.string.bolus_u_min, detailedBolusInfo?.insulin ?: 0.0)))
+                rxBus.send(EventPumpStatusChanged(rh.gs(app.aaps.core.ui.R.string.bolus_u_min, detailedBolusInfo?.insulin ?: 0.0)))
             }
             waitForBolusProgress()
         }
@@ -256,7 +256,7 @@ class MedtrumService : DaggerService(), BLECommCallback {
             aapsLogger.debug(LTag.PUMPCOMM, "Pump time updated")
             uiInteraction.addNotification(
                 Notification.INSIGHT_DATE_TIME_UPDATED, // :---)
-                rh.gs(info.nightscout.core.ui.R.string.pump_time_updated),
+                rh.gs(app.aaps.core.ui.R.string.pump_time_updated),
                 Notification.INFO,
             )
         } else {
@@ -659,10 +659,10 @@ class MedtrumService : DaggerService(), BLECommCallback {
                     Notification.PUMP_ERROR,
                     rh.gs(R.string.pump_error, alarmState?.let { medtrumPump.alarmStateToString(it) }),
                     Notification.URGENT,
-                    info.nightscout.core.ui.R.raw.alarm
+                    app.aaps.core.ui.R.raw.alarm
                 )
                 // Get pump status, use readStatus here as for loadEvents() we cannot be sure callback is executed
-                commandQueue.readStatus(rh.gs(info.nightscout.core.ui.R.string.device_changed), object : Callback() {
+                commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.device_changed), object : Callback() {
                     override fun run() {
                         // Make sure a 0 temp is set
                         medtrumPump.setFakeTBRIfNotSet()

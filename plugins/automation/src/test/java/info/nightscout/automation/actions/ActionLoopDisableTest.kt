@@ -1,7 +1,7 @@
 package info.nightscout.automation.actions
 
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.queue.Callback
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.queue.Callback
 import info.nightscout.automation.R
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -18,8 +18,8 @@ class ActionLoopDisableTest : ActionsTestBase() {
     fun setup() {
 
         testPumpPlugin.pumpDescription.isTempBasalCapable = true
-        `when`(context.getString(info.nightscout.core.ui.R.string.disableloop)).thenReturn("Disable loop")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.disableloop)).thenReturn("Disable loop")
+        `when`(context.getString(app.aaps.core.ui.R.string.disableloop)).thenReturn("Disable loop")
+        `when`(rh.gs(app.aaps.core.ui.R.string.disableloop)).thenReturn("Disable loop")
         `when`(context.getString(R.string.alreadydisabled)).thenReturn("Already disabled")
 
         sut = ActionLoopDisable(injector)
@@ -27,7 +27,7 @@ class ActionLoopDisableTest : ActionsTestBase() {
 
     @Test
     fun friendlyNameTest() {
-        Assertions.assertEquals(info.nightscout.core.ui.R.string.disableloop, sut.friendlyName())
+        Assertions.assertEquals(app.aaps.core.ui.R.string.disableloop, sut.friendlyName())
     }
 
     @Test

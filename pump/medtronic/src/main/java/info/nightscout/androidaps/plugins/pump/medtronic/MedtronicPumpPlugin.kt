@@ -6,34 +6,36 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.SystemClock
 import androidx.preference.Preference
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.Profile
-import app.aaps.interfaces.pump.DetailedBolusInfo
-import app.aaps.interfaces.pump.Pump
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.PumpSync.TemporaryBasalType
-import app.aaps.interfaces.pump.actions.CustomAction
-import app.aaps.interfaces.pump.actions.CustomActionType
-import app.aaps.interfaces.pump.defs.ManufacturerType
-import app.aaps.interfaces.pump.defs.PumpType
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventRefreshButtonState
-import app.aaps.interfaces.rx.events.EventRefreshOverview
-import app.aaps.interfaces.rx.events.EventSWRLStatus
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.DecimalFormatter
-import app.aaps.interfaces.utils.TimeChangeType
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.pump.Pump
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.PumpSync.TemporaryBasalType
+import app.aaps.core.interfaces.pump.actions.CustomAction
+import app.aaps.core.interfaces.pump.actions.CustomActionType
+import app.aaps.core.interfaces.pump.defs.ManufacturerType
+import app.aaps.core.interfaces.pump.defs.PumpType
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventRefreshButtonState
+import app.aaps.core.interfaces.rx.events.EventRefreshOverview
+import app.aaps.core.interfaces.rx.events.EventSWRLStatus
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.TimeChangeType
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.utils.DateTimeUtil
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.plugins.pump.common.events.EventRileyLinkDeviceStatusChange
 import info.nightscout.androidaps.plugins.pump.common.hw.rileylink.RileyLinkConst
@@ -65,8 +67,6 @@ import info.nightscout.androidaps.plugins.pump.medtronic.service.RileyLinkMedtro
 import info.nightscout.androidaps.plugins.pump.medtronic.util.MedtronicConst
 import info.nightscout.androidaps.plugins.pump.medtronic.util.MedtronicUtil
 import info.nightscout.androidaps.plugins.pump.medtronic.util.MedtronicUtil.Companion.isSame
-import info.nightscout.core.utils.DateTimeUtil
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.pump.common.data.PumpStatus
 import info.nightscout.pump.common.defs.PumpDriverState
 import info.nightscout.pump.common.sync.PumpDbEntryTBR
@@ -112,7 +112,7 @@ class MedtronicPumpPlugin @Inject constructor(
     PluginDescription() //
         .mainType(PluginType.PUMP) //
         .fragmentClass(MedtronicFragment::class.java.name) //
-        .pluginIcon(info.nightscout.core.ui.R.drawable.ic_veo_128)
+        .pluginIcon(app.aaps.core.ui.R.drawable.ic_veo_128)
         .pluginName(R.string.medtronic_name) //
         .shortName(R.string.medtronic_name_short) //
         .preferencesId(R.xml.pref_medtronic)
@@ -172,7 +172,7 @@ class MedtronicPumpPlugin @Inject constructor(
         super.updatePreferenceSummary(pref)
         if (pref.key == rh.gs(info.nightscout.androidaps.plugins.pump.common.hw.rileylink.R.string.key_rileylink_mac_address)) {
             val value = sp.getStringOrNull(info.nightscout.androidaps.plugins.pump.common.hw.rileylink.R.string.key_rileylink_mac_address, null)
-            pref.summary = value ?: rh.gs(info.nightscout.core.ui.R.string.not_set_short)
+            pref.summary = value ?: rh.gs(app.aaps.core.ui.R.string.not_set_short)
         }
     }
 
@@ -643,7 +643,7 @@ class MedtronicPumpPlugin @Inject constructor(
                     // LOG.debug("MedtronicPumpPlugin::deliverBolus - Delivery Canceled after Bolus started.");
                     Thread {
                         SystemClock.sleep(2000)
-                        uiInteraction.runAlarm(rh.gs(R.string.medtronic_cmd_cancel_bolus_not_supported), rh.gs(R.string.medtronic_warning), info.nightscout.core.ui.R.raw.boluserror)
+                        uiInteraction.runAlarm(rh.gs(R.string.medtronic_cmd_cancel_bolus_not_supported), rh.gs(R.string.medtronic_warning), app.aaps.core.ui.R.raw.boluserror)
                     }.start()
                 }
                 val now = System.currentTimeMillis()
@@ -1171,13 +1171,13 @@ class MedtronicPumpPlugin @Inject constructor(
     private val customActionWakeUpAndTune = CustomAction(
         R.string.medtronic_custom_action_wake_and_tune,
         MedtronicCustomActionType.WakeUpAndTune,
-        info.nightscout.core.ui.R.drawable.ic_actions_profileswitch
+        app.aaps.core.ui.R.drawable.ic_actions_profileswitch
     )
     private val customActionClearBolusBlock = CustomAction(
-        R.string.medtronic_custom_action_clear_bolus_block, MedtronicCustomActionType.ClearBolusBlock, info.nightscout.core.ui.R.drawable.ic_actions_profileswitch, false
+        R.string.medtronic_custom_action_clear_bolus_block, MedtronicCustomActionType.ClearBolusBlock, app.aaps.core.ui.R.drawable.ic_actions_profileswitch, false
     )
     private val customActionResetRLConfig = CustomAction(
-        R.string.medtronic_custom_action_reset_rileylink, MedtronicCustomActionType.ResetRileyLinkConfiguration, info.nightscout.core.ui.R.drawable.ic_actions_profileswitch, true
+        R.string.medtronic_custom_action_reset_rileylink, MedtronicCustomActionType.ResetRileyLinkConfiguration, app.aaps.core.ui.R.drawable.ic_actions_profileswitch, true
     )
 
     override fun getCustomActions(): List<CustomAction>? {
@@ -1197,7 +1197,7 @@ class MedtronicPumpPlugin @Inject constructor(
                 if (rileyLinkMedtronicService?.verifyConfiguration() == true) {
                     serviceTaskExecutor.startTask(WakeAndTuneTask(injector))
                 } else {
-                    uiInteraction.runAlarm(rh.gs(R.string.medtronic_error_operation_not_possible_no_configuration), rh.gs(R.string.medtronic_warning), info.nightscout.core.ui.R.raw.boluserror)
+                    uiInteraction.runAlarm(rh.gs(R.string.medtronic_error_operation_not_possible_no_configuration), rh.gs(R.string.medtronic_warning), app.aaps.core.ui.R.raw.boluserror)
                 }
             }
 

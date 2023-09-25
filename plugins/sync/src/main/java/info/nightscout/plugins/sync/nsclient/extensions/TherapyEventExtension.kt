@@ -1,10 +1,10 @@
 package info.nightscout.plugins.sync.nsclient.extensions
 
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.TherapyEvent
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.TherapyEvent
 import info.nightscout.plugins.sync.nsclient.data.NSMbg
 import org.json.JSONObject
 

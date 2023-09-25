@@ -11,7 +11,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.resources.ResourceHelper
 import dagger.android.DaggerActivity
 import info.nightscout.androidaps.plugins.pump.medtronic.R
 import info.nightscout.androidaps.plugins.pump.medtronic.comm.history.pump.PumpHistoryEntry
@@ -96,7 +96,7 @@ class MedtronicHistoryActivity : DaggerActivity() {
         recyclerView.adapter = recyclerViewAdapter
         statusView.visibility = View.GONE
         typeListFull = getTypeList(PumpHistoryEntryGroup.getTranslatedList(rh))
-        val spinnerAdapter = ArrayAdapter(this, info.nightscout.core.ui.R.layout.spinner_centered, typeListFull)
+        val spinnerAdapter = ArrayAdapter(this, app.aaps.core.ui.R.layout.spinner_centered, typeListFull)
         historyTypeSpinner.adapter = spinnerAdapter
         historyTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {

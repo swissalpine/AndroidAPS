@@ -7,10 +7,10 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import androidx.core.view.MenuProvider
 import app.aaps.configuration.R
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.ui.UiInteraction
 import javax.inject.Inject
 
 class SingleFragmentActivity : DaggerAppCompatActivityWithResult() {
@@ -23,7 +23,7 @@ class SingleFragmentActivity : DaggerAppCompatActivityWithResult() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setTheme(info.nightscout.core.ui.R.style.AppTheme)
+        setTheme(app.aaps.core.ui.R.style.AppTheme)
         setContentView(R.layout.activity_single_fragment)
         plugin = activePlugin.getPluginsList()[intent.getIntExtra("plugin", -1)]
         title = plugin?.name

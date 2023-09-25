@@ -1,13 +1,13 @@
 package info.nightscout.pump.danars
 
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.pump.DetailedBolusInfoStorage
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.TemporaryBasalStorage
-import app.aaps.interfaces.queue.CommandQueue
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.pump.DetailedBolusInfoStorage
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.TemporaryBasalStorage
+import app.aaps.core.interfaces.queue.CommandQueue
 import dagger.android.AndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.pump.dana.database.DanaHistoryDatabase
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -56,8 +56,8 @@ class DanaRSPluginTest : DanaRSTestBase() {
     fun prepareMocks() {
         Mockito.`when`(sp.getString(info.nightscout.pump.dana.R.string.key_danars_name, "")).thenReturn("")
         Mockito.`when`(sp.getString(info.nightscout.pump.dana.R.string.key_danars_address, "")).thenReturn("")
-        Mockito.`when`(rh.gs(eq(info.nightscout.core.ui.R.string.limitingbasalratio), anyObject(), anyObject())).thenReturn("limitingbasalratio")
-        Mockito.`when`(rh.gs(eq(info.nightscout.core.ui.R.string.limitingpercentrate), anyObject(), anyObject())).thenReturn("limitingpercentrate")
+        Mockito.`when`(rh.gs(eq(app.aaps.core.ui.R.string.limitingbasalratio), anyObject(), anyObject())).thenReturn("limitingbasalratio")
+        Mockito.`when`(rh.gs(eq(app.aaps.core.ui.R.string.limitingpercentrate), anyObject(), anyObject())).thenReturn("limitingpercentrate")
 
         danaRSPlugin =
             DanaRSPlugin(

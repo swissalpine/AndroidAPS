@@ -2,10 +2,10 @@ package info.nightscout.plugins.general.smsCommunicator.otp
 
 import android.util.Base64
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.configuration.Constants
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.configuration.Constants
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
 import com.eatthepath.otp.HmacOneTimePasswordGenerator
 import com.google.common.io.BaseEncoding
 import info.nightscout.plugins.R
@@ -36,7 +36,7 @@ class OneTimePassword @Inject constructor(
      * Name of master device (target of OTP)
      */
     fun name(): String {
-        val defaultUserName = rh.gs(info.nightscout.core.ui.R.string.patient_name_default)
+        val defaultUserName = rh.gs(app.aaps.core.ui.R.string.patient_name_default)
         var userName = sp.getString(info.nightscout.core.utils.R.string.key_patient_name, defaultUserName).replace(":", "").trim()
         if (userName.isEmpty())
             userName = defaultUserName

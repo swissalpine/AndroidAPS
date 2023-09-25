@@ -9,32 +9,32 @@ import androidx.core.text.toSpanned
 import app.aaps.configuration.R
 import app.aaps.configuration.databinding.MaintenanceFragmentBinding
 import app.aaps.configuration.maintenance.activities.LogSettingActivity
-import app.aaps.interfaces.db.PersistenceLayer
-import app.aaps.interfaces.extensions.runOnUiThread
-import app.aaps.interfaces.extensions.toVisibility
-import app.aaps.interfaces.iob.IobCobCalculator
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.maintenance.ImportExportPrefs
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.OwnDatabasePlugin
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.protection.ProtectionCheck.Protection.PREFERENCES
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.sync.DataSyncSelectorXdrip
-import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.db.PersistenceLayer
+import app.aaps.core.interfaces.extensions.runOnUiThread
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.maintenance.ImportExportPrefs
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.OwnDatabasePlugin
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.protection.ProtectionCheck.Protection.PREFERENCES
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.sync.DataSyncSelectorXdrip
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.main.graph.OverviewData
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.utils.HtmlHelper
+import app.aaps.database.entities.UserEntry.Action
+import app.aaps.database.entities.UserEntry.Sources
 import dagger.android.support.DaggerFragment
-import info.nightscout.core.graph.OverviewData
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.utils.HtmlHelper
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.database.entities.UserEntry.Action
-import info.nightscout.database.entities.UserEntry.Sources
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
@@ -116,7 +116,7 @@ class MaintenanceFragment : DaggerFragment() {
         binding.cleanupDb.setOnClickListener {
             activity?.let { activity ->
                 var result = ""
-                OKDialog.showConfirmation(activity, rh.gs(R.string.maintenance), rh.gs(info.nightscout.core.ui.R.string.cleanup_db_confirm), Runnable {
+                OKDialog.showConfirmation(activity, rh.gs(R.string.maintenance), rh.gs(app.aaps.core.ui.R.string.cleanup_db_confirm), Runnable {
                     disposable += Completable.fromAction { result = persistenceLayer.cleanupDatabase(93, deleteTrackedChanges = true) }
                         .subscribeOn(aapsSchedulers.io)
                         .observeOn(aapsSchedulers.main)
@@ -126,8 +126,8 @@ class MaintenanceFragment : DaggerFragment() {
                                 if (result.isNotEmpty())
                                     OKDialog.show(
                                         activity,
-                                        rh.gs(info.nightscout.core.ui.R.string.result),
-                                        HtmlHelper.fromHtml("<b>" + rh.gs(info.nightscout.core.ui.R.string.cleared_entries) + "</b><br>" + result)
+                                        rh.gs(app.aaps.core.ui.R.string.result),
+                                        HtmlHelper.fromHtml("<b>" + rh.gs(app.aaps.core.ui.R.string.cleared_entries) + "</b><br>" + result)
                                             .toSpanned()
                                     )
                                 aapsLogger.info(LTag.CORE, "Cleaned up databases with result: $result")
@@ -154,7 +154,7 @@ class MaintenanceFragment : DaggerFragment() {
         binding.navLogsettings.setOnClickListener { startActivity(Intent(activity, LogSettingActivity::class.java)) }
         binding.exportCsv.setOnClickListener {
             activity?.let { activity ->
-                OKDialog.showConfirmation(activity, rh.gs(info.nightscout.core.ui.R.string.ue_export_to_csv) + "?") {
+                OKDialog.showConfirmation(activity, rh.gs(app.aaps.core.ui.R.string.ue_export_to_csv) + "?") {
                     uel.log(Action.EXPORT_CSV, Sources.Maintenance)
                     importExportPrefs.exportUserEntriesCsv(activity)
                 }

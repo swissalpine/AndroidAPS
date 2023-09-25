@@ -2,21 +2,21 @@ package info.nightscout.automation.actions
 
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.aps.Loop
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventRefreshOverview
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventRefreshOverview
+import app.aaps.core.utils.JsonHelper
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.database.entities.ValueWithUnit
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
 import info.nightscout.automation.elements.InputDuration
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.UserEntry.Sources
-import info.nightscout.database.entities.ValueWithUnit
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -28,7 +28,7 @@ class ActionLoopSuspend(injector: HasAndroidInjector) : Action(injector) {
 
     var minutes = InputDuration(30, InputDuration.TimeUnit.MINUTES)
 
-    override fun friendlyName(): Int = info.nightscout.core.ui.R.string.suspendloop
+    override fun friendlyName(): Int = app.aaps.core.ui.R.string.suspendloop
     override fun shortDescription(): String = rh.gs(R.string.suspendloopforXmin, minutes.getMinutes())
     @DrawableRes override fun icon(): Int = R.drawable.ic_pause_circle_outline_24dp
 
@@ -40,7 +40,7 @@ class ActionLoopSuspend(injector: HasAndroidInjector) : Action(injector) {
                 UserEntry.Action.SUSPEND, Sources.Automation, title + ": " + rh.gs(R.string.suspendloopforXmin, minutes.getMinutes()),
                 ValueWithUnit.Minute(minutes.getMinutes())
             )
-            callback.result(PumpEnactResult(injector).success(true).comment(info.nightscout.core.ui.R.string.ok)).run()
+            callback.result(PumpEnactResult(injector).success(true).comment(app.aaps.core.ui.R.string.ok)).run()
         } else {
             callback.result(PumpEnactResult(injector).success(true).comment(R.string.alreadysuspended)).run()
         }
@@ -64,7 +64,7 @@ class ActionLoopSuspend(injector: HasAndroidInjector) : Action(injector) {
 
     override fun generateDialog(root: LinearLayout) {
         LayoutBuilder()
-            .add(LabelWithElement(rh, rh.gs(info.nightscout.core.ui.R.string.duration_min_label), "", minutes))
+            .add(LabelWithElement(rh, rh.gs(app.aaps.core.ui.R.string.duration_min_label), "", minutes))
             .build(root)
     }
 

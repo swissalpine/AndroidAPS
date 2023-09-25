@@ -3,18 +3,18 @@ package info.nightscout.automation.actions
 import android.content.Context
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.utils.JsonHelper
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
 import info.nightscout.automation.elements.InputString
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
 import info.nightscout.automation.ui.TimerUtil
-import info.nightscout.core.utils.JsonHelper
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -32,16 +32,16 @@ class ActionAlarm(injector: HasAndroidInjector) : Action(injector) {
         this.text = InputString(text)
     }
 
-    override fun friendlyName(): Int = info.nightscout.core.ui.R.string.alarm
+    override fun friendlyName(): Int = app.aaps.core.ui.R.string.alarm
     override fun shortDescription(): String = rh.gs(R.string.alarm_message, text.value)
-    @DrawableRes override fun icon(): Int = info.nightscout.core.main.R.drawable.ic_access_alarm_24dp
+    @DrawableRes override fun icon(): Int = app.aaps.core.main.R.drawable.ic_access_alarm_24dp
 
     override fun isValid(): Boolean = true // empty alarm will show app name
 
     override fun doAction(callback: Callback) {
         timerUtil.scheduleReminder(10, text.value.takeIf { it.isNotBlank() }
             ?: rh.gs(config.appName))
-        callback.result(PumpEnactResult(injector).success(true).comment(info.nightscout.core.ui.R.string.ok)).run()
+        callback.result(PumpEnactResult(injector).success(true).comment(app.aaps.core.ui.R.string.ok)).run()
     }
 
     override fun toJSON(): String {

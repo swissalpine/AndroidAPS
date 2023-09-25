@@ -20,23 +20,24 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
-import app.aaps.interfaces.logging.AAPSLogger;
-import app.aaps.interfaces.logging.LTag;
-import app.aaps.interfaces.notifications.Notification;
-import app.aaps.interfaces.plugin.ActivePlugin;
-import app.aaps.interfaces.profile.Profile;
-import app.aaps.interfaces.pump.PumpEnactResult;
-import app.aaps.interfaces.pump.PumpSync;
-import app.aaps.interfaces.resources.ResourceHelper;
-import app.aaps.interfaces.rx.AapsSchedulers;
-import app.aaps.interfaces.rx.bus.RxBus;
-import app.aaps.interfaces.rx.events.EventAppExit;
-import app.aaps.interfaces.rx.events.EventBTChange;
-import app.aaps.interfaces.rx.events.EventOverviewBolusProgress;
-import app.aaps.interfaces.rx.events.EventPumpStatusChanged;
-import app.aaps.interfaces.sharedPreferences.SP;
-import app.aaps.interfaces.ui.UiInteraction;
-import app.aaps.interfaces.utils.DateUtil;
+import app.aaps.core.main.utils.fabric.FabricPrivacy;
+import app.aaps.core.interfaces.logging.AAPSLogger;
+import app.aaps.core.interfaces.logging.LTag;
+import app.aaps.core.interfaces.notifications.Notification;
+import app.aaps.core.interfaces.plugin.ActivePlugin;
+import app.aaps.core.interfaces.profile.Profile;
+import app.aaps.core.interfaces.pump.PumpEnactResult;
+import app.aaps.core.interfaces.pump.PumpSync;
+import app.aaps.core.interfaces.resources.ResourceHelper;
+import app.aaps.core.interfaces.rx.AapsSchedulers;
+import app.aaps.core.interfaces.rx.bus.RxBus;
+import app.aaps.core.interfaces.rx.events.EventAppExit;
+import app.aaps.core.interfaces.rx.events.EventBTChange;
+import app.aaps.core.interfaces.rx.events.EventOverviewBolusProgress;
+import app.aaps.core.interfaces.rx.events.EventPumpStatusChanged;
+import app.aaps.core.interfaces.sharedPreferences.SP;
+import app.aaps.core.interfaces.ui.UiInteraction;
+import app.aaps.core.interfaces.utils.DateUtil;
 import dagger.android.DaggerService;
 import dagger.android.HasAndroidInjector;
 import info.nightscout.androidaps.danar.R;
@@ -54,8 +55,7 @@ import info.nightscout.androidaps.danar.comm.MsgHistoryRefill;
 import info.nightscout.androidaps.danar.comm.MsgHistorySuspend;
 import info.nightscout.androidaps.danar.comm.MsgPCCommStart;
 import info.nightscout.androidaps.danar.comm.MsgPCCommStop;
-import info.nightscout.core.ui.toast.ToastUtils;
-import info.nightscout.core.utils.fabric.FabricPrivacy;
+import app.aaps.core.ui.toast.ToastUtils;
 import info.nightscout.pump.dana.DanaPump;
 import info.nightscout.pump.dana.comm.RecordTypes;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -222,7 +222,7 @@ public abstract class AbstractDanaRExecutionService extends DaggerService {
                 ToastUtils.INSTANCE.errorToast(context.getApplicationContext(), info.nightscout.pump.dana.R.string.devicenotfound);
             }
         } else {
-            ToastUtils.INSTANCE.errorToast(context, info.nightscout.core.ui.R.string.need_connect_permission);
+            ToastUtils.INSTANCE.errorToast(context, app.aaps.core.ui.R.string.need_connect_permission);
         }
     }
 

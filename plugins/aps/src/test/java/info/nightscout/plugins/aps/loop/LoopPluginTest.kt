@@ -2,29 +2,29 @@ package info.nightscout.plugins.aps.loop
 
 import android.app.NotificationManager
 import android.content.Context
-import app.aaps.interfaces.aps.ApsMode
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.iob.IobCobCalculator
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.pump.defs.PumpDescription
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.receivers.ReceiverStatusStore
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.aps.ApsMode
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.pump.defs.PumpDescription
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.receivers.ReceiverStatusStore
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.pump.virtual.VirtualPumpPlugin
-import info.nightscout.sdk.interfaces.RunningConfiguration
+import app.aaps.core.nssdk.interfaces.RunningConfiguration
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
@@ -67,7 +67,7 @@ class LoopPluginTest : TestBase() {
 
     @Test
     fun testPluginInterface() {
-        `when`(rh.gs(info.nightscout.core.ui.R.string.loop)).thenReturn("Loop")
+        `when`(rh.gs(app.aaps.core.ui.R.string.loop)).thenReturn("Loop")
         `when`(rh.gs(info.nightscout.plugins.aps.R.string.loop_shortname)).thenReturn("LOOP")
         `when`(sp.getString(info.nightscout.core.utils.R.string.key_aps_mode, ApsMode.OPEN.name)).thenReturn(ApsMode.CLOSED.name)
         val pumpDescription = PumpDescription()

@@ -16,21 +16,21 @@ import androidx.preference.PreferenceManager
 import androidx.preference.PreferenceScreen
 import androidx.preference.size
 import app.aaps.configuration.maintenance.MaintenancePlugin
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.nsclient.NSSettingsStatus
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.profile.ProfileUtil
-import app.aaps.interfaces.protection.PasswordCheck
-import app.aaps.interfaces.protection.ProtectionCheck.ProtectionType.BIOMETRIC
-import app.aaps.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PASSWORD
-import app.aaps.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PIN
-import app.aaps.interfaces.protection.ProtectionCheck.ProtectionType.NONE
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.rx.events.EventRebuildTabs
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.SafeParse
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.nsclient.NSSettingsStatus
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.profile.ProfileUtil
+import app.aaps.core.interfaces.protection.PasswordCheck
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.BIOMETRIC
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PASSWORD
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.CUSTOM_PIN
+import app.aaps.core.interfaces.protection.ProtectionCheck.ProtectionType.NONE
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventRebuildTabs
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.SafeParse
 import dagger.android.support.AndroidSupportInjection
 import info.nightscout.androidaps.R
 import info.nightscout.androidaps.danaRKorean.DanaRKoreanPlugin
@@ -40,7 +40,7 @@ import info.nightscout.androidaps.plugins.pump.eopatch.EopatchPumpPlugin
 import info.nightscout.androidaps.plugins.pump.insight.LocalInsightPlugin
 import info.nightscout.androidaps.plugins.pump.medtronic.MedtronicPumpPlugin
 import info.nightscout.automation.AutomationPlugin
-import info.nightscout.core.ui.dialogs.OKDialog
+import app.aaps.core.ui.dialogs.OKDialog
 import info.nightscout.implementation.plugin.PluginStore
 import info.nightscout.insulin.InsulinOrefFreePeakPlugin
 import info.nightscout.plugins.aps.loop.LoopPlugin
@@ -238,7 +238,7 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         key ?: return
         rxBus.send(EventPreferenceChange(key))
-        if (key == rh.gs(info.nightscout.core.ui.R.string.key_language)) {
+        if (key == rh.gs(app.aaps.core.ui.R.string.key_language)) {
             rxBus.send(EventRebuildTabs(true))
             //recreate() does not update language so better close settings
             activity?.finish()
@@ -276,7 +276,7 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             sp.getInt(key, NONE.ordinal) == BIOMETRIC.ordinal
         ) {
             activity?.let {
-                val title = rh.gs(info.nightscout.core.ui.R.string.unsecure_fallback_biometric)
+                val title = rh.gs(app.aaps.core.ui.R.string.unsecure_fallback_biometric)
                 val message =
                     rh.gs(app.aaps.configuration.R.string.master_password_missing, rh.gs(app.aaps.configuration.R.string.configbuilder_general), rh.gs(app.aaps.configuration.R.string.protection))
                 OKDialog.show(it, title = title, message = message)
@@ -289,8 +289,8 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             sp.getInt(info.nightscout.core.utils.R.string.key_bolus_protection, NONE.ordinal) == BIOMETRIC.ordinal
         if (rh.gs(info.nightscout.core.utils.R.string.key_master_password) == key && sp.getString(key, "") == "" && isBiometricActivated) {
             activity?.let {
-                val title = rh.gs(info.nightscout.core.ui.R.string.unsecure_fallback_biometric)
-                val message = rh.gs(info.nightscout.core.ui.R.string.unsecure_fallback_descriotion_biometric)
+                val title = rh.gs(app.aaps.core.ui.R.string.unsecure_fallback_biometric)
+                val message = rh.gs(app.aaps.core.ui.R.string.unsecure_fallback_descriotion_biometric)
                 OKDialog.show(it, title = title, message = message)
             }
         }
@@ -409,9 +409,9 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
                 pref.summary = "******"
             } else {
                 if (pref.key.contains("pin")) {
-                    pref.summary = rh.gs(info.nightscout.core.ui.R.string.pin_not_set)
+                    pref.summary = rh.gs(app.aaps.core.ui.R.string.pin_not_set)
                 } else {
-                    pref.summary = rh.gs(info.nightscout.core.ui.R.string.password_not_set)
+                    pref.summary = rh.gs(app.aaps.core.ui.R.string.password_not_set)
                 }
             }
         }
@@ -440,38 +440,38 @@ class MyPreferenceFragment : PreferenceFragmentCompat(), OnSharedPreferenceChang
             when (preference.key) {
                 rh.gs(info.nightscout.core.utils.R.string.key_master_password)      -> {
                     passwordCheck.queryPassword(context, app.aaps.configuration.R.string.current_master_password, info.nightscout.core.utils.R.string.key_master_password, {
-                        passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.master_password, info.nightscout.core.utils.R.string.key_master_password)
+                        passwordCheck.setPassword(context, app.aaps.core.ui.R.string.master_password, info.nightscout.core.utils.R.string.key_master_password)
                     })
                     true
                 }
 
                 rh.gs(info.nightscout.core.utils.R.string.key_settings_password)    -> {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.settings_password, info.nightscout.core.utils.R.string.key_settings_password)
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.settings_password, info.nightscout.core.utils.R.string.key_settings_password)
                     true
                 }
 
                 rh.gs(info.nightscout.core.utils.R.string.key_bolus_password)       -> {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.bolus_password, info.nightscout.core.utils.R.string.key_bolus_password)
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.bolus_password, info.nightscout.core.utils.R.string.key_bolus_password)
                     true
                 }
 
                 rh.gs(info.nightscout.core.utils.R.string.key_application_password) -> {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.application_password, info.nightscout.core.utils.R.string.key_application_password)
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.application_password, info.nightscout.core.utils.R.string.key_application_password)
                     true
                 }
 
                 rh.gs(info.nightscout.core.utils.R.string.key_settings_pin)         -> {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.settings_pin, info.nightscout.core.utils.R.string.key_settings_pin, pinInput = true)
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.settings_pin, info.nightscout.core.utils.R.string.key_settings_pin, pinInput = true)
                     true
                 }
 
                 rh.gs(info.nightscout.core.utils.R.string.key_bolus_pin)            -> {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.bolus_pin, info.nightscout.core.utils.R.string.key_bolus_pin, pinInput = true)
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.bolus_pin, info.nightscout.core.utils.R.string.key_bolus_pin, pinInput = true)
                     true
                 }
 
                 rh.gs(info.nightscout.core.utils.R.string.key_application_pin)      -> {
-                    passwordCheck.setPassword(context, info.nightscout.core.ui.R.string.application_pin, info.nightscout.core.utils.R.string.key_application_pin, pinInput = true)
+                    passwordCheck.setPassword(context, app.aaps.core.ui.R.string.application_pin, info.nightscout.core.utils.R.string.key_application_pin, pinInput = true)
                     true
                 }
                 // NSClient copy settings

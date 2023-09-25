@@ -1,16 +1,16 @@
 package info.nightscout.implementation.iob
 
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.iob.GlucoseStatus
-import app.aaps.interfaces.iob.GlucoseStatusProvider
-import app.aaps.interfaces.iob.IobCobCalculator
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.DecimalFormatter
+import app.aaps.core.main.iob.asRounded
+import app.aaps.core.main.iob.log
+import app.aaps.core.interfaces.iob.GlucoseStatus
+import app.aaps.core.interfaces.iob.GlucoseStatusProvider
+import app.aaps.core.interfaces.iob.IobCobCalculator
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
 import dagger.Reusable
-import info.nightscout.core.iob.asRounded
-import info.nightscout.core.iob.log
 import javax.inject.Inject
 import kotlin.math.roundToLong
 

@@ -1,14 +1,14 @@
 package info.nightscout.plugins.sync.nsclientV3.extensions
 
-import app.aaps.interfaces.insulin.Insulin
+import app.aaps.core.interfaces.insulin.Insulin
+import app.aaps.core.main.extensions.fromConstant
+import app.aaps.core.nssdk.localmodel.treatment.NSProfileSwitch
+import app.aaps.core.nssdk.mapper.convertToRemoteAndBack
+import app.aaps.database.entities.ProfileSwitch
+import app.aaps.database.entities.embedments.InsulinConfiguration
+import app.aaps.database.entities.embedments.InterfaceIDs
 import app.aaps.shared.tests.TestBaseWithProfile
 import com.google.common.truth.Truth.assertThat
-import info.nightscout.core.extensions.fromConstant
-import info.nightscout.database.entities.ProfileSwitch
-import info.nightscout.database.entities.embedments.InsulinConfiguration
-import info.nightscout.database.entities.embedments.InterfaceIDs
-import info.nightscout.sdk.localmodel.treatment.NSProfileSwitch
-import info.nightscout.sdk.mapper.convertToRemoteAndBack
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mock

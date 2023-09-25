@@ -3,15 +3,16 @@ package info.nightscout.plugins.sync.nsclientV3.workers
 import android.content.Context
 import androidx.work.ListenableWorker.Result.Success
 import androidx.work.testing.TestListenableWorkerBuilder
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.sync.NsClient
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.sync.NsClient
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.plugins.sync.nsclientV3.DataSyncSelectorV3
 import info.nightscout.plugins.sync.nsclientV3.NSClientV3Plugin
+import kotlin.test.assertIs
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -64,6 +65,6 @@ internal class DataSyncWorkerTest : TestBase() {
         `when`(nsClient.hasWritePermission).thenReturn(true)
         val result = sut.doWorkAndLog()
         Mockito.verify(dataSyncSelectorV3, Mockito.times(1)).doUpload()
-        assertThat(result).isInstanceOf(Success::class.java)
+        assertIs<Success>(result)
     }
 }

@@ -4,37 +4,37 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.overview.Overview
-import app.aaps.interfaces.overview.OverviewMenus
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventDismissNotification
-import app.aaps.interfaces.rx.events.EventNewHistoryData
-import app.aaps.interfaces.rx.events.EventPumpStatusChanged
-import app.aaps.interfaces.rx.events.EventUpdateOverviewCalcProgress
-import app.aaps.interfaces.sharedPreferences.SP
+import app.aaps.core.main.events.EventIobCalculationProgress
+import app.aaps.core.main.events.EventNewNotification
+import app.aaps.core.main.graph.OverviewData
+import app.aaps.core.main.utils.extensions.putDouble
+import app.aaps.core.main.utils.extensions.putInt
+import app.aaps.core.main.utils.extensions.putString
+import app.aaps.core.main.utils.extensions.storeBoolean
+import app.aaps.core.main.utils.extensions.storeDouble
+import app.aaps.core.main.utils.extensions.storeInt
+import app.aaps.core.main.utils.extensions.storeString
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.overview.Overview
+import app.aaps.core.interfaces.overview.OverviewMenus
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventDismissNotification
+import app.aaps.core.interfaces.rx.events.EventNewHistoryData
+import app.aaps.core.interfaces.rx.events.EventPumpStatusChanged
+import app.aaps.core.interfaces.rx.events.EventUpdateOverviewCalcProgress
+import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.shared.impl.rx.bus.RxBusImpl
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.events.EventIobCalculationProgress
-import info.nightscout.core.events.EventNewNotification
-import info.nightscout.core.graph.OverviewData
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.utils.extensions.putDouble
-import info.nightscout.core.utils.extensions.putInt
-import info.nightscout.core.utils.extensions.putString
-import info.nightscout.core.utils.extensions.storeBoolean
-import info.nightscout.core.utils.extensions.storeDouble
-import info.nightscout.core.utils.extensions.storeInt
-import info.nightscout.core.utils.extensions.storeString
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.core.validators.ValidatingEditTextPreference
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.validators.ValidatingEditTextPreference
 import info.nightscout.plugins.R
 import info.nightscout.plugins.general.overview.notifications.NotificationStore
 import info.nightscout.plugins.general.overview.notifications.NotificationWithAction
@@ -66,7 +66,7 @@ class OverviewPlugin @Inject constructor(
         .fragmentClass(OverviewFragment::class.qualifiedName)
         .alwaysVisible(true)
         .alwaysEnabled(true)
-        .pluginIcon(info.nightscout.core.ui.R.drawable.ic_home)
+        .pluginIcon(app.aaps.core.ui.R.drawable.ic_home)
         .pluginName(R.string.overview)
         .shortName(R.string.overview_shortname)
         .preferencesId(R.xml.pref_overview)

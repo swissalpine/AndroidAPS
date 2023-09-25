@@ -1,13 +1,13 @@
 package info.nightscout.pump.danars.comm
 
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.pump.DetailedBolusInfoStorage
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.TemporaryBasalStorage
-import app.aaps.interfaces.queue.CommandQueue
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.pump.DetailedBolusInfoStorage
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.TemporaryBasalStorage
+import app.aaps.core.interfaces.queue.CommandQueue
 import dagger.android.AndroidInjector
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.constraints.ConstraintObject
 import info.nightscout.pump.dana.database.DanaHistoryDatabase
 import info.nightscout.pump.danars.DanaRSTestBase
 import org.junit.jupiter.api.Assertions

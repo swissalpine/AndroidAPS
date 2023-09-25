@@ -2,16 +2,23 @@ package info.nightscout.automation.actions
 
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.configuration.Constants
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.profile.ProfileUtil
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.configuration.Constants
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.profile.ProfileUtil
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.main.extensions.friendlyDescription
+import app.aaps.core.utils.JsonHelper
+import app.aaps.core.utils.JsonHelper.safeGetDouble
+import app.aaps.database.entities.TemporaryTarget
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.database.entities.ValueWithUnit
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
 import info.nightscout.automation.elements.ComparatorExists
@@ -20,13 +27,6 @@ import info.nightscout.automation.elements.InputTempTarget
 import info.nightscout.automation.elements.LabelWithElement
 import info.nightscout.automation.elements.LayoutBuilder
 import info.nightscout.automation.triggers.TriggerTempTarget
-import info.nightscout.core.extensions.friendlyDescription
-import info.nightscout.core.utils.JsonHelper
-import info.nightscout.core.utils.JsonHelper.safeGetDouble
-import info.nightscout.database.entities.TemporaryTarget
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.UserEntry.Sources
-import info.nightscout.database.entities.ValueWithUnit
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -55,7 +55,7 @@ class ActionStartTempTarget(injector: HasAndroidInjector) : Action(injector) {
 
     override fun friendlyName(): Int = R.string.starttemptarget
     override fun shortDescription(): String = rh.gs(R.string.starttemptarget) + ": " + tt().friendlyDescription(value.units, rh, profileUtil)
-    @DrawableRes override fun icon(): Int = info.nightscout.core.main.R.drawable.ic_temptarget_high
+    @DrawableRes override fun icon(): Int = app.aaps.core.main.R.drawable.ic_temptarget_high
 
     override fun doAction(callback: Callback) {
         disposable += repository.runTransactionForResult(InsertAndCancelCurrentTemporaryTargetTransaction(tt()))
@@ -69,18 +69,18 @@ class ActionStartTempTarget(injector: HasAndroidInjector) : Action(injector) {
                                ValueWithUnit.Mgdl(tt().highTarget).takeIf { tt().lowTarget != tt().highTarget },
                                ValueWithUnit.Minute(TimeUnit.MILLISECONDS.toMinutes(tt().duration).toInt())
                            )
-                           callback.result(PumpEnactResult(injector).success(true).comment(info.nightscout.core.ui.R.string.ok)).run()
+                           callback.result(PumpEnactResult(injector).success(true).comment(app.aaps.core.ui.R.string.ok)).run()
                        }, {
                            aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
-                           callback.result(PumpEnactResult(injector).success(false).comment(info.nightscout.core.ui.R.string.error)).run()
+                           callback.result(PumpEnactResult(injector).success(false).comment(app.aaps.core.ui.R.string.error)).run()
                        })
     }
 
     override fun generateDialog(root: LinearLayout) {
-        val unitResId = if (value.units == GlucoseUnit.MGDL) info.nightscout.core.ui.R.string.mgdl else info.nightscout.core.ui.R.string.mmol
+        val unitResId = if (value.units == GlucoseUnit.MGDL) app.aaps.core.ui.R.string.mgdl else app.aaps.core.ui.R.string.mmol
         LayoutBuilder()
-            .add(LabelWithElement(rh, rh.gs(info.nightscout.core.ui.R.string.temporary_target) + "\n[" + rh.gs(unitResId) + "]", "", value))
-            .add(LabelWithElement(rh, rh.gs(info.nightscout.core.ui.R.string.duration_min_label), "", duration))
+            .add(LabelWithElement(rh, rh.gs(app.aaps.core.ui.R.string.temporary_target) + "\n[" + rh.gs(unitResId) + "]", "", value))
+            .add(LabelWithElement(rh, rh.gs(app.aaps.core.ui.R.string.duration_min_label), "", duration))
             .build(root)
     }
 

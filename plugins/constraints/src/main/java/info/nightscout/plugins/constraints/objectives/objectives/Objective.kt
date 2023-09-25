@@ -6,10 +6,10 @@ import android.widget.CheckBox
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.fragment.app.FragmentActivity
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
 import dagger.android.HasAndroidInjector
 import info.nightscout.plugins.constraints.R
 import javax.inject.Inject
@@ -121,9 +121,9 @@ abstract class Objective(injector: HasAndroidInjector, spName: String, @StringRe
             val hours = floor(duration.toDouble() / T.hours(1).msecs()).toInt()
             val minutes = floor(duration.toDouble() / T.mins(1).msecs()).toInt()
             return when {
-                days > 0  -> rh.gq(info.nightscout.core.ui.R.plurals.days, days, days)
-                hours > 0 -> rh.gq(info.nightscout.core.ui.R.plurals.hours, hours, hours)
-                else      -> rh.gq(info.nightscout.core.ui.R.plurals.minutes, minutes, minutes)
+                days > 0  -> rh.gq(app.aaps.core.ui.R.plurals.days, days, days)
+                hours > 0 -> rh.gq(app.aaps.core.ui.R.plurals.hours, hours, hours)
+                else      -> rh.gq(app.aaps.core.ui.R.plurals.minutes, minutes, minutes)
             }
         }
     }

@@ -7,18 +7,18 @@ import android.view.ViewGroup
 import app.aaps.configuration.R
 import app.aaps.configuration.configBuilder.events.EventConfigBuilderUpdateGui
 import app.aaps.configuration.databinding.ConfigbuilderFragmentBinding
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.configuration.ConfigBuilder
-import app.aaps.interfaces.extensions.toVisibility
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.protection.ProtectionCheck.Protection.PREFERENCES
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.configuration.ConfigBuilder
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.protection.ProtectionCheck.Protection.PREFERENCES
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.ui.UiInteraction
 import dagger.android.support.DaggerFragment
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import javax.inject.Inject
@@ -95,7 +95,7 @@ class ConfigBuilderFragment : DaggerFragment() {
         )
         if (config.APS || config.PUMPCONTROL || config.isEngineeringMode())
             configBuilder.createViewsForPlugins(
-                title = info.nightscout.core.ui.R.string.configbuilder_insulin,
+                title = app.aaps.core.ui.R.string.configbuilder_insulin,
                 description = R.string.configbuilder_insulin_description,
                 pluginType = PluginType.INSULIN,
                 plugins = activePlugin.getSpecificPluginsVisibleInList(PluginType.INSULIN),
@@ -162,7 +162,7 @@ class ConfigBuilderFragment : DaggerFragment() {
                 parent = binding.categories
             )
             configBuilder.createViewsForPlugins(
-                title = info.nightscout.core.ui.R.string.constraints,
+                title = app.aaps.core.ui.R.string.constraints,
                 description = R.string.configbuilder_constraints_description,
                 pluginType = PluginType.CONSTRAINTS,
                 plugins = activePlugin.getSpecificPluginsVisibleInList(PluginType.CONSTRAINTS),

@@ -1,19 +1,19 @@
 package info.nightscout.automation.actions
 
 import androidx.annotation.DrawableRes
-import app.aaps.interfaces.aps.Loop
-import app.aaps.interfaces.configuration.ConfigBuilder
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventRefreshOverview
-import app.aaps.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.configuration.ConfigBuilder
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventRefreshOverview
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.UserEntry.Sources
 import dagger.android.HasAndroidInjector
 import info.nightscout.automation.R
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.UserEntry.Sources
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.CancelCurrentOfflineEventIfAnyTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -29,8 +29,8 @@ class ActionLoopResume(injector: HasAndroidInjector) : Action(injector) {
     @Inject lateinit var repository: AppRepository
     @Inject lateinit var dateUtil: DateUtil
 
-    override fun friendlyName(): Int = info.nightscout.core.ui.R.string.resumeloop
-    override fun shortDescription(): String = rh.gs(info.nightscout.core.ui.R.string.resumeloop)
+    override fun friendlyName(): Int = app.aaps.core.ui.R.string.resumeloop
+    override fun shortDescription(): String = rh.gs(app.aaps.core.ui.R.string.resumeloop)
     @DrawableRes override fun icon(): Int = R.drawable.ic_replay_24dp
 
     val disposable = CompositeDisposable()
@@ -45,7 +45,7 @@ class ActionLoopResume(injector: HasAndroidInjector) : Action(injector) {
                            })
             rxBus.send(EventRefreshOverview("ActionLoopResume"))
             uel.log(UserEntry.Action.RESUME, Sources.Automation, title)
-            callback.result(PumpEnactResult(injector).success(true).comment(info.nightscout.core.ui.R.string.ok)).run()
+            callback.result(PumpEnactResult(injector).success(true).comment(app.aaps.core.ui.R.string.ok)).run()
         } else {
             callback.result(PumpEnactResult(injector).success(true).comment(R.string.notsuspended)).run()
         }

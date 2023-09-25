@@ -1,34 +1,34 @@
 package info.nightscout.implementation.pump
 
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.pump.DetailedBolusInfo
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.VirtualPump
-import app.aaps.interfaces.pump.defs.PumpType
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
-import info.nightscout.core.events.EventNewNotification
-import info.nightscout.core.pump.fromDbPumpType
-import info.nightscout.core.pump.toDbPumpType
-import info.nightscout.core.pump.toDbSource
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.Bolus
-import info.nightscout.database.entities.Carbs
-import info.nightscout.database.entities.ExtendedBolus
-import info.nightscout.database.entities.TemporaryBasal
-import info.nightscout.database.entities.TherapyEvent
-import info.nightscout.database.entities.TotalDailyDose
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.ValueWithUnit
-import info.nightscout.database.entities.embedments.InterfaceIDs
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.VirtualPump
+import app.aaps.core.interfaces.pump.defs.PumpType
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.events.EventNewNotification
+import app.aaps.core.main.pump.fromDbPumpType
+import app.aaps.core.main.pump.toDbPumpType
+import app.aaps.core.main.pump.toDbSource
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.Bolus
+import app.aaps.database.entities.Carbs
+import app.aaps.database.entities.ExtendedBolus
+import app.aaps.database.entities.TemporaryBasal
+import app.aaps.database.entities.TherapyEvent
+import app.aaps.database.entities.TotalDailyDose
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.ValueWithUnit
+import app.aaps.database.entities.embedments.InterfaceIDs
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.InsertBolusWithTempIdTransaction
 import info.nightscout.database.impl.transactions.InsertIfNewByTimestampCarbsTransaction
@@ -115,7 +115,7 @@ class PumpSyncImplementation @Inject constructor(
         }
 
         if (showNotification && (type.description != storedType || serialNumber != storedSerial) && timestamp >= storedTimestamp)
-            rxBus.send(EventNewNotification(Notification(Notification.WRONG_PUMP_DATA, rh.gs(info.nightscout.core.ui.R.string.wrong_pump_data), Notification.URGENT)))
+            rxBus.send(EventNewNotification(Notification(Notification.WRONG_PUMP_DATA, rh.gs(app.aaps.core.ui.R.string.wrong_pump_data), Notification.URGENT)))
         aapsLogger.error(
             LTag.PUMP,
             "Ignoring pump history record  Allowed: ${dateUtil.dateAndTimeAndSecondsString(storedTimestamp)} $storedType $storedSerial Received: $timestamp ${
@@ -513,5 +513,4 @@ class PumpSyncImplementation @Inject constructor(
                 return result.inserted.size > 0
             }
     }
-
 }

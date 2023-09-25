@@ -10,41 +10,41 @@ import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
 import androidx.fragment.app.FragmentManager
-import app.aaps.interfaces.aps.ApsMode
-import app.aaps.interfaces.aps.Loop
-import app.aaps.interfaces.configuration.ConfigBuilder
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.constraints.Objectives
-import app.aaps.interfaces.extensions.runOnUiThread
-import app.aaps.interfaces.extensions.toVisibility
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.ProfileFunction
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.pump.defs.PumpDescription
-import app.aaps.interfaces.queue.Callback
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.rx.events.EventRefreshOverview
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.aps.ApsMode
+import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.configuration.ConfigBuilder
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.constraints.Objectives
+import app.aaps.core.interfaces.extensions.runOnUiThread
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.pump.defs.PumpDescription
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventRefreshOverview
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.ui.toast.ToastUtils
+import app.aaps.database.entities.OfflineEvent
+import app.aaps.database.entities.UserEntry
+import app.aaps.database.entities.ValueWithUnit
 import dagger.android.HasAndroidInjector
 import dagger.android.support.DaggerDialogFragment
-import info.nightscout.core.constraints.ConstraintObject
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.ui.toast.ToastUtils
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.database.entities.OfflineEvent
-import info.nightscout.database.entities.UserEntry
-import info.nightscout.database.entities.ValueWithUnit
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.database.impl.transactions.CancelCurrentOfflineEventIfAnyTransaction
 import info.nightscout.database.impl.transactions.InsertAndCancelCurrentOfflineEventTransaction
@@ -202,7 +202,7 @@ class LoopDialog : DaggerDialogFragment() {
             loop.isSuspended                                       -> {
                 binding.overviewLoop.visibility = View.GONE
                 binding.overviewSuspend.visibility = View.VISIBLE
-                binding.overviewSuspendHeader.text = rh.gs(info.nightscout.core.ui.R.string.resumeloop)
+                binding.overviewSuspendHeader.text = rh.gs(app.aaps.core.ui.R.string.resumeloop)
                 binding.overviewSuspendButtons.visibility = View.VISIBLE
                 binding.overviewResume.visibility = View.VISIBLE
                 binding.overviewPump.visibility = View.GONE
@@ -239,7 +239,7 @@ class LoopDialog : DaggerDialogFragment() {
                     }
                 }
                 binding.overviewSuspend.visibility = View.VISIBLE
-                binding.overviewSuspendHeader.text = rh.gs(info.nightscout.core.ui.R.string.suspendloop)
+                binding.overviewSuspendHeader.text = rh.gs(app.aaps.core.ui.R.string.suspendloop)
                 binding.overviewSuspendButtons.visibility = View.VISIBLE
                 binding.overviewResume.visibility = View.GONE
 
@@ -255,11 +255,11 @@ class LoopDialog : DaggerDialogFragment() {
     private fun onClickOkCancelEnabled(v: View): Boolean {
         var description = ""
         when (v.id) {
-            R.id.overview_closeloop      -> description = rh.gs(info.nightscout.core.ui.R.string.closedloop)
-            R.id.overview_lgsloop        -> description = rh.gs(info.nightscout.core.ui.R.string.lowglucosesuspend)
-            R.id.overview_openloop       -> description = rh.gs(info.nightscout.core.ui.R.string.openloop)
-            R.id.overview_disable        -> description = rh.gs(info.nightscout.core.ui.R.string.disableloop)
-            R.id.overview_enable         -> description = rh.gs(info.nightscout.core.ui.R.string.enableloop)
+            R.id.overview_closeloop      -> description = rh.gs(app.aaps.core.ui.R.string.closedloop)
+            R.id.overview_lgsloop        -> description = rh.gs(app.aaps.core.ui.R.string.lowglucosesuspend)
+            R.id.overview_openloop       -> description = rh.gs(app.aaps.core.ui.R.string.openloop)
+            R.id.overview_disable        -> description = rh.gs(app.aaps.core.ui.R.string.disableloop)
+            R.id.overview_enable         -> description = rh.gs(app.aaps.core.ui.R.string.enableloop)
             R.id.overview_resume         -> description = rh.gs(R.string.resume)
             R.id.overview_reconnect      -> description = rh.gs(R.string.reconnect)
             R.id.overview_suspend_30m     -> description = rh.gs(R.string.suspendloopfor30m)
@@ -274,7 +274,7 @@ class LoopDialog : DaggerDialogFragment() {
             R.id.overview_disconnect_3h  -> description = rh.gs(R.string.disconnectpumpfor3h)
         }
         activity?.let { activity ->
-            OKDialog.showConfirmation(activity, rh.gs(info.nightscout.core.ui.R.string.confirm), description, Runnable {
+            OKDialog.showConfirmation(activity, rh.gs(app.aaps.core.ui.R.string.confirm), description, Runnable {
                 onClick(v)
             })
         }
@@ -286,21 +286,21 @@ class LoopDialog : DaggerDialogFragment() {
             R.id.overview_closeloop                       -> {
                 uel.log(UserEntry.Action.CLOSED_LOOP_MODE, UserEntry.Sources.LoopDialog)
                 sp.putString(info.nightscout.core.utils.R.string.key_aps_mode, ApsMode.CLOSED.name)
-                rxBus.send(EventPreferenceChange(rh.gs(info.nightscout.core.ui.R.string.closedloop)))
+                rxBus.send(EventPreferenceChange(rh.gs(app.aaps.core.ui.R.string.closedloop)))
                 return true
             }
 
             R.id.overview_lgsloop                         -> {
                 uel.log(UserEntry.Action.LGS_LOOP_MODE, UserEntry.Sources.LoopDialog)
                 sp.putString(info.nightscout.core.utils.R.string.key_aps_mode, ApsMode.LGS.name)
-                rxBus.send(EventPreferenceChange(rh.gs(info.nightscout.core.ui.R.string.lowglucosesuspend)))
+                rxBus.send(EventPreferenceChange(rh.gs(app.aaps.core.ui.R.string.lowglucosesuspend)))
                 return true
             }
 
             R.id.overview_openloop                        -> {
                 uel.log(UserEntry.Action.OPEN_LOOP_MODE, UserEntry.Sources.LoopDialog)
                 sp.putString(info.nightscout.core.utils.R.string.key_aps_mode, ApsMode.OPEN.name)
-                rxBus.send(EventPreferenceChange(rh.gs(info.nightscout.core.ui.R.string.lowglucosesuspend)))
+                rxBus.send(EventPreferenceChange(rh.gs(app.aaps.core.ui.R.string.lowglucosesuspend)))
                 return true
             }
 
@@ -313,7 +313,7 @@ class LoopDialog : DaggerDialogFragment() {
                 commandQueue.cancelTempBasal(true, object : Callback() {
                     override fun run() {
                         if (!result.success) {
-                            ToastUtils.errorToast(ctx, rh.gs(info.nightscout.core.ui.R.string.temp_basal_delivery_error))
+                            ToastUtils.errorToast(ctx, rh.gs(app.aaps.core.ui.R.string.temp_basal_delivery_error))
                         }
                     }
                 })
@@ -354,7 +354,7 @@ class LoopDialog : DaggerDialogFragment() {
                 commandQueue.cancelTempBasal(true, object : Callback() {
                     override fun run() {
                         if (!result.success) {
-                            uiInteraction.runAlarm(result.comment, rh.gs(info.nightscout.core.ui.R.string.temp_basal_delivery_error), info.nightscout.core.ui.R.raw.boluserror)
+                            uiInteraction.runAlarm(result.comment, rh.gs(app.aaps.core.ui.R.string.temp_basal_delivery_error), app.aaps.core.ui.R.raw.boluserror)
                         }
                     }
                 })

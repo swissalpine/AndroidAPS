@@ -12,47 +12,54 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.configuration.Constants
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.notifications.Notification
-import app.aaps.interfaces.nsclient.NSAlarm
-import app.aaps.interfaces.nsclient.StoreDataForDb
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.Profile
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventAppExit
-import app.aaps.interfaces.rx.events.EventDeviceStatusChange
-import app.aaps.interfaces.rx.events.EventDismissNotification
-import app.aaps.interfaces.rx.events.EventNSClientNewLog
-import app.aaps.interfaces.rx.events.EventNewHistoryData
-import app.aaps.interfaces.rx.events.EventOfflineChange
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.rx.events.EventProfileStoreChanged
-import app.aaps.interfaces.rx.events.EventProfileSwitchChanged
-import app.aaps.interfaces.rx.events.EventSWSyncStatus
-import app.aaps.interfaces.rx.events.EventTempTargetChange
-import app.aaps.interfaces.rx.events.EventTherapyEventChange
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.source.NSClientSource
-import app.aaps.interfaces.sync.DataSyncSelector
-import app.aaps.interfaces.sync.NsClient
-import app.aaps.interfaces.sync.Sync
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.DecimalFormatter
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.configuration.Constants
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.notifications.Notification
+import app.aaps.core.interfaces.nsclient.NSAlarm
+import app.aaps.core.interfaces.nsclient.StoreDataForDb
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventAppExit
+import app.aaps.core.interfaces.rx.events.EventDeviceStatusChange
+import app.aaps.core.interfaces.rx.events.EventDismissNotification
+import app.aaps.core.interfaces.rx.events.EventNSClientNewLog
+import app.aaps.core.interfaces.rx.events.EventNewHistoryData
+import app.aaps.core.interfaces.rx.events.EventOfflineChange
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.rx.events.EventProfileStoreChanged
+import app.aaps.core.interfaces.rx.events.EventProfileSwitchChanged
+import app.aaps.core.interfaces.rx.events.EventSWSyncStatus
+import app.aaps.core.interfaces.rx.events.EventTempTargetChange
+import app.aaps.core.interfaces.rx.events.EventTherapyEventChange
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.source.NSClientSource
+import app.aaps.core.interfaces.sync.DataSyncSelector
+import app.aaps.core.interfaces.sync.NsClient
+import app.aaps.core.interfaces.sync.Sync
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.nssdk.NSAndroidClientImpl
+import app.aaps.core.nssdk.interfaces.NSAndroidClient
+import app.aaps.core.nssdk.mapper.toNSDeviceStatus
+import app.aaps.core.nssdk.mapper.toNSFood
+import app.aaps.core.nssdk.mapper.toNSSgvV3
+import app.aaps.core.nssdk.mapper.toNSTreatment
+import app.aaps.core.nssdk.remotemodel.LastModified
+import app.aaps.database.ValueWrapper
+import app.aaps.database.entities.interfaces.TraceableDBEntry
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.database.ValueWrapper
-import info.nightscout.database.entities.interfaces.TraceableDBEntry
 import info.nightscout.database.impl.AppRepository
 import info.nightscout.plugins.sync.R
 import info.nightscout.plugins.sync.nsShared.NSAlarmObject
@@ -84,13 +91,6 @@ import info.nightscout.plugins.sync.nsclientV3.workers.LoadLastModificationWorke
 import info.nightscout.plugins.sync.nsclientV3.workers.LoadProfileStoreWorker
 import info.nightscout.plugins.sync.nsclientV3.workers.LoadStatusWorker
 import info.nightscout.plugins.sync.nsclientV3.workers.LoadTreatmentsWorker
-import info.nightscout.sdk.NSAndroidClientImpl
-import info.nightscout.sdk.interfaces.NSAndroidClient
-import info.nightscout.sdk.mapper.toNSDeviceStatus
-import info.nightscout.sdk.mapper.toNSFood
-import info.nightscout.sdk.mapper.toNSSgvV3
-import info.nightscout.sdk.mapper.toNSTreatment
-import info.nightscout.sdk.remotemodel.LastModified
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import io.socket.client.Ack
@@ -132,7 +132,7 @@ class NSClientV3Plugin @Inject constructor(
     PluginDescription()
         .mainType(PluginType.SYNC)
         .fragmentClass(NSClientFragment::class.java.name)
-        .pluginIcon(info.nightscout.core.ui.R.drawable.ic_nightscout_syncs)
+        .pluginIcon(app.aaps.core.ui.R.drawable.ic_nightscout_syncs)
         .pluginName(R.string.ns_client_v3)
         .shortName(R.string.ns_client_v3_short_name)
         .preferencesId(R.xml.pref_ns_client_v3)
@@ -156,16 +156,16 @@ class NSClientV3Plugin @Inject constructor(
     override val status
         get() =
             when {
-                sp.getBoolean(R.string.key_ns_paused, false)                                           -> rh.gs(info.nightscout.core.ui.R.string.paused)
+                sp.getBoolean(R.string.key_ns_paused, false)                                           -> rh.gs(app.aaps.core.ui.R.string.paused)
                 isAllowed.not()                                                                        -> blockingReason
-                sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && wsConnected  -> "WS: " + rh.gs(app.aaps.interfaces.R.string.connected)
+                sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && wsConnected  -> "WS: " + rh.gs(app.aaps.core.interfaces.R.string.connected)
                 sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && !wsConnected -> "WS: " + rh.gs(R.string.not_connected)
-                lastOperationError != null                                                             -> rh.gs(info.nightscout.core.ui.R.string.error)
+                lastOperationError != null                                                             -> rh.gs(app.aaps.core.ui.R.string.error)
                 nsAndroidClient?.lastStatus == null                                                    -> rh.gs(R.string.not_connected)
                 workIsRunning()                                                                        -> rh.gs(R.string.working)
-                nsAndroidClient?.lastStatus?.apiPermissions?.isFull() == true                          -> rh.gs(app.aaps.interfaces.R.string.connected)
+                nsAndroidClient?.lastStatus?.apiPermissions?.isFull() == true                          -> rh.gs(app.aaps.core.interfaces.R.string.connected)
                 nsAndroidClient?.lastStatus?.apiPermissions?.isRead() == true                          -> rh.gs(R.string.read_only)
-                else                                                                                   -> rh.gs(info.nightscout.core.ui.R.string.unknown)
+                else                                                                                   -> rh.gs(app.aaps.core.ui.R.string.unknown)
             }
     var lastOperationError: String? = null
 

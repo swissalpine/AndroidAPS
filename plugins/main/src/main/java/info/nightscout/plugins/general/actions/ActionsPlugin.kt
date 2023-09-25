@@ -1,12 +1,12 @@
 package info.nightscout.plugins.general.actions
 
-import app.aaps.interfaces.actions.Actions
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.actions.Actions
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.resources.ResourceHelper
 import dagger.android.HasAndroidInjector
 import info.nightscout.plugins.R
 import javax.inject.Inject
@@ -24,7 +24,7 @@ class ActionsPlugin @Inject constructor(
         .fragmentClass(ActionsFragment::class.qualifiedName)
         .enableByDefault(config.APS || config.PUMPCONTROL)
         .visibleByDefault(config.APS || config.PUMPCONTROL)
-        .pluginIcon(info.nightscout.core.main.R.drawable.ic_action)
+        .pluginIcon(app.aaps.core.main.R.drawable.ic_action)
         .pluginName(R.string.actions)
         .shortName(R.string.actions_shortname)
         .description(R.string.description_actions),

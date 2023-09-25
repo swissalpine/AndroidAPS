@@ -1,29 +1,29 @@
 package info.nightscout.plugins.general.autotune.data
 
-import app.aaps.interfaces.configuration.Config
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.insulin.Insulin
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.objects.Instantiator
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.Profile
-import app.aaps.interfaces.profile.ProfileStore
-import app.aaps.interfaces.profile.ProfileUtil
-import app.aaps.interfaces.profile.PureProfile
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.Round
-import app.aaps.interfaces.utils.SafeParse
-import app.aaps.interfaces.utils.T
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.insulin.Insulin
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.objects.Instantiator
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.profile.ProfileStore
+import app.aaps.core.interfaces.profile.ProfileUtil
+import app.aaps.core.interfaces.profile.PureProfile
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.Round
+import app.aaps.core.interfaces.utils.SafeParse
+import app.aaps.core.interfaces.utils.T
+import app.aaps.core.main.extensions.blockValueBySeconds
+import app.aaps.core.main.extensions.pureProfileFromJson
+import app.aaps.core.main.profile.ProfileSealed
+import app.aaps.core.utils.MidnightUtils
+import app.aaps.database.entities.data.Block
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.extensions.blockValueBySeconds
-import info.nightscout.core.extensions.pureProfileFromJson
-import info.nightscout.core.profile.ProfileSealed
-import info.nightscout.core.utils.MidnightUtils
-import info.nightscout.database.entities.data.Block
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -178,7 +178,7 @@ class ATProfile(profile: Profile, var localInsulin: LocalInsulin, val injector: 
         val store = JSONObject()
         val tunedProfile = if (circadian) circadianProfile else profile
         if (profileName.isEmpty())
-            profileName = rh.gs(info.nightscout.core.ui.R.string.autotune_tunedprofile_name)
+            profileName = rh.gs(app.aaps.core.ui.R.string.autotune_tunedprofile_name)
         try {
             store.put(profileName, tunedProfile.toPureNsJson(dateUtil))
             json.put("defaultProfile", profileName)

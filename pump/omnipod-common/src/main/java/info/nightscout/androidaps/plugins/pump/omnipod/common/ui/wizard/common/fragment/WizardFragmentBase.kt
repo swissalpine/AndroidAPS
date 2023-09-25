@@ -9,7 +9,7 @@ import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.navigation.fragment.findNavController
-import app.aaps.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.resources.ResourceHelper
 import dagger.android.support.DaggerFragment
 import info.nightscout.androidaps.plugins.pump.omnipod.common.R
 import info.nightscout.androidaps.plugins.pump.omnipod.common.databinding.OmnipodCommonWizardBaseFragmentBinding
@@ -51,7 +51,7 @@ abstract class WizardFragmentBase : DaggerFragment() {
         if (nextPage == null) {
             binding.navButtonsLayout.buttonNext.text = getString(R.string.omnipod_common_wizard_button_finish)
             binding.navButtonsLayout.buttonNext.backgroundTintList =
-                ColorStateList.valueOf(rh.gac(context, info.nightscout.core.ui.R.attr.omniWizardFinishButtonColor))
+                ColorStateList.valueOf(rh.gac(context, app.aaps.core.ui.R.attr.omniWizardFinishButtonColor))
         }
 
         updateProgressIndication()

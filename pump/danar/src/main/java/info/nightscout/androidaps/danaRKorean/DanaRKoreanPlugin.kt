@@ -6,34 +6,34 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import app.aaps.annotations.OpenForTesting
-import app.aaps.interfaces.constraints.ConstraintsChecker
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.profile.Profile
-import app.aaps.interfaces.pump.DetailedBolusInfo
-import app.aaps.interfaces.pump.PumpEnactResult
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.pump.PumpSync.TemporaryBasalType
-import app.aaps.interfaces.pump.defs.PumpType
-import app.aaps.interfaces.queue.CommandQueue
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventAppExit
-import app.aaps.interfaces.rx.events.EventOverviewBolusProgress
-import app.aaps.interfaces.rx.events.EventPreferenceChange
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.ui.UiInteraction
-import app.aaps.interfaces.utils.DateUtil
-import app.aaps.interfaces.utils.DecimalFormatter
-import app.aaps.interfaces.utils.Round
+import app.aaps.core.main.constraints.ConstraintObject
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.pump.PumpEnactResult
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.PumpSync.TemporaryBasalType
+import app.aaps.core.interfaces.pump.defs.PumpType
+import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventAppExit
+import app.aaps.core.interfaces.rx.events.EventOverviewBolusProgress
+import app.aaps.core.interfaces.rx.events.EventPreferenceChange
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.Round
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.danaRKorean.services.DanaRKoreanExecutionService
 import info.nightscout.androidaps.danar.AbstractDanaRPlugin
 import info.nightscout.androidaps.danar.R
-import info.nightscout.core.constraints.ConstraintObject
-import info.nightscout.core.utils.fabric.FabricPrivacy
 import info.nightscout.pump.dana.DanaPump
 import info.nightscout.pump.dana.database.DanaHistoryDatabase
 import io.reactivex.rxjava3.kotlin.plusAssign
@@ -167,7 +167,7 @@ class DanaRKoreanPlugin @Inject constructor(
                     t.insulin,
                     danaPump.bolusStartErrorCode
                 )
-            ) else result.comment(info.nightscout.core.ui.R.string.ok)
+            ) else result.comment(app.aaps.core.ui.R.string.ok)
             aapsLogger.debug(LTag.PUMP, "deliverTreatment: OK. Asked: " + detailedBolusInfo.insulin + " Delivered: " + result.bolusDelivered)
             detailedBolusInfo.insulin = t.insulin
             detailedBolusInfo.timestamp = dateUtil.now()
@@ -182,7 +182,7 @@ class DanaRKoreanPlugin @Inject constructor(
             result
         } else {
             val result = PumpEnactResult(injector)
-            result.success(false).bolusDelivered(0.0).comment(info.nightscout.core.ui.R.string.invalid_input)
+            result.success(false).bolusDelivered(0.0).comment(app.aaps.core.ui.R.string.invalid_input)
             aapsLogger.error("deliverTreatment: Invalid input")
             result
         }
@@ -308,7 +308,7 @@ class DanaRKoreanPlugin @Inject constructor(
             return cancelExtendedBolus()
         }
         val result = PumpEnactResult(injector)
-        result.success(true).enacted(false).comment(info.nightscout.core.ui.R.string.ok).isTempCancel(true)
+        result.success(true).enacted(false).comment(app.aaps.core.ui.R.string.ok).isTempCancel(true)
         return result
     }
 
@@ -328,7 +328,7 @@ class DanaRKoreanPlugin @Inject constructor(
                 result.success(true).enacted(true).isTempCancel(true)
             } else result.success(false).enacted(false).isTempCancel(true)
         } else {
-            result.success(true).isTempCancel(true).comment(info.nightscout.core.ui.R.string.ok)
+            result.success(true).isTempCancel(true).comment(app.aaps.core.ui.R.string.ok)
             aapsLogger.debug(LTag.PUMP, "cancelRealTempBasal: OK")
         }
         return result

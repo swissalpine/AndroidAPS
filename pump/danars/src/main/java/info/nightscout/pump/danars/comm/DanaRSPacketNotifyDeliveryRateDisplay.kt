@@ -1,9 +1,9 @@
 package info.nightscout.pump.danars.comm
 
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventOverviewBolusProgress
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventOverviewBolusProgress
 import dagger.android.HasAndroidInjector
 import info.nightscout.androidaps.danars.encryption.BleEncryption
 import info.nightscout.pump.dana.DanaPump
@@ -28,7 +28,7 @@ class DanaRSPacketNotifyDeliveryRateDisplay(
         danaPump.bolusProgressLastTimeStamp = System.currentTimeMillis()
         danaPump.bolusingTreatment?.insulin = deliveredInsulin
         val bolusingEvent = EventOverviewBolusProgress
-        bolusingEvent.status = rh.gs(info.nightscout.core.ui.R.string.bolus_delivering, deliveredInsulin)
+        bolusingEvent.status = rh.gs(app.aaps.core.ui.R.string.bolus_delivering, deliveredInsulin)
         bolusingEvent.t = danaPump.bolusingTreatment
         bolusingEvent.percent = min((deliveredInsulin / danaPump.bolusAmountToBeDelivered * 100).toInt(), 100)
         failed = bolusingEvent.percent < 100

@@ -1,7 +1,7 @@
 package info.nightscout.automation.actions
 
-import app.aaps.interfaces.db.GlucoseUnit
-import app.aaps.interfaces.queue.Callback
+import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.queue.Callback
 import info.nightscout.automation.elements.InputCarePortalMenu
 import info.nightscout.automation.elements.InputDuration
 import info.nightscout.automation.elements.InputString
@@ -21,7 +21,7 @@ class ActionCarePortalEventTest : ActionsTestBase() {
     @BeforeEach
     fun setup() {
         `when`(sp.getString(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn("AAPS")
-        `when`(rh.gs(info.nightscout.core.ui.R.string.careportal_note_message)).thenReturn("Note : %s")
+        `when`(rh.gs(app.aaps.core.ui.R.string.careportal_note_message)).thenReturn("Note : %s")
         `when`(dateUtil.now()).thenReturn(0)
         `when`(profileFunction.getUnits()).thenReturn(GlucoseUnit.MGDL)
         `when`(repository.runTransactionForResult(anyObject<Transaction<InsertIfNewByTimestampTherapyEventTransaction.TransactionResult>>()))
@@ -35,7 +35,7 @@ class ActionCarePortalEventTest : ActionsTestBase() {
     }
 
     @Test fun friendlyNameTest() {
-        Assertions.assertEquals(info.nightscout.core.ui.R.string.careportal, sut.friendlyName())
+        Assertions.assertEquals(app.aaps.core.ui.R.string.careportal, sut.friendlyName())
     }
 
     @Test fun shortDescriptionTest() {
@@ -43,7 +43,7 @@ class ActionCarePortalEventTest : ActionsTestBase() {
     }
 
     @Test fun iconTest() {
-        Assertions.assertEquals(info.nightscout.core.main.R.drawable.ic_cp_note, sut.icon())
+        Assertions.assertEquals(app.aaps.core.main.R.drawable.ic_cp_note, sut.icon())
     }
 
     @Test fun doActionTest() {

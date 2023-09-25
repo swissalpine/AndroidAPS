@@ -8,7 +8,7 @@
         android:title="@string/openapssmb"
         app:initialExpandedChildrenCount="0">
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/openapsma_max_basal_summary"
             android:inputType="numberDecimal"
@@ -18,7 +18,7 @@
             validate:floatminNumber="0.1"
             validate:testType="floatNumericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="3"
             android:dialogMessage="@string/openapssmb_max_iob_summary"
             android:inputType="numberDecimal"
@@ -74,7 +74,7 @@
             android:summary="@string/enable_smb_after_carbs_summary"
             android:title="@string/enable_smb_after_carbs" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="3"
             android:digits="0123456789"
             android:inputType="number"
@@ -87,7 +87,7 @@
             validate:minNumber="1"
             validate:testType="numericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="30"
             android:digits="0123456789"
             android:entries="@array/smbMaxMinutes"
@@ -99,7 +99,7 @@
             validate:minNumber="15"
             validate:testType="numericRange" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="30"
             android:dialogMessage="@string/uam_smb_max_minutes"
             android:digits="0123456789"
@@ -124,7 +124,6 @@
             android:key="@string/key_sensitivity_raises_target"
             android:summary="@string/sensitivity_raises_target_summary"
             android:title="@string/sensitivity_raises_target_title" />
-
         <SwitchPreference
             android:defaultValue="false"
             android:key="@string/key_resistance_lowers_target"
@@ -146,7 +145,7 @@
             android:summary="@string/low_temptarget_lowers_sensitivity_summary"
             android:title="@string/low_temptarget_lowers_sensitivity_title" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="160"
             android:dialogMessage="@string/half_basal_exercise_target_summary"
             android:digits="0123456789"
@@ -166,7 +165,7 @@
             android:summary="@string/activity_detection_summary"
             android:title="@string/activity_detection_title" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
             android:dialogMessage="@string/carbs_req_threshold_summary"
             android:digits="0123456789"
@@ -198,7 +197,7 @@
                 android:summary="@string/keto_protect_strategy_summary"
                 android:title="@string/keto_protect_strategy_title" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="20"
                 android:dependency="@string/key_keto_protect"
                 android:dialogMessage="@string/keto_protect_basal_summary"
@@ -231,7 +230,7 @@
                 android:summary="@string/always_use_short_avg_summary"
                 android:title="@string/always_use_short_avg" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="3"
                 android:dialogMessage="@string/openapsama_max_daily_safety_multiplier_summary"
                 android:digits="0123456789.,"
@@ -244,7 +243,7 @@
                 validate:minNumber="1"
                 validate:testType="numericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="4"
                 android:dialogMessage="@string/openapsama_current_basal_safety_multiplier_summary"
                 android:digits="0123456789.,"
@@ -271,7 +270,7 @@
                 android:key="@string/key_enable_autoISF"
                 android:title="@string/openapsama_enable_autoISF" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1.0"
                 android:dialogMessage="@string/openapsama_autoISF_min_summary"
                 android:digits="0123456789.,"
@@ -285,7 +284,7 @@
                 validate:floatminNumber="0.3"
                 validate:testType="floatNumericRange" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1.0"
                 android:dialogMessage="@string/openapsama_autoISF_max_summary"
                 android:digits="0123456789.,"
@@ -305,7 +304,7 @@
 
                 <Preference android:summary="@string/acce_ISF_settings_summary" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_bgAccel_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -319,7 +318,7 @@
                     validate:floatminNumber="0"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_bgBrake_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -341,7 +340,7 @@
 
                 <Preference android:summary="@string/bg_ISF_settings_summary" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_lower_ISFrange_weight_summary"
                     android:digits="0123456789.,"
@@ -355,7 +354,7 @@
                     validate:floatminNumber="0"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_higher_ISFrange_weight_summary"
                     android:digits="0123456789.,"
@@ -383,7 +382,7 @@
                     android:summary="@string/enable_postprandial_ISF_always_summary"
                     android:title="@string/enable_postprandial_ISF_always" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="3"
                     android:dialogMessage="@string/openapsama_pp_ISF_hours_summary"
                     android:digits="0123456789"
@@ -397,7 +396,7 @@
                     validate:minNumber="1"
                     validate:testType="numericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_pp_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -419,7 +418,7 @@
 
                 <Preference android:summary="@string/delta_ISF_settings_summary" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_delta_ISFrange_weight_summary"
                     android:digits="0123456789.,"
@@ -447,7 +446,7 @@
                     android:summary="@string/enableautoISFwithcob_summary"
                     android:title="@string/enableautoISFwithcob" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.0"
                     android:dialogMessage="@string/openapsama_dura_ISF_weight_summary"
                     android:digits="0123456789.,"
@@ -469,7 +468,7 @@
 
                 <Preference android:summary="@string/smb_delivery_settings_summary" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.5"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_summary"
                     android:digits="0123456789.,"
@@ -483,7 +482,7 @@
                     validate:floatminNumber="0.5"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.5"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_min_summary"
                     android:digits="0123456789.,"
@@ -497,7 +496,7 @@
                     validate:floatminNumber="0.5"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0.5"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_max_summary"
                     android:digits="0123456789.,"
@@ -511,7 +510,7 @@
                     validate:floatminNumber="0.5"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="0"
                     android:dialogMessage="@string/openapsama_smb_delivery_ratio_bg_range_summary"
                     android:digits="0123456789.,"
@@ -525,7 +524,7 @@
                     validate:floatminNumber="0"
                     validate:testType="floatNumericRange" />
 
-                <info.nightscout.core.validators.ValidatingEditTextPreference
+                <app.aaps.core.validators.ValidatingEditTextPreference
                     android:defaultValue="1"
                     android:dialogMessage="@string/openapsama_smb_max_range_extension_summary"
                     android:digits="0123456789.,"

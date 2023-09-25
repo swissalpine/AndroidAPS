@@ -15,37 +15,37 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import app.aaps.configuration.R
 import app.aaps.configuration.configBuilder.events.EventConfigBuilderUpdateGui
-import app.aaps.interfaces.aps.APS
-import app.aaps.interfaces.aps.Sensitivity
-import app.aaps.interfaces.configuration.ConfigBuilder
-import app.aaps.interfaces.extensions.toVisibility
-import app.aaps.interfaces.insulin.Insulin
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.plugin.ActivePlugin
-import app.aaps.interfaces.plugin.PluginBase
-import app.aaps.interfaces.plugin.PluginDescription
-import app.aaps.interfaces.plugin.PluginType
-import app.aaps.interfaces.profile.ProfileSource
-import app.aaps.interfaces.protection.ProtectionCheck
-import app.aaps.interfaces.pump.Pump
-import app.aaps.interfaces.pump.PumpSync
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventAppInitialized
-import app.aaps.interfaces.rx.events.EventConfigBuilderChange
-import app.aaps.interfaces.rx.events.EventRebuildTabs
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.smoothing.Smoothing
-import app.aaps.interfaces.source.BgSource
-import app.aaps.interfaces.sync.NsClient
-import app.aaps.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.aps.APS
+import app.aaps.core.interfaces.aps.Sensitivity
+import app.aaps.core.interfaces.configuration.ConfigBuilder
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.insulin.Insulin
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
+import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.plugin.PluginType
+import app.aaps.core.interfaces.profile.ProfileSource
+import app.aaps.core.interfaces.protection.ProtectionCheck
+import app.aaps.core.interfaces.pump.Pump
+import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventAppInitialized
+import app.aaps.core.interfaces.rx.events.EventConfigBuilderChange
+import app.aaps.core.interfaces.rx.events.EventRebuildTabs
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.smoothing.Smoothing
+import app.aaps.core.interfaces.source.BgSource
+import app.aaps.core.interfaces.sync.NsClient
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.database.entities.UserEntry.Action
+import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.database.entities.ValueWithUnit
 import dagger.android.HasAndroidInjector
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.database.entities.UserEntry.Action
-import info.nightscout.database.entities.UserEntry.Sources
-import info.nightscout.database.entities.ValueWithUnit
 import java.security.InvalidParameterException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -69,7 +69,7 @@ class ConfigBuilderPlugin @Inject constructor(
         .showInList(true)
         .alwaysEnabled(true)
         .alwaysVisible(false)
-        .pluginIcon(info.nightscout.core.ui.R.drawable.ic_cogs)
+        .pluginIcon(app.aaps.core.ui.R.drawable.ic_cogs)
         .pluginName(R.string.config_builder)
         .shortName(R.string.config_builder_shortname)
         .description(R.string.description_config_builder),
@@ -154,7 +154,7 @@ class ConfigBuilderPlugin @Inject constructor(
 
     // Ask when switching to physical pump plugin
     fun switchAllowed(changedPlugin: PluginBase, newState: Boolean, activity: FragmentActivity?, type: PluginType) {
-        if (changedPlugin.getType() == PluginType.PUMP && changedPlugin.name != rh.gs(info.nightscout.core.ui.R.string.virtual_pump))
+        if (changedPlugin.getType() == PluginType.PUMP && changedPlugin.name != rh.gs(app.aaps.core.ui.R.string.virtual_pump))
             confirmPumpPluginActivation(changedPlugin, newState, activity, type)
         else if (changedPlugin.getType() == PluginType.PUMP) {
             performPluginSwitch(changedPlugin, newState, type)

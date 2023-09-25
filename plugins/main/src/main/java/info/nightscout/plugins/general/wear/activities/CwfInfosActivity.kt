@@ -6,24 +6,24 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import app.aaps.interfaces.logging.AAPSLogger
-import app.aaps.interfaces.logging.LTag
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
-import app.aaps.interfaces.rx.events.EventWearUpdateGui
-import app.aaps.interfaces.rx.weardata.CUSTOM_VERSION
-import app.aaps.interfaces.rx.weardata.CwfMetadataKey
-import app.aaps.interfaces.rx.weardata.CwfMetadataMap
-import app.aaps.interfaces.rx.weardata.JsonKeyValues
-import app.aaps.interfaces.rx.weardata.JsonKeys
-import app.aaps.interfaces.rx.weardata.ResFileMap
-import app.aaps.interfaces.rx.weardata.ViewKeys
-import app.aaps.interfaces.rx.weardata.ZipWatchfaceFormat
-import app.aaps.interfaces.sharedPreferences.SP
-import app.aaps.interfaces.versionChecker.VersionCheckerUtils
-import info.nightscout.core.ui.activities.TranslatedDaggerAppCompatActivity
-import info.nightscout.core.utils.fabric.FabricPrivacy
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventWearUpdateGui
+import app.aaps.core.interfaces.rx.weardata.CUSTOM_VERSION
+import app.aaps.core.interfaces.rx.weardata.CwfMetadataKey
+import app.aaps.core.interfaces.rx.weardata.CwfMetadataMap
+import app.aaps.core.interfaces.rx.weardata.JsonKeyValues
+import app.aaps.core.interfaces.rx.weardata.JsonKeys
+import app.aaps.core.interfaces.rx.weardata.ResFileMap
+import app.aaps.core.interfaces.rx.weardata.ViewKeys
+import app.aaps.core.interfaces.rx.weardata.ZipWatchfaceFormat
+import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.versionChecker.VersionCheckerUtils
+import app.aaps.core.ui.activities.TranslatedDaggerAppCompatActivity
 import info.nightscout.plugins.R
 import info.nightscout.plugins.databinding.CwfInfosActivityBinding
 import info.nightscout.plugins.databinding.CwfInfosActivityPrefItemBinding
@@ -98,7 +98,7 @@ class CwfInfosActivity : TranslatedDaggerAppCompatActivity() {
             binding.author.text = rh.gs(CwfMetadataKey.CWF_AUTHOR.label, metadata[CwfMetadataKey.CWF_AUTHOR] ?: "")
             binding.createdAt.text = rh.gs(CwfMetadataKey.CWF_CREATED_AT.label, metadata[CwfMetadataKey.CWF_CREATED_AT] ?: "")
             binding.cwfVersion.text = rh.gs(CwfMetadataKey.CWF_VERSION.label, metadata[CwfMetadataKey.CWF_VERSION] ?: "")
-            val colorAttr = if (checkCustomVersion(metadata)) info.nightscout.core.ui.R.attr.metadataTextOkColor else info.nightscout.core.ui.R.attr.metadataTextWarningColor
+            val colorAttr = if (checkCustomVersion(metadata)) app.aaps.core.ui.R.attr.metadataTextOkColor else app.aaps.core.ui.R.attr.metadataTextWarningColor
             binding.cwfVersion.setTextColor(rh.gac(binding.cwfVersion.context, colorAttr))
             binding.cwfComment.text = rh.gs(CwfMetadataKey.CWF_COMMENT.label, metadata[CwfMetadataKey.CWF_COMMENT] ?: "")
             if (metadata.count { it.key.isPref } > 0) {

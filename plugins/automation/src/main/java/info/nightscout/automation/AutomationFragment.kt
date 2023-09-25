@@ -22,11 +22,20 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import app.aaps.interfaces.extensions.toVisibility
-import app.aaps.interfaces.logging.UserEntryLogger
-import app.aaps.interfaces.resources.ResourceHelper
-import app.aaps.interfaces.rx.AapsSchedulers
-import app.aaps.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.extensions.toVisibility
+import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.resources.ResourceHelper
+import app.aaps.core.interfaces.rx.AapsSchedulers
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.main.utils.ActionModeHelper
+import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.ui.dialogs.OKDialog
+import app.aaps.core.ui.dragHelpers.ItemTouchHelperAdapter
+import app.aaps.core.ui.dragHelpers.OnStartDragListener
+import app.aaps.core.ui.dragHelpers.SimpleItemTouchHelperCallback
+import app.aaps.core.utils.HtmlHelper
+import app.aaps.database.entities.UserEntry.Action
+import app.aaps.database.entities.UserEntry.Sources
 import dagger.android.HasAndroidInjector
 import dagger.android.support.DaggerFragment
 import info.nightscout.automation.databinding.AutomationEventItemBinding
@@ -35,15 +44,6 @@ import info.nightscout.automation.dialogs.EditEventDialog
 import info.nightscout.automation.events.EventAutomationDataChanged
 import info.nightscout.automation.events.EventAutomationUpdateGui
 import info.nightscout.automation.triggers.TriggerConnector
-import info.nightscout.core.ui.dialogs.OKDialog
-import info.nightscout.core.ui.dragHelpers.ItemTouchHelperAdapter
-import info.nightscout.core.ui.dragHelpers.OnStartDragListener
-import info.nightscout.core.ui.dragHelpers.SimpleItemTouchHelperCallback
-import info.nightscout.core.utils.ActionModeHelper
-import info.nightscout.core.utils.HtmlHelper
-import info.nightscout.core.utils.fabric.FabricPrivacy
-import info.nightscout.database.entities.UserEntry.Action
-import info.nightscout.database.entities.UserEntry.Sources
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import javax.inject.Inject
@@ -194,9 +194,9 @@ class AutomationFragment : DaggerFragment(), OnStartDragListener, MenuProvider {
                 rh.gac(
                     context,
                     when {
-                        automation.userAction        -> info.nightscout.core.ui.R.attr.userAction
-                        automation.areActionsValid() -> info.nightscout.core.ui.R.attr.validActions
-                        else                         -> info.nightscout.core.ui.R.attr.actionsError
+                        automation.userAction        -> app.aaps.core.ui.R.attr.userAction
+                        automation.areActionsValid() -> app.aaps.core.ui.R.attr.validActions
+                        else                         -> app.aaps.core.ui.R.attr.actionsError
                     }
                 )
             )
@@ -206,7 +206,7 @@ class AutomationFragment : DaggerFragment(), OnStartDragListener, MenuProvider {
             holder.binding.iconLayout.removeAllViews()
             // trigger icons
             val triggerIcons = HashSet<Int>()
-            if (automation.userAction) triggerIcons.add(info.nightscout.core.ui.R.drawable.ic_user_options)
+            if (automation.userAction) triggerIcons.add(app.aaps.core.ui.R.drawable.ic_user_options)
             fillIconSet(automation.trigger, triggerIcons)
             for (res in triggerIcons) {
                 addImage(res, holder.context, holder.binding.iconLayout)
@@ -283,14 +283,14 @@ class AutomationFragment : DaggerFragment(), OnStartDragListener, MenuProvider {
     private fun getConfirmationText(selectedItems: SparseArray<AutomationEventObject>): String {
         if (selectedItems.size() == 1) {
             val event = selectedItems.valueAt(0)
-            return rh.gs(info.nightscout.core.ui.R.string.removerecord) + " " + event.title
+            return rh.gs(app.aaps.core.ui.R.string.removerecord) + " " + event.title
         }
-        return rh.gs(info.nightscout.core.ui.R.string.confirm_remove_multiple_items, selectedItems.size())
+        return rh.gs(app.aaps.core.ui.R.string.confirm_remove_multiple_items, selectedItems.size())
     }
 
     private fun removeSelected(selectedItems: SparseArray<AutomationEventObject>) {
         activity?.let { activity ->
-            OKDialog.showConfirmation(activity, rh.gs(info.nightscout.core.ui.R.string.removerecord), getConfirmationText(selectedItems), Runnable {
+            OKDialog.showConfirmation(activity, rh.gs(app.aaps.core.ui.R.string.removerecord), getConfirmationText(selectedItems), Runnable {
                 selectedItems.forEach { _, event ->
                     uel.log(Action.AUTOMATION_REMOVED, Sources.Automation, event.title)
                     automationPlugin.removeAt(event.position)
