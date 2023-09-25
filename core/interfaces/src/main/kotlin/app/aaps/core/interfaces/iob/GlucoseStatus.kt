@@ -1,7 +1,7 @@
 package app.aaps.core.interfaces.iob
 
-import info.nightscout.interfaces.utils.DecimalFormatter
-import info.nightscout.interfaces.utils.Round
+import app.aaps.core.interfaces.utils.DecimalFormatter
+import app.aaps.core.interfaces.utils.Round
 
 data class GlucoseStatus(
     val glucose: Double,

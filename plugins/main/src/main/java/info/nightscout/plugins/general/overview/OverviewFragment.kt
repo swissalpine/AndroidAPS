@@ -189,19 +189,19 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         // Mod exercise mode toggle icon
         if ( sp.getBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)) {
             binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
-            binding.exerciseModeCheckboxIcon.setBackgroundResource(info.nightscout.core.ui.R.color.ribbonWarning)
+            binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
         } else {
             binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
-            binding.exerciseModeCheckboxIcon.setBackgroundResource(info.nightscout.core.ui.R.color.ribbonDefault)
+            binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
         }
         binding.exerciseModeCheckboxIcon.setOnClickListener {
             if (sp.getBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false) == true) {
                 binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
-                binding.exerciseModeCheckboxIcon.setBackgroundResource(info.nightscout.core.ui.R.color.ribbonDefault)
+                binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
                 sp.putBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
             } else {
                 binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
-                binding.exerciseModeCheckboxIcon.setBackgroundResource(info.nightscout.core.ui.R.color.ribbonWarning)
+                binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
                 sp.putBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, true)
             }
         }
