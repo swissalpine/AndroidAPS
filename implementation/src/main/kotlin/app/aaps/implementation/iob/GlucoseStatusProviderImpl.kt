@@ -194,7 +194,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
         //  y = a*x^2  + b*x  + c       respectively
 
         // initially just test the handling of arguments
-        var ppDebug = ""
+        //var ppDebug = ""
         var bestA = 0.0
         var bestB = 0.0
         var bestC = 0.0
