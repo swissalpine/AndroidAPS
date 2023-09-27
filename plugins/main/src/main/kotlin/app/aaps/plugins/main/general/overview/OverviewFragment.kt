@@ -187,7 +187,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         super.onViewCreated(view, savedInstanceState)
 
         // Mod exercise mode toggle icon
-        if ( sp.getBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)) {
+        if ( sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)) {
             binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
             binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
         } else {
@@ -195,14 +195,14 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
         }
         binding.exerciseModeCheckboxIcon.setOnClickListener {
-            if (sp.getBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false) == true) {
+            if (sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false) == true) {
                 binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
                 binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
-                sp.putBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
+                sp.putBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
             } else {
                 binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
                 binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
-                sp.putBoolean(info.nightscout.core.utils.R.string.key_high_temptarget_raises_sensitivity, true)
+                sp.putBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, true)
             }
         }
         // Mod end

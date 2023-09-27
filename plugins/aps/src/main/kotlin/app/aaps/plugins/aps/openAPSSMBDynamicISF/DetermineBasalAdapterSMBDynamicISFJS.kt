@@ -218,7 +218,7 @@ class DetermineBasalAdapterSMBDynamicISFJS internal constructor(private val scri
         this.profile.put("adv_target_adjustments", SMBDefaults.adv_target_adjustments)
         this.profile.put(
             "exercise_mode",
-            sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity
+            sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity)
         )
         this.profile.put("half_basal_exercise_target", SMBDefaults.half_basal_exercise_target)
         this.profile.put("maxCOB", SMBDefaults.maxCOB)
