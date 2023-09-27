@@ -29,11 +29,11 @@ import app.aaps.core.utils.HtmlHelper
 import app.aaps.database.entities.TemporaryTarget
 import app.aaps.database.entities.UserEntry
 import app.aaps.database.entities.ValueWithUnit
-import com.google.common.base.Joiner
-import info.nightscout.database.impl.AppRepository
-import info.nightscout.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
+import app.aaps.database.impl.AppRepository
+import app.aaps.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import app.aaps.ui.R
 import app.aaps.ui.databinding.DialogProfileswitchBinding
+import com.google.common.base.Joiner
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DecimalFormat
@@ -214,7 +214,7 @@ class ProfileSwitchDialog : DialogFragmentWithDate() {
                                 ValueWithUnit.Percent(percent),
                                 ValueWithUnit.Hour(timeShift).takeIf { timeShift != 0 },
                                 ValueWithUnit.Minute(duration).takeIf { duration != 0 })
-                        if (percent == 90 && duration == 10) sp.putBoolean(info.nightscout.core.utils.R.string.key_objectiveuseprofileswitch, true)
+                        if (percent == 90 && duration == 10) sp.putBoolean(app.aaps.core.utils.R.string.key_objectiveuseprofileswitch, true)
                         if (isTT) {
                             disposable += repository.runTransactionForResult(
                                 InsertAndCancelCurrentTemporaryTargetTransaction(

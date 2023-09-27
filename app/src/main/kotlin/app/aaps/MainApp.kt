@@ -33,6 +33,9 @@ import app.aaps.core.interfaces.versionChecker.VersionCheckerUtils
 import app.aaps.core.ui.locale.LocaleHelper
 import app.aaps.database.entities.TherapyEvent
 import app.aaps.database.entities.UserEntry
+import app.aaps.database.impl.AppRepository
+import app.aaps.database.impl.transactions.InsertIfNewByTimestampTherapyEventTransaction
+import app.aaps.database.impl.transactions.VersionChangeTransaction
 import app.aaps.di.DaggerAppComponent
 import app.aaps.implementation.db.CompatDBHelper
 import app.aaps.implementation.lifecycle.ProcessLifecycleListener
@@ -45,15 +48,10 @@ import app.aaps.receivers.BTReceiver
 import app.aaps.receivers.ChargingStateReceiver
 import app.aaps.receivers.KeepAliveWorker
 import app.aaps.receivers.TimeDateOrTZChangeReceiver
-import dagger.android.AndroidInjector
-import dagger.android.DaggerApplication
-import info.nightscout.androidaps.BuildConfig
-import info.nightscout.androidaps.R
-import info.nightscout.database.impl.AppRepository
-import info.nightscout.database.impl.transactions.InsertIfNewByTimestampTherapyEventTransaction
-import info.nightscout.database.impl.transactions.VersionChangeTransaction
 import app.aaps.ui.activityMonitor.ActivityMonitor
 import app.aaps.ui.widget.Widget
+import dagger.android.AndroidInjector
+import dagger.android.DaggerApplication
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.exceptions.UndeliverableException
 import io.reactivex.rxjava3.kotlin.plusAssign
@@ -130,7 +128,7 @@ class MainApp : DaggerApplication() {
             handler.postDelayed(
                 {
                     // check if identification is set
-                    if (config.isDev() && sp.getStringOrNull(info.nightscout.core.utils.R.string.key_email_for_crash_report, null).isNullOrBlank())
+                    if (config.isDev() && sp.getStringOrNull(app.aaps.core.utils.R.string.key_email_for_crash_report, null).isNullOrBlank())
                         notificationStore.add(Notification(Notification.IDENTIFICATION_NOT_SET, rh.get().gs(R.string.identification_not_set), Notification.INFO))
                     // log version
                     disposable += repository.runTransaction(VersionChangeTransaction(BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, gitRemote, commitHash)).subscribe()

@@ -14,6 +14,7 @@ import androidx.work.WorkManager
 import app.aaps.annotations.OpenForTesting
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.configuration.Constants
+import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.Notification
@@ -47,7 +48,7 @@ import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.T
-import app.aaps.core.main.utils.fabric.FabricPrivacy
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.nssdk.NSAndroidClientImpl
 import app.aaps.core.nssdk.interfaces.NSAndroidClient
 import app.aaps.core.nssdk.mapper.toNSDeviceStatus
@@ -90,7 +91,6 @@ import app.aaps.plugins.sync.nsclientV3.workers.LoadTreatmentsWorker
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.android.HasAndroidInjector
-import info.nightscout.database.impl.AppRepository
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import io.socket.client.Ack
@@ -122,7 +122,7 @@ class NSClientV3Plugin @Inject constructor(
     private val dateUtil: DateUtil,
     private val uiInteraction: UiInteraction,
     private val dataSyncSelectorV3: DataSyncSelectorV3,
-    private val repository: AppRepository,
+    private val persistenceLayer: PersistenceLayer,
     private val nsDeviceStatusHandler: NSDeviceStatusHandler,
     private val nsClientSource: NSClientSource,
     private val nsIncomingDataProcessor: NsIncomingDataProcessor,
@@ -158,8 +158,8 @@ class NSClientV3Plugin @Inject constructor(
             when {
                 sp.getBoolean(R.string.key_ns_paused, false)                                           -> rh.gs(app.aaps.core.ui.R.string.paused)
                 isAllowed.not()                                                                        -> blockingReason
-                sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && wsConnected  -> "WS: " + rh.gs(app.aaps.core.interfaces.R.string.connected)
-                sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && !wsConnected -> "WS: " + rh.gs(R.string.not_connected)
+                sp.getBoolean(app.aaps.core.utils.R.string.key_ns_use_ws, true) && wsConnected  -> "WS: " + rh.gs(app.aaps.core.interfaces.R.string.connected)
+                sp.getBoolean(app.aaps.core.utils.R.string.key_ns_use_ws, true) && !wsConnected -> "WS: " + rh.gs(R.string.not_connected)
                 lastOperationError != null                                                             -> rh.gs(app.aaps.core.ui.R.string.error)
                 nsAndroidClient?.lastStatus == null                                                    -> rh.gs(R.string.not_connected)
                 workIsRunning()                                                                        -> rh.gs(R.string.working)
@@ -206,14 +206,14 @@ class NSClientV3Plugin @Inject constructor(
             .observeOn(aapsSchedulers.io)
             .subscribe({ ev ->
                            if (ev.isChanged(rh.gs(R.string.key_ns_client_token)) ||
-                               ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_nsclientinternal_url)) ||
-                               ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_ns_use_ws)) ||
+                               ev.isChanged(rh.gs(app.aaps.core.utils.R.string.key_nsclientinternal_url)) ||
+                               ev.isChanged(rh.gs(app.aaps.core.utils.R.string.key_ns_use_ws)) ||
                                ev.isChanged(rh.gs(R.string.key_ns_paused)) ||
-                               ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_ns_alarms)) ||
-                               ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_ns_announcements))
+                               ev.isChanged(rh.gs(app.aaps.core.utils.R.string.key_ns_alarms)) ||
+                               ev.isChanged(rh.gs(app.aaps.core.utils.R.string.key_ns_announcements))
                            )
                                setClient("SETTING CHANGE")
-                           if (ev.isChanged(rh.gs(info.nightscout.core.utils.R.string.key_local_profile_last_change)))
+                           if (ev.isChanged(rh.gs(app.aaps.core.utils.R.string.key_local_profile_last_change)))
                                executeUpload("PROFILE_CHANGE", forceNew = true)
 
                        }, fabricPrivacy::logException)
@@ -260,7 +260,7 @@ class NSClientV3Plugin @Inject constructor(
         runLoop = Runnable {
             var refreshInterval = T.mins(5).msecs()
             if (nsClientSource.isEnabled())
-                repository.getLastGlucoseValueWrapped().blockingGet().let {
+                persistenceLayer.getLastGlucoseValue().blockingGet().let {
                     // if last value is older than 5 min or there is no bg
                     if (it is ValueWrapper.Existing) {
                         if (it.value.timestamp < dateUtil.now() - T.mins(5).plus(T.secs(20)).msecs()) {
@@ -268,7 +268,7 @@ class NSClientV3Plugin @Inject constructor(
                         }
                     }
                 }
-            if (!sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true))
+            if (!sp.getBoolean(app.aaps.core.utils.R.string.key_ns_use_ws, true))
                 executeLoop("MAIN_LOOP", forceNew = true)
             else
                 rxBus.send(EventNSClientNewLog("● TICK", ""))
@@ -311,8 +311,8 @@ class NSClientV3Plugin @Inject constructor(
         if (config.NSCLIENT) {
             preferenceFragment.findPreference<PreferenceScreen>(rh.gs(R.string.ns_sync_options))?.isVisible = false
 
-            preferenceFragment.findPreference<SwitchPreference>(rh.gs(info.nightscout.core.utils.R.string.key_ns_create_announcements_from_errors))?.isVisible = false
-            preferenceFragment.findPreference<SwitchPreference>(rh.gs(info.nightscout.core.utils.R.string.key_ns_create_announcements_from_carbs_req))?.isVisible = false
+            preferenceFragment.findPreference<SwitchPreference>(rh.gs(app.aaps.core.utils.R.string.key_ns_create_announcements_from_errors))?.isVisible = false
+            preferenceFragment.findPreference<SwitchPreference>(rh.gs(app.aaps.core.utils.R.string.key_ns_create_announcements_from_carbs_req))?.isVisible = false
         }
         preferenceFragment.findPreference<SwitchPreference>(rh.gs(R.string.key_ns_receive_tbr_eb))?.isVisible = config.isEngineeringMode()
     }
@@ -332,7 +332,7 @@ class NSClientV3Plugin @Inject constructor(
 
     private fun setClient(reason: String) {
         nsAndroidClient = NSAndroidClientImpl(
-            baseUrl = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace("https://", "").replace(Regex("/$"), ""),
+            baseUrl = sp.getString(app.aaps.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace("https://", "").replace(Regex("/$"), ""),
             accessToken = sp.getString(R.string.key_ns_client_token, ""),
             context = context,
             logging = true,
@@ -357,10 +357,10 @@ class NSClientV3Plugin @Inject constructor(
     var wsConnected = false
     internal var initialLoadFinished = false
     private fun initializeWebSockets(reason: String) {
-        if (!sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true)) return
-        if (sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").isEmpty()) return
-        val urlStorage = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/storage"
-        val urlAlarm = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/alarm"
+        if (!sp.getBoolean(app.aaps.core.utils.R.string.key_ns_use_ws, true)) return
+        if (sp.getString(app.aaps.core.utils.R.string.key_nsclientinternal_url, "").isEmpty()) return
+        val urlStorage = sp.getString(app.aaps.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/storage"
+        val urlAlarm = sp.getString(app.aaps.core.utils.R.string.key_nsclientinternal_url, "").lowercase().replace(Regex("/$"), "") + "/alarm"
         if (!isAllowed) {
             rxBus.send(EventNSClientNewLog("● WS", blockingReason))
         } else if (sp.getBoolean(R.string.key_ns_paused, false)) {
@@ -377,8 +377,8 @@ class NSClientV3Plugin @Inject constructor(
                     socket.on("update", onDataCreateUpdate)
                     socket.on("delete", onDataDelete)
                 }
-                if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_announcements, config.NSCLIENT) ||
-                    sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, config.NSCLIENT)
+                if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_announcements, config.NSCLIENT) ||
+                    sp.getBoolean(app.aaps.core.utils.R.string.key_ns_alarms, config.NSCLIENT)
                 )
                     alarmSocket = IO.socket(urlAlarm).also { socket ->
                         socket.on(Socket.EVENT_CONNECT, onConnectAlarms)
@@ -525,7 +525,7 @@ class NSClientV3Plugin @Inject constructor(
         val data = args[0] as JSONObject
         rxBus.send(EventNSClientNewLog("◄ ANNOUNCEMENT", data.optString("message")))
         aapsLogger.debug(LTag.NSCLIENT, data.toString())
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_announcements, config.NSCLIENT))
+        if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_announcements, config.NSCLIENT))
             uiInteraction.addNotificationWithAction(injector, NSAlarmObject(data))
     }
     private val onAlarm = Emitter.Listener { args ->
@@ -546,8 +546,8 @@ class NSClientV3Plugin @Inject constructor(
         val data = args[0] as JSONObject
         rxBus.send(EventNSClientNewLog("◄ ALARM", data.optString("message")))
         aapsLogger.debug(LTag.NSCLIENT, data.toString())
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, config.NSCLIENT)) {
-            val snoozedTo = sp.getLong(rh.gs(info.nightscout.core.utils.R.string.key_snoozed_to) + data.optString("level"), 0L)
+        if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_alarms, config.NSCLIENT)) {
+            val snoozedTo = sp.getLong(rh.gs(app.aaps.core.utils.R.string.key_snoozed_to) + data.optString("level"), 0L)
             if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo)
                 uiInteraction.addNotificationWithAction(injector, NSAlarmObject(data))
         }
@@ -557,8 +557,8 @@ class NSClientV3Plugin @Inject constructor(
         val data = args[0] as JSONObject
         rxBus.send(EventNSClientNewLog("◄ URGENT ALARM", data.optString("message")))
         aapsLogger.debug(LTag.NSCLIENT, data.toString())
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_alarms, config.NSCLIENT)) {
-            val snoozedTo = sp.getLong(rh.gs(info.nightscout.core.utils.R.string.key_snoozed_to) + data.optString("level"), 0L)
+        if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_alarms, config.NSCLIENT)) {
+            val snoozedTo = sp.getLong(rh.gs(app.aaps.core.utils.R.string.key_snoozed_to) + data.optString("level"), 0L)
             if (snoozedTo == 0L || System.currentTimeMillis() > snoozedTo)
                 uiInteraction.addNotificationWithAction(injector, NSAlarmObject(data))
         }
@@ -599,7 +599,7 @@ class NSClientV3Plugin @Inject constructor(
         // If WS is enabled, download is triggered by changes in NS. Thus uploadOnly
         // Exception is after reset to full sync (initialLoadFinished == false), where
         // older data must be loaded directly and then continue over WS
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && initialLoadFinished)
+        if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_use_ws, true) && initialLoadFinished)
             executeUpload("START $reason", forceNew = true)
         else
             executeLoop("START $reason", forceNew = true)
@@ -612,7 +612,7 @@ class NSClientV3Plugin @Inject constructor(
 
     override fun detectedNsVersion(): String? = nsAndroidClient?.lastStatus?.version
 
-    override val address: String get() = sp.getString(info.nightscout.core.utils.R.string.key_nsclientinternal_url, "")
+    override val address: String get() = sp.getString(app.aaps.core.utils.R.string.key_nsclientinternal_url, "")
 
     override fun isFirstLoad(collection: NsClient.Collection) =
         when (collection) {
@@ -695,7 +695,7 @@ class NSClientV3Plugin @Inject constructor(
                 result.identifier?.let {
                     dataPair.value.interfaceIDs.nightscoutId = it
                     storeDataForDb.nsIdDeviceStatuses.add(dataPair.value)
-                    sp.putBoolean(info.nightscout.core.utils.R.string.key_objectives_pump_status_is_available_in_ns, true)
+                    sp.putBoolean(app.aaps.core.utils.R.string.key_objectives_pump_status_is_available_in_ns, true)
                 }
             }
         } catch (e: Exception) {
@@ -931,7 +931,7 @@ class NSClientV3Plugin @Inject constructor(
     }
 
     private fun executeLoop(origin: String, forceNew: Boolean) {
-        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_use_ws, true) && initialLoadFinished) return
+        if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_use_ws, true) && initialLoadFinished) return
         if (sp.getBoolean(R.string.key_ns_paused, false)) {
             rxBus.send(EventNSClientNewLog("● RUN", "paused  $origin"))
             return

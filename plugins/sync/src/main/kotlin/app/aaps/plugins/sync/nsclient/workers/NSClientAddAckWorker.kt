@@ -28,7 +28,6 @@ import app.aaps.core.utils.notifyAll
 import app.aaps.core.utils.receivers.DataWorkerStorage
 import app.aaps.plugins.sync.R
 import app.aaps.plugins.sync.nsclient.acks.NSAddAck
-import info.nightscout.database.impl.AppRepository
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
@@ -38,7 +37,6 @@ class NSClientAddAckWorker(
 ) : LoggingWorker(context, params, Dispatchers.Default) {
 
     @Inject lateinit var dataWorkerStorage: DataWorkerStorage
-    @Inject lateinit var repository: AppRepository
     @Inject lateinit var rxBus: RxBus
     @Inject lateinit var aapsSchedulers: AapsSchedulers
     @Inject lateinit var sp: SP

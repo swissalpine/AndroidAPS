@@ -12,10 +12,10 @@ import app.aaps.core.interfaces.sync.DataSyncSelector
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.utils.JsonHelper
 import app.aaps.core.utils.waitMillis
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.sync.R
 import app.aaps.plugins.sync.nsShared.events.EventNSClientUpdateGuiQueue
 import app.aaps.plugins.sync.nsShared.events.EventNSClientUpdateGuiStatus
-import info.nightscout.database.impl.AppRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -76,7 +76,7 @@ class DataSyncSelectorV1 @Inject constructor(
     private var running = false
     private val sync = Any()
 
-    private val bgUploadEnabled get() = sp.getBoolean(info.nightscout.core.utils.R.string.key_do_ns_upload, false) && activePlugin.activeBgSource !is NSClientSource
+    private val bgUploadEnabled get() = sp.getBoolean(app.aaps.core.utils.R.string.key_do_ns_upload, false) && activePlugin.activeBgSource !is NSClientSource
 
     override suspend fun doUpload() {
         synchronized(sync) {
@@ -782,7 +782,7 @@ class DataSyncSelectorV1 @Inject constructor(
     private suspend fun processChangedProfileStore() {
         if (isPaused) return
         val lastSync = sp.getLong(R.string.key_ns_profile_store_last_synced_timestamp, 0)
-        val lastChange = sp.getLong(info.nightscout.core.utils.R.string.key_local_profile_last_change, 0)
+        val lastChange = sp.getLong(app.aaps.core.utils.R.string.key_local_profile_last_change, 0)
         if (lastChange == 0L) return
         if (lastChange > lastSync) {
             if (activePlugin.activeProfileSource.profile?.allProfilesValid != true) return

@@ -49,9 +49,9 @@ import app.aaps.core.interfaces.rx.events.EventRebuildTabs
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.smsCommunicator.SmsCommunicator
 import app.aaps.core.interfaces.ui.IconsProvider
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.interfaces.versionChecker.VersionCheckerUtils
 import app.aaps.core.main.utils.CryptoUtil
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.ui.UIRunnable
 import app.aaps.core.ui.dialogs.OKDialog
 import app.aaps.core.ui.locale.LocaleHelper
@@ -59,22 +59,20 @@ import app.aaps.core.ui.toast.ToastUtils
 import app.aaps.core.utils.isRunningRealPumpTest
 import app.aaps.database.entities.UserEntry.Action
 import app.aaps.database.entities.UserEntry.Sources
+import app.aaps.databinding.ActivityMainBinding
 import app.aaps.plugins.configuration.activities.DaggerAppCompatActivityWithResult
 import app.aaps.plugins.configuration.activities.SingleFragmentActivity
 import app.aaps.plugins.configuration.setupwizard.SetupWizardActivity
 import app.aaps.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
+import app.aaps.ui.activities.ProfileHelperActivity
+import app.aaps.ui.activities.StatsActivity
+import app.aaps.ui.activities.TreatmentsActivity
+import app.aaps.ui.tabs.TabPageAdapter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.joanzapata.iconify.Iconify
 import com.joanzapata.iconify.fonts.FontAwesomeModule
-import info.nightscout.androidaps.BuildConfig
-import info.nightscout.androidaps.R
-import info.nightscout.androidaps.databinding.ActivityMainBinding
-import app.aaps.ui.activities.ProfileHelperActivity
-import app.aaps.ui.activities.StatsActivity
-import app.aaps.ui.activities.TreatmentsActivity
-import app.aaps.ui.tabs.TabPageAdapter
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.io.File
@@ -479,7 +477,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
         FirebaseCrashlytics.getInstance().setCustomKey("Remote", remote)
         FirebaseCrashlytics.getInstance().setCustomKey("Committed", BuildConfig.COMMITTED)
         FirebaseCrashlytics.getInstance().setCustomKey("Hash", hashes[0])
-        FirebaseCrashlytics.getInstance().setCustomKey("Email", sp.getString(info.nightscout.core.utils.R.string.key_email_for_crash_report, ""))
+        FirebaseCrashlytics.getInstance().setCustomKey("Email", sp.getString(app.aaps.core.utils.R.string.key_email_for_crash_report, ""))
     }
 
     /**
@@ -490,7 +488,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
         val passwordReset = File(fileListProvider.ensureExtraDirExists(), "PasswordReset")
         if (passwordReset.exists()) {
             val sn = activePlugin.activePump.serialNumber()
-            sp.putString(info.nightscout.core.utils.R.string.key_master_password, cryptoUtil.hashPassword(sn))
+            sp.putString(app.aaps.core.utils.R.string.key_master_password, cryptoUtil.hashPassword(sn))
             passwordReset.delete()
             ToastUtils.okToast(context, context.getString(app.aaps.core.ui.R.string.password_set))
         }

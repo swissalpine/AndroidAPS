@@ -11,9 +11,9 @@ import app.aaps.core.interfaces.sync.XDripBroadcast
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.T
 import app.aaps.core.utils.JsonHelper
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.sync.R
 import dagger.Lazy
-import info.nightscout.database.impl.AppRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -61,7 +61,7 @@ class DataSyncSelectorXdripImpl @Inject constructor(
     }
 
     private val queueCounter = QueueCounter()
-    private val isEnabled get() = sp.getBoolean(info.nightscout.core.utils.R.string.key_xdrip_local_broadcasts, false)
+    private val isEnabled get() = sp.getBoolean(app.aaps.core.utils.R.string.key_xdrip_local_broadcasts, false)
     private val xdripPlugin get() = xdripBroadcast.get()
 
     private val maxAge get() = T.days(1).msecs()
@@ -538,7 +538,7 @@ class DataSyncSelectorXdripImpl @Inject constructor(
     private fun processChangedProfileStore() {
         if (!isEnabled) return
         val lastSync = sp.getLong(R.string.key_xdrip_profile_store_last_synced_timestamp, 0)
-        val lastChange = sp.getLong(info.nightscout.core.utils.R.string.key_local_profile_last_change, 0)
+        val lastChange = sp.getLong(app.aaps.core.utils.R.string.key_local_profile_last_change, 0)
         if (lastChange == 0L) return
         if (lastChange > lastSync) {
             if (activePlugin.activeProfileSource.profile?.allProfilesValid != true) return

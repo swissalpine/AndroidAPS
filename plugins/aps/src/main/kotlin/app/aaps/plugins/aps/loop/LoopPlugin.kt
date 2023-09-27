@@ -55,13 +55,13 @@ import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.interfaces.utils.T
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.constraints.ConstraintObject
 import app.aaps.core.main.events.EventNewNotification
 import app.aaps.core.main.extensions.convertedToAbsolute
 import app.aaps.core.main.extensions.convertedToPercent
 import app.aaps.core.main.extensions.plannedRemainingMinutes
 import app.aaps.core.main.iob.json
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.nssdk.interfaces.RunningConfiguration
 import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.DeviceStatus
@@ -69,13 +69,13 @@ import app.aaps.database.entities.OfflineEvent
 import app.aaps.database.entities.UserEntry.Action
 import app.aaps.database.entities.UserEntry.Sources
 import app.aaps.database.entities.ValueWithUnit
+import app.aaps.database.impl.AppRepository
+import app.aaps.database.impl.transactions.InsertAndCancelCurrentOfflineEventTransaction
+import app.aaps.database.impl.transactions.InsertTherapyEventAnnouncementTransaction
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.loop.events.EventLoopSetLastRunGui
 import app.aaps.plugins.aps.loop.extensions.json
 import dagger.android.HasAndroidInjector
-import info.nightscout.database.impl.AppRepository
-import info.nightscout.database.impl.transactions.InsertAndCancelCurrentOfflineEventTransaction
-import info.nightscout.database.impl.transactions.InsertTherapyEventAnnouncementTransaction
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import org.json.JSONObject
@@ -183,7 +183,7 @@ class LoopPlugin @Inject constructor(
         get() {
             val closedLoopEnabled = constraintChecker.isClosedLoopAllowed()
             val maxIobAllowed = constraintChecker.getMaxIOBAllowed().value()
-            val apsMode = ApsMode.fromString(sp.getString(info.nightscout.core.utils.R.string.key_aps_mode, ApsMode.OPEN.name))
+            val apsMode = ApsMode.fromString(sp.getString(app.aaps.core.utils.R.string.key_aps_mode, ApsMode.OPEN.name))
             val pump = activePlugin.activePump
             var isLGS = false
             if (!isSuspended && !pump.isSuspended()) if (closedLoopEnabled.value()) if (maxIobAllowed == HardLimits.MAX_IOB_LGS || apsMode == ApsMode.LGS) isLGS = true
@@ -322,18 +322,18 @@ class LoopPlugin @Inject constructor(
                             ) && carbsSuggestionsSuspendedUntil < System.currentTimeMillis() && !treatmentTimeThreshold(-15)
                         ) {
                             if (sp.getBoolean(
-                                    info.nightscout.core.utils.R.string.key_enable_carbs_required_alert_local,
+                                    app.aaps.core.utils.R.string.key_enable_carbs_required_alert_local,
                                     true
                                 ) && !sp.getBoolean(app.aaps.core.ui.R.string.key_raise_notifications_as_android_notifications, true)
                             ) {
                                 val carbReqLocal = Notification(Notification.CARBS_REQUIRED, resultAfterConstraints.carbsRequiredText, Notification.NORMAL)
                                 rxBus.send(EventNewNotification(carbReqLocal))
                             }
-                            if (sp.getBoolean(info.nightscout.core.utils.R.string.key_ns_create_announcements_from_carbs_req, false)) {
+                            if (sp.getBoolean(app.aaps.core.utils.R.string.key_ns_create_announcements_from_carbs_req, false)) {
                                 disposable += repository.runTransaction(InsertTherapyEventAnnouncementTransaction(resultAfterConstraints.carbsRequiredText)).subscribe()
                             }
                             if (sp.getBoolean(
-                                    info.nightscout.core.utils.R.string.key_enable_carbs_required_alert_local,
+                                    app.aaps.core.utils.R.string.key_enable_carbs_required_alert_local,
                                     true
                                 ) && sp.getBoolean(app.aaps.core.ui.R.string.key_raise_notifications_as_android_notifications, true)
                             ) {
@@ -442,7 +442,7 @@ class LoopPlugin @Inject constructor(
                             .setPriority(Notification.IMPORTANCE_HIGH)
                             .setCategory(Notification.CATEGORY_ALARM)
                             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                        if (sp.getBoolean(info.nightscout.core.utils.R.string.key_wear_control, false)) {
+                        if (sp.getBoolean(app.aaps.core.utils.R.string.key_wear_control, false)) {
                             builder.setLocalOnly(true)
                         }
                         presentSuggestion(builder)
@@ -519,7 +519,7 @@ class LoopPlugin @Inject constructor(
                             lastRun.lastTBREnact = dateUtil.now()
                             lastRun.lastOpenModeAccept = dateUtil.now()
                             buildAndStoreDeviceStatus()
-                            sp.incInt(info.nightscout.core.utils.R.string.key_ObjectivesmanualEnacts)
+                            sp.incInt(app.aaps.core.utils.R.string.key_ObjectivesmanualEnacts)
                         }
                         rxBus.send(EventAcceptOpenLoopChange())
                     }

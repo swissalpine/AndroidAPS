@@ -25,18 +25,18 @@ import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.interfaces.utils.Round
+import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.main.constraints.ConstraintObject
 import app.aaps.core.main.extensions.target
-import app.aaps.core.main.utils.fabric.FabricPrivacy
 import app.aaps.core.utils.MidnightUtils
 import app.aaps.database.ValueWrapper
+import app.aaps.database.impl.AppRepository
 import app.aaps.plugins.aps.OpenAPSFragment
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
 import app.aaps.plugins.aps.utils.ScriptReader
 import dagger.android.HasAndroidInjector
-import info.nightscout.database.impl.AppRepository
 import org.json.JSONException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -270,7 +270,7 @@ class OpenAPSAMAPlugin @Inject constructor(
     }
 
     override fun isAutosensModeEnabled(value: Constraint<Boolean>): Constraint<Boolean> {
-        val enabled = sp.getBoolean(info.nightscout.core.utils.R.string.key_use_autosens, false)
+        val enabled = sp.getBoolean(app.aaps.core.utils.R.string.key_use_autosens, false)
         if (!enabled) value.set(false, rh.gs(R.string.autosens_disabled_in_preferences), this)
         return value
     }
