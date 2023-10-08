@@ -161,7 +161,7 @@
             android:summary="@string/low_temptarget_lowers_sensitivity_summary"
             android:title="@string/low_temptarget_lowers_sensitivity_title" />
 
-        <info.nightscout.core.validators.ValidatingEditTextPreference
+        <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="160"
             android:dialogMessage="@string/half_basal_exercise_target_summary"
             android:digits="0123456789"
@@ -206,7 +206,7 @@
                 android:summary="@string/keto_protect_strategy_summary"
                 android:title="@string/keto_protect_strategy_title" />
 
-            <info.nightscout.core.validators.ValidatingEditTextPreference
+            <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="20"
                 android:dependency="@string/key_keto_protect"
                 android:dialogMessage="@string/keto_protect_basal_summary"
