@@ -24,6 +24,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/statusCard"
+                    style="@style/Widget.MaterialComponents.CardView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginTop="2dp"
+                    app:cardCornerRadius="4dp"
+                    app:contentPadding="2dp"
+                    app:cardElevation="2dp"
+                    app:cardUseCompatPadding="false"
+                    android:layout_gravity="center">
+
+                    <include
+                        android:id="@+id/status_lights_layout"
+                        layout="@layout/overview_statuslights_layout" />
+
+                </com.google.android.material.card.MaterialCardView>
+
                 <LinearLayout
                     android:id="@+id/loop_layout"
                     android:layout_width="match_parent"
@@ -35,28 +55,44 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/active_profile"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginEnd="5dp"
-                        android:layout_weight="1"
+                        android:layout_height="60dp"
+                        android:layout_gravity="start"
+                        android:layout_marginEnd="2dp"
+                        android:layout_weight="2"
                         android:gravity="center_vertical|center_horizontal"
                         android:hint="active profile"
                         android:text="Profile"
                         android:textAppearance="?android:attr/textAppearanceSmall"
-                        app:icon="@drawable/ic_ribbon_profile"
                         tools:ignore="HardcodedText" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/exercise_mode_checkbox_icon"
+                        android:layout_width="64dp"
+                        android:layout_height="60dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp"
+                        android:layout_weight="0"
+                        android:hint="Exercise Mode"
+                        android:text="Exercise Mode"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        app:icon="@drawable/exercise"
+                        tools:ignore="HardcodedText" />
+
+                    <!-- app:icon="@drawable/ic_cp_exercise" -->
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/temp_target"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="60dp"
                         android:layout_gravity="end"
-                        android:layout_weight="1"
+                        android:layout_marginStart="2dp"
+                        android:layout_weight="2"
                         android:gravity="center_vertical|center_horizontal"
                         android:hint="temp target"
                         android:text="@string/value_unavailable_short"
                         android:textAppearance="?android:attr/textAppearanceSmall"
-                        app:icon="@drawable/ic_crosstarget"
                         tools:ignore="HardcodedText" />
 
                 </LinearLayout>
@@ -78,26 +114,6 @@
                 <include
                     android:id="@+id/info_layout"
                     layout="@layout/overview_info_layout" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/statusCard"
-                style="@style/Widget.MaterialComponents.CardView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                android:layout_marginTop="4dp"
-                app:cardCornerRadius="4dp"
-                app:contentPadding="2dp"
-                app:cardElevation="2dp"
-                app:cardUseCompatPadding="false"
-                android:layout_gravity="center">
-
-                <include
-                    android:id="@+id/status_lights_layout"
-                    layout="@layout/overview_statuslights_layout" />
 
             </com.google.android.material.card.MaterialCardView>
 
