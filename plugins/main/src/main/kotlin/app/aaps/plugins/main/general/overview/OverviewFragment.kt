@@ -203,7 +203,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.exerciseModeCheckboxIcon.setIconTintResource(app.aaps.core.ui.R.color.ribbonTextDefault)
         }
         binding.exerciseModeCheckboxIcon.setOnClickListener {
-            if (sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false) == true) {
+            if (sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)) {
                 sp.putBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
                 setRibbon(
                     binding.exerciseModeCheckboxIcon,
@@ -914,7 +914,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     else app.aaps.core.ui.R.attr.ribbonTextDefaultColor
                 } else app.aaps.core.ui.R.attr.ribbonTextDefaultColor
             } ?: app.aaps.core.ui.R.attr.ribbonTextDefaultColor
-            setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime())
+            setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime().replace("("," \u00AD("))
         }
     }
 

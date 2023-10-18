@@ -294,7 +294,6 @@
             tools:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="20dp"
-            android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
@@ -328,7 +327,6 @@
             tools:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="20dp"
-            android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
@@ -361,7 +359,6 @@
             tools:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="20dp"
-            android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
@@ -393,7 +390,6 @@
             tools:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="20dp"
-            android:textStyle="bold"
             tools:ignore="HardcodedText" />
     </LinearLayout>
 
@@ -427,7 +423,6 @@
             tools:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="20dp"
-            android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -440,7 +435,6 @@
             tools:text="n/a"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textSize="20dp"
-            android:textStyle="bold"
             android:visibility="visible"
             tools:ignore="HardcodedText" />
     </LinearLayout>
