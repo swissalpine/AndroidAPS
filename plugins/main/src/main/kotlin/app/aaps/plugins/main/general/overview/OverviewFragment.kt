@@ -289,7 +289,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         binding.buttonsLayout.quickWizardButton.setOnLongClickListener(this)
         binding.infoLayout.apsMode.setOnClickListener(this)
         binding.infoLayout.apsMode.setOnLongClickListener(this)
-        binding.activeProfile.setOnLongClickListener(this)
+        //binding.activeProfile.setOnLongClickListener(this)
     }
 
     @Synchronized
@@ -920,7 +920,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateTemporaryBasal() {
         val temporaryBasalText = overviewData.temporaryBasalText(iobCobCalculator)
-        val temporaryBasalColor = overviewData.temporaryBasalColor(context, iobCobCalculator)
+        // Anpassung
+        // val temporaryBasalColor = overviewData.temporaryBasalColor(context, iobCobCalculator)
         val temporaryBasalIcon = overviewData.temporaryBasalIcon(iobCobCalculator)
         val temporaryBasalDialogText = overviewData.temporaryBasalDialogText(iobCobCalculator)
         runOnUiThread {
