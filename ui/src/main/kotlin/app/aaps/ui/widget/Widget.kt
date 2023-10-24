@@ -212,7 +212,7 @@ class Widget : AppWidgetProvider() {
             views.setTextColor(R.id.temp_target, rh.gc(app.aaps.core.ui.R.color.widget_ribbonWarning))
             views.setTextViewText(
                 R.id.temp_target,
-                profileUtil.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units) + " " + dateUtil.untilString(tempTarget.end, rh)
+                profileUtil.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units) + " " + dateUtil.untilString(tempTarget.end, rh).replace("h ","h")
             )
         } else {
             // If the target is not the same as set in the profile then oref has overridden it
@@ -251,7 +251,7 @@ class Widget : AppWidgetProvider() {
                 }
             } ?: rh.gc(app.aaps.core.ui.R.color.widget_ribbonCritical)
 
-        views.setTextViewText(R.id.active_profile, profileFunction.getProfileNameWithRemainingTime())
+        views.setTextViewText(R.id.active_profile, profileFunction.getProfileNameWithRemainingTime().replace(" ","").replace("(", " ("))
         // this is crashing, use background as text for now
         //views.setInt(R.id.active_profile, "setBackgroundColor", profileBackgroundColor)
         //views.setTextColor(R.id.active_profile, profileTextColor)

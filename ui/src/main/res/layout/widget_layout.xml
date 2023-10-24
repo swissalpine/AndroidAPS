@@ -20,6 +20,9 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:minWidth="120dp"
             android:text="n/a"
             android:textColor="@color/white"
             android:textSize="18dp"
@@ -33,6 +36,9 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:minWidth="120dp"
             android:text="n/a"
             android:textColor="@color/white"
             android:textSize="18dp"
@@ -45,7 +51,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="5dp">
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp">
 
         <TextView
             android:id="@+id/bg"
