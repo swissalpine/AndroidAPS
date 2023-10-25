@@ -251,7 +251,7 @@ class Widget : AppWidgetProvider() {
                 }
             } ?: rh.gc(app.aaps.core.ui.R.color.widget_ribbonCritical)
 
-        views.setTextViewText(R.id.active_profile, profileFunction.getProfileNameWithRemainingTime().replace(" ","").replace("(", " ("))
+        views.setTextViewText(R.id.active_profile, profileFunction.getProfileNameWithRemainingTime().replace("h ","").replace("%)(","%|").replace("(", " ("))
         // this is crashing, use background as text for now
         //views.setInt(R.id.active_profile, "setBackgroundColor", profileBackgroundColor)
         //views.setTextColor(R.id.active_profile, profileTextColor)

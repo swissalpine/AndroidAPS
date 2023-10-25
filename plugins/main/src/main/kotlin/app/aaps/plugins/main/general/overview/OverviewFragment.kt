@@ -898,7 +898,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     else app.aaps.core.ui.R.attr.ribbonTextDefaultColor
                 } else app.aaps.core.ui.R.attr.ribbonTextDefaultColor
             } ?: app.aaps.core.ui.R.attr.ribbonTextDefaultColor
-            setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime().replace("("," \u00AD("))
+            setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime().replace("h ","h").replace("%)(","%|").replace("(", " \u00AD("))
         }
     }
 
@@ -1002,7 +1002,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     binding.tempTarget,
                     app.aaps.core.ui.R.attr.ribbonTextWarningColor,
                     app.aaps.core.ui.R.attr.ribbonWarningColor,
-                    profileUtil.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units) + " " + dateUtil.untilString(tempTarget.end, rh)
+                    profileUtil.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units) + " " + dateUtil.untilString(tempTarget.end, rh).replace("h ","h")
                 )
             } else {
                 // If the target is not the same as set in the profile then oref has overridden it
