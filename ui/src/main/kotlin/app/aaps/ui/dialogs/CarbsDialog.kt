@@ -416,7 +416,7 @@ class CarbsDialog : DialogFragmentWithDate() {
                                 }
                             }
                             // only percent pump!!!
-                            var isPercentPump = true
+                            var isPercentPump: Boolean
                             val pumpDescription = activePlugin.activePump.pumpDescription
                             isPercentPump = pumpDescription.tempBasalStyle and PumpDescription.PERCENT == PumpDescription.PERCENT
                             if (isPercentPump) {
