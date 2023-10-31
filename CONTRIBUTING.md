@@ -1,15 +1,15 @@
 This document speciffy hints and good practices for source code contributions.
 
-AndroidAPS is community effort and all contributions are welcome! If you wish help us improving AndroidAPS - please read and try to adhere to 
+AndroidAPS is community effort and all contributions are welcome! If you wish help us improving AAPS - please read and try to adhere to 
 this guidelines, to make the development and process of change aproval as smooth as possible :) 
 
 General rules
 =============
 
 * There are plenty of ways you can help, some of them are listed on wiki: 
-  https://androidaps.readthedocs.io/en/latest/EN/Getting-Started/How-can-I-help.html
+  https://wiki.aaps.app/en/latest/Getting-Started/How-can-I-help.html
 * If you wish to help with documentation or translating: 
-  https://androidaps.readthedocs.io/en/latest/EN/translations.html
+  https://wiki.aaps.app/en/latest/translations.html
   
 Development guidelines
 ======================
@@ -19,7 +19,7 @@ Coding convetions
 1. Use Android Studio with default indents (4 chars, use spaces)
 2. Use autoformat feature CTRL-ALT-L in every changed file before commit
 
-Commiting Changes / Pull Requests
+Committing Changes / Pull Requests
 ---------------------------------
 
 1. Make fork of repository on github
@@ -44,5 +44,5 @@ Hints
 * Start small, it is easier to review smaller changes that affect fewer parts of code 
 * Take a look into Issues list (https://github.com/nightscout/AndroidAPS/issues) - maybe there is something you can fix or implement
 * For new features, make sure there is Issue to track progress and have on-topic discussion
-* Reach out to community, discuss idea on Gitter (https://gitter.im/MilosKozak/AndroidAPS)
+* Reach out to community, discuss idea on Discord (https://discord.gg/4fQUWHZ4Mw)
 * Speak with other developers to minimise merge conflicts. Find out who worked, working or plan to work on speciffic issue or part of app

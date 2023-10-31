@@ -3,11 +3,15 @@ package info.nightscout.androidaps.plugins.pump.insight;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.os.VibratorManager;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -16,10 +20,11 @@ import androidx.lifecycle.MutableLiveData;
 
 import javax.inject.Inject;
 
+import app.aaps.core.interfaces.logging.AAPSLogger;
+import app.aaps.core.interfaces.logging.LTag;
+import app.aaps.core.interfaces.resources.ResourceHelper;
+import app.aaps.core.utils.HtmlHelper;
 import dagger.android.DaggerService;
-import info.nightscout.androidaps.insight.R;
-import info.nightscout.shared.logging.AAPSLogger;
-import info.nightscout.shared.logging.LTag;
 import info.nightscout.androidaps.plugins.pump.insight.activities.InsightAlertActivity;
 import info.nightscout.androidaps.plugins.pump.insight.app_layer.remote_control.ConfirmAlertMessage;
 import info.nightscout.androidaps.plugins.pump.insight.app_layer.remote_control.SnoozeAlertMessage;
@@ -33,22 +38,18 @@ import info.nightscout.androidaps.plugins.pump.insight.exceptions.InsightExcepti
 import info.nightscout.androidaps.plugins.pump.insight.exceptions.app_layer_errors.AppLayerErrorException;
 import info.nightscout.androidaps.plugins.pump.insight.utils.AlertUtils;
 import info.nightscout.androidaps.plugins.pump.insight.utils.ExceptionTranslator;
-import info.nightscout.androidaps.utils.HtmlHelper;
-import info.nightscout.androidaps.utils.resources.ResourceHelper;
 
 public class InsightAlertService extends DaggerService implements InsightConnectionService.StateCallback {
 
+    private static final int NOTIFICATION_ID = 31345;
+    private final LocalBinder localBinder = new LocalBinder();
+    private final Object $alertLock = new Object[0];
+    private final MutableLiveData<Alert> alertLiveData = new MutableLiveData<>();
     @Inject AAPSLogger aapsLogger;
     @Inject ResourceHelper rh;
     @Inject AlertUtils alertUtils;
-
-    private static final int NOTIFICATION_ID = 31345;
-
-    private final LocalBinder localBinder = new LocalBinder();
     private boolean connectionRequested;
-    private final Object $alertLock = new Object[0];
     private Alert alert = null;
-    private final MutableLiveData<Alert> alertLiveData = new MutableLiveData<>();
     private Thread thread;
     private Vibrator vibrator;
     private boolean vibrating;
@@ -93,9 +94,14 @@ public class InsightAlertService extends DaggerService implements InsightConnect
     }
 
     @Override
+    @SuppressWarnings({"deprecation", "RedundantSuppression"})
     public void onCreate() {
         super.onCreate();
-        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            vibrator = ((VibratorManager) (getSystemService(Context.VIBRATOR_MANAGER_SERVICE))).getDefaultVibrator();
+        } else {
+            vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        }
         bindService(new Intent(this, InsightConnectionService.class), serviceConnection, BIND_AUTO_CREATE);
         alertLiveData.setValue(null);
     }
@@ -108,6 +114,7 @@ public class InsightAlertService extends DaggerService implements InsightConnect
 
     @Override
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        //noinspection StatementWithEmptyBody
         if (intent == null) {
             // service is being restarted
         } else if ("mute".equals(intent.getStringExtra("command"))) {
@@ -220,7 +227,7 @@ public class InsightAlertService extends DaggerService implements InsightConnect
 
     private void alert() {
         if (!vibrating) {
-            vibrator.vibrate(new long[]{0, 1000, 1000}, 0);
+            vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0, 1000, 1000}, 0));
             vibrating = true;
         }
     }
@@ -309,11 +316,11 @@ public class InsightAlertService extends DaggerService implements InsightConnect
             case ACTIVE:
                 Intent muteIntent = new Intent(this, InsightAlertService.class).putExtra("command", "mute");
                 PendingIntent mutePendingIntent = PendingIntent.getService(this, 1, muteIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-                notificationBuilder.addAction(0, rh.gs(R.string.mute_alert), mutePendingIntent);
+                notificationBuilder.addAction(0, rh.gs(app.aaps.core.ui.R.string.mute), mutePendingIntent);
             case SNOOZED:
                 Intent confirmIntent = new Intent(this, InsightAlertService.class).putExtra("command", "confirm");
                 PendingIntent confirmPendingIntent = PendingIntent.getService(this, 2, confirmIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-                notificationBuilder.addAction(0, rh.gs(R.string.confirm), confirmPendingIntent);
+                notificationBuilder.addAction(0, rh.gs(app.aaps.core.ui.R.string.confirm), confirmPendingIntent);
         }
 
         Notification notification = notificationBuilder.build();
@@ -323,7 +330,7 @@ public class InsightAlertService extends DaggerService implements InsightConnect
 
     private void dismissNotification() {
         NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID);
-        stopForeground(true);
+        stopForeground(STOP_FOREGROUND_REMOVE);
     }
 
     public class LocalBinder extends Binder {
