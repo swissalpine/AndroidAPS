@@ -1135,12 +1135,10 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (variableSens != 0.0 && isfMgdl != null) {       // without variableSens != isfMgdl &&
             binding.infoLayout.variableSensitivity.text =
                 String.format(
-                    Locale.getDefault(), "%0.f%%->%.0f",
-                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()) * 100 /
-                    profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits()),
+                    Locale.getDefault(), "%1$.1f→%2$.1f",
+                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),   // * 100.0
                     profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
-                )
-            binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 
