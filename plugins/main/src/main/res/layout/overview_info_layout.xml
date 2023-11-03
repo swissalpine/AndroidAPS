@@ -94,6 +94,34 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:textAlignment="textEnd"
+                android:text="acc: "
+                android:contentDescription="bg acceleration"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/bgAcceleration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:textAlignment="textEnd"
+                tools:text="n/a"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                tools:ignore="HardcodedText" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:focusable="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:textAlignment="textEnd"
                 android:text="Δ: "
                 android:contentDescription="last delta"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"

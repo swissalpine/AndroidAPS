@@ -111,6 +111,10 @@ data class UserEntry(
         EXIT_AAPS(ColorGroup.Aaps),
         PLUGIN_ENABLED(ColorGroup.Aaps),
         PLUGIN_DISABLED(ColorGroup.Aaps),
+        AUTOISF_ENABLED (ColorGroup.Aaps),
+        AUTOISF_DISABLED (ColorGroup.Aaps),
+        IOB_TH_SET (ColorGroup.Aaps),
+        ACCE_WEIGHT_SET (ColorGroup.Aaps),
         UNKNOWN(ColorGroup.Aaps)
         ;
 

@@ -154,10 +154,12 @@ class Widget : AppWidgetProvider() {
 
         val glucoseStatus = glucoseStatusProvider.glucoseStatusData
         if (glucoseStatus != null) {
+            views.setTextViewText(R.id.bgAcceleration, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.bgAcceleration))
             views.setTextViewText(R.id.delta, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.delta))
             views.setTextViewText(R.id.avg_delta, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.shortAvgDelta))
             views.setTextViewText(R.id.long_avg_delta, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.longAvgDelta))
         } else {
+            views.setTextViewText(R.id.bgAcceleration, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
             views.setTextViewText(R.id.delta, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
             views.setTextViewText(R.id.avg_delta, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
             views.setTextViewText(R.id.long_avg_delta, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
@@ -264,7 +266,7 @@ class Widget : AppWidgetProvider() {
         else
             views.setImageViewResource(R.id.sensitivity_icon, app.aaps.core.main.R.drawable.ic_x_swap_vert)
         views.setTextViewText(R.id.sensitivity, overviewData.lastAutosensData(iobCobCalculator)?.let { autosensData ->
-            String.format(Locale.ENGLISH, "%.0f%%", autosensData.autosensResult.ratio * 100)
+            String.format(Locale.ENGLISH, "as: %.0f%%", autosensData.autosensResult.ratio * 100)
         } ?: "")
 
         // Show variable sensitivity
@@ -272,12 +274,11 @@ class Widget : AppWidgetProvider() {
         if (request is VariableSensitivityResult) {
             val isfMgdl = profileFunction.getProfile()?.getIsfMgdl()
             val variableSens = request.variableSens
-            if (variableSens != isfMgdl && variableSens != null && isfMgdl != null) {
+            if (variableSens != null && isfMgdl != null) {      // without variableSens != isfMgdl &&
                 views.setTextViewText(
                     R.id.variable_sensitivity,
-                    String.format(
-                        Locale.getDefault(), "%1$.1f→%2$.1f",
-                        profileUtil.fromMgdlToUnits(isfMgdl),
+                    String.format(Locale.getDefault(), "ai: %.0f%%",
+                        profileUtil.fromMgdlToUnits(isfMgdl) *100 /
                         profileUtil.fromMgdlToUnits(variableSens)
                     )
                 )
