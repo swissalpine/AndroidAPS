@@ -137,7 +137,7 @@
     <string name="autoisf_iobTH_percent">iobTH percent</string>
     <string name="acceweightcompared">acce weight %1$s %2$s</string>
     <string name="iobTHpercentcompared">iobTH percent %1$s %2$s</string>
-    <string name="disableautoisf">Disable AutoISF</string>
-    <string name="enableautoisf">Enable AutoISF</string>
+    <string name="disableautoisf">Disable glucose ISF weights(autoISF)</string>
+    <string name="enableautoisf">Enable glucose ISF weights(autoISF)</string>
 
 </resources>
