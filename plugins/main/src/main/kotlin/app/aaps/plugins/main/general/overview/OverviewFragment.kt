@@ -1176,9 +1176,6 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
                 )
             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
-            // Anpassung Ausblenden des autosens Wertes ########################################
-            binding.infoLayout.sensitivity.visibility = View.GONE
-            // Anpassung Ende ##################################################################
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 
