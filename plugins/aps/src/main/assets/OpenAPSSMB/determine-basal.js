@@ -455,7 +455,7 @@ function determine_varSMBratio(profile, bg, target_bg, loop_wanted_smb)
     return new_SMB;
 }
 
-function activityMonitor(profile, bg, target_bg, stepActivityDetected, stepInactivityDetected)
+function activityMonitor(profile, bg, target_bg)
 {
     // Time - not used without sleep window
     //var now = new Date().getHours();
@@ -492,22 +492,22 @@ function activityMonitor(profile, bg, target_bg, stepActivityDetected, stepInact
         //    && recentSteps60Minutes <= 200 ) {
         //    console.log("Activity monitor disabled: sleeping hours");
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
-            stepActivityDetected = true;
+            //stepActivityDetected = true;
             activityRatio = 1 - 0.3 * activity_weight;
             console.log("Activity monitor detected activity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
             || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
-            stepActivityDetected = true;
+            //stepActivityDetected = true;
             activityRatio = 1 - 0.15 * activity_weight;
             console.log("Activity monitor detected low activity, sensitivity ratio: " + activityRatio);
         } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
             console.log("Activity monitor disabled: bg < target");
         } else if ( recentSteps60Minutes < 50 ) {
-            stepInactivityDetected = true;
+            //stepInactivityDetected = true;
             activityRatio = 1 + 0.2 * inactivity_weight;
             console.log("Activity monitor detected inactivity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps60Minutes <= 200 ) {
-            stepInactivityDetected = true;
+            //stepInactivityDetected = true;
             activityRatio = 1 + 0.1 * inactivity_weight;
             console.log("Activity monitor detected low inactivity, sensitivity ratio: " + activityRatio);
         } else {
@@ -598,9 +598,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         return rT;
     }
 
+    var activityRatio = activityMonitor(profile, bg, target_bg);
     var stepActivityDetected = false;
     var stepInactivityDetected = false;
-    var activityRatio = activityMonitor(profile, stepActivityDetected, stepInactivityDetected);
+    if (activityRatio<1)        { stepActivityDetected = true}
+    else if (activityRatio>1)   { stepInactivityDetected = true}
 
     var sensitivityRatio;
     var origin_sens = "";
