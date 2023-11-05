@@ -315,7 +315,7 @@
                 validate:testType="numericRange" />
 
             <app.aaps.core.validators.ValidatingEditTextPreference
-                android:defaultValue="1"
+                android:defaultValue="5"
                 android:dialogMessage="-5: for raw data every 5 minutes\n-1: for raw data, every minute\n 1: for smooth data every minute\n 5: for smooth data every 5 minutes"
                 android:digits="15-"
                 android:inputType="number"
