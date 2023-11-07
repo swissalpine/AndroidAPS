@@ -223,7 +223,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
                         break
                     } else if (ti < tiLast - 7.5 * 60 / scaleTime) {       // stop scan if a CGM gap > 7.5 minutes is detected
                         if (i < 3 || -ti * scaleTime < fslMinDur * 60) {   // history too short for fit
-                            duraP = -tiLast / 60.0
+                            duraP = -tiLast * scaleTime / 60.0
                             deltaPl = 0.0
                             deltaPn = 0.0
                             bgAcceleration = 0.0
