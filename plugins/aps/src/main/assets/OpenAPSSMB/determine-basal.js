@@ -136,7 +136,6 @@ function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
             msgEven    = "odd";
         }
         var iobTHeffective = profile.iob_threshold_percent;
-        if ( !profile.temptargetSet && iobTHeffective<100 && profile.meal_addon>0) { iobTHeffective=iobTHeffective/2 };
         if ( !evenTarget ) {
             console.error("SMB disabled; " +msgType +target +msgUnits +msgEven +msgTail);
             console.error("Loop at minimum power");
@@ -156,7 +155,7 @@ function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
             return "iobTH";
         } else {
             console.error("SMB enabled; " +msgType +target +msgUnits +msgEven +msgTail);
-            if (((profile.temptargetSet && profile.meal_addon>0) || profile.meal_addon==0) && profile.target_bg<100) {     // indirect assessment; later set it in GUI
+            if (profile.target_bg<100) {     // indirect assessment; later set it in GUI
                 console.error("Loop at full power");
                 return "fullLoop";                                      // even number
             } else {
@@ -318,23 +317,18 @@ autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensiti
     } else {
         var fit_share = 10*(fit_corr-0.9);                              // 0 at correlation 0.9, 1 at 1.00
         var cap_weight = 1;                                             // full contribution above target
-        var meal_addon = 0;
-        if (loop_wanted_smb=="fullLoop") {
-            meal_addon = profile.meal_addon;                            // like 50% stronger during meal times
-        }
-        if ( meal_addon>0)      { console.error("meal_addon is", round(meal_addon,2)) };
         if ( acce_weight==1 && glucose_status.glucose<profile.target_bg ) { // below target acce goes towards target
             if ( bg_acce > 0 ) {
                 if ( bg_acce>1)            { cap_weight = 0.5; }            // halve the effect below target
                 acce_weight = profile.bgBrake_ISF_weight;
             } else if ( bg_acce < 0 ) {
-                acce_weight = profile.bgAccel_ISF_weight + meal_addon;
+                acce_weight = profile.bgAccel_ISF_weight;
             }
         } else if ( acce_weight==1) {                                       // above target acce goes away from target
             if ( bg_acce < 0 ) {
                 acce_weight = profile.bgBrake_ISF_weight;
             } else if ( bg_acce > 0 ) {
-                acce_weight = profile.bgAccel_ISF_weight + meal_addon;
+                acce_weight = profile.bgAccel_ISF_weight;
             }
         }
         acce_ISF = 1 + bg_acce * cap_weight * acce_weight * fit_share;
@@ -1542,10 +1536,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // mod autoISF3.0-dev: if that would put us over iobTH, then reduce accordingly; allow 30% overrun
             var iobTHtolerance = 130;
             var iobTHvirtual = profile.iob_threshold_percent*iobTHtolerance/10000 * profile.max_iob * iobTH_reduction_ratio;
-            // half power w/o Full Loop
-            if (loop_wanted_smb=="enforced" && profile.iob_threshold_percent<100 && profile.meal_addon>0) {
-                iobTHvirtual = iobTHvirtual / 2;
-            }
             if (microBolus > iobTHvirtual - iob_data.iob && (loop_wanted_smb=="fullLoop" || loop_wanted_smb=="enforced")) {
                 microBolus = iobTHvirtual - iob_data.iob;
                 //if (profile.profile_percentage!=100) {
