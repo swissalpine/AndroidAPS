@@ -248,7 +248,6 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("FSL_min_Minutes",  sp.getInt(R.string.key_fslMinFitMinutes, 15))
         this.profile.put("bgAccel_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_bgAccel_ISF_weight, "0.0")))
         this.profile.put("bgBrake_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_bgBrake_ISF_weight, "0.0")))
-        this.profile.put("meal_addon",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_meal_addon, "0.0")))
         this.profile.put("enable_pp_ISF_always", sp.getBoolean(R.string.key_enable_postprandial_ISF_always, false))
         this.profile.put("pp_ISF_hours",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_pp_ISF_hours, "3.0")))
         this.profile.put("pp_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_pp_ISF_weight, "0.0")))
