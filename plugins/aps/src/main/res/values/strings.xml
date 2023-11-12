@@ -233,9 +233,6 @@
     <string name="key_openapsama_iob_threshold_percent" translatable="false">iob_threshold_percent</string>
     <string name="openapsama_iob_threshold_percent_summary">Default value: 100%\nThis is the share of maxIOB above which the Full Loop will disable SMB.\n\nWith 100% this feature is effectively disabled.</string>
     <string name="openapsama_iob_threshold_percent">Relative level of maxIOB above which SMBs are disabled\n(iob_threshold_percent)</string>
-    <string name="key_openapsama_meal_addon" translatable="false">meal_addon</string>
-    <string name="openapsama_meal_addon_summary">Default value: 0.0\nThis is the extra weight added to the acceleration weight reflecting various meal types. \n\nWith 0 this contribution is neutral for times without meal. \nFor typical meals use 50% of bgAccel_ISF_weight or in that range.</string>
-    <string name="openapsama_meal_addon">Extra weight added to bgAccel_ISF_weight according to meal type\n(meal_addon)\n\nThis is a highly experimental feature and also acts as a switch to enable varying strengths of acce_ISF during the day.\n\nREAD THE GUIDE BEFORE EXPERIMENTING!</string>
     <string name ="activity_detection_title">Activity modifies sensitivity</string>
     <string name ="activity_detection_summary">If activity is detected in form of steps, sensitivity and basal are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.\nDuring TempTarget (in)activity will not be monitored.</string>
     <string name ="key_activity_detection" translatable="false">activity_detection</string>
