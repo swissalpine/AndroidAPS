@@ -102,6 +102,10 @@ class TranslatorImpl @Inject internal constructor(
         Action.PLUGIN_DISABLED                 -> rh.gs(app.aaps.core.ui.R.string.uel_plugin_disabled)
         Action.LOOP_CHANGE                     -> rh.gs(app.aaps.core.ui.R.string.uel_loop_change)
         Action.LOOP_REMOVED                    -> rh.gs(app.aaps.core.ui.R.string.uel_loop_removed)
+        Action.AUTOISF_DISABLED                -> rh.gs(app.aaps.core.ui.R.string.uel_unknown)
+        Action.AUTOISF_ENABLED                 -> rh.gs(app.aaps.core.ui.R.string.uel_unknown)
+        Action.ACCE_WEIGHT_SET                 -> rh.gs(app.aaps.core.ui.R.string.uel_unknown)
+        Action.IOB_TH_SET                      -> rh.gs(app.aaps.core.ui.R.string.uel_unknown)
         Action.UNKNOWN                         -> rh.gs(app.aaps.core.ui.R.string.unknown)
     }
 

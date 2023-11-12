@@ -150,8 +150,7 @@ class OpenAPSFragment : DaggerFragment(), MenuProvider {
             binding.mealdata.text = jsonFormatter.format(determineBasalAdapter.mealDataParam)
             //binding.scriptdebugdata.text = determineBasalAdapter.scriptDebug.replace("\\s+".toRegex(), " ")
             binding.scriptdebugdata.text = determineBasalAdapter.scriptDebug.replace("\\h+".toRegex(), " ")
-            openAPSPlugin.lastAPSResult?.inputConstraints?.let {
-                binding.constraints.text = it.getReasons()
+            openAPSPlugin.lastAPSResult?.inputConstraints?.let { binding.constraints.text = it.getReasons()
             }
         }
         if (openAPSPlugin.lastAPSRun != 0L) {
