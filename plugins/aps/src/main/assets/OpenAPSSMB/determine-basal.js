@@ -490,7 +490,7 @@ function activityMonitor(profile, bg, target_bg)
         console.log("Last 30 m: "+recentSteps30Minutes+" steps; ");
         console.log("Last 60 m: "+recentSteps60Minutes+" steps; ");
         if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
-            console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes");
+            console.log("Activity monitor initialising: "+(60-time_since_start)+" minutes left");
         //} else if ( ( activity_idle_start>activity_idle_end && ( now>=activity_idle_start || now<activity_idle_end ) ) // includes midnight
         //    || ( now>=activity_idle_start && now<activity_idle_end)                                                    // excludes midnight
         //    && recentSteps60Minutes <= 200 ) {
@@ -500,24 +500,24 @@ function activityMonitor(profile, bg, target_bg)
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             //stepActivityDetected = true;
             activityRatio = 1 - 0.3 * activity_weight;
-            console.log("Activity monitor detected activity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detects high level of activity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
             || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
             //stepActivityDetected = true;
             activityRatio = 1 - 0.15 * activity_weight;
-            console.log("Activity monitor detected low activity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detects low level of activity, sensitivity ratio: " + activityRatio);
         } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
             console.log("Inactivity detection disabled: bg < target");
         } else if ( recentSteps60Minutes < 50 ) {
             //stepInactivityDetected = true;
             activityRatio = 1 + 0.2 * inactivity_weight;
-            console.log("Activity monitor detected inactivity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detects high level of inactivity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps60Minutes <= 200 ) {
             //stepInactivityDetected = true;
             activityRatio = 1 + 0.1 * inactivity_weight;
-            console.log("Activity monitor detected low inactivity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detects low level of inactivity, sensitivity ratio: " + activityRatio);
         } else {
-            console.log("Activity monitor detected neutral state, sensitivity ratio unchanged: " + activityRatio);
+            console.log("Activity monitor detects neutral state, sensitivity ratio unchanged: " + activityRatio);
         }
         console.error("----------------------------------");
     }

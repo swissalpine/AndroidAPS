@@ -172,7 +172,7 @@
                 android:title="@string/activity_detection_title" />
 
             <app.aaps.core.validators.ValidatingEditTextPreference
-                android:defaultValue="0.0"
+                android:defaultValue="1.0"
                 android:dialogMessage="@string/activity_weight_summary"
                 android:digits="0123456789.,"
                 android:inputType="numberDecimal"
@@ -180,12 +180,12 @@
                 android:selectAllOnFocus="true"
                 android:singleLine="true"
                 android:title="@string/activity_weight_title"
-                validate:floatmaxNumber="1.0"
+                validate:floatmaxNumber="2.0"
                 validate:floatminNumber="0.0"
                 validate:testType="floatNumericRange" />
 
             <app.aaps.core.validators.ValidatingEditTextPreference
-                android:defaultValue="0.0"
+                android:defaultValue="1.0"
                 android:dialogMessage="@string/inactivity_weight_summary"
                 android:digits="0123456789.,"
                 android:inputType="numberDecimal"
@@ -193,7 +193,7 @@
                 android:selectAllOnFocus="true"
                 android:singleLine="true"
                 android:title="@string/inactivity_weight_title"
-                validate:floatmaxNumber="1.0"
+                validate:floatmaxNumber="2.0"
                 validate:floatminNumber="0.0"
                 validate:testType="floatNumericRange" />
 

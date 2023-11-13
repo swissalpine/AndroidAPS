@@ -245,15 +245,15 @@
     <string name="key_openapsama_iob_threshold_percent" translatable="false">iob_threshold_percent</string>
     <string name="openapsama_iob_threshold_percent_summary">Default value: 100%\nThis is the share of maxIOB above which the Full Loop will disable SMB.\n\nWith 100% this feature is effectively disabled.</string>
     <string name="openapsama_iob_threshold_percent">Relative level of maxIOB above which SMBs are disabled\n(iob_threshold_percent)</string>
-    <string name ="activity_detection_title">Activity modifies sensitivity</string>
-    <string name ="activity_detection_summary">If activity is detected in form of steps, sensitivity and basal are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.\nDuring TempTarget (in)activity will not be monitored.</string>
+    <string name ="activity_detection_title">Activity modifies sensitivity and basal</string>
+    <string name ="activity_detection_summary">If activity is detected in form of steps, sensitivity and basal are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.\nDuring TempTarget (in)activity will not be monitored.\nInactivity will not be detected between 10pm and 8am and if the smartphone is not worn.</string>
     <string name ="key_activity_detection" translatable="false">activity_detection</string>
     <string name ="key_app_start" translatable="false">app_start</string>
     <string name ="activity_monitor_summary">Activity is detected in form of steps as measured by the phone. It does not replace an explicit sport adjustment but is a lower level complement.</string>
     <string name ="activity_weight_title">Adaptation ratio for activity sensitivity</string>
-    <string name ="activity_weight_summary">If activity is detected then its contribution of 15% or 30% is scaled down by this ratio\nDefault of 0.0 disables activity contribution to sensitivity</string>
+    <string name ="activity_weight_summary">If activity is detected then its contribution of 15% or 30% is scaled down by this ratio\nDefault: 1.0, a value of 0.0 disables activity contribution to sensitivity and basal, the maximum value 2.0 doubles the percentage values mentioned.</string>
     <string name ="inactivity_weight_title">Adaptation ratio for inactivity sensitivity</string>
-    <string name ="inactivity_weight_summary">If inactivity is detected then its contribution of 10% or 20% is scaled down by this ratiot\nDefault of 0.0 disables inactivity contribution to sensitivity</string>
+    <string name ="inactivity_weight_summary">If inactivity is detected then its contribution of 10% or 20% is scaled down by this ratio\nDefault: 1.0, a value 0.0 disables inactivity contribution to sensitivity and basal, the maximum value 2.0 doubles the percentage values mentioned.</string>
     <string name ="key_activity_weight" translatable="false">activity_weight</string>
     <string name ="key_inactivity_weight" translatable="false">inactivity_weight</string>
 
