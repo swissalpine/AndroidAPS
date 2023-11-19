@@ -184,6 +184,27 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Mod exercise mode toggle icon
+        if ( sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)) {
+            binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
+            binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
+        } else {
+            binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
+            binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
+        }
+        binding.exerciseModeCheckboxIcon.setOnClickListener {
+            if (sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false) == true) {
+                binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exerciseinactive)
+                binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
+                sp.putBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, false)
+            } else {
+                binding.exerciseModeCheckboxIcon.setImageResource(R.drawable.exercise)
+                binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
+                sp.putBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, true)
+            }
+        }
+        // Mod end
+
         // pre-process landscape mode
         val screenWidth = dm.widthPixels
         val screenHeight = dm.heightPixels
@@ -802,11 +823,13 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             if (glucoseStatus != null) {
                 binding.infoLayout.deltaLarge.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.delta)
                 binding.infoLayout.deltaLarge.setTextColor(lastBgColor)
+                binding.infoLayout.bgAcceleration.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.bgAcceleration)
                 binding.infoLayout.delta.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.delta)
                 binding.infoLayout.avgDelta.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.shortAvgDelta)
                 binding.infoLayout.longAvgDelta.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.longAvgDelta)
             } else {
                 binding.infoLayout.deltaLarge.text = ""
+                binding.infoLayout.bgAcceleration.text = rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
                 binding.infoLayout.delta.text = "Δ " + rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
                 binding.infoLayout.avgDelta.text = ""
                 binding.infoLayout.longAvgDelta.text = ""
@@ -1105,7 +1128,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
         binding.infoLayout.sensitivity.text =
             lastAutosensData?.let {
-                String.format(Locale.ENGLISH, "%.0f%%", it.autosensResult.ratio * 100)
+                String.format(Locale.ENGLISH, "as: %.0f%%", it.autosensResult.ratio * 100)
             } ?: ""
         // Show variable sensitivity
         val profile = profileFunction.getProfile()
@@ -1116,14 +1139,14 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             else if (config.NSCLIENT) JsonHelper.safeGetDouble(processedDeviceStatusData.getAPSResult().json, "variable_sens")
             else 0.0
 
-        if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
+        if (variableSens != 0.0 && isfMgdl != null) {       // without variableSens != isfMgdl &&
             binding.infoLayout.variableSensitivity.text =
                 String.format(
                     Locale.getDefault(), "%1$.1f→%2$.1f",
-                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
+                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),   // * 100.0
                     profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
                 )
-            binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
+             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE
         } else binding.infoLayout.variableSensitivity.visibility = View.GONE
     }
 

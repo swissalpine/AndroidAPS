@@ -3,6 +3,9 @@ package app.aaps
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -109,7 +112,7 @@ class MainApp : DaggerApplication() {
             disposable += compatDBHelper.dbChangeDisposable()
             registerActivityLifecycleCallbacks(activityMonitor)
             runOnUiThread { themeSwitcherPlugin.setThemeMode() }
-            aapsLogger.debug("Version: " + config.VERSION_NAME)
+            aapsLogger.debug("Version: " + config.VERSION_NAME + "+autoISF3.0")
             aapsLogger.debug("BuildVersion: " + config.BUILD_VERSION)
             aapsLogger.debug("Remote: " + config.REMOTE)
             registerLocalBroadcastReceiver()
@@ -155,6 +158,16 @@ class MainApp : DaggerApplication() {
             localAlertUtils.preSnoozeAlarms()
             doMigrations()
             uel.log(UserEntry.Action.START_AAPS, UserEntry.Sources.Aaps)
+
+            // Activity Monitor
+            // Save AAPS start time
+            sp.putLong(app.aaps.plugins.aps.R.string.key_app_start, dateUtil.now())
+            // activate sensor
+            val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            val stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+            val phoneMovementDetector = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+            sensorManager.registerListener(app.aaps.plugins.aps.openAPSSMB.StepService, stepSensor, SensorManager.SENSOR_DELAY_NORMAL)
+            sensorManager.registerListener(app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector, phoneMovementDetector, SensorManager.SENSOR_DELAY_NORMAL)
 
             //  schedule widget update
             refreshWidget = Runnable {

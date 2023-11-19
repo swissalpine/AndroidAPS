@@ -38,6 +38,8 @@ import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
+import kotlin.math.roundToInt
+import app.aaps.core.main.profile.ProfileSealed
 
 class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: ScriptReader, private val injector: HasAndroidInjector) : DetermineBasalAdapter {
 
@@ -58,6 +60,13 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
     private var smbAlwaysAllowed = false
     private var currentTime: Long = 0
     private var flatBGsDetected = false
+
+    private var recentSteps5Minutes: Int = 0
+    private var recentSteps10Minutes: Int = 0
+    private var recentSteps15Minutes: Int = 0
+    private var recentSteps30Minutes: Int = 0
+    private var recentSteps60Minutes: Int = 0
+    private var phoneMoved: Boolean = false
 
     override var currentTempParam: String? = null
     override var iobDataParam: String? = null
@@ -196,15 +205,13 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("max_daily_safety_multiplier", sp.getInt(R.string.key_openapsama_max_daily_safety_multiplier, 3))
         this.profile.put("current_basal_safety_multiplier", sp.getDouble(R.string.key_openapsama_current_basal_safety_multiplier, 4.0))
 
-        //mProfile.put("high_temptarget_raises_sensitivity", SP.getBoolean(R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity));
-        this.profile.put("high_temptarget_raises_sensitivity", false)
-        //mProfile.put("low_temptarget_lowers_sensitivity", SP.getBoolean(R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity));
-        this.profile.put("low_temptarget_lowers_sensitivity", false)
+        this.profile.put("high_temptarget_raises_sensitivity", sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity))
+        this.profile.put("low_temptarget_lowers_sensitivity", sp.getBoolean(app.aaps.core.utils.R.string.key_low_temptarget_lowers_sensitivity, SMBDefaults.low_temptarget_lowers_sensitivity))
         this.profile.put("sensitivity_raises_target", sp.getBoolean(R.string.key_sensitivity_raises_target, SMBDefaults.sensitivity_raises_target))
         this.profile.put("resistance_lowers_target", sp.getBoolean(R.string.key_resistance_lowers_target, SMBDefaults.resistance_lowers_target))
         this.profile.put("adv_target_adjustments", SMBDefaults.adv_target_adjustments)
-        this.profile.put("exercise_mode", SMBDefaults.exercise_mode)
-        this.profile.put("half_basal_exercise_target", SMBDefaults.half_basal_exercise_target)
+        this.profile.put("exercise_mode", sp.getBoolean(app.aaps.core.utils.R.string.key_high_temptarget_raises_sensitivity, SMBDefaults.high_temptarget_raises_sensitivity))
+        this.profile.put("half_basal_exercise_target", sp.getInt(R.string.key_half_basal_exercise_target, SMBDefaults.half_basal_exercise_target))
         this.profile.put("maxCOB", SMBDefaults.maxCOB)
         this.profile.put("skip_neutral_temps", pump.setNeutralTempAtFullHour())
         // min_5m_carbimpact is not used within SMB determinebasal
@@ -231,6 +238,35 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("current_basal", basalRate)
         this.profile.put("temptargetSet", tempTargetSet)
         this.profile.put("autosens_max", SafeParse.stringToDouble(sp.getString(app.aaps.core.utils.R.string.key_openapsama_autosens_max, "1.2")))
+
+        // mod use autoisf here
+        this.profile.put("autoISF_version", "3.0")        // was BuildConfig.AUTOISF_VERSION)
+        this.profile.put("enable_autoISF", sp.getBoolean(R.string.key_enable_autoISF, false))
+        this.profile.put("autoISF_max",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autoISF_max, "1.0")))
+        this.profile.put("autoISF_min",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autoISF_min, "1.0")))
+        this.profile.put("parabola_fit_source",  sp.getInt(R.string.key_parabolaSourceDataType, 5))
+        this.profile.put("FSL_min_Minutes",  sp.getInt(R.string.key_fslMinFitMinutes, 15))
+        this.profile.put("bgAccel_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_bgAccel_ISF_weight, "0.0")))
+        this.profile.put("bgBrake_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_bgBrake_ISF_weight, "0.0")))
+        this.profile.put("enable_pp_ISF_always", sp.getBoolean(R.string.key_enable_postprandial_ISF_always, false))
+        this.profile.put("pp_ISF_hours",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_pp_ISF_hours, "3.0")))
+        this.profile.put("pp_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_pp_ISF_weight, "0.0")))
+        this.profile.put("delta_ISFrange_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_delta_ISFrange_weight, "0.0")))
+        this.profile.put("lower_ISFrange_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_lower_ISFrange_weight, "0.0")))
+        this.profile.put("higher_ISFrange_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_higher_ISFrange_weight, "0.0")))
+        this.profile.put("enable_dura_ISF_with_COB", sp.getBoolean(R.string.key_enable_dura_ISF_with_COB, false))
+        this.profile.put("dura_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_dura_ISF_weight, "0.0")))
+        // include SMB adaptations
+        this.profile.put("smb_delivery_ratio", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_delivery_ratio, "0.5")))
+        this.profile.put("smb_delivery_ratio_min", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_delivery_ratio_min, "0.5")))
+        this.profile.put("smb_delivery_ratio_max", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_delivery_ratio_max, "0.5")))
+        this.profile.put("smb_delivery_ratio_bg_range", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_delivery_ratio_bg_range, "0")))
+        this.profile.put("smb_max_range_extension", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_smb_max_range_extension, "1.0")))
+        this.profile.put("enableSMB_EvenOn_OddOff", sp.getBoolean(R.string.key_enableSMB_EvenOn_OddOff, false))
+        this.profile.put("enableSMB_EvenOn_OddOff_always", sp.getBoolean(R.string.key_enableSMB_EvenOn_OddOff_always, false))
+        this.profile.put("iob_threshold_percent", SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_iob_threshold_percent, "100.0")))
+        this.profile.put("profile_percentage", if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100)
+
         if (profileFunction.getUnits() == GlucoseUnit.MMOL) {
             this.profile.put("out_units", "mmol/L")
         }
@@ -253,6 +289,39 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         mGlucoseStatus.put("short_avgdelta", glucoseStatus.shortAvgDelta)
         mGlucoseStatus.put("long_avgdelta", glucoseStatus.longAvgDelta)
         mGlucoseStatus.put("date", glucoseStatus.date)
+        mGlucoseStatus.put("dura_ISF_minutes", glucoseStatus.duraISFminutes)
+        mGlucoseStatus.put("dura_ISF_average", glucoseStatus.duraISFaverage)
+        mGlucoseStatus.put("useFSL1minuteSmooth", glucoseStatus.useFSL1minuteSmooth)
+        mGlucoseStatus.put("parabola_fit_correlation", (glucoseStatus.corrSqu*10000.0).roundToInt()/10000.0)
+        mGlucoseStatus.put("parabola_fit_minutes", glucoseStatus.parabolaMinutes)
+        mGlucoseStatus.put("parabola_fit_last_delta", (glucoseStatus.deltaPl*10.0).roundToInt() / 10.0)
+        mGlucoseStatus.put("parabola_fit_next_delta", (glucoseStatus.deltaPn*10.0).roundToInt() / 10.0)
+        mGlucoseStatus.put("parabola_fit_a0", (glucoseStatus.a0*10.0).roundToInt() / 10.0)
+        mGlucoseStatus.put("parabola_fit_a1", (glucoseStatus.a1*100.0).roundToInt() / 100.0)
+        mGlucoseStatus.put("parabola_fit_a2", (glucoseStatus.a2*100.0).roundToInt() / 100.0)
+        mGlucoseStatus.put("bg_acceleration", (glucoseStatus.bgAcceleration*100.0).roundToInt() / 100.0)
+
+        this.recentSteps5Minutes = StepService.getRecentStepCount5Min()
+        this.recentSteps10Minutes = StepService.getRecentStepCount10Min()
+        this.recentSteps15Minutes = StepService.getRecentStepCount15Min()
+        this.recentSteps30Minutes = StepService.getRecentStepCount30Min()
+        this.recentSteps60Minutes = StepService.getRecentStepCount60Min()
+        this.profile.put("recentSteps5Minutes", recentSteps5Minutes)
+        this.profile.put("recentSteps10Minutes", recentSteps10Minutes)
+        this.profile.put("recentSteps15Minutes", recentSteps15Minutes)
+        this.profile.put("recentSteps30Minutes", recentSteps30Minutes)
+        this.profile.put("recentSteps60Minutes", recentSteps60Minutes)
+        this.profile.put("activity_detection", sp.getBoolean(R.string.key_activity_detection, false))
+        this.phoneMoved = PhoneMovementDetector.phoneMoved()
+        this.profile.put("phone_moved", phoneMoved)
+        this.profile.put("activity_weight", SafeParse.stringToDouble(sp.getString(R.string.key_activity_weight, "0.0")))
+        this.profile.put("inactivity_weight", SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_weight, "0.0")))
+        //this.profile.put("activity_idle_start", sp.getInt(R.string.key_activity_idle_start, 0))
+        //this.profile.put("activity_idle_end", sp.getInt(R.string.key_activity_idle_end, 6))
+        val lastAppStart = sp.getLong(R.string.key_app_start, now)
+        val elapsedTimeSinceLastStart = (now - lastAppStart) / 60000
+        this.profile.put("time_since_start", elapsedTimeSinceLastStart)
+
         this.mealData.put("carbs", mealData.carbs)
         this.mealData.put("mealCOB", mealData.mealCOB)
         this.mealData.put("slopeFromMaxDeviation", mealData.slopeFromMaxDeviation)

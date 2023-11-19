@@ -35,6 +35,10 @@ import app.aaps.plugins.automation.actions.ActionCarePortalEvent
 import app.aaps.plugins.automation.actions.ActionNotification
 import app.aaps.plugins.automation.actions.ActionProfileSwitch
 import app.aaps.plugins.automation.actions.ActionProfileSwitchPercent
+import app.aaps.plugins.automation.actions.ActionAutoisfDisable
+import app.aaps.plugins.automation.actions.ActionAutoisfEnable
+import app.aaps.plugins.automation.actions.ActionSetAcceWeight
+import app.aaps.plugins.automation.actions.ActionSetIobTH
 import app.aaps.plugins.automation.actions.ActionRunAutotune
 import app.aaps.plugins.automation.actions.ActionSendSMS
 import app.aaps.plugins.automation.actions.ActionStartTempTarget
@@ -48,6 +52,7 @@ import app.aaps.plugins.automation.events.EventLocationChange
 import app.aaps.plugins.automation.services.LocationServiceHelper
 import app.aaps.plugins.automation.triggers.Trigger
 import app.aaps.plugins.automation.triggers.TriggerAutosensValue
+import app.aaps.plugins.automation.triggers.TriggerBgAcceWeight
 import app.aaps.plugins.automation.triggers.TriggerBTDevice
 import app.aaps.plugins.automation.triggers.TriggerBg
 import app.aaps.plugins.automation.triggers.TriggerBolusAgo
@@ -56,6 +61,7 @@ import app.aaps.plugins.automation.triggers.TriggerConnector
 import app.aaps.plugins.automation.triggers.TriggerDelta
 import app.aaps.plugins.automation.triggers.TriggerHeartRate
 import app.aaps.plugins.automation.triggers.TriggerIob
+import app.aaps.plugins.automation.triggers.TriggerIobTH
 import app.aaps.plugins.automation.triggers.TriggerLocation
 import app.aaps.plugins.automation.triggers.TriggerProfilePercent
 import app.aaps.plugins.automation.triggers.TriggerPumpLastConnection
@@ -375,6 +381,10 @@ class AutomationPlugin @Inject constructor(
             ActionCarePortalEvent(injector),
             ActionProfileSwitchPercent(injector),
             ActionProfileSwitch(injector),
+            ActionAutoisfEnable(injector),
+            ActionAutoisfDisable(injector),
+            ActionSetAcceWeight(injector),
+            ActionSetIobTH(injector),
             ActionRunAutotune(injector),
             ActionSendSMS(injector)
         )
@@ -388,6 +398,8 @@ class AutomationPlugin @Inject constructor(
             TriggerTimeRange(injector),
             TriggerBg(injector),
             TriggerDelta(injector),
+            TriggerBgAcceWeight(injector),
+            TriggerIobTH(injector),
             TriggerIob(injector),
             TriggerCOB(injector),
             TriggerProfilePercent(injector),

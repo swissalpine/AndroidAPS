@@ -15,6 +15,10 @@ import app.aaps.plugins.automation.actions.ActionLoopSuspend
 import app.aaps.plugins.automation.actions.ActionNotification
 import app.aaps.plugins.automation.actions.ActionProfileSwitch
 import app.aaps.plugins.automation.actions.ActionProfileSwitchPercent
+import app.aaps.plugins.automation.actions.ActionAutoisfEnable
+import app.aaps.plugins.automation.actions.ActionAutoisfDisable
+import app.aaps.plugins.automation.actions.ActionSetAcceWeight
+import app.aaps.plugins.automation.actions.ActionSetIobTH
 import app.aaps.plugins.automation.actions.ActionRunAutotune
 import app.aaps.plugins.automation.actions.ActionSendSMS
 import app.aaps.plugins.automation.actions.ActionStartTempTarget
@@ -31,6 +35,7 @@ import app.aaps.plugins.automation.triggers.Trigger
 import app.aaps.plugins.automation.triggers.TriggerAutosensValue
 import app.aaps.plugins.automation.triggers.TriggerBTDevice
 import app.aaps.plugins.automation.triggers.TriggerBg
+import app.aaps.plugins.automation.triggers.TriggerBgAcceWeight
 import app.aaps.plugins.automation.triggers.TriggerBolusAgo
 import app.aaps.plugins.automation.triggers.TriggerCOB
 import app.aaps.plugins.automation.triggers.TriggerConnector
@@ -38,6 +43,7 @@ import app.aaps.plugins.automation.triggers.TriggerDelta
 import app.aaps.plugins.automation.triggers.TriggerDummy
 import app.aaps.plugins.automation.triggers.TriggerHeartRate
 import app.aaps.plugins.automation.triggers.TriggerIob
+import app.aaps.plugins.automation.triggers.TriggerIobTH
 import app.aaps.plugins.automation.triggers.TriggerLocation
 import app.aaps.plugins.automation.triggers.TriggerProfilePercent
 import app.aaps.plugins.automation.triggers.TriggerPumpLastConnection
@@ -71,6 +77,7 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun triggerInjector(): Trigger
     @ContributesAndroidInjector abstract fun triggerAutosensValueInjector(): TriggerAutosensValue
     @ContributesAndroidInjector abstract fun triggerBgInjector(): TriggerBg
+    @ContributesAndroidInjector abstract fun triggerBgAcceWeightInjector(): TriggerBgAcceWeight
     @ContributesAndroidInjector abstract fun triggerBolusAgoInjector(): TriggerBolusAgo
     @ContributesAndroidInjector abstract fun triggerCOBInjector(): TriggerCOB
     @ContributesAndroidInjector abstract fun triggerConnectorInjector(): TriggerConnector
@@ -78,6 +85,7 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun triggerDummyInjector(): TriggerDummy
     @ContributesAndroidInjector abstract fun triggerHeartRateInjector(): TriggerHeartRate
     @ContributesAndroidInjector abstract fun triggerIobInjector(): TriggerIob
+    @ContributesAndroidInjector abstract fun triggerIobTHInjector(): TriggerIobTH
     @ContributesAndroidInjector abstract fun triggerLocationInjector(): TriggerLocation
     @ContributesAndroidInjector abstract fun triggerProfilePercentInjector(): TriggerProfilePercent
     @ContributesAndroidInjector abstract fun triggerPumpLastConnectionInjector(): TriggerPumpLastConnection
@@ -101,6 +109,10 @@ abstract class AutomationModule {
     @ContributesAndroidInjector abstract fun actionProfileSwitchInjector(): ActionProfileSwitch
     @ContributesAndroidInjector abstract fun actionProfileSwitchPercentInjector(): ActionProfileSwitchPercent
     @ContributesAndroidInjector abstract fun actionRunAutotuneInjector(): ActionRunAutotune
+    @ContributesAndroidInjector abstract fun actionAutoisfEnableInjector(): ActionAutoisfEnable
+    @ContributesAndroidInjector abstract fun actionAutoisfDisableInjector(): ActionAutoisfDisable
+    @ContributesAndroidInjector abstract fun actionSetAcceWeightInjector(): ActionSetAcceWeight
+    @ContributesAndroidInjector abstract fun actionSetIobTHInjector(): ActionSetIobTH
     @ContributesAndroidInjector abstract fun actionSendSMSInjector(): ActionSendSMS
     @ContributesAndroidInjector abstract fun actionStartTempTargetInjector(): ActionStartTempTarget
     @ContributesAndroidInjector abstract fun actionStopTempTargetInjector(): ActionStopTempTarget

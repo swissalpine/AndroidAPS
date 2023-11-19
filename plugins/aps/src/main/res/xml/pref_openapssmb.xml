@@ -124,26 +124,81 @@
             android:key="@string/key_sensitivity_raises_target"
             android:summary="@string/sensitivity_raises_target_summary"
             android:title="@string/sensitivity_raises_target_title" />
+
         <SwitchPreference
             android:defaultValue="false"
             android:key="@string/key_resistance_lowers_target"
             android:summary="@string/resistance_lowers_target_summary"
             android:title="@string/resistance_lowers_target_title" />
-        <!-- TODO AS-FIX -->
-        <SwitchPreference
-            android:defaultValue="false"
-            android:enabled="false"
-            android:key="@string/key_high_temptarget_raises_sensitivity"
-            android:summary="@string/high_temptarget_raises_sensitivity_summary"
-            android:title="@string/high_temptarget_raises_sensitivity_title" />
 
         <!-- TODO AS-FIX -->
         <SwitchPreference
             android:defaultValue="false"
-            android:enabled="false"
+            android:enabled="true"
+            android:key="@string/key_high_temptarget_raises_sensitivity"
+            android:summary="@string/high_temptarget_raises_sensitivity_summary"
+            android:title="@string/high_temptarget_raises_sensitivity_title" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:enabled="true"
             android:key="@string/key_low_temptarget_lowers_sensitivity"
             android:summary="@string/low_temptarget_lowers_sensitivity_summary"
             android:title="@string/low_temptarget_lowers_sensitivity_title" />
+
+        <app.aaps.core.validators.ValidatingEditTextPreference
+            android:defaultValue="160"
+            android:dialogMessage="@string/half_basal_exercise_target_summary"
+            android:digits="0123456789"
+            android:inputType="number"
+            android:key="@string/key_half_basal_exercise_target"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/half_basal_exercise_target_title"
+            validate:maxNumber="200"
+            validate:minNumber="120"
+            validate:testType="numericRange" />
+
+        <androidx.preference.PreferenceScreen
+            android:key="activity_monitor"
+            android:title="@string/activity_detection_title">
+
+            <Preference android:summary="@string/activity_monitor_summary" />
+
+            <SwitchPreference
+                android:defaultValue="false"
+                android:enabled="true"
+                android:key="@string/key_activity_detection"
+                android:summary="@string/activity_detection_summary"
+                android:title="@string/activity_detection_title" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="0.0"
+                android:dialogMessage="@string/activity_weight_summary"
+                android:digits="0123456789.,"
+                android:inputType="numberDecimal"
+                android:key="@string/key_activity_weight"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/activity_weight_title"
+                validate:floatmaxNumber="1.0"
+                validate:floatminNumber="0.0"
+                validate:testType="floatNumericRange" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="0.0"
+                android:dialogMessage="@string/inactivity_weight_summary"
+                android:digits="0123456789.,"
+                android:inputType="numberDecimal"
+                android:key="@string/key_inactivity_weight"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/inactivity_weight_title"
+                validate:floatmaxNumber="1.0"
+                validate:floatminNumber="0.0"
+                validate:testType="floatNumericRange" />
+
+        </androidx.preference.PreferenceScreen>
 
         <app.aaps.core.validators.ValidatingEditTextPreference
             android:defaultValue="1"
@@ -202,6 +257,352 @@
                 validate:floatmaxNumber="10"
                 validate:floatminNumber="1"
                 validate:testType="floatNumericRange" />
+
+        </androidx.preference.PreferenceScreen>
+
+
+        <androidx.preference.PreferenceScreen
+            android:key="absorption_smb_autoISF"
+            android:title="@string/autoISF_settings_title">
+
+            <Preference android:summary="@string/autoISF_settings_summary" />
+
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="@string/key_enable_autoISF"
+                android:title="@string/openapsama_enable_autoISF" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="1.0"
+                android:dialogMessage="@string/openapsama_autoISF_min_summary"
+                android:digits="0123456789.,"
+                android:inputType="numberDecimal"
+                android:key="@string/key_openapsama_autoISF_min"
+                android:maxLines="20"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/openapsama_autoISF_min"
+                validate:floatmaxNumber="1"
+                validate:floatminNumber="0.3"
+                validate:testType="floatNumericRange" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="1.0"
+                android:dialogMessage="@string/openapsama_autoISF_max_summary"
+                android:digits="0123456789.,"
+                android:inputType="numberDecimal"
+                android:key="@string/key_openapsama_autoISF_max"
+                android:maxLines="20"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/openapsama_autoISF_max"
+                validate:floatmaxNumber="5"
+                validate:floatminNumber="1"
+                validate:testType="floatNumericRange" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="15"
+                android:dialogMessage="minutes for parabola fit"
+                android:digits="0123456789"
+                android:inputType="number"
+                android:key="@string/key_fslMinFitMinutes"
+                android:maxLines="20"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="Minimum minutes for parabola fit"
+                validate:maxNumber="40"
+                validate:minNumber="10"
+                validate:testType="numericRange" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="5"
+                android:dialogMessage="-5: for raw data every 5 minutes\n-1: for raw data, every minute\n 1: for smooth data every minute\n 5: for smooth data every 5 minutes"
+                android:digits="15-"
+                android:inputType="number"
+                android:key="@string/key_parabolaSourceDataType"
+                android:maxLines="20"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="Glucose source data for parabola fit"
+                validate:maxNumber="5"
+                validate:minNumber="-5"
+                validate:testType="numericRange" />
+
+            <androidx.preference.PreferenceScreen
+                android:key="Full loop settings"
+                android:title="Full Loop Settings">
+
+                <Preference android:summary="Full Loop Settings: Adjust iobTH and total acce weights for meal types" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="100"
+                    android:dialogMessage="@string/openapsama_iob_threshold_percent_summary"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_iob_threshold_percent"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_iob_threshold_percent"
+                    validate:maxNumber="100"
+                    validate:minNumber="10"
+                    validate:testType="numericRange" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="acce_ISF_settings"
+                android:title="@string/acce_ISF_settings_title">
+
+                <Preference android:summary="@string/acce_ISF_settings_summary" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_bgAccel_ISF_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_bgAccel_ISF_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_bgAccel_ISF_weight"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_bgBrake_ISF_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_bgBrake_ISF_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_bgBrake_ISF_weight"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="bg_ISF_settings"
+                android:title="@string/bg_ISF_settings_title">
+
+                <Preference android:summary="@string/bg_ISF_settings_summary" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_lower_ISFrange_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_lower_ISFrange_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_lower_ISFrange_weight"
+                    validate:floatmaxNumber="2"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_higher_ISFrange_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_higher_ISFrange_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_higher_ISFrange_weight"
+                    validate:floatmaxNumber="2"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="pp_ISF_settings"
+                android:title="@string/pp_ISF_settings_title">
+
+                <Preference android:summary="@string/pp_ISF_settings_summary" />
+
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="@string/key_enable_postprandial_ISF_always"
+                    android:summary="@string/enable_postprandial_ISF_always_summary"
+                    android:title="@string/enable_postprandial_ISF_always" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="3"
+                    android:dialogMessage="@string/openapsama_pp_ISF_hours_summary"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_pp_ISF_hours"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_pp_ISF_hours"
+                    validate:maxNumber="10"
+                    validate:minNumber="1"
+                    validate:testType="numericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_pp_ISF_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_pp_ISF_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_pp_ISF_weight"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="delta_ISF_settings"
+                android:title="@string/delta_ISF_settings_title">
+
+                <Preference android:summary="@string/delta_ISF_settings_summary" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_delta_ISFrange_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_delta_ISFrange_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_delta_ISFrange_weight"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="dura_ISF_settings"
+                android:title="@string/dura_ISF_settings_title">
+
+                <Preference android:summary="@string/dura_ISF_settings_summary" />
+
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="@string/key_enable_dura_ISF_with_COB"
+                    android:summary="@string/enableautoISFwithcob_summary"
+                    android:title="@string/enableautoISFwithcob" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.0"
+                    android:dialogMessage="@string/openapsama_dura_ISF_weight_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="numberDecimal"
+                    android:key="@string/key_openapsama_dura_ISF_weight"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_dura_ISF_weight"
+                    validate:floatmaxNumber="3"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="smb_delivery_settings"
+                android:title="@string/smb_delivery_settings_title">
+
+                <Preference android:summary="@string/smb_delivery_settings_summary" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.5"
+                    android:dialogMessage="@string/openapsama_smb_delivery_ratio_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_smb_delivery_ratio"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_smb_delivery_ratio"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0.5"
+                    validate:testType="floatNumericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.5"
+                    android:dialogMessage="@string/openapsama_smb_delivery_ratio_min_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_smb_delivery_ratio_min"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_smb_delivery_ratio_min"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0.5"
+                    validate:testType="floatNumericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0.5"
+                    android:dialogMessage="@string/openapsama_smb_delivery_ratio_max_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_smb_delivery_ratio_max"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_smb_delivery_ratio_max"
+                    validate:floatmaxNumber="1"
+                    validate:floatminNumber="0.5"
+                    validate:testType="floatNumericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="0"
+                    android:dialogMessage="@string/openapsama_smb_delivery_ratio_bg_range_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_smb_delivery_ratio_bg_range"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_smb_delivery_ratio_bg_range"
+                    validate:floatmaxNumber="100"
+                    validate:floatminNumber="0"
+                    validate:testType="floatNumericRange" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="1"
+                    android:dialogMessage="@string/openapsama_smb_max_range_extension_summary"
+                    android:digits="0123456789.,"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_smb_max_range_extension"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_smb_max_range_extension"
+                    validate:floatmaxNumber="5"
+                    validate:floatminNumber="1"
+                    validate:testType="floatNumericRange" />
+
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="@string/key_enableSMB_EvenOn_OddOff"
+                    android:summary="@string/enableSMB_EvenOn_OddOff_summary"
+                    android:title="@string/enableSMB_EvenOn_OddOff" />
+
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="@string/key_enableSMB_EvenOn_OddOff_always"
+                    android:summary="@string/enableSMB_EvenOn_OddOff_always_summary"
+                    android:title="@string/enableSMB_EvenOn_OddOff_always" />
+
+            </androidx.preference.PreferenceScreen>
 
         </androidx.preference.PreferenceScreen>
 

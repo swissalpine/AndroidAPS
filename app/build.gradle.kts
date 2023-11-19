@@ -109,6 +109,7 @@ android {
         buildConfigField("String", "REMOTE", "\"${generateGitRemote()}\"")
         buildConfigField("String", "HEAD", "\"${generateGitBuild()}\"")
         buildConfigField("String", "COMMITTED", "\"${allCommitted()}\"")
+        buildConfigField("String", "AUTOISF_VERSION", "\"3.0\"")
     }
 
     flavorDimensions.add("standard")
