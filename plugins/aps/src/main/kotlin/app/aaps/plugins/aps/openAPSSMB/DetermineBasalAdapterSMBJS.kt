@@ -316,8 +316,9 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("phone_moved", phoneMoved)
         this.profile.put("activity_weight", SafeParse.stringToDouble(sp.getString(R.string.key_activity_weight, "0.0")))
         this.profile.put("inactivity_weight", SafeParse.stringToDouble(sp.getString(R.string.key_inactivity_weight, "0.0")))
-        //this.profile.put("activity_idle_start", sp.getInt(R.string.key_activity_idle_start, 0))
-        //this.profile.put("activity_idle_end", sp.getInt(R.string.key_activity_idle_end, 6))
+        this.profile.put("nightly_inactivity_detection", sp.getBoolean(R.string.key_nightly_inactivity_detection, true))
+        this.profile.put("activity_idle_start", sp.getInt(R.string.key_activity_idle_start, 22))
+        this.profile.put("activity_idle_end", sp.getInt(R.string.key_activity_idle_end, 6))
         val lastAppStart = sp.getLong(R.string.key_app_start, now)
         val elapsedTimeSinceLastStart = (now - lastAppStart) / 60000
         this.profile.put("time_since_start", elapsedTimeSinceLastStart)
