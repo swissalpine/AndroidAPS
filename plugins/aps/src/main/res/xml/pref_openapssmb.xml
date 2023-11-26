@@ -546,7 +546,7 @@
                     android:singleLine="true"
                     android:title="@string/openapsama_smb_delivery_ratio"
                     validate:floatmaxNumber="1"
-                    validate:floatminNumber="0.5"
+                    validate:floatminNumber="0.1"
                     validate:testType="floatNumericRange" />
 
                 <app.aaps.core.validators.ValidatingEditTextPreference
@@ -560,7 +560,7 @@
                     android:singleLine="true"
                     android:title="@string/openapsama_smb_delivery_ratio_min"
                     validate:floatmaxNumber="1"
-                    validate:floatminNumber="0.5"
+                    validate:floatminNumber="0.1"
                     validate:testType="floatNumericRange" />
 
                 <app.aaps.core.validators.ValidatingEditTextPreference
@@ -574,7 +574,7 @@
                     android:singleLine="true"
                     android:title="@string/openapsama_smb_delivery_ratio_max"
                     validate:floatmaxNumber="1"
-                    validate:floatminNumber="0.5"
+                    validate:floatminNumber="0.1"
                     validate:testType="floatNumericRange" />
 
                 <app.aaps.core.validators.ValidatingEditTextPreference
