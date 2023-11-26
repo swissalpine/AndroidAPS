@@ -99,6 +99,7 @@ class GarminPlugin @Inject constructor(
             server = HttpServer(aapsLogger, port).apply {
                 registerEndpoint("/get", ::onGetBloodGlucose)
                 registerEndpoint("/carbs", ::onPostCarbs)
+                registerEndpoint("/temptarget", ::onPostTempTarget)
                 registerEndpoint("/connect", ::onConnectPump)
                 registerEndpoint("/sgv.json", ::onSgv)
             }
@@ -228,6 +229,32 @@ class GarminPlugin @Inject constructor(
         }
     }
 
+    private fun getQueryParameter(
+        uri: URI, name: String,
+        @Suppress("SameParameterValue") defaultValue: Int
+    ): Int {
+        val value = getQueryParameter(uri, name)
+        return try {
+            if (value.isNullOrEmpty()) defaultValue else value.toInt()
+        } catch (e: NumberFormatException) {
+            aapsLogger.error(LTag.GARMIN, "invalid $name value '$value'")
+            defaultValue
+        }
+    }
+
+    private fun getQueryParameter(
+        uri: URI, name: String,
+        @Suppress("SameParameterValue") defaultValue: Double
+    ): Double {
+        val value = getQueryParameter(uri, name)
+        return try {
+            if (value.isNullOrEmpty()) defaultValue else value.toDouble()
+        } catch (e: NumberFormatException) {
+            aapsLogger.error(LTag.GARMIN, "invalid $name value '$value'")
+            defaultValue
+        }
+    }
+
     @VisibleForTesting
     fun receiveHeartRate(uri: URI) {
         val avg: Int = getQueryParameter(uri, "hr", 0L).toInt()
@@ -264,6 +291,17 @@ class GarminPlugin @Inject constructor(
         if (carbs > 0) {
             loopHub.postCarbs(carbs)
         }
+    }
+
+    /** Handles temp targets from the device. */
+    @VisibleForTesting
+    @Suppress("UNUSED_PARAMETER")
+    fun onPostTempTarget(caller: SocketAddress, uri: URI, requestBody: String?): CharSequence {
+        aapsLogger.info(LTag.GARMIN, "temp target from $caller, req: $uri")
+        val target: Double = getQueryParameter(uri, "target", 0.0)
+        val duration: Int = getQueryParameter(uri, "duration", 0)
+        loopHub.postTempTarget(target, duration)
+        return ""
     }
 
     /** Handles pump connected notification that the user entered on the Garmin device. */

@@ -10,6 +10,7 @@ import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.sharedPreferences.SP
@@ -19,13 +20,18 @@ import app.aaps.database.entities.EffectiveProfileSwitch
 import app.aaps.database.entities.GlucoseValue
 import app.aaps.database.entities.HeartRate
 import app.aaps.database.entities.OfflineEvent
+import app.aaps.database.entities.TemporaryTarget
 import app.aaps.database.entities.UserEntry
 import app.aaps.database.entities.ValueWithUnit
 import app.aaps.database.impl.AppRepository
 import app.aaps.database.impl.transactions.CancelCurrentOfflineEventIfAnyTransaction
+import app.aaps.database.impl.transactions.CancelCurrentTemporaryTargetIfAnyTransaction
+import app.aaps.database.impl.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import app.aaps.database.impl.transactions.InsertOrUpdateHeartRateTransaction
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,6 +50,7 @@ class LoopHubImpl @Inject constructor(
     private val userEntryLogger: UserEntryLogger,
     private val sp: SP,
     private val overviewData: OverviewData,
+    private val profileUtil: ProfileUtil
 ) : LoopHub {
 
     @VisibleForTesting
@@ -143,6 +150,42 @@ class LoopHubImpl @Inject constructor(
             carbs = carbsAfterConstraints.toDouble()
         }
         commandQueue.bolus(detailedBolusInfo, null)
+    }
+
+    override fun postTempTarget(target: Double, duration: Int) {
+        if (target == 0.0 || duration == 0) {
+            repo.runTransactionForResult(CancelCurrentTemporaryTargetIfAnyTransaction(
+                System.currentTimeMillis()
+            )).subscribe({ result ->
+                 result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
+             }, {
+                 aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
+             })
+            userEntryLogger.log(
+                UserEntry.Action.CANCEL_TT,
+                UserEntry.Sources.GarminDevice,
+            )
+        } else {
+            repo.runTransactionForResult(InsertAndCancelCurrentTemporaryTargetTransaction(
+                    timestamp = System.currentTimeMillis(),
+                    duration = TimeUnit.MINUTES.toMillis(duration.toLong()),
+                    reason = TemporaryTarget.Reason.CUSTOM,
+                    lowTarget = profileUtil.convertToMgdl(target, profileUtil.units),
+                    highTarget = profileUtil.convertToMgdl(target, profileUtil.units)
+            )).subscribe({ result ->
+                  result.inserted.forEach { aapsLogger.debug(LTag.DATABASE, "Inserted temp target $it") }
+                  result.updated.forEach { aapsLogger.debug(LTag.DATABASE, "Updated temp target $it") }
+              }, {
+                  aapsLogger.error(LTag.DATABASE, "Error while saving temporary target", it)
+              })
+            userEntryLogger.log(
+                UserEntry.Action.TT,
+                UserEntry.Sources.GarminDevice,
+                ValueWithUnit.TherapyEventTTReason(TemporaryTarget.Reason.CUSTOM),
+                ValueWithUnit.fromGlucoseUnit(target, profileUtil.units.asText),
+                ValueWithUnit.Minute(duration)
+            )
+        }
     }
 
     /** Stores hear rate readings that a taken and averaged of the given interval. */
