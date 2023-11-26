@@ -180,7 +180,7 @@
                 android:selectAllOnFocus="true"
                 android:singleLine="true"
                 android:title="@string/activity_weight_title"
-                validate:floatmaxNumber="2.0"
+                validate:floatmaxNumber="1.5"
                 validate:floatminNumber="0.0"
                 validate:testType="floatNumericRange" />
 
@@ -193,7 +193,7 @@
                 android:selectAllOnFocus="true"
                 android:singleLine="true"
                 android:title="@string/inactivity_weight_title"
-                validate:floatmaxNumber="2.0"
+                validate:floatmaxNumber="1.5"
                 validate:floatminNumber="0.0"
                 validate:testType="floatNumericRange" />
 
