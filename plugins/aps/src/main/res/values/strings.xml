@@ -128,7 +128,7 @@
     <string name="key_smb_enable_carbs_suggestions_threshold" translatable="false">smb_enable_carbs_suggestions_threshold</string>
 
     <string name="run_now">Run now</string>
-    <string name="smb_frequency_exceeded">A bolus was delivered within the last 3 minutes, skipping SMB</string>
+    <string name="smb_frequency_exceeded">A bolus was delivered within the last 1 minute, skipping SMB</string>
     <string name="pump_not_initialized">Pump not initialized!</string>
     <string name="loop_shortname">LOOP</string>
     <string name="description_loop">Activate or deactivate the implementation triggering the loop.</string>
