@@ -171,16 +171,16 @@ class GlucoseStatusProviderImpl @Inject constructor(
         //var b = 0.0
         var use1MinuteSmooth = false
         var fslMinDur = 15  // sp.getInt(app.aaps.plugins.aps.R.string.key_fslMinFitMinutes, 15)
-        if ( cgm.isLibre() ) {
-            // original FSL 1-minute cgm data from Juggluco direct to AAPS although not smoothed
-            if ( orig.size>2 ) {
-                if ( orig[0].timestamp - orig[2].timestamp < 3 * 60000 ) {
-                    use1MinuteSmooth = true
-                    sizeRecords = orig.size
-                    fslMinDur = 15
-                }
-            }
-        }
+        //if ( cgm.isLibre() ) {
+        //    // original FSL 1-minute cgm data from Juggluco direct to AAPS although not smoothed
+        //    if ( orig.size>2 ) {
+        //        if ( orig[0].timestamp - orig[2].timestamp < 3 * 60000 ) {
+        //            use1MinuteSmooth = true
+        //            sizeRecords = orig.size
+        //            fslMinDur = 15
+        //        }
+        //    }
+        //}
 
         if (sizeRecords > 3) {
             //double corrMin = 0.90;              // go backwards until the correlation coefficient goes below
