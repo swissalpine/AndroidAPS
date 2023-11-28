@@ -337,34 +337,6 @@
                 validate:floatminNumber="1"
                 validate:testType="floatNumericRange" />
 
-            <app.aaps.core.validators.ValidatingEditTextPreference
-                android:defaultValue="15"
-                android:dialogMessage="minutes for parabola fit"
-                android:digits="0123456789"
-                android:inputType="number"
-                android:key="@string/key_fslMinFitMinutes"
-                android:maxLines="20"
-                android:selectAllOnFocus="true"
-                android:singleLine="true"
-                android:title="Minimum minutes for parabola fit"
-                validate:maxNumber="40"
-                validate:minNumber="10"
-                validate:testType="numericRange" />
-
-            <app.aaps.core.validators.ValidatingEditTextPreference
-                android:defaultValue="5"
-                android:dialogMessage="-5: for raw data every 5 minutes\n-1: for raw data, every minute\n 1: for smooth data every minute\n 5: for smooth data every 5 minutes"
-                android:digits="15-"
-                android:inputType="number"
-                android:key="@string/key_parabolaSourceDataType"
-                android:maxLines="20"
-                android:selectAllOnFocus="true"
-                android:singleLine="true"
-                android:title="Glucose source data for parabola fit"
-                validate:maxNumber="5"
-                validate:minNumber="-5"
-                validate:testType="numericRange" />
-
             <androidx.preference.PreferenceScreen
                 android:key="acce_ISF_settings"
                 android:title="@string/acce_ISF_settings_title">
