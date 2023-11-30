@@ -20,8 +20,8 @@ interface LoopHub {
     /** Returns the remaining bolus insulin on board. */
     val insulinOnboard: Double
 
-    /** Returns the remaining bolus and basal insulin on board. */
-    val insulinTotalOnboard: Double
+    /** Returns the basal insulin on board. */
+    val insulinBasalOnboard: Double
 
     /** Returns the remaining carbs on board. */
     val carbsOnboard: Double?
@@ -34,9 +34,6 @@ interface LoopHub {
 
     /** Returns the factor by which the basal rate is currently raised (> 1) or lowered (< 1). */
     val temporaryBasal: Double
-
-    /** Returns the temporary basal rate in percent */
-    val temporaryBasalPercent: String
 
     /** Tells the loop algorithm that the pump is physically connected. */
     fun connectPump()
