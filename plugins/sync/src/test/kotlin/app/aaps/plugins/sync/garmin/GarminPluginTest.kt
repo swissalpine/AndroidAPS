@@ -225,7 +225,7 @@ class GarminPluginTest: TestBase() {
     }
 
     @Test
-    fun onSgv_NoDelta() {
+fun onSgv_NoDelta() {
         whenever(loopHub.glucoseUnit).thenReturn(GlucoseUnit.MMOL)
         whenever(loopHub.insulinOnboard).thenReturn(2.7)
         whenever(loopHub.insulinBasalOnboard).thenReturn(2.5)
