@@ -12,8 +12,12 @@ import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.main.constraints.ConstraintObject
 import app.aaps.core.main.graph.OverviewData
 import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.EffectiveProfileSwitch
@@ -49,7 +53,11 @@ class LoopHubImpl @Inject constructor(
     private val userEntryLogger: UserEntryLogger,
     private val sp: SP,
     private val overviewData: OverviewData,
-    private val profileUtil: ProfileUtil
+    private val profileUtil: ProfileUtil,
+    private val rh: ResourceHelper,
+    private val uel: UserEntryLogger,
+    private val uiInteraction: UiInteraction
+
 ) : LoopHub {
 
     @VisibleForTesting
@@ -142,6 +150,32 @@ class LoopHubImpl @Inject constructor(
             carbs = carbsAfterConstraints.toDouble()
         }
         commandQueue.bolus(detailedBolusInfo, null)
+    }
+
+    /** Triggers a bolus. */
+    override fun postBolus(bolus: Double) {
+        aapsLogger.info(LTag.GARMIN, "trigger a bolus of $bolus U")
+        uel.log(
+            UserEntry.Action.BOLUS, UserEntry.Sources.GarminDevice,
+            "",
+            ValueWithUnit.Insulin(bolus)
+        )
+        val insulinAfterConstraints = constraintChecker.applyBolusConstraints(ConstraintObject(bolus, aapsLogger)).value()
+        if (insulinAfterConstraints > 0) {
+            val detailedBolusInfo = DetailedBolusInfo()
+            detailedBolusInfo.eventType = DetailedBolusInfo.EventType.CORRECTION_BOLUS
+            detailedBolusInfo.insulin = insulinAfterConstraints
+            detailedBolusInfo.context = null
+            detailedBolusInfo.notes = ""
+            detailedBolusInfo.timestamp = System.currentTimeMillis()
+            commandQueue.bolus(detailedBolusInfo, object : Callback() {
+                override fun run() {
+                    if (!result.success) {
+                        uiInteraction.runAlarm(result.comment, rh.gs(app.aaps.core.ui.R.string.treatmentdeliveryerror), app.aaps.core.ui.R.raw.boluserror)
+                    }
+                }
+            })
+        }
     }
 
     override fun postTempTarget(target: Double, duration: Int) {

@@ -48,6 +48,9 @@ interface LoopHub {
     /** Notifies the system that carbs were eaten and stores the value. */
     fun postCarbs(carbohydrates: Int)
 
+    /** Triggers a bolus. */
+    fun postBolus(bolus: Double)
+
     /** Stores or cancels a temptarget. */
     fun postTempTarget(target: Double, duration: Int)
 

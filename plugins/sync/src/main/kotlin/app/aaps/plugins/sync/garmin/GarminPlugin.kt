@@ -99,6 +99,7 @@ class GarminPlugin @Inject constructor(
             server = HttpServer(aapsLogger, port).apply {
                 registerEndpoint("/get", ::onGetBloodGlucose)
                 registerEndpoint("/carbs", ::onPostCarbs)
+                registerEndpoint("/bolus", ::onPostBolus)
                 registerEndpoint("/temptarget", ::onPostTempTarget)
                 registerEndpoint("/connect", ::onConnectPump)
                 registerEndpoint("/sgv.json", ::onSgv)
@@ -291,6 +292,13 @@ class GarminPlugin @Inject constructor(
         if (carbs > 0) {
             loopHub.postCarbs(carbs)
         }
+    }
+
+    fun onPostBolus(caller: SocketAddress, uri: URI, requestBody: String?): CharSequence {
+        aapsLogger.info(LTag.GARMIN, "Bolus from $caller, req: $uri")
+        val bolus: Double = getQueryParameter(uri, "bolus", 0.0)
+        loopHub.postBolus(bolus)
+        return ""
     }
 
     /** Handles temp targets from the device. */
