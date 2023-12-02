@@ -481,11 +481,11 @@ function activityMonitor(profile, bg, target_bg)
         console.log("Activity monitor disabled: Phone seems not to be carried for the last 15m");
     } else {
         if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
-            console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes");
+            console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes, inactivity detection disabled");
         } else if ( ( activity_idle_start>activity_idle_end && ( now>=activity_idle_start || now<activity_idle_end ) ) // includes midnight
             || ( now>=activity_idle_start && now<activity_idle_end)                                                    // excludes midnight
             && recentSteps60Minutes <= 200 && nightly_inactivity_detection ) {
-            console.log("Activity monitor disabled: sleeping hours");
+            console.log("Inactivity detection disabled: sleeping hours");
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             //stepActivityDetected = true;
             activityRatio = 1 - 0.3 * activity_weight;
@@ -496,7 +496,7 @@ function activityMonitor(profile, bg, target_bg)
             activityRatio = 1 - 0.15 * activity_weight;
             console.log("Activity monitor detected partial activity, sensitivity ratio: " + activityRatio);
         } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
-            console.log("Activity monitor disabled: bg < target");
+            console.log("Inactivity detection disabled: bg < target");
         } else if ( recentSteps60Minutes < 50 ) {
             //stepInactivityDetected = true;
             activityRatio = 1 + 0.2 * inactivity_weight;
