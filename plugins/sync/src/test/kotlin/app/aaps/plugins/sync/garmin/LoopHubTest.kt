@@ -14,7 +14,9 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.main.graph.OverviewData
 import app.aaps.database.ValueWrapper
 import app.aaps.database.entities.EffectiveProfileSwitch
@@ -59,6 +61,8 @@ class LoopHubTest: TestBase() {
     @Mock lateinit var sp: SP
     @Mock lateinit var overviewData: OverviewData
     @Mock lateinit var profileUtil: ProfileUtil
+    @Mock lateinit var rh: ResourceHelper
+    @Mock lateinit var uiInteraction: UiInteraction
 
     private lateinit var loopHub: LoopHubImpl
     private val clock = Clock.fixed(Instant.ofEpochMilli(10_000), ZoneId.of("UTC"))
@@ -67,7 +71,7 @@ class LoopHubTest: TestBase() {
     fun setup() {
         loopHub = LoopHubImpl(
             aapsLogger, commandQueue, constraints, iobCobCalculator, loop,
-            profileFunction, repo, userEntryLogger, sp, overviewData, profileUtil
+            profileFunction, repo, userEntryLogger, sp, overviewData, profileUtil, rh, uiInteraction
         )
         loopHub.clock = clock
     }
@@ -83,6 +87,7 @@ class LoopHubTest: TestBase() {
         verifyNoMoreInteractions(userEntryLogger)
         verifyNoMoreInteractions(overviewData)
         verifyNoMoreInteractions(profileUtil)
+        verifyNoMoreInteractions(rh)
     }
 
     @Test
