@@ -55,7 +55,6 @@ class LoopHubImpl @Inject constructor(
     private val overviewData: OverviewData,
     private val profileUtil: ProfileUtil,
     private val rh: ResourceHelper,
-    private val uel: UserEntryLogger,
     private val uiInteraction: UiInteraction
 
 ) : LoopHub {
@@ -155,7 +154,7 @@ class LoopHubImpl @Inject constructor(
     /** Triggers a bolus. */
     override fun postBolus(bolus: Double) {
         aapsLogger.info(LTag.GARMIN, "trigger a bolus of $bolus U")
-        uel.log(
+        userEntryLogger.log(
             UserEntry.Action.BOLUS, UserEntry.Sources.GarminDevice,
             "",
             ValueWithUnit.Insulin(bolus)
