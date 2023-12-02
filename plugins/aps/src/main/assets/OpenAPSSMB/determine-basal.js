@@ -481,7 +481,7 @@ function activityMonitor(profile, bg, target_bg)
         console.log("Activity monitor disabled: Phone seems not to be carried for the last 15m");
     } else {
         if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
-            console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes, inactivity detection disabled");
+            console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes: inactivity detection disabled");
         } else if ( ( activity_idle_start>activity_idle_end && ( now>=activity_idle_start || now<activity_idle_end ) ) // includes midnight
             || ( now>=activity_idle_start && now<activity_idle_end)                                                    // excludes midnight
             && recentSteps60Minutes <= 200 && nightly_inactivity_detection ) {
@@ -1316,11 +1316,12 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.reason += "maxDelta "+convert_bg(maxDelta, profile)+" > "+maxDeltaPercentage*100+"% of BG "+convert_bg(bg, profile)+": SMB disabled; ";
         enableSMB = false;
     }
-        // Anpassung: Keine SMB unter 100 mg/dl
-        if(enableSMB && bg < 100) {
-            console.error("BG < 100 - disabling SMB; ");
-            enableSMB = false;
-        }
+
+    // Anpassung: Keine SMB unter 100 mg/dl
+    if(enableSMB && bg < 100) {
+        console.error("BG < 100 - disabling SMB; ");
+        enableSMB = false;
+    }
 
     console.error("BG projected to remain above",convert_bg(min_bg, profile),"for",minutesAboveMinBG,"minutes");
     if ( minutesAboveThreshold < 240 || minutesAboveMinBG < 60 ) {
