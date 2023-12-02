@@ -124,6 +124,7 @@
             android:key="@string/key_sensitivity_raises_target"
             android:summary="@string/sensitivity_raises_target_summary"
             android:title="@string/sensitivity_raises_target_title" />
+
         <SwitchPreference
             android:defaultValue="false"
             android:key="@string/key_resistance_lowers_target"
@@ -173,6 +174,7 @@
 
             <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1.0"
+                android:dependency="@string/key_activity_detection"
                 android:dialogMessage="@string/activity_weight_summary"
                 android:digits="0123456789.,"
                 android:inputType="numberDecimal"
@@ -186,6 +188,7 @@
 
             <app.aaps.core.validators.ValidatingEditTextPreference
                 android:defaultValue="1.0"
+                android:dependency="@string/key_activity_detection"
                 android:dialogMessage="@string/inactivity_weight_summary"
                 android:digits="0123456789.,"
                 android:inputType="numberDecimal"
@@ -196,6 +199,42 @@
                 validate:floatmaxNumber="1.5"
                 validate:floatminNumber="0.0"
                 validate:testType="floatNumericRange" />
+
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="@string/key_activity_detection"
+                android:enabled="true"
+                android:key="@string/key_nightly_inactivity_detection"
+                android:summary="@string/nightly_inactivity_detection_summary"
+                android:title="@string/nightly_inactivity_detection_title" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="22"
+                android:dependency="@string/key_nightly_inactivity_detection"
+                android:dialogMessage="@string/activity_idle_start_summary"
+                android:digits="0123456789"
+                android:inputType="number"
+                android:key="@string/key_activity_idle_start"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/activity_idle_start_title"
+                validate:maxNumber="23"
+                validate:minNumber="0"
+                validate:testType="numericRange" />
+
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="6"
+                android:dependency="@string/key_nightly_inactivity_detection"
+                android:dialogMessage="@string/activity_idle_end_summary"
+                android:digits="0123456789"
+                android:inputType="number"
+                android:key="@string/key_activity_idle_end"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/activity_idle_end_title"
+                validate:maxNumber="23"
+                validate:minNumber="0"
+                validate:testType="numericRange" />
 
         </androidx.preference.PreferenceScreen>
 
@@ -359,28 +398,6 @@
                 validate:maxNumber="5"
                 validate:minNumber="-5"
                 validate:testType="numericRange" />
-
-            <androidx.preference.PreferenceScreen
-                android:key="Full loop settings"
-                android:title="Full Loop Settings">
-
-                <Preference android:summary="Full Loop Settings: Adjust iobTH and total acce weights for meal types" />
-
-                <app.aaps.core.validators.ValidatingEditTextPreference
-                    android:defaultValue="100"
-                    android:dialogMessage="@string/openapsama_iob_threshold_percent_summary"
-                    android:digits="0123456789"
-                    android:inputType="number"
-                    android:key="@string/key_openapsama_iob_threshold_percent"
-                    android:maxLines="20"
-                    android:selectAllOnFocus="true"
-                    android:singleLine="true"
-                    android:title="@string/openapsama_iob_threshold_percent"
-                    validate:maxNumber="100"
-                    validate:minNumber="10"
-                    validate:testType="numericRange" />
-
-            </androidx.preference.PreferenceScreen>
 
             <androidx.preference.PreferenceScreen
                 android:key="acce_ISF_settings"
@@ -563,7 +580,7 @@
                     android:singleLine="true"
                     android:title="@string/openapsama_smb_delivery_ratio"
                     validate:floatmaxNumber="1"
-                    validate:floatminNumber="0.5"
+                    validate:floatminNumber="0.1"
                     validate:testType="floatNumericRange" />
 
                 <app.aaps.core.validators.ValidatingEditTextPreference
@@ -577,7 +594,7 @@
                     android:singleLine="true"
                     android:title="@string/openapsama_smb_delivery_ratio_min"
                     validate:floatmaxNumber="1"
-                    validate:floatminNumber="0.5"
+                    validate:floatminNumber="0.1"
                     validate:testType="floatNumericRange" />
 
                 <app.aaps.core.validators.ValidatingEditTextPreference
@@ -591,7 +608,7 @@
                     android:singleLine="true"
                     android:title="@string/openapsama_smb_delivery_ratio_max"
                     validate:floatmaxNumber="1"
-                    validate:floatminNumber="0.5"
+                    validate:floatminNumber="0.1"
                     validate:testType="floatNumericRange" />
 
                 <app.aaps.core.validators.ValidatingEditTextPreference
@@ -633,6 +650,28 @@
                     android:key="@string/key_enableSMB_EvenOn_OddOff_always"
                     android:summary="@string/enableSMB_EvenOn_OddOff_always_summary"
                     android:title="@string/enableSMB_EvenOn_OddOff_always" />
+
+            </androidx.preference.PreferenceScreen>
+
+            <androidx.preference.PreferenceScreen
+                android:key="Full loop settings"
+                android:title="Full Loop Settings">
+
+                <Preference android:summary="Full Loop Settings: Adjust iobTH and total acce weights for meal types" />
+
+                <app.aaps.core.validators.ValidatingEditTextPreference
+                    android:defaultValue="100"
+                    android:dialogMessage="@string/openapsama_iob_threshold_percent_summary"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="@string/key_openapsama_iob_threshold_percent"
+                    android:maxLines="20"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:title="@string/openapsama_iob_threshold_percent"
+                    validate:maxNumber="100"
+                    validate:minNumber="10"
+                    validate:testType="numericRange" />
 
             </androidx.preference.PreferenceScreen>
 

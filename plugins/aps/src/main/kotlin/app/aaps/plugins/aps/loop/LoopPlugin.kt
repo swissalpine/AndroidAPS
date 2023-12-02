@@ -287,8 +287,8 @@ class LoopPlugin @Inject constructor(
 
             // safety check for multiple SMBs
             val lastBolusTime = repository.getLastBolusRecord()?.timestamp ?: 0L
-            if (lastBolusTime != 0L && lastBolusTime + T.mins(3).msecs() > System.currentTimeMillis()) {
-                aapsLogger.debug(LTag.APS, "SMB requested but still in 3 min interval")
+            if (lastBolusTime != 0L && lastBolusTime + T.mins(1).msecs() > System.currentTimeMillis()) {
+                aapsLogger.debug(LTag.APS, "SMB requested but still in 1 min interval")
                 resultAfterConstraints.smb = 0.0
             }
             prevCarbsreq = lastRun?.constraintsProcessed?.carbsReq ?: prevCarbsreq
@@ -633,8 +633,8 @@ class LoopPlugin @Inject constructor(
         }
         val pump = activePlugin.activePump
         val lastBolusTime = repository.getLastBolusRecord()?.timestamp ?: 0L
-        if (lastBolusTime != 0L && lastBolusTime + 3 * 60 * 1000 > System.currentTimeMillis()) {
-            aapsLogger.debug(LTag.APS, "SMB requested but still in 3 min interval")
+        if (lastBolusTime != 0L && lastBolusTime + 1 * 60 * 1000 > System.currentTimeMillis()) {
+            aapsLogger.debug(LTag.APS, "SMB requested but still in 1 min interval")
             callback?.result(
                 PumpEnactResult(injector)
                     .comment(R.string.smb_frequency_exceeded)

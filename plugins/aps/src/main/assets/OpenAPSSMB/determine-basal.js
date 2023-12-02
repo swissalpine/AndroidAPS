@@ -451,18 +451,13 @@ function determine_varSMBratio(profile, bg, target_bg, loop_wanted_smb)
 
 function activityMonitor(profile, bg, target_bg)
 {
-    // Time
+    // Time - not used without sleep window
     var now = new Date().getHours();
     if (now < 1) {
         now = 1;
     }
-    //console.error("Time now is "+now+"; ");
 
     // Activity detection (steps)
-    // Activity detection (steps)
-    console.error("----------------------------------");
-    console.log("Activity detection: ");
-    console.error("----------------------------------");
     var activityDetection = profile.activity_detection;
     var recentSteps5Minutes = profile.recentSteps5Minutes;
     var recentSteps10Minutes = profile.recentSteps10Minutes;
@@ -474,8 +469,9 @@ function activityMonitor(profile, bg, target_bg)
     var activity_weight = profile.activity_weight;
     var inactivity_weight = profile.inactivity_weight;
     var activityRatio = 1;
-    //var activity_idle_start = profile.activity_idle_start;
-    //var activity_idle_end = profile.activity_idle_end;
+    var nightly_inactivity_detection = profile.nightly_inactivity_detection;
+    var activity_idle_start = profile.activity_idle_start;
+    var activity_idle_end = profile.activity_idle_end;
 
     if ( !activityDetection ) {
         console.log("Activity monitor disabled in settings");
@@ -484,42 +480,34 @@ function activityMonitor(profile, bg, target_bg)
     } else if ( phoneMoved == false ) {
         console.log("Activity monitor disabled: Phone seems not to be carried for the last 15m");
     } else {
-        console.log("0-5 m ago: "+recentSteps5Minutes+" steps; ");
-        console.log("5-10 m ago: "+recentSteps10Minutes+" steps; ");
-        console.log("10-15 m ago: "+recentSteps15Minutes+" steps; ");
-        console.log("Last 30 m: "+recentSteps30Minutes+" steps; ");
-        console.log("Last 60 m: "+recentSteps60Minutes+" steps; ");
         if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
-            console.log("Activity monitor initialising: "+(60-time_since_start)+" minutes left");
-        //} else if ( ( activity_idle_start>activity_idle_end && ( now>=activity_idle_start || now<activity_idle_end ) ) // includes midnight
-        //    || ( now>=activity_idle_start && now<activity_idle_end)                                                    // excludes midnight
-        //    && recentSteps60Minutes <= 200 ) {
-        //    console.log("Activity monitor disabled: sleeping hours");
-        } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
-            console.log("Inactivity detection disabled between 10pm and 8am. ");
+            console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes");
+        } else if ( ( activity_idle_start>activity_idle_end && ( now>=activity_idle_start || now<activity_idle_end ) ) // includes midnight
+            || ( now>=activity_idle_start && now<activity_idle_end)                                                    // excludes midnight
+            && recentSteps60Minutes <= 200 && nightly_inactivity_detection ) {
+            console.log("Activity monitor disabled: sleeping hours");
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             //stepActivityDetected = true;
             activityRatio = 1 - 0.3 * activity_weight;
-            console.log("Activity monitor detects high level of activity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detected activity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
             || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
             //stepActivityDetected = true;
             activityRatio = 1 - 0.15 * activity_weight;
-            console.log("Activity monitor detects low level of activity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detected partial activity, sensitivity ratio: " + activityRatio);
         } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
-            console.log("Inactivity detection disabled: bg < target");
+            console.log("Activity monitor disabled: bg < target");
         } else if ( recentSteps60Minutes < 50 ) {
             //stepInactivityDetected = true;
             activityRatio = 1 + 0.2 * inactivity_weight;
-            console.log("Activity monitor detects high level of inactivity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detected inactivity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps60Minutes <= 200 ) {
             //stepInactivityDetected = true;
             activityRatio = 1 + 0.1 * inactivity_weight;
-            console.log("Activity monitor detects low level of inactivity, sensitivity ratio: " + activityRatio);
+            console.log("Activity monitor detected partial inactivity, sensitivity ratio: " + activityRatio);
         } else {
-            console.log("Activity monitor detects neutral state, sensitivity ratio unchanged: " + activityRatio);
+            console.log("Activity monitor detected neutral state, sensitivity ratio unchanged: " + activityRatio);
         }
-        console.error("----------------------------------");
     }
     return activityRatio;
 }
@@ -649,11 +637,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         } else if ( stepActivityDetected ) {
             sensitivityRatio = activityRatio;
             origin_sens = "from activity detection";
-            console.log("Sensitivity ratio set to "+sensitivityRatio+" based on activity detection; ");
         } else if ( stepInactivityDetected ) {
             sensitivityRatio = activityRatio;
             origin_sens = "from inactivity detection";
-            console.log("Sensitivity ratio set to "+sensitivityRatio+" based on inactivity detection; ");
         }
     } else if (typeof autosens_data !== 'undefined' && autosens_data) {
         sensitivityRatio = autosens_data.ratio;
@@ -862,7 +848,9 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     // min_bg of 90 -> threshold of 65, 100 -> 70 110 -> 75, and 130 -> 85
     var threshold_ratio = 0.5;
     var threshold = threshold_ratio * min_bg + 20;
+
     threshold = round(threshold);
+
     //console.error(reservoir_data);
 
     rT = {
@@ -890,6 +878,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     IOBpredBGs.push(bg);
     ZTpredBGs.push(bg);
     UAMpredBGs.push(bg);
+
+    //var enableSMB = enable_smb(           // see far above
+    //    profile,
+    //    microBolusAllowed,
+    //    meal_data,
+    //    target_bg
+    //);
 
     // enable UAM (if enabled in preferences)
     var enableUAM=(profile.enableUAM);
