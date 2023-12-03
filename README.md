@@ -15,8 +15,8 @@ However, it is important to start with well-tested basal rate and settings for i
 ## Why do I get AutoISF here and not at ga-zelle's Repo?
 * The majority of the AutoISF design and development effort was done by [ga-zelle](https://github.com/ga-zelle) with support from
   [swissalpine](https://github.com/swissalpine), [claudi](https://github.com/lutzlukesch),
-  [BerNie](https://github.com/bherpichb), [mountrcg](https://github.com/mountrcg) and
-  [myself](https://github.com/T-o-b-i-a-s).
+  [BerNie](https://github.com/bherpichb), [mountrcg](https://github.com/mountrcg), 
+  [Bjr](https://github.com/blaqone) and [myself](https://github.com/T-o-b-i-a-s).
 * This repository here was created to provide a stable version of AndroidAPS with the current autoISF extensions
   already integrated to simplify the build process.
 * This branch https://github.com/T-o-b-i-a-s/AndroidAPS/tree/3.2.0.2-ai3.0 uses
