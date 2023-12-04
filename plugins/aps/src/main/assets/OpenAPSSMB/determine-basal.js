@@ -270,8 +270,6 @@ function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityR
     }
     console.error("final ISF factor is", round(final_ISF,2), origin_sens);
     console.error("----------------------------------");
-    console.error("end autoISF");
-    console.error("----------------------------------");
     return final_ISF;
 }
 
@@ -512,9 +510,9 @@ function activityMonitor(profile, bg, target_bg)
             console.log("Activity monitor detected neutral state, sensitivity ratio unchanged: " + activityRatio);
         }
     }
+    console.error("----------------------------------");
     return activityRatio;
 }
-console.error("----------------------------------");
 
 var determine_basal = function determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, microBolusAllowed, reservoir_data, currentTime, flatBGsDetected) {
     var rT = {}; //short for requestedTemp
