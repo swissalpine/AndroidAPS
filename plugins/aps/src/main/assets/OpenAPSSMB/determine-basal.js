@@ -469,12 +469,12 @@ function activityMonitor(profile, bg, target_bg)
     var recentSteps60Minutes = profile.recentSteps60Minutes;
     var phoneMoved = profile.phone_moved;
     var time_since_start = profile.time_since_start;
-    var activity_weight = profile.activity_weight;
-    var inactivity_weight = profile.inactivity_weight;
+    var activity_scale_factor = profile.activity_scale_factor;
+    var inactivity_scale_factor = profile.inactivity_scale_factor;
     var activityRatio = 1;
-    var nightly_inactivity_detection = profile.nightly_inactivity_detection;
-    var activity_idle_start = profile.activity_idle_start;
-    var activity_idle_end = profile.activity_idle_end;
+    var ignore_inactivity_overnight = profile.ignore_inactivity_overnight;
+    var inactivity_idle_start = profile.inactivity_idle_start;
+    var inactivity_idle_end = profile.inactivity_idle_end;
 
     if ( !activityDetection ) {
         console.log("Activity monitor disabled in settings");
@@ -485,28 +485,28 @@ function activityMonitor(profile, bg, target_bg)
     } else {
         if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
             console.log("Activity monitor initialising for "+(60-time_since_start)+" more minutes: inactivity detection disabled");
-        } else if ( ( activity_idle_start>activity_idle_end && ( now>=activity_idle_start || now<activity_idle_end ) ) // includes midnight
-            || ( now>=activity_idle_start && now<activity_idle_end)                                                    // excludes midnight
-            && recentSteps60Minutes <= 200 && nightly_inactivity_detection ) {
-            console.log("Inactivity detection disabled: sleeping hours");
+        } else if ( ( inactivity_idle_start>inactivity_idle_end && ( now>=inactivity_idle_start || now<inactivity_idle_end ) ) // includes midnight
+            || ( now>=inactivity_idle_start && now<inactivity_idle_end)                                                    // excludes midnight
+            && recentSteps60Minutes <= 200 && ignore_inactivity_overnight ) {
+            console.log("Activity monitor disabled inactivity detection: sleeping hours");
         } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
             //stepActivityDetected = true;
-            activityRatio = 1 - 0.3 * activity_weight;
+            activityRatio = 1 - 0.3 * activity_scale_factor;
             console.log("Activity monitor detected activity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
             || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
             //stepActivityDetected = true;
-            activityRatio = 1 - 0.15 * activity_weight;
+            activityRatio = 1 - 0.15 * activity_scale_factor;
             console.log("Activity monitor detected partial activity, sensitivity ratio: " + activityRatio);
         } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
-            console.log("Inactivity detection disabled: bg < target");
+            console.log("Activity monitor disabled inactivity detection: bg < target");
         } else if ( recentSteps60Minutes < 50 ) {
             //stepInactivityDetected = true;
-            activityRatio = 1 + 0.2 * inactivity_weight;
+            activityRatio = 1 + 0.2 * inactivity_scale_factor;
             console.log("Activity monitor detected inactivity, sensitivity ratio: " + activityRatio);
         } else if ( recentSteps60Minutes <= 200 ) {
             //stepInactivityDetected = true;
-            activityRatio = 1 + 0.1 * inactivity_weight;
+            activityRatio = 1 + 0.1 * inactivity_scale_factor;
             console.log("Activity monitor detected partial inactivity, sensitivity ratio: " + activityRatio);
         } else {
             console.log("Activity monitor detected neutral state, sensitivity ratio unchanged: " + activityRatio);
