@@ -458,6 +458,9 @@ function activityMonitor(profile, bg, target_bg)
     }
 
     // Activity detection (steps)
+    console.error(" ");
+    console.error("Activity Monitor");
+    console.error("----------------------------------");
     var activityDetection = profile.activity_detection;
     var recentSteps5Minutes = profile.recentSteps5Minutes;
     var recentSteps10Minutes = profile.recentSteps10Minutes;
@@ -511,6 +514,7 @@ function activityMonitor(profile, bg, target_bg)
     }
     return activityRatio;
 }
+console.error("----------------------------------");
 
 var determine_basal = function determine_basal(glucose_status, currenttemp, iob_data, profile, autosens_data, meal_data, tempBasalFunctions, microBolusAllowed, reservoir_data, currentTime, flatBGsDetected) {
     var rT = {}; //short for requestedTemp
