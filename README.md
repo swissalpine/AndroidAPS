@@ -25,9 +25,6 @@ However, it is important to start with well-tested basal rate and settings for i
   repo by the time when this text was written) as a base and adds autoISF 3.0 to it.
 
 ## What's new in AutoISF Version 3.0 when compared to 2.2.8.1
-* Bugfixes and improvements to the algorithm
-* Cleaner output of autoISF status on SMB tab
-* New Exercise Mode allows to weaken the effects during activity
 * Activity Monitor takes step counter from phone into consideration
 * iob-Threshold allows to better limit/control the total amount of insulin on board
 * New automation triggers and actions to allow for Automation rules specific for autoISF
