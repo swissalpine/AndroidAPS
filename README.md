@@ -32,7 +32,7 @@ However, it is important to start with well-tested basal rate and settings for i
 ## How to build this branch in Android Studio
 1. Close any currently open projects in Android Stuidio
 2. Create a new project by using the "Get from VCS" button to tell it to retrieve the source from a remote version control system
-3. Use the url of this respository as a source (https://github.com/T-o-b-i-a-s/AndroidAPS.git)
+3. Use the url of this repository as a source (https://github.com/T-o-b-i-a-s/AndroidAPS.git)
 4. Now wait until Android has completed any initialization activities. As always deny any requests to upgrade Gradle.
 5. Android Studio now shows the name of the current branch in the lower right corner
 * Usually this will be `master`, which contains an out-dated version of AndroidAPS, do **not** use the `master` branch
