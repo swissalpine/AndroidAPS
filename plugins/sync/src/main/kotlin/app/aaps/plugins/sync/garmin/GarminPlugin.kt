@@ -388,18 +388,14 @@ class GarminPlugin @Inject constructor(
         }
     }
 
-    fun onPostBolus(caller: SocketAddress, uri: URI, requestBody: String?): CharSequence {
-        aapsLogger.info(LTag.GARMIN, "Bolus from $caller, req: $uri")
+    private fun onPostBolus(uri: URI): CharSequence {
         val bolus: Double = getQueryParameter(uri, "bolus", 0.0)
         loopHub.postBolus(bolus)
         return ""
     }
 
     /** Handles temp targets from the device. */
-    @VisibleForTesting
-    @Suppress("UNUSED_PARAMETER")
-    fun onPostTempTarget(caller: SocketAddress, uri: URI, requestBody: String?): CharSequence {
-        aapsLogger.info(LTag.GARMIN, "temp target from $caller, req: $uri")
+    fun onPostTempTarget(uri: URI): CharSequence {
         val target: Double = getQueryParameter(uri, "target", 0.0)
         val duration: Int = getQueryParameter(uri, "duration", 0)
         loopHub.postTempTarget(target, duration)
