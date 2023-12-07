@@ -114,7 +114,7 @@ function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
     if ( !microBolusAllowed ) {
         return "AAPS";                                                  // see message in enable_smb
     }
-    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.min_bg==profile.max_bg && profile.enableSMB_EvenOn_OddOff_always)  {
+    if (profile.temptargetSet && profile.enableSMB_EvenOn_OddOff || profile.min_bg==profile.max_bg && profile.enableSMB_EvenOn_OddOff_always && !profile.temptargetSet)  {
         var target = convert_bg(profile.target_bg, profile);
         if (profile['temptargetSet']) {
             msgType= "TempTarget ";
