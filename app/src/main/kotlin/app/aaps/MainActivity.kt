@@ -215,7 +215,7 @@ class MainActivity : DaggerAppCompatActivityWithResult() {
                         val messageSpanned = SpannableString(message)
                         Linkify.addLinks(messageSpanned, Linkify.WEB_URLS)
                         MaterialAlertDialogBuilder(this@MainActivity, app.aaps.core.ui.R.style.DialogTheme)
-                            .setTitle(rh.gs(R.string.app_name) + " " + config.VERSION + "+autoISF3.0")
+                            .setTitle(rh.gs(R.string.app_name) + " " + config.VERSION + "+autoISF3.0.1")
                             .setIcon(iconsProvider.getIcon())
                             .setMessage(messageSpanned)
                             .setPositiveButton(rh.gs(app.aaps.core.ui.R.string.ok), null)

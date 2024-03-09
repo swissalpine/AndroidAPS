@@ -26,10 +26,11 @@ class CommandSMBBolus(
         val r: PumpEnactResult
         val lastBolusTime = repository.getLastBolusRecord()?.timestamp ?: 0L
         aapsLogger.debug(LTag.PUMPQUEUE, "Last bolus: $lastBolusTime ${dateUtil.dateAndTimeAndSecondsString(lastBolusTime)}")
-        if (lastBolusTime != 0L && lastBolusTime + T.mins(1).msecs() > dateUtil.now()) {
-            aapsLogger.debug(LTag.PUMPQUEUE, "SMB requested but still in 1 min interval")
-            r = PumpEnactResult(injector).enacted(false).success(false).comment("SMB requested but still in 1 min interval")
-        } else if (detailedBolusInfo.deliverAtTheLatest != 0L && detailedBolusInfo.deliverAtTheLatest + T.mins(1).msecs() > System.currentTimeMillis()) {
+        //if (lastBolusTime != 0L && lastBolusTime + T.mins(3).msecs() > dateUtil.now()) {      // already checked in determine-basal
+        //    aapsLogger.debug(LTag.PUMPQUEUE, "SMB requested but still in 3 min interval")
+        //    r = PumpEnactResult(injector).enacted(false).success(false).comment("SMB requested but still in 3 min interval")
+        //} else if (detailedBolusInfo.deliverAtTheLatest != 0L && detailedBolusInfo.deliverAtTheLatest + T.mins(1).msecs() > System.currentTimeMillis()) {
+        if (detailedBolusInfo.deliverAtTheLatest != 0L && detailedBolusInfo.deliverAtTheLatest + T.mins(1).msecs() > System.currentTimeMillis()) {
             r = activePlugin.activePump.deliverTreatment(detailedBolusInfo)
         } else {
             r = PumpEnactResult(injector).enacted(false).success(false).comment("SMB request too old")

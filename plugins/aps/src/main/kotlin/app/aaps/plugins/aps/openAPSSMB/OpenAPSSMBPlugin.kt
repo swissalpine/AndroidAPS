@@ -227,10 +227,10 @@ open class OpenAPSSMBPlugin @Inject constructor(
             constraintChecker.isUAMEnabled(it)
             inputConstraints.copyReasons(it)
         }
-        dynIsfEnabled = ConstraintObject(true, aapsLogger).also {
-            constraintChecker.isDynIsfModeEnabled(it)
-            inputConstraints.copyReasons(it)
-        }
+        //dynIsfEnabled = ConstraintObject(true, aapsLogger).also {
+        //    constraintChecker.isDynIsfModeEnabled(it)
+        //    inputConstraints.copyReasons(it)
+        //}
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
         profiler.log(LTag.APS, "detectSensitivityAndCarbAbsorption()", startPart)
         profiler.log(LTag.APS, "SMB data gathering", start)
@@ -239,22 +239,22 @@ open class OpenAPSSMBPlugin @Inject constructor(
         // DynamicISF specific
         // without these values DynISF doesn't work properly
         // Current implementation is fallback to SMB if TDD history is not available. Thus calculated here
-        tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount
-        tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount
-        tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount
-        tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount
-        tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount
 
-        if (tdd1D == null || tdd7D == null || tddLast4H == null || tddLast8to4H == null || tddLast24H == null) {
-            inputConstraints.copyReasons(
-                ConstraintObject(false, aapsLogger).also {
-                    it.set(false, rh.gs(R.string.fallback_smb_no_tdd), this)
-                }
-            )
-            inputConstraints.copyReasons(
-                ConstraintObject(false, aapsLogger).apply { set(true, "tdd1D=$tdd1D tdd7D=$tdd7D tddLast4H=$tddLast4H tddLast8to4H=$tddLast8to4H tddLast24H=$tddLast24H", this) }
-            )
-        }
+        //tdd1D = tddCalculator.averageTDD(tddCalculator.calculate(1, allowMissingDays = false))?.totalAmount
+        //tdd7D = tddCalculator.averageTDD(tddCalculator.calculate(7, allowMissingDays = false))?.totalAmount
+        //tddLast24H = tddCalculator.calculateDaily(-24, 0)?.totalAmount
+        //tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount
+        //tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount
+        //if (tdd1D == null || tdd7D == null || tddLast4H == null || tddLast8to4H == null || tddLast24H == null) {
+        //    inputConstraints.copyReasons(
+        //        ConstraintObject(false, aapsLogger).also {
+        //            it.set(false, rh.gs(R.string.fallback_smb_no_tdd), this)
+        //        }
+        //    )
+        //    inputConstraints.copyReasons(
+        //        ConstraintObject(false, aapsLogger).apply { set(true, "tdd1D=$tdd1D tdd7D=$tdd7D tddLast4H=$tddLast4H tddLast8to4H=$tddLast8to4H tddLast24H=$tddLast24H", this) }
+        //    )
+        //}
 
 
         provideDetermineBasalAdapter().also { determineBasalAdapterSMBJS ->

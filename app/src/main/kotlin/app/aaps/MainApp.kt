@@ -112,7 +112,7 @@ class MainApp : DaggerApplication() {
             disposable += compatDBHelper.dbChangeDisposable()
             registerActivityLifecycleCallbacks(activityMonitor)
             runOnUiThread { themeSwitcherPlugin.setThemeMode() }
-            aapsLogger.debug("Version: " + config.VERSION_NAME + "+autoISF3.0")
+            aapsLogger.debug("Version: " + config.VERSION_NAME + "+autoISF3.0.1")
             aapsLogger.debug("BuildVersion: " + config.BUILD_VERSION)
             aapsLogger.debug("Remote: " + config.REMOTE)
             registerLocalBroadcastReceiver()

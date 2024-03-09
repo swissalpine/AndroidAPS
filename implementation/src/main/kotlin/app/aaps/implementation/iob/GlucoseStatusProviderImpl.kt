@@ -12,9 +12,13 @@ import app.aaps.core.main.iob.asRounded
 import app.aaps.core.main.iob.log
 import dagger.Reusable
 import javax.inject.Inject
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import app.aaps.implementation.R
+import app.aaps.core.interfaces.sharedPreferences.SP
+
 
 @Reusable
 @OpenForTesting
@@ -24,6 +28,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
     private val dateUtil: DateUtil,
     private val decimalFormatter: DecimalFormatter
 ) : GlucoseStatusProvider {
+    @Inject lateinit var sp: SP
 
     override val glucoseStatusData: GlucoseStatus?
         get() = getGlucoseStatusData()
@@ -54,8 +59,11 @@ class GlucoseStatusProviderImpl @Inject constructor(
         val fslValue = fsl.value
         val fslRaw = fsl.raw
         val fslReally = fsl.sourceSensor.isLibre()
+        //val fslReally = true    // "RANDOM" while testing with virtual phone in AS
+        var fslMinDur = 15  // default for 5m CGM
+        //val fslFitSrc = sp.getInt(R.string.key_parabolaSourceDataType, 1)
         aapsLogger.debug(LTag.GLUCOSE, "BgReadings stamp=$fslDate; raw=$fslRaw; value=$fslValue; " +
-            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm; Libre=$fslReally")
+            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm; Libre=$fslReally; fitDura=$fslMinDur; fitSrc=1mRaw")
         var change: Double
         if (sizeRecords == 1) {
             aapsLogger.debug(LTag.GLUCOSE, "sizeRecords==1")
@@ -68,12 +76,12 @@ class GlucoseStatusProviderImpl @Inject constructor(
                 date = nowDate,
                 duraISFminutes  = 0.0,
                 duraISFaverage = now.value,
-                useFSL1minuteSmooth = false,
+                useFSL1minuteRaw = false,
                 parabolaMinutes = 0.0,
                 deltaPl = 0.0,
                 deltaPn = 0.0,
                 bgAcceleration = 0.0,
-                a0 = 0.0,
+                a0 = now.value,
                 a1 = 0.0,
                 a2 = 0.0,
                 corrSqu = 0.0
@@ -97,7 +105,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
                 // multiply by 5 to get the same units as delta, i.e. mg/dL/5m
                 change = now.recalculated - then.recalculated
                 val avgDel = change / minutesAgo * 5
-                //aapsLogger.debug(LTag.GLUCOSE, "$then Bucketed=$minutesAgo valueAgo=$valueAgo recalcAgo=$bgAgo smooth=$smoothAgo filled=$filledAgo avgDelta=$avgDel")
+                aapsLogger.debug(LTag.GLUCOSE, "$then Bucketed=$minutesAgo valueAgo=$valueAgo recalcAgo=$bgAgo smooth=$smoothAgo filled=$filledAgo avgDelta=$avgDel")
 
                 // use the average of all data points in the last 2.5m for all further "now" calculations
                 // if (0 < minutesAgo && minutesAgo < 2.5) {
@@ -169,17 +177,19 @@ class GlucoseStatusProviderImpl @Inject constructor(
         var a1 = 0.0
         var a2 = 0.0
         //var b = 0.0
-        var use1MinuteSmooth = false
-        var fslMinDur = 15  // sp.getInt(app.aaps.plugins.aps.R.string.key_fslMinFitMinutes, 15)
-        //if ( cgm.isLibre() ) {
-        //    // original FSL 1-minute cgm data from Juggluco direct to AAPS although not smoothed
-        //    if ( orig.size>2 ) {
-        //        if ( orig[0].timestamp - orig[2].timestamp < 3 * 60000 ) {
-        //            use1MinuteSmooth = true
-        //            sizeRecords = orig.size
-        //            fslMinDur = 15
-        //        }
-        //    }
+        var use1MinuteRaw = false
+        if ( fslReally ) {
+            // original FSL 1-minute cgm data from Juggluco direct to AAPS although not smoothed
+            if ( orig.size>2 ) {
+                if ( orig[0].timestamp - orig[2].timestamp < 3 * 60000 ) {
+                    use1MinuteRaw = true
+                    sizeRecords = orig.size
+                    fslMinDur = 20  //sp.getInt(R.string.key_fslMinFitMinutes, 20)
+                }
+            }
+        }
+        //if ( abs(fslFitSrc) == 1 ) {
+        //    sizeRecords = orig.size
         //}
 
         if (sizeRecords > 3) {
@@ -191,7 +201,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
             var sx4  = 0.0 // x^4
             var sxy  = 0.0 // x*y
             var sx2y = 0.0 // x^2*y
-            val time0 = if (use1MinuteSmooth) orig[0].timestamp else data[0].timestamp
+            val time0 = if (use1MinuteRaw) orig[0].timestamp else data[0].timestamp
             var tiLast = 0.0
             //# for best numerical accuracy time and bg must be of same order of magnitude
             val scaleTime = 300.0 // in 5m; values are  0, -1, -2, -3, -4, ...
@@ -200,24 +210,36 @@ class GlucoseStatusProviderImpl @Inject constructor(
             // if (data[i].recalculated > 38) {  } // not checked in past 1.5 years
             n= 0
             for (i in 0 until sizeRecords) {
-                val noGap = if (use1MinuteSmooth) true else !data[i].filledGap
+                val noGap = if (fslReally) true else !data[i].filledGap
                 if (orig[i].value>39 && noGap) {
                     n += 1
                     val thenDate: Long
                     var bg: Double
-                    if (use1MinuteSmooth) {
+                    //if (fslReally && fslFitSrc == 1) {
+                    //    use1MinuteSmooth = true
+                    //    val then = orig[i]
+                    //    thenDate = then.timestamp
+                    //    bg = then.raw ?: then.value
+                    //    if (bg == 0.0) {            // happended sometimes, use unsmoothed instead
+                    //        bg = then.value
+                    //    }
+                    //    bg = bg / scaleBg
+                    //} else
+                    if (use1MinuteRaw) {
                         val then = orig[i]
                         thenDate = then.timestamp
-                        bg = then.raw ?: then.value
-                        if (bg==0.0) {            // happended sometimes, use unsmoothed instead
-                            bg = then.value
-                        }
-                        bg = bg / scaleBg
-                    } else {
+                        bg = then.value / scaleBg
+
+                    //} else if (fslFitSrc < -1) {
+                    //    val then = data[i]
+                    //    thenDate = then.timestamp
+                    //    bg = then.value / scaleBg
+                    } else {    // all other including standard 5m CGM smoothed
                         val then = data[i]
                         thenDate = then.timestamp
                         bg = then.recalculated / scaleBg
                     }
+
                     val ti = (thenDate - time0) / 1000.0 / scaleTime
                     if (-ti * scaleTime > 47 * 60) {                       // skip records older than 47.5 minutes
                         break
@@ -260,19 +282,34 @@ class GlucoseStatusProviderImpl @Inject constructor(
                         val yMean = sy / n
                         var sSquares = 0.0
                         var sResidualSquares = 0.0
-                        var smoothBg: Double
+                        //var smoothBg: Double
+                        var rawBg: Double
                         for (j in 0..i) {
-                            if (use1MinuteSmooth) {
+                            //if (fslReally && fslFitSrc==1) {
+                            //    val before = orig[j]
+                            //    smoothBg = before.raw ?: before.value
+                            //    if (smoothBg==0.0) {
+                            //        smoothBg = before.value     // fall back to raw if smooth not available
+                            //    }
+                            //    sSquares += (smoothBg / scaleBg - yMean).pow(2.0)
+                            //    val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
+                            //    val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
+                            //    sResidualSquares += (smoothBg / scaleBg - bgj).pow(2.0)
+                            //} else
+                            if (use1MinuteRaw) {
                                 val before = orig[j]
-                                smoothBg = before.raw ?: before.value
-                                if (smoothBg==0.0) {
-                                    smoothBg = before.value
-                                }
-                                sSquares += (smoothBg / scaleBg - yMean).pow(2.0)
+                                rawBg = before.value
+                                sSquares += (rawBg / scaleBg - yMean).pow(2.0)
                                 val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
                                 val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
-                                sResidualSquares += (smoothBg / scaleBg - bgj).pow(2.0)
-                            } else {
+                                sResidualSquares += (rawBg / scaleBg - bgj).pow(2.0)
+                            //} else if (fslFitSrc<-1) {
+                            //    val before = data[j]
+                            //    sSquares += (before.value / scaleBg - yMean).pow(2.0)
+                            //    val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
+                            //    val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
+                            //    sResidualSquares += (before.value / scaleBg - bgj).pow(2.0)
+                            } else {                            // default case anyway
                                 val before = data[j]
                                 sSquares += (before.recalculated / scaleBg - yMean).pow(2.0)
                                 val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
@@ -289,7 +326,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
                                 duraP = -ti * scaleTime / 60.0 // remember we are going backwards in time
                                 val delta5Min = 5 * 60 / scaleTime
                                 deltaPl = -scaleBg * (a * (-delta5Min).pow(2.0) - b * delta5Min)    // 5 minute slope from last fitted bg ending at this bg, i.e. t=0
-                                deltaPn = scaleBg * (a * delta5Min.pow(2.0) + b * delta5Min)    // 5 minute slope to next fitted bg starting from this bg, i.e. t=0
+                                deltaPn =  scaleBg * (a *   delta5Min.pow(2.0)  + b * delta5Min)    // 5 minute slope to next fitted bg starting from this bg, i.e. t=0
                                 bgAcceleration = 2 * a * scaleBg
                                 a0 = c * scaleBg
                                 a1 = b * scaleBg
@@ -313,7 +350,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
             longAvgDelta = average(longDeltas),
             duraISFminutes  = minutesdur.toDouble(),
             duraISFaverage = oldavg,
-            useFSL1minuteSmooth = use1MinuteSmooth,
+            useFSL1minuteRaw = use1MinuteRaw,
             parabolaMinutes = duraP,
             deltaPl = deltaPl,
             deltaPn = deltaPn,

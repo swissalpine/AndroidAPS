@@ -9,7 +9,7 @@ data class GlucoseStatus(
     val date: Long = 0L,
     val duraISFminutes: Double = 0.0,
     val duraISFaverage: Double = 0.0,
-    val useFSL1minuteSmooth: Boolean = false,
+    val useFSL1minuteRaw: Boolean = false,
     val parabolaMinutes: Double = 0.0,
     val deltaPl: Double = 0.0,
     val deltaPn: Double = 0.0,
