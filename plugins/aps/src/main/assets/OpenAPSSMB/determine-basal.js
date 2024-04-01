@@ -319,9 +319,9 @@ autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensiti
         var fit_share = 10*(fit_corr-0.9);                              // 0 at correlation 0.9, 1 at 1.00
         var cap_weight = 1;                                             // full contribution above target
         var meal_addon = 0;
-        if (loop_wanted_smb=="fullLoop") {
-            meal_addon = profile.meal_addon;                            // like 50% stronger during meal times
-        }
+        //if (loop_wanted_smb=="fullLoop") {
+        //    meal_addon = profile.meal_addon;                            // like 50% stronger during meal times
+        //}
         if ( meal_addon>0)      { console.error("using meal_addon of", round(meal_addon,2)) };
         if ( acce_weight==1 && glucose_status.glucose<profile.target_bg ) { // below target acce goes towards target
             if ( bg_acce > 0 ) {
