@@ -62,8 +62,6 @@ class GlucoseStatusProviderImpl @Inject constructor(
         //val fslReally = true    // "RANDOM" while testing with virtual phone in AS
         var fslMinDur = 15  // default for 5m CGM
         //val fslFitSrc = sp.getInt(R.string.key_parabolaSourceDataType, 1)
-        aapsLogger.debug(LTag.GLUCOSE, "BgReadings stamp=$fslDate; raw=$fslRaw; value=$fslValue; " +
-            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm; Libre=$fslReally; fitDura=$fslMinDur; fitSrc=1mRaw")
         var change: Double
         if (sizeRecords == 1) {
             aapsLogger.debug(LTag.GLUCOSE, "sizeRecords==1")
@@ -188,6 +186,8 @@ class GlucoseStatusProviderImpl @Inject constructor(
                 }
             }
         }
+        aapsLogger.debug(LTag.GLUCOSE, "BgReadings stamp=$fslDate; raw=$fslRaw; value=$fslValue; " +
+            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm; Libre=$fslReally; fitDura=$fslMinDur")
         //if ( abs(fslFitSrc) == 1 ) {
         //    sizeRecords = orig.size
         //}

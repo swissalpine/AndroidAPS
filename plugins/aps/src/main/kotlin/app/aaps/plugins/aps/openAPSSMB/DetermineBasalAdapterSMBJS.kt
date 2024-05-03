@@ -244,7 +244,7 @@ class DetermineBasalAdapterSMBJS internal constructor(private val scriptReader: 
         this.profile.put("enable_autoISF", sp.getBoolean(R.string.key_enable_autoISF, false))
         this.profile.put("autoISF_max",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autoISF_max, "1.0")))
         this.profile.put("autoISF_min",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_autoISF_min, "1.0")))
-        this.profile.put("parabola_fit_source",  sp.getInt(R.string.key_parabolaSourceDataType, 5))
+        //this.profile.put("parabola_fit_source",  sp.getInt(R.string.key_parabolaSourceDataType, 5))
         //this.profile.put("FSL_min_Minutes",  sp.getInt(R.string.key_fslMinFitMinutes, 15))
         this.profile.put("bgAccel_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_bgAccel_ISF_weight, "0.0")))
         this.profile.put("bgBrake_ISF_weight",  SafeParse.stringToDouble(sp.getString(R.string.key_openapsama_bgBrake_ISF_weight, "0.0")))

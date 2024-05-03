@@ -369,7 +369,7 @@
                 android:selectAllOnFocus="true"
                 android:singleLine="true"
                 android:title="@string/openapsama_autoISF_max"
-                validate:floatmaxNumber="5"
+                validate:floatmaxNumber="3"
                 validate:floatminNumber="1"
                 validate:testType="floatNumericRange" />
 
@@ -545,6 +545,20 @@
                 validate:floatminNumber="0"
                 validate:testType="floatNumericRange" />
 
+            <app.aaps.core.validators.ValidatingEditTextPreference
+                android:defaultValue="100"
+                android:dialogMessage="@string/openapsama_iob_threshold_percent_summary"
+                android:digits="0123456789"
+                android:inputType="number"
+                android:key="@string/key_openapsama_iob_threshold_percent"
+                android:maxLines="20"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:title="@string/openapsama_iob_threshold_percent"
+                validate:maxNumber="100"
+                validate:minNumber="10"
+                validate:testType="numericRange" />
+
             <!--
             </androidx.preference.PreferenceScreen> -->
 
@@ -638,6 +652,7 @@
 
             </androidx.preference.PreferenceScreen>
 
+            <!--
             <androidx.preference.PreferenceScreen
                 android:key="Full loop settings"
                 android:title="Full Loop Settings">
@@ -658,7 +673,7 @@
                     validate:minNumber="10"
                     validate:testType="numericRange" />
 
-            </androidx.preference.PreferenceScreen>
+            </androidx.preference.PreferenceScreen> -->
 
             <!--
             <androidx.preference.PreferenceScreen

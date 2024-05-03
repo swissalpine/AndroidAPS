@@ -110,7 +110,7 @@ function enable_smb(
     return false;
 }
 
-function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
+function loop_smb(microBolusAllowed, profile, iob_data, useIobTh, iobThEffective) {
     if ( !microBolusAllowed ) {
         return "AAPS";                                                  // see message in enable_smb
     }
@@ -136,7 +136,18 @@ function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
         } else {
             msgEven    = "odd";
         }
-        var iobTHeffective = profile.iob_threshold_percent;
+        var iobThUser = profile.iob_threshold_percent;
+        if ( useIobTh ) {
+            var iobThPercent = round(iobThEffective/profile.max_iob*100.0, 0);
+            if ( iobThPercent == iobThUser ) {
+                console.error("User setting iobTH="+iobThUser+"% not modulated");
+            } else {
+                console.error("User setting iobTH="+iobThUser+"% modulated to "+round(iobThPercent,2)+"% or "+round(iobThEffective,2)+"U") ;
+                console.error("  due to profile % and/or exercise/activity mode");
+            }
+        } else {
+            console.error("User setting iobTH=100% disables iobTH method")
+        }
         if ( !evenTarget ) {
             console.error("SMB disabled; current target " +target +msgUnits +msgEven +msgTail);
             console.error("Loop allows minimal power");
@@ -144,14 +155,14 @@ function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
         } else if ( profile.max_iob==0 ) {
             console.error("SMB disabled because of max_iob=0")
             return "blocked";
-        } else if (iobTHeffective/100 < iob_data.iob/(profile.max_iob*iobTH_reduction_ratio)) {
-            if (iobTH_reduction_ratio != 1) {
-                console.error("Loop modified max_iob", profile.max_iob, "to effectively", round(profile.max_iob*iobTH_reduction_ratio,2), "due to profile % and/or exercise mode");
-                msg = "effective maxIOB " + round(profile.max_iob*iobTH_reduction_ratio,2);
-            } else {
-                msg = "maxIOB "+ profile.max_iob;
-            }
-            console.error("SMB disabled by Full Loop logic: iob "+iob_data.iob+" is more than "+iobTHeffective+"% of "+msg);
+        } else if (useIobTh && iobThEffective < iob_data.iob) {
+            //if (iobTH_reduction_ratio != 1) {
+            //    //console.error("Loop modified max_iob", profile.max_iob, "to effectively", round(profile.max_iob*iobTH_reduction_ratio,2), "due to profile % and/or exercise mode");
+            //    msg = "effective maxIOB " + round(profile.max_iob*iobTH_reduction_ratio,2);
+            //} else {
+            //    msg = "maxIOB "+ iobTH_reduction_ratio;
+            //}
+            console.error("SMB disabled by Full Loop logic: iob "+iob_data.iob+" is above effective iobTH "+iobThEffective);
             console.error("Loop power level temporarily capped");
             return "iobTH";
         } else {
@@ -160,7 +171,7 @@ function loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio) {
                 console.error("Loop allows maximum power");
                 return "fullLoop";                                      // even number
             } else {
-                console.error("Loop allows medimum power");
+                console.error("Loop allows medium power");
                 return "enforced";                                      // even number
             }
         }
@@ -264,7 +275,11 @@ function withinISFlimits(liftISF, minISFReduction, maxISFReduction, sensitivityR
         origin_sens = "including (in-)activity detection impact";
     } else if ( liftISF >= 1 ) {
         final_ISF = Math.max(liftISF, sensitivityRatio);
-        if (liftISF >= sensitivityRatio)            { origin_sens = "";}        // autoISF dominates
+        if (liftISF >= sensitivityRatio) {
+            origin_sens = "";                                                   // autoISF dominates
+        } else {
+            origin_sens = "from low TT modifier";                               // low TT lowers sensitivity dominates
+        }
     } else {
         final_ISF = Math.min(liftISF, sensitivityRatio);
         if (liftISF <= sensitivityRatio)            { origin_sens = "";}        // autoISF dominates
@@ -319,10 +334,6 @@ autosens_data, sensitivityRatio, loop_wanted_smb, high_temptarget_raises_sensiti
         var fit_share = 10*(fit_corr-0.9);                              // 0 at correlation 0.9, 1 at 1.00
         var cap_weight = 1;                                             // full contribution above target
         var meal_addon = 0;
-        //if (loop_wanted_smb=="fullLoop") {
-        //    meal_addon = profile.meal_addon;                            // like 50% stronger during meal times
-        //}
-        if ( meal_addon>0)      { console.error("using meal_addon of", round(meal_addon,2)) };
         if ( acce_weight==1 && glucose_status.glucose<profile.target_bg ) { // below target acce goes towards target
             if ( bg_acce > 0 ) {
                 if ( bg_acce>1)            { cap_weight = 0.5; }            // halve the effect below target
@@ -451,10 +462,10 @@ function determine_varSMBratio(profile, bg, target_bg, loop_wanted_smb)
         console.error('SMB delivery ratio limited by maximum value', higher_SMB);
         return higher_SMB;
     }
-    if (Math.abs(profile.parabola_fit_source) == 1) {
-        console.error('SMB delivery ratio for 1 minute CGM kept at fixed value', fix_SMB);
-        return fix_SMB;
-    }
+    //if (Math.abs(profile.parabola_fit_source) == 1) {
+    //    console.error('SMB delivery ratio for 1 minute CGM kept at fixed value', fix_SMB);
+    //    return fix_SMB;
+    //}
     console.error('SMB delivery ratio set to interpolated value', new_SMB);
     return new_SMB;
 }
@@ -639,12 +650,11 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             // with low TT and lowTTlowersSensitivity we need autosens_max as a value
             // we use multiplication instead of the division to avoid "division by zero error"
             if (c * (c + target_bg-normalTarget) <= 0.0) {
-              sensitivityRatio = profile.autosens_max;
+                // limit sensitivityRatio to profile.autosens_max (1.2x by default)
+                sensitivityRatio = profile.autosens_max;
+            } else {
+                sensitivityRatio = c/(c+target_bg-normalTarget);
             }
-            else {
-              sensitivityRatio = c/(c+target_bg-normalTarget);
-            }
-            // limit sensitivityRatio to profile.autosens_max (1.2x by default)
             sensitivityRatio = Math.min(sensitivityRatio, profile.autosens_max);
             sensitivityRatio = round(sensitivityRatio,2);
             exercise_ratio = sensitivityRatio;
@@ -662,14 +672,19 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         origin_sens = "from Autosens";
         console.log("Autosens ratio: "+sensitivityRatio+"; ");
     }
-    var iobTH_reduction_ratio = profile.profile_percentage / 100 * exercise_ratio * activityRatio;
+    var iobTH_reduction_ratio = 1.0;
+    var use_iobTH = false;
+    if (profile.iob_threshold_percent != 100) {
+        iobTH_reduction_ratio = profile.profile_percentage / 100 * exercise_ratio * activityRatio;
+        use_iobTH = true;
+    }
     if (sensitivityRatio) {
         basal = profile.current_basal * sensitivityRatio;
         basal = round_basal(basal, profile);
         if (basal !== profile_current_basal) {
-            console.log("Adjusting basal from "+profile_current_basal+" to "+round(basal,3)+"; ");
+            console.log("Adjusting basal from "+round(profile_current_basal,3)+" to "+round(basal,3)+"; ");
         } else {
-            console.log("Basal unchanged: "+basal+"; ");
+            console.log("Basal unchanged: "+round(basal,3)+"; ");
         }
     }
 
@@ -738,7 +753,13 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
     console.error("----------------------------------");
     console.error("start autoISF", profile.autoISF_version);  // fit onto narrow screens
     console.error("----------------------------------");
-    var loop_wanted_smb = loop_smb(microBolusAllowed, profile, iob_data, iobTH_reduction_ratio);
+    // mod autoISF3.0-dev: if that would put us over iobTH, then reduce accordingly; allow 30% overrun
+    var iobTHtolerance = 130.0;
+    var iobTHvirtual = profile.iob_threshold_percent*iobTHtolerance/10000.0 * profile.max_iob * iobTH_reduction_ratio;
+    //console.error("effective iobTH is", round(profile.iob_threshold_percent*iobTH_reduction_ratio,0)+"% or ",round(100.0*iobTHvirtual/iobTHtolerance,2)+"U");
+    //    }
+    //}
+    var loop_wanted_smb = loop_smb(microBolusAllowed, profile, iob_data, use_iobTH, iobTHvirtual/iobTHtolerance*100.0);
     var enableSMB = false;
     if (microBolusAllowed && loop_wanted_smb != "AAPS") {
         if ( loop_wanted_smb=="enforced" || loop_wanted_smb=="fullLoop" ) {              // otherwise FL switched SMB off
@@ -863,9 +884,8 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // min_bg of 90 -> threshold of 65, 100 -> 70 110 -> 75, and 130 -> 85
     var threshold_ratio = 0.5;
-    if ( profile.meal_addon > 0 )           { threshold_ratio = 0.6; }    // temporary trigger for private threshold raise
     var threshold = threshold_ratio * min_bg + 20;
-    if ( min_bg<98 && threshold_ratio>0.5 ) { threshold = threshold + Math.pow(98-min_bg, 2) / 98; }
+
     threshold = round(threshold);
 
     //console.error(reservoir_data);
@@ -1389,13 +1409,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
 
     // mod V12: new algorithm for reducing insReq below target
     //  virtually increased target allows negative insReq to be more negative and thus reduce profile base rate
-    var insReqOffset;
-    if ( bg < target_bg && target_bg < 95 ) {
-        insReqOffset = round((1-bg/target_bg) *5*8, 1); // example bg=60, target=80 --> insReqOffset=10
-        console.error("gz Cap insulinReq = True; virtual target", insReqOffset);
-    } else {
-        insReqOffset = 0;
-    }
+    var insReqOffset = 0;
 
     if (eventualBG < min_bg) { // if eventual BG is below target:
         rT.reason += "Eventual BG " + convert_bg(eventualBG, profile) + " < " + convert_bg(min_bg, profile);
@@ -1540,7 +1554,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
         rT.insulinReq = insulinReq;
         //console.error(iob_data.lastBolusTime);
         // minutes since last bolus
-        var lastBolusAge = round(( new Date(systemTime).getTime() - iob_data.lastBolusTime ) / 60000,1);
+        var lastBolusAge = round(( new Date(systemTime).getTime() - iob_data.lastBolusTime ) / 1000,1); // was in minutes
         //console.error(lastBolusAge);
         //console.error(profile.temptargetSet, target_bg, rT.COB);
         // only allow microboluses with COB or low temp targets, or within DIA hours of a bolus
@@ -1570,16 +1584,7 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             var smb_ratio = determine_varSMBratio(profile, bg, target_bg, loop_wanted_smb);
 
             var microBolus = Math.min(insulinReq*smb_ratio, maxBolus);
-            // mod autoISF3.0-dev: if that would put us over iobTH, then reduce accordingly; allow 30% overrun
-            var iobTHtolerance = 130;
-            var iobTHvirtual = profile.iob_threshold_percent*iobTHtolerance/10000 * profile.max_iob * iobTH_reduction_ratio;
-            console.error("effective iobTH is", round(profile.iob_threshold_percent*iobTH_reduction_ratio,0)+"% or ",round(100.0*iobTHvirtual/iobTHtolerance,2)+"U");
-            if (typeof (profile.meal_addon) !== 'undefined') {
-                if (loop_wanted_smb=="enforced" && profile.iob_threshold_percent<100 && profile.meal_addon>0) {
-                    iobTHvirtual = iobTHvirtual / 2;     // half power w/o Full Loop
-                }
-            }
-            if (microBolus > iobTHvirtual - iob_data.iob && (loop_wanted_smb=="fullLoop" || loop_wanted_smb=="enforced")) {
+            if (microBolus > iobTHvirtual - iob_data.iob && use_iobTH && (loop_wanted_smb=="fullLoop" || loop_wanted_smb=="enforced")) {
                 microBolus = iobTHvirtual - iob_data.iob;
                 //if (profile.profile_percentage!=100) {
                 //    console.error("Full loop modified max_iob", profile.max_iob, "to effectively", round(profile.max_iob*profile.profile_percentage/100,1), "due to profile percentage");
@@ -1587,16 +1592,6 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
                 console.error("Loop capped SMB at", round(microBolus,2), "to not exceed", iobTHtolerance, "% of effective iobTH", round(iobTHvirtual/iobTHtolerance*100,2)+"U");
             }
 
-            if (bg < max_bg+10) {
-                var lessSMBRatio =                   2*(1 - bg/(max_bg+10));
-                //console.error("gz debug lessSMBRatio", lessSMBRatio);
-                lessSMBRatio     =       Math.min(1, lessSMBRatio          );
-                //console.error("gz debug lessSMBRatio", lessSMBRatio);
-                lessSMBRatio     = round(lessSMBRatio                       , 2);
-                //r lessSMBRatio = round(Math.min(1, 2*(1 - bg/(max_bg+10))), 2);
-                microBolus = microBolus * (1-lessSMBRatio);
-                console.error("gz SMB reduced by " + 100*lessSMBRatio + "% because bg("+bg+") is below upper target("+max_bg+")+10");
-            }
             microBolus = Math.floor(microBolus*roundSMBTo)/roundSMBTo;
             // calculate a long enough zero temp to eventually correct back up to target
             var smbTarget = target_bg;
@@ -1629,17 +1624,20 @@ var determine_basal = function determine_basal(glucose_status, currenttemp, iob_
             }
             rT.reason += ". ";
 
+            var lastBolusAge = round(( new Date(systemTime).getTime() - iob_data.lastBolusTime ) / 1000,1); // was in minutes
+            //console.error("lastBolusAge", lastBolusAge+"s");
             //allow SMBs every 3 minutes by default
             var SMBInterval = 3;
             if (profile.SMBInterval) {
                 // allow SMBIntervals between 1 and 10 minutes
                 SMBInterval = Math.min(10,Math.max(1,profile.SMBInterval));
             }
-            var nextBolusMins = round(SMBInterval-lastBolusAge,0);
-            var nextBolusSeconds = round((SMBInterval - lastBolusAge) * 60, 0) % 60;
+            SMBInterval = SMBInterval*60;
+            var nextBolusMins = round((SMBInterval-lastBolusAge) / 60, 0);
+            var nextBolusSeconds = round((SMBInterval - lastBolusAge), 0) % 60;
             //console.error(naive_eventualBG, insulinReq, worstCaseInsulinReq, durationReq);
-            console.error("naive_eventualBG",naive_eventualBG+",",durationReq+"m "+smbLowTempReq+"U/h temp needed; last bolus",lastBolusAge+"m ago; maxBolus: "+maxBolus);
-            if (lastBolusAge > SMBInterval) {
+            console.error("naive_eventualBG",naive_eventualBG+",",durationReq+"m "+smbLowTempReq+"U/h temp needed; last bolus",round(lastBolusAge/60,0)+"m ago; maxBolus: "+maxBolus);
+            if (lastBolusAge > SMBInterval-12) {   // 12s tolerance
                 if (microBolus > 0) {
                     rT.units = microBolus;
                     rT.reason += "Microbolusing " + microBolus + "U. ";

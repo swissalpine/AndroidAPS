@@ -167,7 +167,7 @@ class Widget : AppWidgetProvider() {
         if (!overviewData.isActualBg(iobCobCalculator.ads)) views.setInt(R.id.bg, "setPaintFlags", Paint.STRIKE_THRU_TEXT_FLAG or Paint.ANTI_ALIAS_FLAG)
         else views.setInt(R.id.bg, "setPaintFlags", Paint.ANTI_ALIAS_FLAG)
 
-        views.setTextViewText(R.id.time_ago, dateUtil.minAgo(rh, overviewData.lastBg(iobCobCalculator.ads)?.timestamp))
+        views.setTextViewText(R.id.time_ago, dateUtil.minOrSecAgo(rh, overviewData.lastBg(iobCobCalculator.ads)?.timestamp))
         //views.setTextViewText(R.id.time_ago_short, "(" + dateUtil.minAgoShort(overviewData.lastBg?.timestamp) + ")")
     }
 

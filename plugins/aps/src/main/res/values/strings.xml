@@ -175,8 +175,8 @@
     -->
     <string name="dura_ISF_settings_title">dura_ISF settings</string>
     <string name="dura_ISF_settings_summary">dura_ISF settings: ISF for blood glucose plateau above target</string>
-    <string name="smb_delivery_settings_title">smb delivery settings</string>
-    <string name="smb_delivery_settings_summary">smb delivery settings:  Set of options to increase the actual SMB size which can be delivered in situations where ISF was strengthened, i.e. fairly low ISF figure.\n\nUSE WITH CAUTION</string>
+    <string name="smb_delivery_settings_title">SMB delivery settings</string>
+    <string name="smb_delivery_settings_summary">SMB delivery settings:  Set of options to reduce or increase the actual SMB size which can be delivered.\n\nUSE VALUES ABOVE 0.5 WITH CAUTION</string>
     <string name="openapsama_enable_autoISF">Enable ISF adaptation by glucose behaviour</string>
     <string name="key_openapsama_autoISF_max" translatable="false">autoISF_max</string>
     <string name="key_openapsama_autoISF_min" translatable="false">autoISF_min</string>
@@ -185,12 +185,12 @@
     <string name="key_openapsama_dura_ISF_weight" translatable="false">dura_ISF_weight</string>
     <string name="openapsama_dura_ISF_weight_summary" formatted="false">Default value: 0.0\nThis is the rate at which autoISF grows per hour assuming bg is twice the target. With a value of 1.0 it will have reduced ISF to 50% after 1 hour of bg at twice the target.\n\nWith 0.0 the effect of autoISF is effectively disabled.</string>
     <string name="key_openapsama_lower_ISFrange_weight" translatable="false">lower_ISFrange_weight</string>
-    <string name="openapsama_lower_ISFrange_weight_summary">Default value: 0.0\nThis is the weight applied to the polygon which adapats ISF if glucose is below target. \n\nWith 0.0 the effect is effectively disabled.</string>
+    <string name="openapsama_lower_ISFrange_weight_summary">Default value: 0.0\nThis is the weight applied to the polygon which adapts ISF if glucose is below target. \n\nWith 0.0 the effect is effectively disabled.</string>
     <string name="key_openapsama_higher_ISFrange_weight" translatable="false">higher_ISFrange_weight</string>
-    <string name="openapsama_higher_ISFrange_weight_summary">Default value: 0.0\nThis is the weight applied to the polygon which adapats ISF if glucose is above target. \n\nWith 0.0 the effect is effectively disabled.</string>
+    <string name="openapsama_higher_ISFrange_weight_summary">Default value: 0.0\nThis is the weight applied to the polygon which adapts ISF if glucose is above target. \n\nWith 0.0 the effect is effectively disabled.</string>
     <!--
     <string name="key_openapsama_delta_ISFrange_weight" translatable="false">delta_ISFrange_weight</string>
-    <string name="openapsama_delta_ISFrange_weight_summary">Default value: 0.0\nThis is the weight applied to the polygon which adapats ISF for higher deltas. \n\nWith 0.0 the effect is effectively disabled.</string>
+    <string name="openapsama_delta_ISFrange_weight_summary">Default value: 0.0\nThis is the weight applied to the polygon which adapts ISF for higher deltas. \n\nWith 0.0 the effect is effectively disabled.</string>
     -->
     <string name="key_openapsama_pp_ISF_weight" translatable="false">pp_ISF_weight</string>
     <string name="openapsama_pp_ISF_weight_summary">Default value: 0.0\nThis is the weight applied to the linear slope while glucose rises and which adapts ISF. \n\nWith 0.0 this contribution is effectively disabled.</string>
@@ -237,9 +237,9 @@
     <string name="key_enableSMB_EvenOn_OddOff" translatable="false">Enable alternative activation of SMB</string>
     <string name="enableSMB_EvenOn_OddOff_summary">\nenabled if ...\nTempTarget(mmol/L) has even decimal\nor TempTarget(mg/dL) is even number\n\ndisabled otherwise</string>
     -->
-    <string name="enableSMB_EvenOn_OddOff_always">Enable alternative activation of SMB depending on current target</string>
+    <string name="enableSMB_EvenOn_OddOff_always">Enable alternative activation of SMB depending on active target</string>
     <string name="key_enableSMB_EvenOn_OddOff_always" translatable="false">Enable alternative activation of SMB</string>
-    <string name="enableSMB_EvenOn_OddOff_always_summary">\nenabled\nif current target(mmol/L) has even decimal\nor current target(mg/dL) is even number\n\ndisabled otherwise</string>
+    <string name="enableSMB_EvenOn_OddOff_always_summary">\nenabled\nif active target(mmol/L) has even decimal\nor active target(mg/dL) is even number\n\ndisabled otherwise</string>
     <string name="key_high_temptarget_raises_sensitivity" translatable="false">high_temptarget_raises_sensitivity</string>
     <string name="key_low_temptarget_lowers_sensitivity" translatable="false">low_temptarget_lowers_sensitivity</string>
     <string name="key_openapsama_iob_threshold_percent" translatable="false">iob_threshold_percent</string>
@@ -266,8 +266,8 @@
     <string name="key_inactivity_idle_start" translatable="false">inactivity_idle_start</string>
     <string name="key_inactivity_idle_end" translatable="false">inactivity_idle_end</string>
 
-    <string name="key_parabolaSourceDataType">parabolaSourceType</string>
     <!--
+    <string name="key_parabolaSourceDataType">parabolaSourceType</string>
     <string name="key_fslMinFitMinutes">fslFitMinutes</string>
     -->
 
