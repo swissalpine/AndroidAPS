@@ -854,7 +854,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             val outDate = (if (!isActualBg) rh.gs(R.string.a11y_bg_outdated) else "")
             binding.infoLayout.bg.contentDescription = rh.gs(R.string.a11y_blood_glucose) + " " + binding.infoLayout.bg.text.toString() + " " + lastBgDescription + " " + outDate
 
-            binding.infoLayout.timeAgo.text = dateUtil.minOrSecAgo(rh, lastBg?.timestamp)
+            binding.infoLayout.timeAgo.text = dateUtil.minAgo(rh, lastBg?.timestamp)
             binding.infoLayout.timeAgo.contentDescription = dateUtil.minAgoLong(rh, lastBg?.timestamp)
             binding.infoLayout.timeAgoShort.text = "(" + dateUtil.minAgoShort(lastBg?.timestamp) + ")"
 
