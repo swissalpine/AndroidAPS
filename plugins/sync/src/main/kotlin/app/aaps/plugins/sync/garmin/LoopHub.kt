@@ -35,6 +35,9 @@ interface LoopHub {
     /** Returns the factor by which the basal rate is currently raised (> 1) or lowered (< 1). */
     val temporaryBasal: Double
 
+    /** Returns the current temporary basal rate in percent **/
+    val temporaryBasalPercent: String
+
     /** Tells the loop algorithm that the pump is physically connected. */
     fun connectPump()
 

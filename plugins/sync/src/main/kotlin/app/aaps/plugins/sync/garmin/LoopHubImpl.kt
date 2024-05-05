@@ -106,6 +106,12 @@ class LoopHubImpl @Inject constructor(
             return if (apsResult == null) Double.NaN else apsResult.percent / 100.0
         }
 
+    /** Returns the current temporary basal rate in percent **/
+    override val temporaryBasalPercent: String
+        get() {
+            return overviewData.temporaryBasalText(iobCobCalculator)
+        }
+
     /** Tells the loop algorithm that the pump is physically connected. */
     override fun connectPump() {
         repo.runTransaction(

@@ -75,6 +75,7 @@ class GarminPluginTest: TestBase() {
         verify(loopHub, atMost(3)).insulinOnboard
         verify(loopHub, atMost(3)).insulinBasalOnboard
         verify(loopHub, atMost(3)).temporaryBasal
+        verify(loopHub, atMost(3)).temporaryBasalPercent
         verify(loopHub, atMost(3)).carbsOnboard
         verifyNoMoreInteractions(loopHub)
     }
@@ -381,13 +382,13 @@ fun onSgv_NoDelta() {
         whenever(loopHub.glucoseUnit).thenReturn(GlucoseUnit.MMOL)
         whenever(loopHub.insulinOnboard).thenReturn(2.7)
         whenever(loopHub.insulinBasalOnboard).thenReturn(2.5)
-        whenever(loopHub.temporaryBasal).thenReturn(0.8)
+        whenever(loopHub.temporaryBasalPercent).thenReturn("80%")
         whenever(loopHub.carbsOnboard).thenReturn(10.7)
         whenever(loopHub.getGlucoseValues(any(), eq(false))).thenReturn(
             listOf(createGlucoseValue(
                 clock.instant().minusSeconds(100L), 99.3)))
         assertEquals(
-            """[{"_id":"-900000","device":"RANDOM","deviceString":"1969-12-31T23:58:30Z","sysTime":"1969-12-31T23:58:30Z","unfiltered":90.0,"date":-90000,"sgv":99,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":80,"cob":10.7}]""",
+            """[{"_id":"-900000","device":"RANDOM","deviceString":"1969-12-31T23:58:30Z","sysTime":"1969-12-31T23:58:30Z","unfiltered":90.0,"date":-90000,"sgv":99,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":"80%","cob":10.7}]""",
             gp.onSgv(createUri(mapOf())))
         verify(loopHub).getGlucoseValues(clock.instant().minusSeconds(25L * 300L), false)
         verify(loopHub).glucoseUnit
@@ -398,7 +399,7 @@ fun onSgv_NoDelta() {
         whenever(loopHub.glucoseUnit).thenReturn(GlucoseUnit.MMOL)
         whenever(loopHub.insulinOnboard).thenReturn(2.7)
         whenever(loopHub.insulinBasalOnboard).thenReturn(2.5)
-        whenever(loopHub.temporaryBasal).thenReturn(0.8)
+        whenever(loopHub.temporaryBasalPercent).thenReturn("80%")
         whenever(loopHub.carbsOnboard).thenReturn(10.7)
         whenever(loopHub.getGlucoseValues(any(), eq(false))).thenAnswer { i ->
             val from = i.getArgument<Instant>(0)
@@ -406,21 +407,21 @@ fun onSgv_NoDelta() {
                 .map(Instant::ofEpochMilli)
                 .mapIndexed { idx, ts -> createGlucoseValue(ts, 100.0+(10 * idx)) }.reversed()}
         assertEquals(
-            """[{"_id":"100000","device":"RANDOM","deviceString":"1970-01-01T00:00:10Z","sysTime":"1970-01-01T00:00:10Z","unfiltered":90.0,"date":10000,"sgv":120,"delta":10,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":80,"cob":10.7}]""",
+            """[{"_id":"100000","device":"RANDOM","deviceString":"1970-01-01T00:00:10Z","sysTime":"1970-01-01T00:00:10Z","unfiltered":90.0,"date":10000,"sgv":120,"delta":10,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":"80%","cob":10.7}]""",
             gp.onSgv(createUri(mapOf("count" to "1"))))
         verify(loopHub).getGlucoseValues(
             clock.instant().minusSeconds(600L), false)
 
 
         assertEquals(
-            """[{"_id":"100000","device":"RANDOM","deviceString":"1970-01-01T00:00:10Z","sysTime":"1970-01-01T00:00:10Z","unfiltered":90.0,"date":10000,"sgv":130,"delta":10,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":80,"cob":10.7},""" +
+            """[{"_id":"100000","device":"RANDOM","deviceString":"1970-01-01T00:00:10Z","sysTime":"1970-01-01T00:00:10Z","unfiltered":90.0,"date":10000,"sgv":130,"delta":10,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":"80%","cob":10.7},""" +
                 """{"_id":"-2900000","device":"RANDOM","deviceString":"1969-12-31T23:55:10Z","sysTime":"1969-12-31T23:55:10Z","unfiltered":90.0,"date":-290000,"sgv":120,"delta":10,"direction":"Flat","noise":4.5}]""",
             gp.onSgv(createUri(mapOf("count" to "2"))))
         verify(loopHub).getGlucoseValues(
             clock.instant().minusSeconds(900L), false)
 
         assertEquals(
-            """[{"date":10000,"sgv":130,"delta":10,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":80,"cob":10.7},""" +
+            """[{"date":10000,"sgv":130,"delta":10,"direction":"Flat","noise":4.5,"units_hint":"mmol","iob":5.2,"tbr":"80%","cob":10.7},""" +
                 """{"date":-290000,"sgv":120,"delta":10,"direction":"Flat","noise":4.5}]""",
             gp.onSgv(createUri(mapOf("count" to "2", "brief_mode" to "true"))))
         verify(loopHub, times(2)).getGlucoseValues(

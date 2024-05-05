@@ -3,6 +3,7 @@ package app.aaps.plugins.sync.garmin
 import android.content.Context
 import androidx.annotation.VisibleForTesting
 import app.aaps.core.interfaces.db.GlucoseUnit
+import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.plugin.PluginBase
@@ -13,6 +14,9 @@ import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.events.EventNewBG
 import app.aaps.core.interfaces.rx.events.EventPreferenceChange
 import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.ui.UiInteraction
+import app.aaps.core.interfaces.utils.TrendCalculator
+import app.aaps.core.main.graph.OverviewData
 import app.aaps.database.entities.GlucoseValue
 import app.aaps.plugins.sync.R
 import com.google.gson.JsonArray
@@ -51,7 +55,7 @@ class GarminPlugin @Inject constructor(
     private val context: Context,
     private val loopHub: LoopHub,
     private val rxBus: RxBus,
-    private val sp: SP,
+    private val sp: SP
 ) : PluginBase(
     PluginDescription()
         .mainType(PluginType.SYNC)
@@ -461,12 +465,7 @@ class GarminPlugin @Inject constructor(
                     GlucoseUnit.MMOL -> jo.addProperty("units_hint", "mmol")
                 }
                 jo.addProperty("iob", loopHub.insulinOnboard + loopHub.insulinBasalOnboard)
-                loopHub.temporaryBasal.also {
-                    if (!it.isNaN()) {
-                        val temporaryBasalRateInPercent = (it * 100.0).toInt()
-                        jo.addProperty("tbr", temporaryBasalRateInPercent)
-                    }
-                }
+                jo.addProperty("tbr", loopHub.temporaryBasalPercent)
                 jo.addProperty("cob", loopHub.carbsOnboard)
             }
             joa.add(jo)
