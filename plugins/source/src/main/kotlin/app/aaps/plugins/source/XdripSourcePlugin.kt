@@ -23,6 +23,8 @@ import app.aaps.core.interfaces.source.XDripSource
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.Preferences
+import app.aaps.core.keys.DoubleKey
+import app.aaps.core.keys.UnitDoubleKey
 import app.aaps.core.objects.workflow.LoggingWorker
 import app.aaps.core.utils.receivers.DataWorkerStorage
 import kotlinx.coroutines.Dispatchers
@@ -76,10 +78,10 @@ class XdripSourcePlugin @Inject constructor(
 
         @Inject lateinit var xdripSourcePlugin: XdripSourcePlugin
         @Inject lateinit var persistenceLayer: PersistenceLayer
-        @Inject lateinit var preferences: Preferences
         @Inject lateinit var dateUtil: DateUtil
         @Inject lateinit var dataWorkerStorage: DataWorkerStorage
         @Inject lateinit var uel: UserEntryLogger
+        @Inject lateinit var preferences: Preferences
 
         fun getSensorStartTime(bundle: Bundle): Long? {
             val now = dateUtil.now()
@@ -97,6 +99,7 @@ class XdripSourcePlugin @Inject constructor(
 
         @SuppressLint("CheckResult")
         override suspend fun doWorkAndLog(): Result {
+            //val preferences = Preferences
             var ret = Result.success()
 
             if (!xdripSourcePlugin.isEnabled()) return Result.success(workDataOf("Result" to "Plugin not enabled"))
@@ -105,10 +108,20 @@ class XdripSourcePlugin @Inject constructor(
 
             aapsLogger.debug(LTag.BGSOURCE, "Received xDrip data: $bundle")
             val glucoseValues = mutableListOf<GV>()
+            var extraBgEstimate = round(bundle.getDouble(Intents.EXTRA_BG_ESTIMATE, 0.0))
+            var extraRaw = round(bundle.getDouble(Intents.EXTRA_RAW, 0.0))
+            //val offset = preferences.get(UnitDoubleKey.FslCalOffset)
+            val offset = preferences.get(DoubleKey.FslCalOffset)
+            val slope = preferences.get(DoubleKey.FslCalSlope)
+            if (extraRaw == 0.0) {
+                extraRaw = extraBgEstimate
+                extraBgEstimate = extraRaw * slope + offset
+                aapsLogger.debug(LTag.BGSOURCE, "Applied Libre 1 minute calibration: offset=$offset, slope=$slope")
+            }
             glucoseValues += GV(
                 timestamp = bundle.getLong(Intents.EXTRA_TIMESTAMP, 0),
-                value = round(bundle.getDouble(Intents.EXTRA_BG_ESTIMATE, 0.0)),
-                raw = round(bundle.getDouble(Intents.EXTRA_RAW, 0.0)),
+                value = round(extraBgEstimate), //round(bundle.getDouble(Intents.EXTRA_BG_ESTIMATE, 0.0)),
+                raw = round(extraRaw),          //round(bundle.getDouble(Intents.EXTRA_RAW, 0.0)),
                 noise = null,
                 trendArrow = TrendArrow.fromString(bundle.getString(Intents.EXTRA_BG_SLOPE_NAME)),
                 sourceSensor = SourceSensor.fromString(bundle.getString(Intents.XDRIP_DATA_SOURCE) ?: "")

@@ -225,4 +225,10 @@
     <string name="openapsama_iob_threshold_percent_summary" formatted="false">Percentage of maxIOB above which SMBs are disabled.\nDefault value: 100%\nWith 100% this feature is effectively disabled.</string>
     <string name="openapsama_iob_threshold_percent">maxIOB threshold percent for SMB\n(iob_threshold_percent)</string>
 
+    <!-- gazelle special    -->
+    <string name="fslCal_Offset_title">Offset of Libre calibration versus finger like in xDrip</string>
+    <string name="fslCal_Offset_summary">OFFSET value as in calibration formula\nLibre_calibrated = OFFSET + slope * Libre_raw</string>
+    <string name="fslCal_Slope_title">Slope of Libre calibration versus finger like in xDrip</string>
+    <string name="fslCal_Slope_summary">SLOPE value as in calibration formula\nLibre_calibrated = offset + SLOPE * Libre_raw</string>
+
 </resources>
