@@ -115,6 +115,13 @@ class DetermineBasalAutoISF @Inject constructor(
         if (rate < 0) rate = 0.0
         else if (rate > maxSafeBasal) rate = maxSafeBasal
 
+        // mod Ketoacidosis protection
+        if (rate < 0.1) {
+            reason(rT, "Ketoacidosis protection: setting basal to 0.2U/hr")
+            rate = 0.2
+        }
+        // mod finish
+
         val suggestedRate = round_basal(rate)
         if (currenttemp.duration > (duration - 10) && currenttemp.duration <= 120 && suggestedRate <= currenttemp.rate * 1.2 && suggestedRate >= currenttemp.rate * 0.8 && duration > 0) {
             rT.reason.append(" ${currenttemp.duration}m left and ${currenttemp.rate.withoutZeros()} ~ req ${suggestedRate.withoutZeros()}U/hr: no temp required")
