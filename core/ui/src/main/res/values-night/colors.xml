@@ -24,7 +24,7 @@
     <color name="colorOnPrimaryDefault">#FFFFFF</color>
 
     <color name="defaultBackground">#000000</color>
-    <color name="defaultTextColor">#B3FFFFFF</color>
+    <color name="defaultTextColor">#FFFFFF</color>
 
     <!---Android Dark ans Light Theme Base colors-->
     <color name="background_dark">#262626</color>
@@ -75,11 +75,11 @@
     <color name="basal">#00ffff</color>
 
     <!--    Loop     -->
-    <color name="loopDisconnected">#939393</color>
-    <color name="loopClosed">#00C03E</color>
-    <color name="loopSuspended">#FFFF13</color>
+    <color name="loopDisconnected">#ff0000</color>
+    <color name="loopClosed">#00FF00</color>
+    <color name="loopSuspended">#FFFF00</color>
     <color name="loopOpened">#4983D7</color>
-    <color name="loopDisabled">#FF1313</color>
+    <color name="loopDisabled">#939393</color>
 
     <!--    BgReading-->
     <color name="inRange">#00FF00</color>
@@ -141,8 +141,8 @@
     <color name="importListAdditionalInfo">#BBBBBB</color>
     <color name="importListFileName">#FFFFFF</color>
 
-    <color name="ribbonWarning">#f4d700</color>
-    <color name="ribbonCritical">#ff0400</color>
+    <color name="ribbonWarning">#ffff00</color>
+    <color name="ribbonCritical">#ff0000</color>
     <color name="ribbonTextDefault">#FFFFFF</color>
     <color name="ribbonTextWarning">#303030</color>
     <color name="tempTargetConfirmation">#77dd77</color>
@@ -171,7 +171,7 @@
     <color name="exercise">#67DFE8</color>
 
     <color name="action">#ffffbb33</color>
-    <color name="alarm">#ffff4444</color>
+    <color name="alarm">#ff0000</color>
 
     <color name="colorAcceptTempButton">#f4d700</color>
     <color name="colorTreatmentButton">#67dfe8</color>

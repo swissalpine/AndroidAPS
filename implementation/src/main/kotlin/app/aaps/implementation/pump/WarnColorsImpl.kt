@@ -17,7 +17,7 @@ class WarnColorsImpl @Inject constructor(
         view?.setTextColor(
             rh.gac(
                 view.context, when {
-                    value >= urgentLevel -> app.aaps.core.ui.R.attr.urgentColor
+                    value >= urgentLevel -> app.aaps.core.ui.R.attr.bgLow
                     value >= warnLevel   -> app.aaps.core.ui.R.attr.warnColor
                     else                 -> app.aaps.core.ui.R.attr.defaultTextColor
                 }
@@ -29,7 +29,7 @@ class WarnColorsImpl @Inject constructor(
         view?.setTextColor(
             rh.gac(
                 view.context, when {
-                    value <= urgentLevel -> app.aaps.core.ui.R.attr.urgentColor
+                    value <= urgentLevel -> app.aaps.core.ui.R.attr.bgLow
                     value <= warnLevel   -> app.aaps.core.ui.R.attr.warnColor
                     else                 -> app.aaps.core.ui.R.attr.defaultTextColor
                 }
@@ -41,8 +41,8 @@ class WarnColorsImpl @Inject constructor(
         view?.setTextColor(
             rh.gac(
                 view.context, when {
-                    therapyEvent.isOlderThan(urgentThreshold, dateUtil) -> app.aaps.core.ui.R.attr.lowColor
-                    therapyEvent.isOlderThan(warnThreshold, dateUtil)   -> app.aaps.core.ui.R.attr.highColor
+                    therapyEvent.isOlderThan(urgentThreshold, dateUtil) -> app.aaps.core.ui.R.attr.bgLow
+                    therapyEvent.isOlderThan(warnThreshold, dateUtil)   -> app.aaps.core.ui.R.attr.warnColor
                     else                                                -> app.aaps.core.ui.R.attr.defaultTextColor
                 }
             )
