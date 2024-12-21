@@ -117,10 +117,10 @@ class DetermineBasalAutoISF @Inject constructor(
 
         // mod Ketoacidosis protection
         if (rate < 0.1) {
-            reason(rT, "Ketoacidosis protection: setting basal to 0.2U/hr")
+            reason(rT, "Ketoacidosis protection: setting basal to 0.2 U/hr")
             rate = 0.2
         }
-        // mod finish
+        // end mod
 
         val suggestedRate = round_basal(rate)
         if (currenttemp.duration > (duration - 10) && currenttemp.duration <= 120 && suggestedRate <= currenttemp.rate * 1.2 && suggestedRate >= currenttemp.rate * 0.8 && duration > 0) {
@@ -852,6 +852,14 @@ class DetermineBasalAutoISF @Inject constructor(
             rT.reason.append("maxDelta " + convert_bg(maxDelta) + " > " + 100 * maxDeltaPercentage + "% of BG " + convert_bg(bg) + ": SMB disabled; ")
             enableSMB = false
         }
+
+        // mod no smb if bg < 100
+        if (enableSMB && bg < 100) {
+            consoleError.add("BG < 100 - disabling SMB")
+            rT.reason.append("BG < 100 - disabling SMB")
+            enableSMB = false
+        }
+        // end mod
 
         consoleError.add("BG projected to remain above ${convert_bg(min_bg)} for $minutesAboveMinBG minutes")
         if (minutesAboveThreshold < 240 || minutesAboveMinBG < 60) {
