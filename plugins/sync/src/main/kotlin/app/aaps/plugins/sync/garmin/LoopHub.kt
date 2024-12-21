@@ -35,6 +35,11 @@ interface LoopHub {
     /** Returns the factor by which the basal rate is currently raised (> 1) or lowered (< 1). */
     val temporaryBasal: Double
 
+    // mod temporary basal rate
+    /** Returns the current temporary basal rate in percent **/
+    val temporaryBasalPercent: String
+    // end mod
+
     /** Returns the lower bound of the target glucose range. */
     val lowGlucoseMark: Double
 
@@ -53,6 +58,14 @@ interface LoopHub {
 
     /** Notifies the system that carbs were eaten and stores the value. */
     fun postCarbs(carbohydrates: Int)
+
+    // mod Bolus and temp target
+    /** Triggers a bolus. */
+    fun postBolus(bolus: Double)
+
+    /** Stores or cancels a temptarget. */
+    fun postTempTarget(target: Double, duration: Int)
+    // end mod
 
     /** Stores hear rate readings that a taken and averaged of the given interval. */
     fun storeHeartRate(

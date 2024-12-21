@@ -1,11 +1,13 @@
 package app.aaps.plugins.sync.garmin
 
+import android.content.Context
 import androidx.annotation.VisibleForTesting
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.HR
 import app.aaps.core.data.model.OE
 import app.aaps.core.data.model.TE
+import app.aaps.core.data.model.TT
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
@@ -16,18 +18,27 @@ import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.overview.OverviewData
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.queue.Callback
+import app.aaps.core.interfaces.queue.Command.CommandType
 import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.rx.events.EventMobileToWear
+import app.aaps.core.interfaces.rx.weardata.EventData
+import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.StringKey
 import app.aaps.core.keys.UnitDoubleKey
+import app.aaps.core.objects.constraints.ConstraintObject
+import app.aaps.core.ui.dialogs.OKDialog
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
 import java.time.Clock
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,9 +54,11 @@ class LoopHubImpl @Inject constructor(
     private val loop: Loop,
     private val profileFunction: ProfileFunction,
     private val profileUtil: ProfileUtil,
+    private val overviewData: OverviewData,
     private val persistenceLayer: PersistenceLayer,
     private val userEntryLogger: UserEntryLogger,
-    private val preferences: Preferences
+    private val preferences: Preferences,
+    private val dateUtil: DateUtil
 ) : LoopHub {
 
     val disposable = CompositeDisposable()
@@ -92,6 +105,14 @@ class LoopHubImpl @Inject constructor(
             val apsResult = loop.lastRun?.constraintsProcessed
             return if (apsResult == null) Double.NaN else apsResult.percent / 100.0
         }
+
+    // mod temp basal in percent
+    /** Returns the current temporary basal rate in percent **/
+    override val temporaryBasalPercent: String
+        get() {
+            return overviewData.temporaryBasalText()
+        }
+    // mod end
 
     override val lowGlucoseMark get() = profileUtil.convertToMgdl(
         preferences.get(UnitDoubleKey.OverviewLowMark), glucoseUnit)
@@ -143,6 +164,54 @@ class LoopHubImpl @Inject constructor(
         }
         commandQueue.bolus(detailedBolusInfo, null)
     }
+
+    // mod Bolus and temp target
+    /** Triggers a bolus. */
+    override fun postBolus(bolus: Double) {
+        aapsLogger.info(LTag.GARMIN, "trigger a bolus of $bolus U")
+        userEntryLogger.log(
+            action = Action.BOLUS,
+            source = Sources.Garmin,
+            note = null,
+            ValueWithUnit.Insulin(bolus)
+        )
+        val detailedBolusInfo = DetailedBolusInfo().apply {
+            eventType = TE.Type.SNACK_BOLUS
+            insulin = bolus
+        }
+        commandQueue.bolus(detailedBolusInfo, null)
+    }
+
+    override fun postTempTarget(target: Double, duration: Int) {
+        if (target == 0.0 || duration == 0) {
+            disposable += persistenceLayer.cancelCurrentTemporaryTargetIfAny(
+                timestamp = dateUtil.now(),
+                action = Action.TT,
+                source = Sources.TTDialog,
+                note = null,
+                listValues = listOf()
+            ).subscribe()
+        } else {
+            disposable += persistenceLayer.insertAndCancelCurrentTemporaryTarget(
+                temporaryTarget = TT(
+                    timestamp = dateUtil.now(),
+                    duration = TimeUnit.MINUTES.toMillis(duration.toLong()),
+                    reason = TT.Reason.WEAR,
+                    lowTarget = profileUtil.convertToMgdl(target, profileUtil.units),
+                    highTarget = profileUtil.convertToMgdl(target, profileUtil.units)
+                ),
+                action = Action.TT,
+                source = Sources.Garmin,
+                note = null,
+                listValues = listOf(
+                    ValueWithUnit.TETTReason(TT.Reason.AUTOMATION),
+                    ValueWithUnit.Mgdl(target),
+                    ValueWithUnit.Minute(duration)
+                ).filterNotNull()
+            ).subscribe()
+        }
+    }
+    // end mod
 
     /** Stores hear rate readings that a taken and averaged of the given interval. */
     override fun storeHeartRate(
