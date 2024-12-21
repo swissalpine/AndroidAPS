@@ -882,7 +882,10 @@ class DetermineBasalAutoISF @Inject constructor(
         }
 
         // don't low glucose suspend if IOB is already super negative and BG is rising faster than predicted
-        if (bg < threshold && iob_data.iob < -profile.current_basal * 20 / 60 && minDelta > 0 && minDelta > expectedDelta) {
+        // mod adjustment of the conditions for low glucose suspend
+        // if (bg < threshold && iob_data.iob < -profile.current_basal * 20 / 60 && minDelta > 0 && minDelta > expectedDelta) {
+        if (bg < threshold && iob_data.iob < -profile.current_basal && minDelta > 0 && minDelta > 2 * expectedDelta) {
+        // end mod
             rT.reason.append("IOB ${iob_data.iob} < ${round(-profile.current_basal * 20 / 60, 2)}")
             rT.reason.append(" and minDelta ${convert_bg(minDelta)} > expectedDelta ${convert_bg(expectedDelta)}; ")
             // predictive low glucose suspend mode: BG is / is projected to be < threshold
