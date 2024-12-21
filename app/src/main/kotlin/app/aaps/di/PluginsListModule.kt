@@ -13,9 +13,9 @@ import app.aaps.plugins.constraints.bgQualityCheck.BgQualityCheckPlugin
 import app.aaps.plugins.constraints.dstHelper.DstHelperPlugin
 import app.aaps.plugins.constraints.objectives.ObjectivesPlugin
 import app.aaps.plugins.constraints.safety.SafetyPlugin
-import app.aaps.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
+//import app.aaps.plugins.constraints.signatureVerifier.SignatureVerifierPlugin
 import app.aaps.plugins.constraints.storage.StorageConstraintPlugin
-import app.aaps.plugins.constraints.versionChecker.VersionCheckerPlugin
+//import app.aaps.plugins.constraints.versionChecker.VersionCheckerPlugin
 import app.aaps.plugins.insulin.InsulinLyumjevPlugin
 import app.aaps.plugins.insulin.InsulinOrefFreePeakPlugin
 import app.aaps.plugins.insulin.InsulinOrefRapidActingPlugin
@@ -276,11 +276,13 @@ abstract class PluginsListModule {
     @IntKey(265)
     abstract fun bindSafetyPlugin(plugin: SafetyPlugin): PluginBase
 
+    /*
     @Binds
     @NotNSClient
     @IntoMap
     @IntKey(270)
     abstract fun bindVersionCheckerPlugin(plugin: VersionCheckerPlugin): PluginBase
+    */
 
     @Binds
     @NotNSClient
@@ -294,11 +296,13 @@ abstract class PluginsListModule {
     @IntKey(290)
     abstract fun bindStorageConstraintPlugin(plugin: StorageConstraintPlugin): PluginBase
 
+    /*
     @Binds
     @APS
     @IntoMap
     @IntKey(300)
     abstract fun bindSignatureVerifierPlugin(plugin: SignatureVerifierPlugin): PluginBase
+    */
 
     @Binds
     @APS
