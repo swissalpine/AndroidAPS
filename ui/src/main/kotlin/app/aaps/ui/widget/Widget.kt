@@ -290,10 +290,15 @@ class Widget : AppWidgetProvider() {
             else if (config.NSCLIENT) processedDeviceStatusData.getAPSResult()?.variableSens ?: 0.0
             else 0.0
         val ratioUsed = request?.autosensResult?.ratio ?: 1.0
+        // mod variable sense mg/dl without floating point
+        var formatVariableSense = "%1$.0f→%2$.0f"
+        if (profileFunction.getUnits() == GlucoseUnit.MMOL)
+            formatVariableSense = "%1$.1f→%2$.1f"
+        // end mod
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             var text = if (ratioUsed != 1.0 && ratioUsed != lastAutosensData?.autosensResult?.ratio) String.format(Locale.getDefault(), "%.0f%%\n", ratioUsed * 100) else ""
             text += String.format(
-                Locale.getDefault(), "%1$.1f→%2$.1f",
+                Locale.getDefault(), formatVariableSense, //
                 profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
                 profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
             )
