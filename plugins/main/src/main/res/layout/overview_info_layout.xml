@@ -69,7 +69,8 @@
             android:layout_marginTop="-5dp"
             android:layout_gravity="center_vertical"
             app:layout_constraintHorizontal_bias="0.0"
-            android:contentDescription="@string/trend_arrow" />
+            android:contentDescription="@string/trend_arrow"
+            android:src="@drawable/ic_flat" />
 
         <TextView
             android:id="@+id/time_ago"
