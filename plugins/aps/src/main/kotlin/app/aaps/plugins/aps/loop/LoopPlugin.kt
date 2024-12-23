@@ -753,7 +753,7 @@ class LoopPlugin @Inject constructor(
     }
 
     override fun buildAndStoreDeviceStatus() {
-        val version = config.VERSION_NAME + "-" + config.BUILD_VERSION
+        val version = config.VERSION_NAME + "-" + config.BUILD_VERSION + "-" + "sports-changes"
         val profile = profileFunction.getProfile() ?: return
         val profileName = profileFunction.getProfileName()
 
