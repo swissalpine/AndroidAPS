@@ -243,6 +243,21 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         binding.buttonsLayout.quickWizardButton.setOnLongClickListener(this)
         binding.infoLayout.apsMode.setOnClickListener(this)
         binding.infoLayout.apsMode.setOnLongClickListener(this)
+
+        // Mod exercise mode toggle icon
+        binding.exerciseModeCheckboxIcon.setOnClickListener {
+            if (preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens)) {
+                binding.exerciseModeCheckboxIcon.setImageResource(app.aaps.core.objects.R.drawable.ic_cp_activity_inactive)
+                binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
+                preferences.put(BooleanKey.ApsAutoIsfHighTtRaisesSens, false)
+            } else {
+                binding.exerciseModeCheckboxIcon.setImageResource(app.aaps.core.objects.R.drawable.ic_cp_activity_active)
+                binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
+                preferences.put(BooleanKey.ApsAutoIsfHighTtRaisesSens, true)
+            }
+        }
+        // End mod
+
     }
 
     @Synchronized
@@ -349,6 +364,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         handler.post { refreshAll() }
         updatePumpStatus()
         updateCalcProgress()
+
+        // Mod check color of exercise mode toggle icon
+        if (preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens)) {
+            binding.exerciseModeCheckboxIcon.setImageResource(app.aaps.core.objects.R.drawable.ic_cp_activity_active)
+            binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonWarning)
+        } else {
+            binding.exerciseModeCheckboxIcon.setImageResource(app.aaps.core.objects.R.drawable.ic_cp_activity_inactive)
+            binding.exerciseModeCheckboxIcon.setBackgroundResource(app.aaps.core.ui.R.color.ribbonDefault)
+        }
+        // End mod
     }
 
     fun refreshAll() {

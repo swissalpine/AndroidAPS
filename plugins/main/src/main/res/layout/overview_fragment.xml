@@ -48,55 +48,68 @@
                 android:id="@+id/loop_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_marginTop="4dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp">
+                android:orientation="horizontal" >
 
-                <androidx.cardview.widget.CardView
+                <TextView
+                    android:id="@+id/active_profile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="2dp"
                     android:layout_weight="1"
+                    android:breakStrategy="balanced"
+                    android:ellipsize="end"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:hint="active profile"
+                    android:hyphenationFrequency="normal"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:text="Profile"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    tools:ignore="HardcodedText"
+                    android:background="@color/ribbonDefault" />
+
+                <ImageView
+                    android:id="@+id/exercise_mode_checkbox_icon"
+                    android:layout_width="48dp"
+                    android:layout_height="match_parent"
+                    android:padding="2dp"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginEnd="2dp"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:layout_weight="0"
+                    android:contentDescription="Enable exercise mode"
+                    app:srcCompat="@drawable/ic_cp_activity_inactive"
+                    tools:ignore="HardcodedText"
+                    android:background="@color/ribbonDefault" />
+
+                <TextView
+                    android:id="@+id/temp_target"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginStart="2dp"
                     android:layout_marginEnd="4dp"
-                    app:cardCornerRadius="4dp"
-                    app:cardElevation="0dp">
-
-                    <TextView
-                        android:id="@+id/active_profile"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:gravity="center_vertical|center_horizontal"
-                        android:paddingTop="6dp"
-                        android:paddingBottom="6dp"
-                        android:hint="active profile"
-                        android:text="Profile"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        tools:ignore="HardcodedText" />
-                </androidx.cardview.widget.CardView>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:cardCornerRadius="4dp"
-                    app:cardElevation="0dp">
-
-                    <TextView
-                        android:id="@+id/temp_target"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:gravity="center_vertical|center_horizontal"
-                        android:paddingTop="6dp"
-                        android:paddingBottom="6dp"
-                        android:hint="temp target"
-                        android:text="@string/value_unavailable_short"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:foreground="?attr/selectableItemBackgroundBorderless"
-                        tools:ignore="HardcodedText" />
-                </androidx.cardview.widget.CardView>
+                    android:breakStrategy="balanced"
+                    android:hyphenationFrequency="normal"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:paddingTop="7dp"
+                    android:paddingBottom="7dp"
+                    android:hint="temp target"
+                    android:text="@string/value_unavailable_short"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    android:foreground="?attr/selectableItemBackgroundBorderless"
+                    tools:ignore="HardcodedText"
+                    android:ellipsize="end"
+                    android:background="@color/ribbonDefault" />
 
             </LinearLayout>
 
