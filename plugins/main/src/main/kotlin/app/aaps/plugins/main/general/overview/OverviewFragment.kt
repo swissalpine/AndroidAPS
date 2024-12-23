@@ -867,13 +867,15 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
     private fun updateTemporaryBasal() {
         val temporaryBasalText = overviewData.temporaryBasalText()
-        val temporaryBasalColor = overviewData.temporaryBasalColor(context)
+        // mod don't change basal color
+        // val temporaryBasalColor = overviewData.temporaryBasalColor(context)
         val temporaryBasalIcon = overviewData.temporaryBasalIcon()
         val temporaryBasalDialogText = overviewData.temporaryBasalDialogText()
         runOnUiThread {
             _binding ?: return@runOnUiThread
             binding.infoLayout.baseBasal.text = temporaryBasalText
-            binding.infoLayout.baseBasal.setTextColor(temporaryBasalColor)
+            // mod don't change basal color
+            // binding.infoLayout.baseBasal.setTextColor(temporaryBasalColor)
             binding.infoLayout.baseBasalIcon.setImageResource(temporaryBasalIcon)
             binding.infoLayout.basalLayout.setOnClickListener { activity?.let { OKDialog.show(it, rh.gs(app.aaps.core.ui.R.string.basal), temporaryBasalDialogText) } }
         }
