@@ -349,11 +349,13 @@ class LoopDialog : DaggerDialogFragment() {
                 return true
             }
 
-            R.id.overview_suspend_1h                      -> {
-                loop.suspendLoop(T.hours(1).mins().toInt(), Action.SUSPEND, Sources.LoopDialog, listValues = listOf(ValueWithUnit.Hour(1)))
+            // mod suspend loop for 30 min (+ dialog_loop.xml)
+            R.id.overview_suspend_30m                     -> {
+                loop.suspendLoop(T.mins(30).mins().toInt(), Action.SUSPEND, Sources.LoopDialog, listValues = listOf(ValueWithUnit.Hour(1)))
                 rxBus.send(EventRefreshOverview("suspend_menu"))
                 return true
             }
+            // end mod
 
             R.id.overview_suspend_2h                      -> {
                 loop.suspendLoop(T.hours(2).mins().toInt(), Action.SUSPEND, Sources.LoopDialog, listValues = listOf(ValueWithUnit.Hour(2)))
