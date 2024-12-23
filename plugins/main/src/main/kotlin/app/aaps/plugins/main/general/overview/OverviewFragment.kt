@@ -861,7 +861,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     else app.aaps.core.ui.R.attr.ribbonTextDefaultColor
                 } else app.aaps.core.ui.R.attr.ribbonTextDefaultColor
             } ?: app.aaps.core.ui.R.attr.ribbonTextDefaultColor
-            setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime())
+            setRibbon(binding.activeProfile, profileTextColor, profileBackgroundColor, profileFunction.getProfileNameWithRemainingTime().replace("h ","h").replace("%)(","%|").replace("(", " \u00AD("))
         }
     }
 
