@@ -5,10 +5,11 @@
     android:id="@+id/status_lights_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="-3dp"
-    android:layout_marginBottom="-3dp"
-    android:paddingTop="4dp"
-    android:paddingBottom="4dp"
+    android:layout_marginTop="0dp"
+    android:layout_marginBottom="0dp"
+    android:paddingTop="0dp"
+    android:paddingBottom="2dp"
+    android:baselineAligned="false"
     app:alignContent="stretch"
     app:alignItems="stretch"
     app:flexDirection="row"
@@ -18,22 +19,29 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:gravity="center"
+        android:layout_weight="1"
+        android:orientation="vertical"
         tools:ignore="UseCompoundDrawables">
 
         <ImageView
             android:id="@+id/cannula_or_patch"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginTop="-4dp"
+            android:layout_marginBottom="-2dp"
+            android:gravity="center_vertical"
+            android:scaleType="centerInside"
             android:contentDescription="@string/statuslights_cannula_age"
             app:srcCompat="@drawable/ic_cp_age_cannula" />
 
         <TextView
             android:id="@+id/cannula_age"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lines="1"
+            android:gravity="center|center_vertical"
+            android:textColor="@color/defaultTextColor"
+            android:textSize="18dp"
             tools:text="1d12h" />
 
     </LinearLayout>
@@ -41,51 +49,76 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:gravity="center">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginTop="-6dp"
+            android:layout_marginBottom="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:scaleType="centerInside"
             android:contentDescription="@string/a11y_insulin_label"
             app:srcCompat="@drawable/ic_cp_age_insulin" />
 
-        <TextView
-            android:id="@+id/insulin_age"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lines="1"
-            tools:text="12h" />
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/reservoir_level"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:lines="1"
-            android:paddingStart="2dp"
-            android:paddingEnd="0dp"
-            tools:text="50+U" />
+            <TextView
+                android:id="@+id/reservoir_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:paddingStart="0dp"
+                android:paddingEnd="5dp"
+                android:textColor="@color/defaultTextColor"
+                android:textSize="18dp"
+                tools:text="50U" />
+
+            <TextView
+                android:id="@+id/insulin_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:paddingStart="5dp"
+                android:paddingEnd="0dp"
+                android:textColor="@color/defaultTextColor"
+                android:textSize="18dp"
+                tools:text="12h" />
+        </LinearLayout>
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:gravity="center"
+        android:layout_weight="1"
+        android:orientation="vertical"
         tools:ignore="UseCompoundDrawables">
 
         <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginTop="-4dp"
+            android:layout_marginBottom="-2dp"
+            android:gravity="center_vertical"
+            android:scaleType="centerInside"
             android:contentDescription="@string/sensor_label"
             app:srcCompat="@drawable/ic_cp_age_sensor" />
 
         <TextView
             android:id="@+id/sensor_age"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lines="1"
+            android:gravity="center|center_vertical"
+            android:textColor="@color/defaultTextColor"
+            android:textSize="18dp"
             tools:text="1d12h" />
 
     </LinearLayout>
@@ -94,31 +127,48 @@
         android:id="@+id/battery_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:gravity="center">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginTop="-4dp"
+            android:layout_marginBottom="-2dp"
+            android:gravity="center_vertical"
+            android:scaleType="centerInside"
             android:contentDescription="@string/battery_label"
             app:srcCompat="@drawable/ic_cp_age_battery" />
 
-        <TextView
-            android:id="@+id/pb_age"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:lines="1"
-            android:text="-"
-            tools:ignore="HardcodedText" />
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/pb_level"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:lines="1"
-            android:paddingStart="2dp"
-            android:paddingEnd="0dp"
-            tools:text="100%" />
+            <TextView
+                android:id="@+id/pb_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:paddingEnd="5dp"
+                android:textColor="@color/defaultTextColor"
+                android:textSize="18dp"
+                android:text="-"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/pb_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:paddingStart="5dp"
+                android:textColor="@color/defaultTextColor"
+                android:textSize="18dp"
+                tools:text="100%"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
