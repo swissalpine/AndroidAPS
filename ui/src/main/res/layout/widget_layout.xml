@@ -20,9 +20,13 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:minWidth="120dp"
             android:text="n/a"
             android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textSize="18dp"
+            android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
         <TextView
@@ -32,9 +36,13 @@
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
             android:gravity="center_vertical|center_horizontal"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:minWidth="120dp"
             android:text="n/a"
             android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textSize="18dp"
+            android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
@@ -42,16 +50,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp">
 
         <TextView
             android:id="@+id/bg"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:text="00.0"
-            android:textSize="60sp"
+            android:textSize="40dp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />
 
@@ -68,8 +78,8 @@
 
             <ImageView
                 android:id="@+id/arrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="34dp"
+                android:layout_height="36dp"
                 android:contentDescription="@string/trend_arrow"
                 android:src="@drawable/ic_flat" />
 
@@ -80,8 +90,8 @@
                 android:layout_gravity="center_horizontal"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="12sp"
-                tools:ignore="HardcodedText" />
+                android:textSize="16dp"
+                tools:ignore="HardcodedText"/>
 
         </LinearLayout>
 
@@ -108,7 +118,7 @@
                     android:text="Δ: "
                     android:textAlignment="textEnd"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:textSize="16dp"
                     tools:ignore="HardcodedText" />
 
                 <TextView
@@ -119,7 +129,7 @@
                     android:text="n/a"
                     android:textAlignment="textEnd"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:textSize="16dp"
                     tools:ignore="HardcodedText" />
 
             </LinearLayout>
@@ -135,10 +145,10 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
                     android:contentDescription="15 minutes delta"
-                    android:text="15m Δ: "
+                    android:text="Δ15: "
                     android:textAlignment="textEnd"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:textSize="16dp"
                     tools:ignore="HardcodedText" />
 
                 <TextView
@@ -149,7 +159,7 @@
                     android:text="n/a"
                     android:textAlignment="textEnd"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
+                    android:textSize="16dp"
                     tools:ignore="HardcodedText" />
 
             </LinearLayout>
@@ -165,11 +175,12 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
                     android:contentDescription="40 minutes delta"
-                    android:text="40m Δ: "
+                    android:text="Δ40: "
                     android:textAlignment="textEnd"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
-                    tools:ignore="HardcodedText" />
+                    android:textSize="16dp"
+                    tools:ignore="HardcodedText"
+                    android:visibility="visible"/>
 
                 <TextView
                     android:id="@+id/long_avg_delta"
@@ -179,8 +190,9 @@
                     android:text="n/a"
                     android:textAlignment="textEnd"
                     android:textColor="@color/white"
-                    android:textSize="12sp"
-                    tools:ignore="HardcodedText" />
+                    android:textSize="16dp"
+                    tools:ignore="HardcodedText"
+                    android:visibility="visible"/>
 
             </LinearLayout>
 
@@ -220,7 +232,7 @@
                 android:paddingBottom="3dp"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16dp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -253,7 +265,7 @@
                 android:paddingBottom="3dp"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16dp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -285,7 +297,7 @@
                 android:paddingBottom="3dp"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16dp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -316,7 +328,7 @@
                 android:paddingBottom="3dp"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16dp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
@@ -349,20 +361,21 @@
                 android:paddingBottom="3dp"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16dp"
                 android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                tools:ignore="HardcodedText"
+                android:visibility="gone"/>
 
             <TextView
                 android:id="@+id/variable_sensitivity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="-9dp"
+                android:layout_marginTop="3dp"
                 android:gravity="center_horizontal"
                 android:paddingBottom="3dp"
                 android:text="n/a"
                 android:textColor="@color/white"
-                android:textSize="18sp"
+                android:textSize="16dp"
                 android:textStyle="bold"
                 android:visibility="visible"
                 tools:ignore="HardcodedText" />
