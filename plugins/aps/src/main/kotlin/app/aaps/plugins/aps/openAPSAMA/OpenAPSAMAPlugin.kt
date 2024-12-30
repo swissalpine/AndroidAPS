@@ -53,8 +53,6 @@ import app.aaps.plugins.aps.OpenAPSFragment
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
-import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
-import app.aaps.plugins.aps.openAPSSMB.StepService
 import dagger.android.HasAndroidInjector
 import org.json.JSONObject
 import javax.inject.Inject
@@ -204,15 +202,15 @@ class OpenAPSAMAPlugin @Inject constructor(
             adv_target_adjustments = false, // not used
             exercise_mode = false, // not used
             half_basal_exercise_target = 0, // not used
-            activity_detection = preferences.get(BooleanKey.ApsActivityDetection), // not used
-            recent_steps_5_minutes = StepService.getRecentStepCount5Min(), // not used
-            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
-            recent_steps_15_minutes = StepService.getRecentStepCount15Min(), // not used
-            recent_steps_30_minutes = StepService.getRecentStepCount30Min(), // not used
-            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
-            phone_moved = PhoneMovementDetector.phoneMoved(), // not used
-            time_since_start = elapsedTimeSinceLastStart, // not used
-            now = dateUtil.now().hours, // not used
+            activity_detection = false, // not used
+            recent_steps_5_minutes = 0, // not used
+            recent_steps_10_minutes = 0, // not used
+            recent_steps_15_minutes = 0, // not used
+            recent_steps_30_minutes = 0, // not used
+            recent_steps_60_minutes = 0, // not used
+            phone_moved = false, // not used
+            time_since_start = 0, // not used
+            now = 0, // not used
             maxCOB = 0, // not used
             skip_neutral_temps = pump.setNeutralTempAtFullHour(), // not used
             remainingCarbsCap = 0, // not used
