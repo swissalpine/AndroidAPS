@@ -754,7 +754,7 @@ class LoopPlugin @Inject constructor(
 
     override fun buildAndStoreDeviceStatus(reason: String) {
         aapsLogger.debug(LTag.NSCLIENT, "Building DeviceStatus for $reason")
-        val version = config.VERSION_NAME + "-" + config.BUILD_VERSION + "-" + "sports-changes"
+        val version = config.VERSION_NAME + "-" + config.BUILD_VERSION
         val profile = profileFunction.getProfile() ?: return
         val profileName = profileFunction.getProfileName()
 
