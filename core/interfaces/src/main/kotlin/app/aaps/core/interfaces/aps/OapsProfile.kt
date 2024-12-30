@@ -26,6 +26,15 @@ data class OapsProfile(
     var adv_target_adjustments: Boolean,
     var exercise_mode: Boolean,
     var half_basal_exercise_target: Int,
+    val activity_detection: Boolean,
+    val recent_steps_5_minutes: Int,
+    val recent_steps_10_minutes: Int,
+    val recent_steps_15_minutes: Int,
+    val recent_steps_30_minutes: Int,
+    val recent_steps_60_minutes: Int,
+    val phone_moved: Boolean,
+    val time_since_start: Long,
+    val now: Int,
     var maxCOB: Int,
     var skip_neutral_temps: Boolean,
     var remainingCarbsCap: Int,
@@ -37,6 +46,7 @@ data class OapsProfile(
     var allowSMB_with_high_temptarget: Boolean,
     var enableSMB_always: Boolean,
     var enableSMB_after_carbs: Boolean,
+    //DynISF only
     var maxSMBBasalMinutes: Int,
     var maxUAMSMBBasalMinutes: Int,
     var bolus_increment: Double,
@@ -46,7 +56,6 @@ data class OapsProfile(
     var autosens_max: Double,
     var out_units: String,
     var lgsThreshold: Int?,
-    //DynISF only
     var variable_sens: Double,
     var insulinDivisor: Int,
     var TDD: Double

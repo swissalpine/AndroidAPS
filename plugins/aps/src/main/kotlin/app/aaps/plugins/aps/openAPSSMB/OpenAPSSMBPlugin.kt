@@ -2,6 +2,7 @@ package app.aaps.plugins.aps.openAPSSMB
 
 import android.content.Context
 import android.content.Intent
+import android.icu.util.Calendar
 import android.net.Uri
 import android.util.LongSparseArray
 import androidx.core.util.forEach
@@ -50,6 +51,7 @@ import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.IntentKey
+import app.aaps.core.keys.LongKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.UnitDoubleKey
 import app.aaps.core.objects.aps.DetermineBasalResult
@@ -411,6 +413,10 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val iobArray = iobCobCalculator.calculateIobArrayForSMB(autosensResult, SMBDefaults.exercise_mode, SMBDefaults.half_basal_exercise_target, isTempTarget)
         val mealData = iobCobCalculator.getMealDataWithWaitingForCalculationFinish()
 
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
+
         @Suppress("KotlinConstantConditions")
         val oapsProfile = OapsProfile(
             dia = 0.0, // not used
@@ -429,7 +435,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             lgsThreshold = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.ApsLgsThreshold)).toInt(),
             // mod Exercise mode
             // high_temptarget_raises_sensitivity = false,
-            high_temptarget_raises_sensitivity  = preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens),
+            high_temptarget_raises_sensitivity = preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens),
             // mod finish
             low_temptarget_lowers_sensitivity = false,
             sensitivity_raises_target = preferences.get(BooleanKey.ApsSensitivityRaisesTarget),
@@ -441,6 +447,17 @@ open class OpenAPSSMBPlugin @Inject constructor(
             exercise_mode = preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens),
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
             // mod finish
+            // mod activity mode
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(),
+            time_since_start = elapsedTimeSinceLastStart,
+            now = calendar.get(Calendar.HOUR_OF_DAY),
+            // end mod
             maxCOB = SMBDefaults.maxCOB,
             skip_neutral_temps = pump.setNeutralTempAtFullHour(),
             remainingCarbsCap = SMBDefaults.remainingCarbsCap,

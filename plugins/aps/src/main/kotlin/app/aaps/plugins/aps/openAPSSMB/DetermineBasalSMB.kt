@@ -217,6 +217,66 @@ class DetermineBasalSMB @Inject constructor(
         var min_bg = profile.min_bg
         var max_bg = profile.max_bg
 
+        // Activity detection (steps)
+        consoleError.add("----------------------------------");
+        consoleError.add("Activity detection: ");
+        consoleError.add("----------------------------------");
+
+        val activityDetection = profile.activity_detection
+        var stepActivityDetected = false
+        var stepInactivityDetected = false
+        var activityRatio = 1.0
+        val recentSteps5Minutes = profile.recent_steps_5_minutes
+        val recentSteps10Minutes = profile.recent_steps_10_minutes
+        val recentSteps15Minutes = profile.recent_steps_15_minutes
+        val recentSteps30Minutes = profile.recent_steps_30_minutes
+        val recentSteps60Minutes = profile.recent_steps_60_minutes
+        val phoneMoved = profile.phone_moved
+        val now = profile.now
+        val timeSinceStart = profile.time_since_start
+
+        if ( !activityDetection ) {
+            consoleError.add("Activity detection disabled in the settings. ");
+        } else if ( profile.temptargetSet) {
+            consoleError.add("Activity detection disabled: tempTarget. ");
+        } else if (!phoneMoved) {
+            consoleError.add("Activity detection disabled: Phone seems not to be carried for the last 15 m. ");
+        } else {
+            consoleError.add("0-5 m ago: "+recentSteps5Minutes+" steps; ");
+            consoleError.add("5-10 m ago: "+recentSteps10Minutes+" steps; ");
+            consoleError.add("10-15 m ago: "+recentSteps15Minutes+" steps; ");
+            consoleError.add("Last 30 m: "+recentSteps30Minutes+" steps; ");
+            consoleError.add("Last 60 m: "+recentSteps60Minutes+" steps; ");
+            if ( timeSinceStart < 3600 && recentSteps60Minutes < 60 && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Inactivity detection disabled: AAPS should have run for an hour (so far "+timeSinceStart+" m). ");
+            } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Inactivity detection disabled between 10pm and 8am. ");
+            } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Inactivity detection disabled: bg < target. ");
+            } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300
+                || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
+                stepActivityDetected = true;
+                activityRatio = 0.7;
+                consoleError.add("-> Activity detected (ratio: " + activityRatio + "). ");
+            } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
+                || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
+                stepActivityDetected = true;
+                activityRatio = 0.85;
+                consoleError.add("-> Low Activity detected (ratio: " + activityRatio + "). ");
+            } else if ( recentSteps60Minutes < 50 ) {
+                stepInactivityDetected = true;
+                activityRatio = 1.2;
+                consoleError.add("-> Inactivity detected (ratio: " + activityRatio + "). ");
+            } else if ( recentSteps60Minutes <= 200 ) {
+                stepInactivityDetected = true;
+                activityRatio = 1.1;
+                consoleError.add("-> Low inactivity detected (ratio: " + activityRatio + "). ");
+            } else {
+                consoleError.add("-> Normal activity level detected (ratio unchanged: " + activityRatio + "). ");
+            }
+        }
+        consoleError.add("----------------------------------");
+
         var sensitivityRatio: Double
         val high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity
         val normalTarget = 100 // evaluate high/low temptarget against 100, not scheduled target (which might change)
@@ -242,8 +302,11 @@ class DetermineBasalSMB @Inject constructor(
             sensitivityRatio = round(sensitivityRatio, 2)
             consoleLog.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
         } else {
-            sensitivityRatio = autosens_data.ratio
+            sensitivityRatio = autosens_data.ratio * activityRatio
             consoleLog.add("Autosens ratio: $sensitivityRatio; ")
+            if (stepActivityDetected || stepInactivityDetected) {
+                consoleLog.add("Autosens ratio adjusted for activity/inactivity: $autosens_data.ratio * $activityRatio")
+            }
         }
         basal = profile.current_basal * sensitivityRatio
         basal = round_basal(basal)

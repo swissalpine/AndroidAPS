@@ -53,6 +53,8 @@ import app.aaps.plugins.aps.OpenAPSFragment
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
+import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
+import app.aaps.plugins.aps.openAPSSMB.StepService
 import dagger.android.HasAndroidInjector
 import org.json.JSONObject
 import javax.inject.Inject
@@ -199,7 +201,6 @@ class OpenAPSAMAPlugin @Inject constructor(
             autosens_adjust_targets = preferences.get(BooleanKey.ApsAmaAutosensAdjustTargets),
             max_daily_safety_multiplier = preferences.get(DoubleKey.ApsMaxDailyMultiplier),
             current_basal_safety_multiplier = preferences.get(DoubleKey.ApsMaxCurrentBasalMultiplier),
-            lgsThreshold = 0, // not used
             high_temptarget_raises_sensitivity = false, // not used
             low_temptarget_lowers_sensitivity = false, // not used
             sensitivity_raises_target = false, // not used
@@ -207,27 +208,37 @@ class OpenAPSAMAPlugin @Inject constructor(
             adv_target_adjustments = false, // not used
             exercise_mode = false, // not used
             half_basal_exercise_target = 0, // not used
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection), // not used
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(), // not used
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(), // not used
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(), // not used
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(), // not used
+            time_since_start = elapsedTimeSinceLastStart, // not used
+            now = dateUtil.now().hours, // not used
             maxCOB = 0, // not used
-            skip_neutral_temps = pump.setNeutralTempAtFullHour(),
+            skip_neutral_temps = pump.setNeutralTempAtFullHour(), // not used
             remainingCarbsCap = 0, // not used
             enableUAM = false, // not used
-            A52_risk_enable = SMBDefaults.A52_risk_enable,
+            A52_risk_enable = SMBDefaults.A52_risk_enable, // not used
             SMBInterval = 0, // not used
             enableSMB_with_COB = false, // not used
-            enableSMB_with_temptarget = false, // not used
-            allowSMB_with_high_temptarget = false, // not used
+            enableSMB_with_temptarget = false,
+            allowSMB_with_high_temptarget = false,
             enableSMB_always = false, // not used
-            enableSMB_after_carbs = false, // not used
+            enableSMB_after_carbs = false,
             maxSMBBasalMinutes = 0, // not used
             maxUAMSMBBasalMinutes = 0, // not used
-            bolus_increment = pump.pumpDescription.bolusStep, // not used
-            carbsReqThreshold = 0, // not used
+            bolus_increment = pump.pumpDescription.bolusStep,
+            carbsReqThreshold = 0,
             current_basal = activePlugin.activePump.baseBasalRate,
             temptargetSet = isTempTarget,
-            autosens_max = preferences.get(DoubleKey.AutosensMax), // not used
+            autosens_max = preferences.get(DoubleKey.AutosensMax),
             out_units = if (profileFunction.getUnits() == GlucoseUnit.MMOL) "mmol/L" else "mg/dl",
-            variable_sens = 0.0, // not used
-            insulinDivisor = 0, // not used
+            lgsThreshold = 0,
+            variable_sens = 0.0,
+            insulinDivisor = 0,
             TDD = 0.0 // not used
         )
 
