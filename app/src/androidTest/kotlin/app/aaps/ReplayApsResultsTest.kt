@@ -17,6 +17,7 @@ import app.aaps.core.interfaces.maintenance.FileListProvider
 import app.aaps.core.interfaces.sharedPreferences.SP
 import app.aaps.core.interfaces.storage.Storage
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.Preferences
@@ -30,6 +31,8 @@ import app.aaps.plugins.aps.openAPSAutoISF.DetermineBasalAutoISF
 import app.aaps.plugins.aps.openAPSSMB.DetermineBasalAdapterSMBJS
 import app.aaps.plugins.aps.openAPSSMB.DetermineBasalSMB
 import app.aaps.plugins.aps.openAPSSMB.OpenAPSSMBPlugin
+import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
+import app.aaps.plugins.aps.openAPSSMB.StepService
 import app.aaps.plugins.aps.openAPSSMBAutoISF.DetermineBasalAdapterAutoISFJS
 import app.aaps.plugins.aps.openAPSSMBDynamicISF.DetermineBasalAdapterSMBDynamicISFJS
 import app.aaps.plugins.aps.utils.ScriptReader
@@ -194,7 +197,6 @@ class ReplayApsResultsTest @Inject constructor() {
             autosens_adjust_targets = false,
             max_daily_safety_multiplier = determineBasalResult.profile.getDouble("max_daily_safety_multiplier"),
             current_basal_safety_multiplier = determineBasalResult.profile.getDouble("current_basal_safety_multiplier"),
-            lgsThreshold = null,
             high_temptarget_raises_sensitivity = determineBasalResult.profile.getBoolean("high_temptarget_raises_sensitivity"),
             low_temptarget_lowers_sensitivity = determineBasalResult.profile.getBoolean("low_temptarget_lowers_sensitivity"),
             sensitivity_raises_target = determineBasalResult.profile.getBoolean("sensitivity_raises_target"),
@@ -202,6 +204,15 @@ class ReplayApsResultsTest @Inject constructor() {
             adv_target_adjustments = determineBasalResult.profile.getBoolean("adv_target_adjustments"),
             exercise_mode = determineBasalResult.profile.getBoolean("exercise_mode"),
             half_basal_exercise_target = determineBasalResult.profile.getInt("half_basal_exercise_target"),
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(),
+            time_since_start = elapsedTimeSinceLastStart,
+            now = dateUtil.now().hours,
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),
@@ -221,6 +232,7 @@ class ReplayApsResultsTest @Inject constructor() {
             temptargetSet = determineBasalResult.profile.getBoolean("temptargetSet"),
             autosens_max = determineBasalResult.profile.getDouble("autosens_max"),
             out_units = determineBasalResult.profile.optString("out_units"),
+            lgsThreshold = null,
             variable_sens = 0.0,
             insulinDivisor = 0,
             TDD = 0.0
@@ -358,7 +370,6 @@ class ReplayApsResultsTest @Inject constructor() {
             autosens_adjust_targets = false,
             max_daily_safety_multiplier = determineBasalResult.profile.getDouble("max_daily_safety_multiplier"),
             current_basal_safety_multiplier = determineBasalResult.profile.getDouble("current_basal_safety_multiplier"),
-            lgsThreshold = determineBasalResult.profile.getInt("lgsThreshold"),
             high_temptarget_raises_sensitivity = determineBasalResult.profile.getBoolean("high_temptarget_raises_sensitivity"),
             low_temptarget_lowers_sensitivity = determineBasalResult.profile.getBoolean("low_temptarget_lowers_sensitivity"),
             sensitivity_raises_target = determineBasalResult.profile.getBoolean("sensitivity_raises_target"),
@@ -366,6 +377,15 @@ class ReplayApsResultsTest @Inject constructor() {
             adv_target_adjustments = determineBasalResult.profile.getBoolean("adv_target_adjustments"),
             exercise_mode = determineBasalResult.profile.getBoolean("exercise_mode"),
             half_basal_exercise_target = determineBasalResult.profile.getInt("half_basal_exercise_target"),
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(),
+            time_since_start = elapsedTimeSinceLastStart,
+            now = dateUtil.now().hours,
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),
@@ -385,6 +405,7 @@ class ReplayApsResultsTest @Inject constructor() {
             temptargetSet = determineBasalResult.profile.getBoolean("temptargetSet"),
             autosens_max = determineBasalResult.profile.getDouble("autosens_max"),
             out_units = determineBasalResult.profile.optString("out_units"),
+            lgsThreshold = determineBasalResult.profile.getInt("lgsThreshold"),
             variable_sens = determineBasalResult.profile.getDouble("variable_sens"),
             insulinDivisor = determineBasalResult.profile.getInt("insulinDivisor"),
             TDD = determineBasalResult.profile.getDouble("TDD")
@@ -516,7 +537,6 @@ class ReplayApsResultsTest @Inject constructor() {
             autosens_adjust_targets = determineBasalResult.profile.getBoolean("autosens_adjust_targets"),
             max_daily_safety_multiplier = determineBasalResult.profile.getDouble("max_daily_safety_multiplier"),
             current_basal_safety_multiplier = determineBasalResult.profile.getDouble("current_basal_safety_multiplier"),
-            lgsThreshold = 0,
             high_temptarget_raises_sensitivity = false,
             low_temptarget_lowers_sensitivity = false,
             sensitivity_raises_target = false,
@@ -524,6 +544,15 @@ class ReplayApsResultsTest @Inject constructor() {
             adv_target_adjustments = false,
             exercise_mode = false,
             half_basal_exercise_target = 0,
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(),
+            time_since_start = elapsedTimeSinceLastStart,
+            now = dateUtil.now().hours,
             maxCOB = 0,
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = 0,
@@ -543,6 +572,7 @@ class ReplayApsResultsTest @Inject constructor() {
             temptargetSet = determineBasalResult.profile.getBoolean("temptargetSet"),
             autosens_max = 0.0,
             out_units = determineBasalResult.profile.optString("out_units"),
+            lgsThreshold = 0,
             variable_sens = 0.0,
             insulinDivisor = 0,
             TDD = 0.0
