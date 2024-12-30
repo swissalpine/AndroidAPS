@@ -186,6 +186,10 @@
     <string name="not_available_full">Not available</string>
     <string name="pump_disconnected">Pump disconnected</string>
 
+    <!-- activity mode -->
+    <string name="activity_mode_title">"Activity modifies sensitivity"</string>
+    <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA TempTarget disables this."</string>
+
     <!--    autoISF -->
     <string name="half_basal_exercise_target_title">Half basal exercise target</string>
     <string name="half_basal_exercise_target_summary">Set to a number, e.g. 160, which means when temp target is 160 mg/dL and High temptarget raises sensitivity=true, run 50%% basal at this level (120 = 75%%; 140 = 60%%).</string>
