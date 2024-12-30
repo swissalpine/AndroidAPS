@@ -186,7 +186,9 @@
     <string name="not_available_full">Not available</string>
     <string name="pump_disconnected">Pump disconnected</string>
 
-    <!-- activity mode -->
+    <!-- mod -->
+    <string name="ketoacidosis_protection_title">Ketoacidosis Protection</string>
+    <string name="ketoacidosis_protection_summary">Enables a small safety TBR of 20% instead of zero temp to reduce the ketoacidosis risk.</string>
     <string name="activity_mode_title">"Activity modifies sensitivity"</string>
     <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA TempTarget disables this."</string>
 

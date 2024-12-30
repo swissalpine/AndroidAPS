@@ -235,7 +235,8 @@ class ReplayApsResultsTest @Inject constructor() {
             lgsThreshold = null,
             variable_sens = 0.0,
             insulinDivisor = 0,
-            TDD = 0.0
+            TDD = 0.0,
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -408,7 +409,8 @@ class ReplayApsResultsTest @Inject constructor() {
             lgsThreshold = determineBasalResult.profile.getInt("lgsThreshold"),
             variable_sens = determineBasalResult.profile.getDouble("variable_sens"),
             insulinDivisor = determineBasalResult.profile.getInt("insulinDivisor"),
-            TDD = determineBasalResult.profile.getDouble("TDD")
+            TDD = determineBasalResult.profile.getDouble("TDD"),
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -575,7 +577,8 @@ class ReplayApsResultsTest @Inject constructor() {
             lgsThreshold = 0,
             variable_sens = 0.0,
             insulinDivisor = 0,
-            TDD = 0.0
+            TDD = 0.0,
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val mealData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -712,7 +715,6 @@ class ReplayApsResultsTest @Inject constructor() {
             autosens_adjust_targets = false,
             max_daily_safety_multiplier = determineBasalResult.profile.getDouble("max_daily_safety_multiplier"),
             current_basal_safety_multiplier = determineBasalResult.profile.getDouble("current_basal_safety_multiplier"),
-            lgsThreshold = null,
             high_temptarget_raises_sensitivity = determineBasalResult.profile.getBoolean("high_temptarget_raises_sensitivity"),
             low_temptarget_lowers_sensitivity = determineBasalResult.profile.getBoolean("low_temptarget_lowers_sensitivity"),
             sensitivity_raises_target = determineBasalResult.profile.getBoolean("sensitivity_raises_target"),
@@ -739,6 +741,7 @@ class ReplayApsResultsTest @Inject constructor() {
             temptargetSet = determineBasalResult.profile.getBoolean("temptargetSet"),
             autosens_max = determineBasalResult.profile.getDouble("autosens_max"),
             out_units = determineBasalResult.profile.optString("out_units"),
+            lgsThreshold = null,
             variable_sens = varSens, // TODO only available in result.variableSens? , not in determineBasalResult.profile.getDouble("variable_sens"),
             autoISF_version = determineBasalResult.profile.optString("autoISF_version"),
             enable_autoISF = determineBasalResult.profile.getBoolean("enable_autoISF"),
@@ -757,7 +760,8 @@ class ReplayApsResultsTest @Inject constructor() {
             smb_max_range_extension = determineBasalResult.profile.getDouble("smb_max_range_extension"),
             enableSMB_EvenOn_OddOff_always = determineBasalResult.profile.getBoolean("enableSMB_EvenOn_OddOff_always"),
             iob_threshold_percent = determineBasalResult.profile.getInt("iob_threshold_percent"),
-            profile_percentage = determineBasalResult.profile.getInt("profile_percentage")
+            profile_percentage = determineBasalResult.profile.getInt("profile_percentage"),
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),

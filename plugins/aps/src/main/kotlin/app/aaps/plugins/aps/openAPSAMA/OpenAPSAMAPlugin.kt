@@ -233,7 +233,8 @@ class OpenAPSAMAPlugin @Inject constructor(
             lgsThreshold = 0,
             variable_sens = 0.0,
             insulinDivisor = 0,
-            TDD = 0.0 // not used
+            TDD = 0.0,
+            ketoacidosis_protection = false // not used
         )
 
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal AMA <<<")

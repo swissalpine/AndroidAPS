@@ -116,7 +116,7 @@ class DetermineBasalAutoISF @Inject constructor(
         else if (rate > maxSafeBasal) rate = maxSafeBasal
 
         // mod Ketoacidosis protection
-        if (rate < 0.1) {
+        if (profile.ketoacidosis_protection && rate < 0.1) {
             reason(rT, "Ketoacidosis protection: setting basal to 0.2 U/hr")
             rate = 0.2
         }

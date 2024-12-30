@@ -160,10 +160,9 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             autosens_adjust_targets = false, // not used
             max_daily_safety_multiplier = preferences.get(DoubleKey.ApsMaxDailyMultiplier),
             current_basal_safety_multiplier = preferences.get(DoubleKey.ApsMaxCurrentBasalMultiplier),
-            lgsThreshold = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.ApsLgsThreshold)).toInt(),
             high_temptarget_raises_sensitivity = false,
-            low_temptarget_lowers_sensitivity = preferences.get(BooleanKey.ApsAutoIsfLowTtLowersSens), // was false,
-            sensitivity_raises_target = preferences.get(BooleanKey.ApsSensitivityRaisesTarget),
+            low_temptarget_lowers_sensitivity = preferences.get(BooleanKey.ApsAutoIsfLowTtLowersSens),
+            sensitivity_raises_target = preferences.get(BooleanKey.ApsSensitivityRaisesTarget), // was false,
             resistance_lowers_target = preferences.get(BooleanKey.ApsResistanceLowersTarget),
             adv_target_adjustments = SMBDefaults.adv_target_adjustments,
             exercise_mode = SMBDefaults.exercise_mode,
@@ -187,6 +186,7 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             temptargetSet = true,
             autosens_max = preferences.get(DoubleKey.AutosensMax),
             out_units = "mg/dl",
+            lgsThreshold = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.ApsLgsThreshold)).toInt(),
             variable_sens = 111.1,
             autoISF_version = "3.0",
             enable_autoISF = true,
@@ -205,7 +205,8 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             smb_max_range_extension = 1.0,
             enableSMB_EvenOn_OddOff_always = true,
             iob_threshold_percent = 100,
-            profile_percentage = 100
+            profile_percentage = 100,
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         assertThat(openAPSAutoISFPlugin.loop_smb(false, profile, 11.0, false, 11.1)).isEqualTo("AAPS")
         `when`(preferences.get(BooleanKey.ApsAutoIsfSmbOnEvenTarget)).thenReturn(true)
@@ -247,10 +248,9 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             autosens_adjust_targets = false, // not used
             max_daily_safety_multiplier = preferences.get(DoubleKey.ApsMaxDailyMultiplier),
             current_basal_safety_multiplier = preferences.get(DoubleKey.ApsMaxCurrentBasalMultiplier),
-            lgsThreshold = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.ApsLgsThreshold)).toInt(),
             high_temptarget_raises_sensitivity = false,
-            low_temptarget_lowers_sensitivity = preferences.get(BooleanKey.ApsAutoIsfLowTtLowersSens), // was false,
-            sensitivity_raises_target = preferences.get(BooleanKey.ApsSensitivityRaisesTarget),
+            low_temptarget_lowers_sensitivity = preferences.get(BooleanKey.ApsAutoIsfLowTtLowersSens),
+            sensitivity_raises_target = preferences.get(BooleanKey.ApsSensitivityRaisesTarget), // was false,
             resistance_lowers_target = preferences.get(BooleanKey.ApsResistanceLowersTarget),
             adv_target_adjustments = SMBDefaults.adv_target_adjustments,
             exercise_mode = SMBDefaults.exercise_mode,
@@ -274,6 +274,7 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             temptargetSet = true,
             autosens_max = preferences.get(DoubleKey.AutosensMax),
             out_units = "mg/dl",
+            lgsThreshold = profileUtil.convertToMgdlDetect(preferences.get(UnitDoubleKey.ApsLgsThreshold)).toInt(),
             variable_sens = 47.11,
             autoISF_version = "3.0",
             enable_autoISF = false,
@@ -292,7 +293,8 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             smb_max_range_extension = 1.0,
             enableSMB_EvenOn_OddOff_always = true,
             iob_threshold_percent = 100,
-            profile_percentage = 100
+            profile_percentage = 100,
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         assertThat(openAPSAutoISFPlugin.autoISF(now, profile)).isEqualTo(47.11)                             // inactive
         `when`(oapsProfile.enable_autoISF).thenReturn(true)
