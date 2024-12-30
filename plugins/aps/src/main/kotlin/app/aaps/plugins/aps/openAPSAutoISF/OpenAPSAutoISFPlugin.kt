@@ -933,6 +933,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         if (requiredKey != null &&
             requiredKey != "absorption_smb_advanced" &&
             requiredKey != "auto_isf_settings" &&
+            requiredKey != "ketoacidosis_protection" &&
             requiredKey != "smb_delivery_settings"
         ) return
         val category = PreferenceCategory(context)

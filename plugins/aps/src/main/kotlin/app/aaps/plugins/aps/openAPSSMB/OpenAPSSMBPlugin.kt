@@ -589,7 +589,11 @@ open class OpenAPSSMBPlugin @Inject constructor(
     }
 
     override fun addPreferenceScreen(preferenceManager: PreferenceManager, parent: PreferenceScreen, context: Context, requiredKey: String?) {
-        if (requiredKey != null && requiredKey != "absorption_smb_advanced") return
+        if (requiredKey != null &&
+            requiredKey != "absorption_smb_advanced" &&
+            requiredKey != "activity_modifies_sensitivity" &&
+            requiredKey != "ketoacidosis_protection"
+            ) return
         val category = PreferenceCategory(context)
         parent.addPreference(category)
         category.apply {
@@ -609,7 +613,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfLowTtLowersSens, summary = R.string.low_temptarget_lowers_sensitivity_summary, title = R.string.low_temptarget_lowers_sensitivity_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsAutoIsfHalfBasalExerciseTarget, dialogMessage = R.string.half_basal_exercise_target_summary, title = R.string.half_basal_exercise_target_title))
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                key = "activity_modifies _sensitivity"
+                key = "activity_modifies_sensitivity"
                 title = rh.gs(R.string.activity_mode_title)
                 addPreference(
                     AdaptiveSwitchPreference(
@@ -633,13 +637,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "ketoacidosis_protection"
                 title = rh.gs(R.string.ketoacidosis_protection_title)
-                addPreference(
-                    AdaptiveSwitchPreference(
-                        ctx = context,
-                        booleanKey = BooleanKey.ApsKetoacidosisProtection,
-                        summary = R.string.ketoacidosis_protection_summary,
-                        title = R.string.ketoacidosis_protection_title)
-                )
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
             })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "absorption_smb_advanced"
