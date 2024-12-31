@@ -187,6 +187,7 @@ class WizardDialog : DaggerDialogFragment() {
             binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement1))
             validateInputs()
             binding.carbsInput.announceValue()
+            calculateInsulin()
         }
 
         val plus2text = toSignedString(preferences.get(IntKey.OverviewCarbsButtonIncrement2))
@@ -196,6 +197,7 @@ class WizardDialog : DaggerDialogFragment() {
             binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement2))
             validateInputs()
             binding.carbsInput.announceValue()
+            calculateInsulin()
         }
         val plus3text = toSignedString(preferences.get(IntKey.OverviewCarbsButtonIncrement3))
         binding.plus3.text = plus3text
@@ -204,6 +206,7 @@ class WizardDialog : DaggerDialogFragment() {
             binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement3))
             validateInputs()
             binding.carbsInput.announceValue()
+            calculateInsulin()
         }
         // end mod carbs button 1
 
