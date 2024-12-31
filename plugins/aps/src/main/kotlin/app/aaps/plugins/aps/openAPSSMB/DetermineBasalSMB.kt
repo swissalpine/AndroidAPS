@@ -247,32 +247,31 @@ class DetermineBasalSMB @Inject constructor(
             consoleError.add("10-15 m ago: "+recentSteps15Minutes+" steps; ");
             consoleError.add("Last 30 m: "+recentSteps30Minutes+" steps; ");
             consoleError.add("Last 60 m: "+recentSteps60Minutes+" steps; ");
-            if ( timeSinceStart < 3600 && recentSteps60Minutes < 60 && recentSteps60Minutes <= 200 ) {
-                consoleError.add("Inactivity detection disabled: AAPS should have run for an hour (so far "+timeSinceStart+" m). ");
+            if ( timeSinceStart < 60 && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Activity monitor initialising for ${(60-timeSinceStart)} more minutes: inactivity detection disabled")
             } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
-                consoleError.add("Inactivity detection disabled between 10pm and 8am. ");
-            } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
-                consoleError.add("Inactivity detection disabled: bg < target. ");
-            } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300
-                || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
+                consoleError.add("Activity monitor disabled inactivity detection: sleeping hours")
+            } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
                 stepActivityDetected = true;
                 activityRatio = 0.7;
-                consoleError.add("-> Activity detected (ratio: " + activityRatio + "). ");
+                consoleError.add("-> Activity monitor detected activity, sensitivity ratio: " + activityRatio);
             } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
                 || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
                 stepActivityDetected = true;
                 activityRatio = 0.85;
-                consoleError.add("-> Low Activity detected (ratio: " + activityRatio + "). ");
+                consoleError.add("-> Activity monitor detected partial activity, sensitivity ratio: " + activityRatio);
+            } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Activity monitor disabled inactivity detection: : bg < target");
             } else if ( recentSteps60Minutes < 50 ) {
                 stepInactivityDetected = true;
                 activityRatio = 1.2;
-                consoleError.add("-> Inactivity detected (ratio: " + activityRatio + "). ");
+                consoleError.add("-> Activity monitor detected inactivity, sensitivity ratio: " + activityRatio);
             } else if ( recentSteps60Minutes <= 200 ) {
                 stepInactivityDetected = true;
                 activityRatio = 1.1;
-                consoleError.add("-> Low inactivity detected (ratio: " + activityRatio + "). ");
+                consoleError.add("-> Activity monitor detected partial inactivity, sensitivity ratio: " + activityRatio);
             } else {
-                consoleError.add("-> Normal activity level detected (ratio unchanged: " + activityRatio + "). ");
+                consoleError.add("-> Activity monitor detected neutral state, sensitivity ratio unchanged: " + activityRatio);
             }
         }
         consoleError.add("----------------------------------");
@@ -915,6 +914,14 @@ class DetermineBasalSMB @Inject constructor(
             rT.reason.append("maxDelta " + convert_bg(maxDelta) + " > 20% of BG " + convert_bg(bg) + ": SMB disabled; ")
             enableSMB = false
         }
+
+        // mod no smb if bg < 100
+        if (enableSMB && bg < 100) {
+            consoleError.add("BG < 100 - disabling SMB")
+            rT.reason.append("BG < 100 - disabling SMB")
+            enableSMB = false
+        }
+        // end mod
 
         consoleError.add("BG projected to remain above ${convert_bg(min_bg)} for $minutesAboveMinBG minutes")
         if (minutesAboveThreshold < 240 || minutesAboveMinBG < 60) {

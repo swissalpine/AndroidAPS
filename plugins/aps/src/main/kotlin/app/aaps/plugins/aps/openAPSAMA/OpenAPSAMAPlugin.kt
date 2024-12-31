@@ -2,6 +2,7 @@ package app.aaps.plugins.aps.openAPSAMA
 
 import android.content.Context
 import android.content.Intent
+import android.icu.util.Calendar
 import android.net.Uri
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceManager
@@ -38,6 +39,7 @@ import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntentKey
+import app.aaps.core.keys.LongKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.objects.aps.DetermineBasalResult
 import app.aaps.core.objects.constraints.ConstraintObject
@@ -186,6 +188,9 @@ class OpenAPSAMAPlugin @Inject constructor(
 
         val iobArray = iobCobCalculator.calculateIobArrayInDia(profile)
         val mealData = iobCobCalculator.getMealDataWithWaitingForCalculationFinish()
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
 
         val oapsProfile = OapsProfile(
             dia = min(profile.dia, 3.0),
@@ -216,7 +221,7 @@ class OpenAPSAMAPlugin @Inject constructor(
             recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
             phone_moved = PhoneMovementDetector.phoneMoved(), // not used
             time_since_start = elapsedTimeSinceLastStart, // not used
-            now = dateUtil.now().hours, // not used
+            now = calendar.get(Calendar.HOUR_OF_DAY),// not used
             maxCOB = 0, // not used
             skip_neutral_temps = pump.setNeutralTempAtFullHour(), // not used
             remainingCarbsCap = 0, // not used

@@ -1,6 +1,7 @@
 package app.aaps.plugins.aps.openAPSAutoISF
 
 import android.content.SharedPreferences
+import android.icu.util.Calendar
 import app.aaps.core.data.aps.SMBDefaults
 import app.aaps.core.interfaces.aps.OapsProfileAutoIsf
 import app.aaps.core.interfaces.bgQualityCheck.BgQualityCheck
@@ -105,15 +106,19 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
         var exerciseMode = false
         val targetBg = 120.0
         val normalTarget = 100
-        assertThat(openAPSAutoISFPlugin.withinISFlimits(1.7, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget)).isEqualTo(1.2) // upper limit
-        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget)).isEqualTo(0.7) // lower limit
+        val stepActivityDetected = false
+        val stepInactivityDetected = false
+        `when`(preferences.get(BooleanKey.ApsActivityDetection)).thenReturn(false)
+
+        assertThat(openAPSAutoISFPlugin.withinISFlimits(1.7, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(1.2) // upper limit
+        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(0.7) // lower limit
         sens = 1.5  // from Autosens
-        assertThat(openAPSAutoISFPlugin.withinISFlimits(1.7, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget)).isEqualTo(1.5) // autosens 1.5 wins
+        assertThat(openAPSAutoISFPlugin.withinISFlimits(1.7, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(1.5) // autosens 1.5 wins
         sens = 0.5  // from Autosens
-        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget)).isEqualTo(0.5) // autosens 0.5 wins
+        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(0.5) // autosens 0.5 wins
         exerciseMode = true
         ttSet = true
-        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget)).isEqualTo(0.35) // exercise mode
+        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(0.35) // exercise mode
     }
 
     @Test
@@ -168,6 +173,15 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             adv_target_adjustments = SMBDefaults.adv_target_adjustments,
             exercise_mode = SMBDefaults.exercise_mode,
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes  = 5,
+            recent_steps_10_minutes = 10,
+            recent_steps_15_minutes = 15,
+            recent_steps_30_minutes = 30,
+            recent_steps_60_minutes = 60,
+            phone_moved = false,
+            time_since_start = 120,
+            now = 15,
             maxCOB = SMBDefaults.maxCOB,
             skip_neutral_temps = false,
             remainingCarbsCap = SMBDefaults.remainingCarbsCap,
@@ -255,6 +269,15 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             adv_target_adjustments = SMBDefaults.adv_target_adjustments,
             exercise_mode = SMBDefaults.exercise_mode,
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes  = 5,
+            recent_steps_10_minutes = 10,
+            recent_steps_15_minutes = 15,
+            recent_steps_30_minutes = 30,
+            recent_steps_60_minutes = 60,
+            phone_moved = false,
+            time_since_start = 120,
+            now = 15,
             maxCOB = SMBDefaults.maxCOB,
             skip_neutral_temps = false,
             remainingCarbsCap = SMBDefaults.remainingCarbsCap,

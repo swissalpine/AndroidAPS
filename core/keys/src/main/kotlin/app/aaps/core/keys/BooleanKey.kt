@@ -61,6 +61,11 @@ enum class BooleanKey(
     ApsUseAutoIsfWeights("openapsama_enable_autoISF", false, defaultedBySM = true),
     ApsAutoIsfSmbOnEvenTarget("Enable alternative activation of SMB always", false, defaultedBySM = true),   // profile target
 
+    ActivityMonitorDetection("activity_detection", false, defaultedBySM=true),
+    ActivityMonitorOvernight("ignore_inactivity_overnight", true, defaultedBySM=true, dependency = ActivityMonitorDetection),
+    ActivityMonitorStepsActive("steps_activity_detected", false, defaultedBySM=true),
+    ActivityMonitorStepsInactive("steps_inactivity_detected", false, defaultedBySM=true),
+
     MaintenanceEnableFabric("enable_fabric2", true, defaultedBySM = true, hideParentScreenIfHidden = true),
 
     MaintenanceEnableExportSettingsAutomation("enable_unattended_export", false, defaultedBySM = false),

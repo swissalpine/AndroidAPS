@@ -1,5 +1,6 @@
 package app.aaps
 
+import android.icu.util.Calendar
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -20,6 +21,7 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntKey
+import app.aaps.core.keys.LongKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.StringKey
 import app.aaps.core.utils.JsonHelper
@@ -183,6 +185,9 @@ class ReplayApsResultsTest @Inject constructor() {
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
         val currentTime = determineBasalResult.currentTime
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfile(
             dia = 0.0,
             min_5m_carbimpact = 0.0,
@@ -212,7 +217,7 @@ class ReplayApsResultsTest @Inject constructor() {
             recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
             phone_moved = PhoneMovementDetector.phoneMoved(),
             time_since_start = elapsedTimeSinceLastStart,
-            now = dateUtil.now().hours,
+            now = calendar.get(Calendar.HOUR_OF_DAY),
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),
@@ -356,6 +361,9 @@ class ReplayApsResultsTest @Inject constructor() {
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
         val currentTime = determineBasalResult.currentTime
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfile(
             dia = 0.0,
             min_5m_carbimpact = 0.0,
@@ -385,7 +393,7 @@ class ReplayApsResultsTest @Inject constructor() {
             recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
             phone_moved = PhoneMovementDetector.phoneMoved(),
             time_since_start = elapsedTimeSinceLastStart,
-            now = dateUtil.now().hours,
+            now = calendar.get(Calendar.HOUR_OF_DAY),
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),
@@ -523,6 +531,9 @@ class ReplayApsResultsTest @Inject constructor() {
         val iobData = arrayListOf<IobTotal>()
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfile(
             dia = determineBasalResult.profile.getDouble("dia"),
             min_5m_carbimpact = determineBasalResult.profile.getDouble("min_5m_carbimpact"),
@@ -552,7 +563,7 @@ class ReplayApsResultsTest @Inject constructor() {
             recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
             phone_moved = PhoneMovementDetector.phoneMoved(),
             time_since_start = elapsedTimeSinceLastStart,
-            now = dateUtil.now().hours,
+            now = calendar.get(Calendar.HOUR_OF_DAY),// not used
             maxCOB = 0,
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = 0,
@@ -698,6 +709,9 @@ class ReplayApsResultsTest @Inject constructor() {
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
         val currentTime = determineBasalResult.currentTime
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfileAutoIsf(
             dia = 0.0,
             min_5m_carbimpact = 0.0,
@@ -720,6 +734,17 @@ class ReplayApsResultsTest @Inject constructor() {
             adv_target_adjustments = determineBasalResult.profile.getBoolean("adv_target_adjustments"),
             exercise_mode = determineBasalResult.profile.getBoolean("exercise_mode"),
             half_basal_exercise_target = determineBasalResult.profile.getInt("half_basal_exercise_target"),
+
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(),
+            time_since_start = elapsedTimeSinceLastStart,
+            now = calendar.get(Calendar.HOUR_OF_DAY),
+
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),

@@ -229,4 +229,21 @@
     <string name="openapsama_iob_threshold_percent_summary" formatted="false">Percentage of maxIOB above which SMBs are disabled.\nDefault value: 100%\nWith 100% this feature is effectively disabled.</string>
     <string name="openapsama_iob_threshold_percent">maxIOB threshold percent for SMB\n(iob_threshold_percent)</string>
 
+    <!--    Activity Monitor -->
+    <string name="activity_monitor_title">Activity modifies sensitivity</string>
+    <string name="activity_monitor_summary">Activity is detected in form of steps as measured by the phone. It does not replace an explicit sport adjustment but is a lower level complement.</string>
+    <!-- <string name="activity_detection_summary" formatted="false">If activity is detected in form of steps, sensitivity and basal are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.\nDuring TempTarget (in)activity will not be monitored.</string> -->
+    <string name="key_app_start" translatable="false">app_start</string>
+    <string name="activity_scale_factor_title">Scale factor for final activity sensitivity</string>
+    <string name="activity_scale_factor_summary" formatted="false">If activity is detected then its default contribution of 15% or 30% is scaled up or down by this ratio\nA value of 0.0 disables activity contribution to sensitivity</string>
+    <string name="inactivity_scale_factor_title">Scale factor for final inactivity sensitivity</string>
+    <string name="inactivity_scale_factor_summary" formatted="false">If inactivity is detected then its default contribution of 10% or 20% is scaled up or down by this ratio\nA value of 0.0 disables inactivity contribution to sensitivity</string>
+    <string name="ignore_inactivity_overnight_title">Disable inactivity detection during sleep</string>
+    <string name="ignore_inactivity_overnight_summary">Stop inactivity adaptation during sleeping hours\nDefault is true, i.e. adaptation is off\n\nIf false, leave phone beside bed during short breaks to keep monitoring disabled</string>
+    <string name="inactivity_idle_start_title">Start hour for disabling inactivity monitoring</string>
+    <string name="inactivity_idle_start_summary">Start hour when inactivity monitoring is disabled for sleep\nDefault in 24h notation is 22</string>
+    <string name="inactivity_idle_end_title">End hour for disabling inactivity monitoring</string>
+    <string name="inactivity_idle_end_summary">End hour of sleep when inactivity monitoring is re-enabled again\nDefault in 24h notation is 6</string>
+
+
 </resources>
