@@ -61,6 +61,7 @@ import io.reactivex.rxjava3.kotlin.plusAssign
 import java.text.DecimalFormat
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.math.max
 
 class WizardDialog : DaggerDialogFragment() {
 
@@ -178,6 +179,34 @@ class WizardDialog : DaggerDialogFragment() {
                 ?: 0.0, 0.0, maxCarbs.toDouble(), 1.0, DecimalFormat("0"), false, binding.okcancel.ok, textWatcher
         )
 
+        // mod carbs button 1
+        val plus1text = toSignedString(preferences.get(IntKey.OverviewCarbsButtonIncrement1))
+        binding.plus1.text = plus1text
+        binding.plus1.contentDescription = rh.gs(app.aaps.core.ui.R.string.carbs) + " " + plus1text
+        binding.plus1.setOnClickListener {
+            binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement1))
+            validateInputs()
+            binding.carbsInput.announceValue()
+        }
+
+        val plus2text = toSignedString(preferences.get(IntKey.OverviewCarbsButtonIncrement2))
+        binding.plus2.text = plus2text
+        binding.plus2.contentDescription = rh.gs(app.aaps.core.ui.R.string.carbs) + " " + plus2text
+        binding.plus2.setOnClickListener {
+            binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement2))
+            validateInputs()
+            binding.carbsInput.announceValue()
+        }
+        val plus3text = toSignedString(preferences.get(IntKey.OverviewCarbsButtonIncrement3))
+        binding.plus3.text = plus3text
+        binding.plus2.contentDescription = rh.gs(app.aaps.core.ui.R.string.carbs) + " " + plus3text
+        binding.plus3.setOnClickListener {
+            binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement3))
+            validateInputs()
+            binding.carbsInput.announceValue()
+        }
+        // end mod carbs button 1
+
         // If there is no BG using % lower that 100% leads to high BGs
         // because loop doesn't add missing insulin
         var percentage = preferences.get(IntKey.OverviewBolusPercentage)
@@ -293,6 +322,20 @@ class WizardDialog : DaggerDialogFragment() {
             .subscribe({ calculateInsulin() }, fabricPrivacy::logException)
         setA11yLabels()
     }
+
+    // mod carbs button 2
+    private fun toSignedString(value: Int): String {
+        return if (value > 0) "+$value" else value.toString()
+    }
+
+    private fun validateInputs() {
+        val maxCarbs = constraintChecker.getMaxCarbsAllowed().value().toDouble()
+        if (binding.carbsInput.value.toInt() > maxCarbs) {
+            binding.carbsInput.value = 0.0
+            ToastUtils.warnToast(ctx, R.string.carbs_constraint_applied)
+        }
+    }
+    // end mod carbs button 2
 
     private fun setA11yLabels() {
         binding.bgInputLabel.labelFor = binding.bgInput.editTextId
