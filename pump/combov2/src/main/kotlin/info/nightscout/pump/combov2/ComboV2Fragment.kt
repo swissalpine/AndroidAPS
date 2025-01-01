@@ -113,13 +113,14 @@ class ComboV2Fragment : DaggerFragment() {
                             else                            -> false
                         }
 
+                        /* TODO
                         binding.combov2DriverState.setTextColor(
                             when (connectionState) {
                                 ComboV2Plugin.DriverState.Error     -> rh.gac(app.aaps.core.ui.R.attr.warningColor)
                                 ComboV2Plugin.DriverState.Suspended -> rh.gac(app.aaps.core.ui.R.attr.urgentColor)
                                 else                                -> rh.gac(app.aaps.core.ui.R.attr.defaultTextColor)
                             }
-                        )
+                        )*/
                     }
                     .launchIn(this)
 
@@ -159,7 +160,7 @@ class ComboV2Fragment : DaggerFragment() {
 
                             BatteryState.FULL_BATTERY -> {
                                 binding.combov2Battery.text = rh.gs(R.string.combov2_battery_full_indicator)
-                                binding.combov2Battery.setTextColor(rh.gac(app.aaps.core.ui.R.attr.defaultTextColor))
+                                //binding.combov2Battery.setTextColor(rh.gac(app.aaps.core.ui.R.attr.defaultTextColor))
                             }
                         }
                     }
@@ -172,14 +173,16 @@ class ComboV2Fragment : DaggerFragment() {
                         else
                             ""
 
+                       /* TODO
                         binding.combov2Reservoir.setTextColor(
+
                             when (reservoirLevel?.state) {
                                 null                 -> rh.gac(app.aaps.core.ui.R.attr.defaultTextColor)
                                 ReservoirState.EMPTY -> rh.gac(app.aaps.core.ui.R.attr.warningColor)
                                 ReservoirState.LOW   -> rh.gac(app.aaps.core.ui.R.attr.urgentColor)
-                                ReservoirState.FULL  -> rh.gac(app.aaps.core.ui.R.attr.defaultTextColor)
+                                else                 -> rh.gac(app.aaps.core.ui.R.attr.defaultTextColor)
                             }
-                        )
+                        )  */
                     }
                     .launchIn(this)
 
@@ -248,12 +251,12 @@ class ComboV2Fragment : DaggerFragment() {
 
             in 0..60         -> {
                 binding.combov2LastConnection.text = rh.gs(R.string.combov2_less_than_one_minute_ago)
-                binding.combov2LastConnection.setTextColor(rh.gac(app.aaps.core.ui.R.attr.defaultTextColor))
+                //binding.combov2LastConnection.setTextColor(rh.gac(app.aaps.core.ui.R.attr.defaultTextColor))
             }
 
             in 60..(30 * 60) -> {
                 binding.combov2LastConnection.text = rh.gs(app.aaps.core.interfaces.R.string.minago, secondsPassed / 60)
-                binding.combov2LastConnection.setTextColor(rh.gac(app.aaps.core.ui.R.attr.defaultTextColor))
+                //binding.combov2LastConnection.setTextColor(rh.gac(app.aaps.core.ui.R.attr.defaultTextColor))
             }
 
             else             -> {

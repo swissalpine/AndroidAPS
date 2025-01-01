@@ -304,6 +304,9 @@ class Widget : AppWidgetProvider() {
             )
             views.setTextViewText(R.id.variable_sensitivity, text)
             views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
-        } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
+        } else {
+            views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
+            views.setViewVisibility(R.id.sensitivity, View.VISIBLE)
+        }
     }
 }

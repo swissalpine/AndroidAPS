@@ -11,6 +11,7 @@ import app.aaps.core.interfaces.aps.Predictions
 import app.aaps.core.interfaces.aps.RT
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
+import app.aaps.core.keys.BooleanKey
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -119,9 +120,11 @@ class DetermineBasalSMB @Inject constructor(
         else if (rate > maxSafeBasal) rate = maxSafeBasal
 
         // mod Ketoacidosis protection
-        if (profile.ketoacidosis_protection && rate < 0.2) {
-            reason(rT, "Ketoacidosis protection: setting basal to 0.2 U/hr")
-            rate = 0.2
+        val baseBasalRate = profile.current_basal
+        val cutOff : Double = baseBasalRate * 0.2
+        if (profile.ketoacidosis_protection && rate < cutOff) {
+            rate = cutOff
+            rT.reason.append("Ketoacidosis protection sets temp basal to $rate U/hr")
         }
         // end  mod
 
@@ -225,9 +228,9 @@ class DetermineBasalSMB @Inject constructor(
         var max_bg = profile.max_bg
 
         // Activity detection (steps)
-        consoleError.add("----------------------------------");
-        consoleError.add("Activity detection: ");
-        consoleError.add("----------------------------------");
+        consoleError.add("----------------------------------")
+        consoleError.add("Activity detection: ")
+        consoleError.add("----------------------------------")
 
         val activityDetection = profile.activity_detection
         var stepActivityDetected = false
@@ -243,45 +246,45 @@ class DetermineBasalSMB @Inject constructor(
         val timeSinceStart = profile.time_since_start
 
         if ( !activityDetection ) {
-            consoleError.add("Activity monitor disabled in the settings");
+            consoleError.add("Activity monitor disabled in the settings")
         } else if ( profile.temptargetSet) {
-            consoleError.add("Activity monitor disabled: tempTarget);
+            consoleError.add("Activity monitor disabled: tempTarget")
         } else if (!phoneMoved) {
-            consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15 m");
+            consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15 m")
         } else {
-            consoleError.add("0-5 m ago: "+recentSteps5Minutes+" steps; ");
-            consoleError.add("5-10 m ago: "+recentSteps10Minutes+" steps; ");
-            consoleError.add("10-15 m ago: "+recentSteps15Minutes+" steps; ");
-            consoleError.add("Last 30 m: "+recentSteps30Minutes+" steps; ");
-            consoleError.add("Last 60 m: "+recentSteps60Minutes+" steps; ");
+            consoleError.add("0-5 m ago: $recentSteps5Minutes steps; ")
+            consoleError.add("5-10 m ago: $recentSteps10Minutes steps; ")
+            consoleError.add("10-15 m ago: $recentSteps15Minutes steps; ")
+            consoleError.add("Last 30 m: $recentSteps30Minutes steps; ")
+            consoleError.add("Last 60 m: $recentSteps60Minutes steps; ")
             if ( timeSinceStart < 60 && recentSteps60Minutes <= 200 ) {
-                consoleError.add("Activity monitor initialising for "+(60-timeSinceStart)+" more minutes: inactivity detection disabled"). ");
+                consoleError.add("Activity monitor initialising for "+(60-timeSinceStart)+" more minutes: inactivity detection disabled")
             } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
-                consoleError.add("Activity monitor disabled inactivity detection: sleeping hours
+                consoleError.add("Activity monitor disabled inactivity detection: sleeping hours")
             } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
-                stepActivityDetected = true;
-                activityRatio = 0.7;
-                consoleError.add("-> Activity monitor detected activity, sensitivity ratio: " + activityRatio);
+                stepActivityDetected = true
+                activityRatio = 0.7
+                consoleError.add("-> Activity monitor detected activity, sensitivity ratio: $activityRatio")
             } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
                 || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
-                stepActivityDetected = true;
-                activityRatio = 0.85;
-                consoleError.add("-> Activity monitor detected partial activity, sensitivity ratio: " + activityRatio);
+                stepActivityDetected = true
+                activityRatio = 0.85
+                consoleError.add("-> Activity monitor detected partial activity, sensitivity ratio: $activityRatio")
             } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
-                consoleError.add("Activity monitor disabled inactivity detection: : bg < target");
+                consoleError.add("Activity monitor disabled inactivity detection: : bg < target")
             } else if ( recentSteps60Minutes < 50 ) {
-                stepInactivityDetected = true;
-                activityRatio = 1.2;
-                consoleError.add("-> Activity monitor detected inactivity, sensitivity ratio: " + activityRatio);
+                stepInactivityDetected = true
+                activityRatio = 1.2
+                consoleError.add("-> Activity monitor detected inactivity, sensitivity ratio: $activityRatio")
             } else if ( recentSteps60Minutes <= 200 ) {
-                stepInactivityDetected = true;
-                activityRatio = 1.1;
-                consoleError.add("-> Activity monitor detected partial inactivity, sensitivity ratio: " + activityRatio);
+                stepInactivityDetected = true
+                activityRatio = 1.1
+                consoleError.add("-> Activity monitor detected partial inactivity, sensitivity ratio: $activityRatio")
             } else {
-                consoleError.add("-> Activity monitor detected neutral state, sensitivity ratio unchanged: " + activityRatio);
+                consoleError.add("-> Activity monitor detected neutral state, sensitivity ratio unchanged: $activityRatio")
             }
         }
-        consoleError.add("----------------------------------");
+        consoleError.add("----------------------------------")
 
         var sensitivityRatio: Double
         val high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity
@@ -306,20 +309,21 @@ class DetermineBasalSMB @Inject constructor(
             // limit sensitivityRatio to profile.autosens_max (1.2x by default)
             sensitivityRatio = min(sensitivityRatio, profile.autosens_max)
             sensitivityRatio = round(sensitivityRatio, 2)
-            consoleLog.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
+            consoleError.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
         } else {
             sensitivityRatio = autosens_data.ratio * activityRatio
-            consoleLog.add("Autosens ratio: $sensitivityRatio; ")
-            if (stepActivityDetected || stepInactivityDetected) {
-                consoleLog.add("Autosens ratio adjusted for activity/inactivity: $autosens_data.ratio * $activityRatio")
+            if (!stepActivityDetected || !stepInactivityDetected) {
+                consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens; ")
+            } else {
+                consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens (" + autosens_data.ratio + ") and activity monitor (" + activityRatio + ")")
             }
         }
         basal = profile.current_basal * sensitivityRatio
         basal = round_basal(basal)
         if (basal != profile_current_basal)
-            consoleLog.add("Adjusting basal from $profile_current_basal to $basal; ")
+            consoleError.add("Adjusting basal from $profile_current_basal to $basal; ")
         else
-            consoleLog.add("Basal unchanged: $basal; ")
+            consoleError.add("Basal unchanged: $basal; ")
 
         // adjust min, max, and target BG for sensitivity, such that 50% increase in ISF raises target from 100 to 120
         if (profile.temptargetSet) {
