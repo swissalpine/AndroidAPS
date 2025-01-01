@@ -1183,7 +1183,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 Locale.getDefault(), formatVariableSense, //"%1$.1f→%2$.1f (%3$.1f)",
                 profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
                 profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits()),
-                profileUtil.fromMgdlToUnits(isfForCarbs ?: 0.0, profileFunction.getUnits())
+                // profileUtil.fromMgdlToUnits(isfForCarbs ?: 0.0, profileFunction.getUnits())
             )
             binding.infoLayout.variableSensitivity.text = text
             binding.infoLayout.variableSensitivity.visibility = View.VISIBLE

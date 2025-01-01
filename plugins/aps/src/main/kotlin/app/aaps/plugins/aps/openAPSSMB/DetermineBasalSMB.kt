@@ -366,6 +366,7 @@ class DetermineBasalSMB @Inject constructor(
                 val adjusted_sens = round(profile.sens / sensitivityRatio, 1)
                 if (adjusted_sens != profile_sens) {
                     consoleLog.add("ISF from $profile_sens to $adjusted_sens")
+                    profile.variable_sens = adjusted_sens
                 } else {
                     consoleLog.add("ISF unchanged: $adjusted_sens")
                 }
