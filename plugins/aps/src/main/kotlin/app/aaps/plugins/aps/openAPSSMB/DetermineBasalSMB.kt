@@ -119,12 +119,14 @@ class DetermineBasalSMB @Inject constructor(
         if (rate < 0) rate = 0.0
         else if (rate > maxSafeBasal) rate = maxSafeBasal
 
-        // mod Ketoacidosis protection
+        // mod ketoacidosis protection 1
+        // TODO function für rT.rate
         val baseBasalRate = profile.current_basal
         val cutOff : Double = baseBasalRate * 0.2
         if (profile.ketoacidosis_protection && rate < cutOff) {
             rate = cutOff
-            rT.reason.append("Ketoacidosis protection sets temp basal to $rate U/hr")
+            rT.reason.append("\nKetoacidosis protection sets temp basal to $rate U/hr.")
+            consoleError.add("Ketoacidosis protection sets temp basal to $rate U/hr")
         }
         // end  mod
 
@@ -279,9 +281,9 @@ class DetermineBasalSMB @Inject constructor(
             } else if ( recentSteps60Minutes <= 200 ) {
                 stepInactivityDetected = true
                 activityRatio = 1.1
-                consoleError.add("-> Activity monitor detected partial inactivity, sensitivity ratio: $activityRatio")
+                consoleError.add("-> Activity monitor detected partial inactivity, activity ratio: $activityRatio")
             } else {
-                consoleError.add("-> Activity monitor detected neutral state, sensitivity ratio unchanged: $activityRatio")
+                consoleError.add("-> Activity monitor detected neutral state, activity ratio unchanged: $activityRatio")
             }
         }
         consoleError.add("----------------------------------")
@@ -312,10 +314,10 @@ class DetermineBasalSMB @Inject constructor(
             consoleError.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
         } else {
             sensitivityRatio = autosens_data.ratio * activityRatio
-            if (!stepActivityDetected || !stepInactivityDetected) {
+            if (!stepActivityDetected && !stepInactivityDetected) {
                 consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens; ")
             } else {
-                consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens (" + autosens_data.ratio + ") and activity monitor (" + activityRatio + ")")
+                consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens (" + autosens_data.ratio + ") and activity monitor (" + activityRatio + "); ")
             }
         }
         basal = profile.current_basal * sensitivityRatio
@@ -1195,6 +1197,15 @@ class DetermineBasalSMB @Inject constructor(
 
                 // if no zero temp is required, don't return yet; allow later code to set a high temp
                 if (durationReq > 0) {
+                    // mod Ketoacidosis protection 2
+                    val baseBasalRate = profile.current_basal
+                    val cutOff : Double = baseBasalRate * 0.2
+                    if (profile.ketoacidosis_protection && smbLowTempReq < cutOff) {
+                        smbLowTempReq = cutOff
+                        rT.reason.append("\nKetoacidosis protection sets temp basal to $rate U/hr.")
+                        consoleError.add("Ketoacidosis protection sets temp basal to $rate U/hr")
+                    }
+                    // end mod
                     rT.rate = smbLowTempReq
                     rT.duration = durationReq
                     return rT
