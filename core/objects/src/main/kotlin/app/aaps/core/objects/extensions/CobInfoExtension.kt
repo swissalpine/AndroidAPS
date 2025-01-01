@@ -18,6 +18,6 @@ fun CobInfo.generateCOBString(decimalFormatter: DecimalFormatter): String {
 fun CobInfo.displayText(rh: ResourceHelper, decimalFormatter: DecimalFormatter): String? =
     displayCob?.let { displayCob ->
         var cobText = rh.gs(app.aaps.core.ui.R.string.format_carbs, displayCob.toInt())
-        if (futureCarbs > 0) cobText += "(" + decimalFormatter.to0Decimal(futureCarbs) + ")"
+        if (futureCarbs > 0) cobText += " (" + decimalFormatter.to0Decimal(futureCarbs) + ")"
         cobText
     }
