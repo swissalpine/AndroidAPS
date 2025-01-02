@@ -108,6 +108,19 @@ class DetermineBasalSMB @Inject constructor(
         consoleError.add(msg)
     }
 
+    // mod ketoacidosis protection
+    fun ketoProtection(_proposedRate: Double, profile: OapsProfile, rT: RT): Double {
+        val baseBasalRate = profile.current_basal
+        var proposedRate = _proposedRate
+        val cutOff : Double = round_basal(baseBasalRate * 0.2)
+        if (profile.ketoacidosis_protection && proposedRate < cutOff) {
+            proposedRate = cutOff
+            rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
+            consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+        }
+        return proposedRate
+    }
+
     private fun getMaxSafeBasal(profile: OapsProfile): Double =
         min(profile.max_basal, min(profile.max_daily_safety_multiplier * profile.max_daily_basal, profile.current_basal_safety_multiplier * profile.current_basal))
 
@@ -118,17 +131,6 @@ class DetermineBasalSMB @Inject constructor(
         var rate = _rate
         if (rate < 0) rate = 0.0
         else if (rate > maxSafeBasal) rate = maxSafeBasal
-
-        // mod ketoacidosis protection 1
-        // TODO function für rT.rate
-        val baseBasalRate = profile.current_basal
-        val cutOff : Double = baseBasalRate * 0.2
-        if (profile.ketoacidosis_protection && rate < cutOff) {
-            rate = round_basal(cutOff)
-            rT.reason.append("\nKetoacidosis protection sets temp basal to $rate U/hr.")
-            consoleError.add("Ketoacidosis protection sets temp basal to $rate U/hr")
-        }
-        // end  mod
 
         val suggestedRate = round_basal(rate)
         if (currenttemp.duration > (duration - 10) && currenttemp.duration <= 120 && suggestedRate <= currenttemp.rate * 1.2 && suggestedRate >= currenttemp.rate * 0.8 && duration > 0) {
@@ -155,7 +157,7 @@ class DetermineBasalSMB @Inject constructor(
             }
         } else {
             rT.duration = duration
-            rT.rate = suggestedRate
+            rT.rate = ketoProtection(suggestedRate, profile, rT)
             return rT
         }
     }
@@ -1197,16 +1199,7 @@ class DetermineBasalSMB @Inject constructor(
 
                 // if no zero temp is required, don't return yet; allow later code to set a high temp
                 if (durationReq > 0) {
-                    // mod Ketoacidosis protection 2
-                    val baseBasalRate = profile.current_basal
-                    val cutOff : Double = baseBasalRate * 0.2
-                    if (profile.ketoacidosis_protection && smbLowTempReq < cutOff) {
-                        smbLowTempReq = round_basal(cutOff)
-                        rT.reason.append("\nKetoacidosis protection sets temp basal to $rate U/hr.")
-                        consoleError.add("Ketoacidosis protection sets temp basal to $rate U/hr")
-                    }
-                    // end mod
-                    rT.rate = smbLowTempReq
+                    rT.rate = ketoProtection(smbLowTempReq, profile, rT)
                     rT.duration = durationReq
                     return rT
                 }
