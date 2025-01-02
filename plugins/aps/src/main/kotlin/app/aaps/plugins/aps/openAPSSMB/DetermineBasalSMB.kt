@@ -124,7 +124,7 @@ class DetermineBasalSMB @Inject constructor(
         val baseBasalRate = profile.current_basal
         val cutOff : Double = baseBasalRate * 0.2
         if (profile.ketoacidosis_protection && rate < cutOff) {
-            rate = cutOff
+            rate = round_basal(cutOff)
             rT.reason.append("\nKetoacidosis protection sets temp basal to $rate U/hr.")
             consoleError.add("Ketoacidosis protection sets temp basal to $rate U/hr")
         }
@@ -1201,7 +1201,7 @@ class DetermineBasalSMB @Inject constructor(
                     val baseBasalRate = profile.current_basal
                     val cutOff : Double = baseBasalRate * 0.2
                     if (profile.ketoacidosis_protection && smbLowTempReq < cutOff) {
-                        smbLowTempReq = cutOff
+                        smbLowTempReq = round_basal(cutOff)
                         rT.reason.append("\nKetoacidosis protection sets temp basal to $rate U/hr.")
                         consoleError.add("Ketoacidosis protection sets temp basal to $rate U/hr")
                     }
