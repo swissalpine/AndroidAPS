@@ -201,7 +201,7 @@ class WizardDialog : DaggerDialogFragment() {
         }
         val plus3text = toSignedString(preferences.get(IntKey.OverviewCarbsButtonIncrement3))
         binding.plus3.text = plus3text
-        binding.plus2.contentDescription = rh.gs(app.aaps.core.ui.R.string.carbs) + " " + plus3text
+        binding.plus3.contentDescription = rh.gs(app.aaps.core.ui.R.string.carbs) + " " + plus3text
         binding.plus3.setOnClickListener {
             binding.carbsInput.value = max(0.0, binding.carbsInput.value + preferences.get(IntKey.OverviewCarbsButtonIncrement3))
             validateInputs()
