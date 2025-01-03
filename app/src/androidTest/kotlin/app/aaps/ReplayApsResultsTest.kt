@@ -236,7 +236,8 @@ class ReplayApsResultsTest @Inject constructor() {
             variable_sens = 0.0,
             insulinDivisor = 0,
             TDD = 0.0,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -410,7 +411,8 @@ class ReplayApsResultsTest @Inject constructor() {
             variable_sens = determineBasalResult.profile.getDouble("variable_sens"),
             insulinDivisor = determineBasalResult.profile.getInt("insulinDivisor"),
             TDD = determineBasalResult.profile.getDouble("TDD"),
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -578,7 +580,8 @@ class ReplayApsResultsTest @Inject constructor() {
             variable_sens = 0.0,
             insulinDivisor = 0,
             TDD = 0.0,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
+            ketoacidosis_protection = false,
+            ketoacidosis_protection_basal = 20
         )
         val mealData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -761,7 +764,8 @@ class ReplayApsResultsTest @Inject constructor() {
             enableSMB_EvenOn_OddOff_always = determineBasalResult.profile.getBoolean("enableSMB_EvenOn_OddOff_always"),
             iob_threshold_percent = determineBasalResult.profile.getInt("iob_threshold_percent"),
             profile_percentage = determineBasalResult.profile.getInt("profile_percentage"),
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),

@@ -109,10 +109,12 @@ class DetermineBasalSMB @Inject constructor(
     }
 
     // mod ketoacidosis protection
-    fun ketoProtection(_proposedRate: Double, profile: OapsProfile, rT: RT): Double {
+    private fun ketoProtection(_proposedRate: Double, profile: OapsProfile, rT: RT): Double {
         val baseBasalRate = profile.current_basal
         var proposedRate = _proposedRate
-        val cutOff : Double = round_basal(baseBasalRate * 0.2)
+        val protectionRate : Double = profile.ketoacidosis_protection_basal.toDouble() * 0.01
+        val cutOff : Double = round_basal(baseBasalRate * protectionRate)
+        consoleError.add("cutOff: $cutOff")
         if (profile.ketoacidosis_protection && proposedRate < cutOff) {
             proposedRate = cutOff
             rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")

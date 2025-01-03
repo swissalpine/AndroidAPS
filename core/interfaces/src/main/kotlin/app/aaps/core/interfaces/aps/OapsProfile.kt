@@ -27,15 +27,15 @@ data class OapsProfile(
     var exercise_mode: Boolean,
     var half_basal_exercise_target: Int,
     // Activity detection
-    val activity_detection: Boolean,
-    val recent_steps_5_minutes: Int,
-    val recent_steps_10_minutes: Int,
-    val recent_steps_15_minutes: Int,
-    val recent_steps_30_minutes: Int,
-    val recent_steps_60_minutes: Int,
-    val phone_moved: Boolean,
-    val time_since_start: Long,
-    val now: Int,
+    var activity_detection: Boolean,
+    var recent_steps_5_minutes: Int,
+    var recent_steps_10_minutes: Int,
+    var recent_steps_15_minutes: Int,
+    var recent_steps_30_minutes: Int,
+    var recent_steps_60_minutes: Int,
+    var phone_moved: Boolean,
+    var time_since_start: Long,
+    var now: Int,
     var maxCOB: Int,
     var skip_neutral_temps: Boolean,
     var remainingCarbsCap: Int,
@@ -60,5 +60,6 @@ data class OapsProfile(
     var variable_sens: Double,
     var insulinDivisor: Int,
     var TDD: Double,
-    val ketoacidosis_protection: Boolean
+    var ketoacidosis_protection: Boolean,
+    var ketoacidosis_protection_basal: Int = 20
 )

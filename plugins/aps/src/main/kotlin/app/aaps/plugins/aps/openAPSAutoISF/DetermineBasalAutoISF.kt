@@ -6,6 +6,7 @@ import app.aaps.core.interfaces.aps.CurrentTemp
 import app.aaps.core.interfaces.aps.GlucoseStatus
 import app.aaps.core.interfaces.aps.IobTotal
 import app.aaps.core.interfaces.aps.MealData
+import app.aaps.core.interfaces.aps.OapsProfile
 import app.aaps.core.interfaces.aps.OapsProfileAutoIsf
 import app.aaps.core.interfaces.aps.Predictions
 import app.aaps.core.interfaces.aps.RT
@@ -104,6 +105,21 @@ class DetermineBasalAutoISF @Inject constructor(
         consoleError.add(msg)
     }
 
+    // mod ketoacidosis protection
+    private fun ketoProtection(_proposedRate: Double, profile: OapsProfileAutoIsf, rT: RT): Double {
+        val baseBasalRate = profile.current_basal
+        var proposedRate = _proposedRate
+        val protectionRate : Double = profile.ketoacidosis_protection_basal.toDouble() * 0.01
+        val cutOff : Double = round_basal(baseBasalRate * protectionRate)
+        consoleError.add("cutOff: $cutOff")
+        if (profile.ketoacidosis_protection && proposedRate < cutOff) {
+            proposedRate = cutOff
+            rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
+            consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+        }
+        return proposedRate
+    }
+
     private fun getMaxSafeBasal(profile: OapsProfileAutoIsf): Double =
         min(profile.max_basal, min(profile.max_daily_safety_multiplier * profile.max_daily_basal, profile.current_basal_safety_multiplier * profile.current_basal))
 
@@ -114,13 +130,6 @@ class DetermineBasalAutoISF @Inject constructor(
         var rate = _rate
         if (rate < 0) rate = 0.0
         else if (rate > maxSafeBasal) rate = maxSafeBasal
-
-        // mod Ketoacidosis protection
-        if (profile.ketoacidosis_protection && rate < 0.1) {
-            reason(rT, "Ketoacidosis protection: setting basal to 0.2 U/hr")
-            rate = 0.2
-        }
-        // end mod
 
         val suggestedRate = round_basal(rate)
         if (currenttemp.duration > (duration - 10) && currenttemp.duration <= 120 && suggestedRate <= currenttemp.rate * 1.2 && suggestedRate >= currenttemp.rate * 0.8 && duration > 0) {
@@ -147,7 +156,7 @@ class DetermineBasalAutoISF @Inject constructor(
             }
         } else {
             rT.duration = duration
-            rT.rate = suggestedRate
+            rT.rate = ketoProtection(suggestedRate, profile, rT)
             return rT
         }
     }
@@ -1136,7 +1145,7 @@ class DetermineBasalAutoISF @Inject constructor(
 
                 // if no zero temp is required, don't return yet; allow later code to set a high temp
                 if (durationReq > 0) {
-                    rT.rate = smbLowTempReq
+                    rT.rate = ketoProtection(smbLowTempReq, profile, rT)
                     rT.duration = durationReq
                     return rT
                 }

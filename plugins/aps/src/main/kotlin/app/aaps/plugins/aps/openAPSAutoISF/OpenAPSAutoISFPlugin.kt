@@ -382,7 +382,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             enableSMB_EvenOn_OddOff_always = enableSMB_EvenOn_OddOff_always,
             iob_threshold_percent = iobThresholdPercent,
             profile_percentage = profile_percentage,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
         //done calculate exercise ratio
         var exerciseRatio = 1.0
@@ -998,18 +999,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfPpWeight, dialogMessage = R.string.openapsama_pp_ISF_weight_summary, title = R.string.openapsama_pp_ISF_weight))
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfDuraWeight, dialogMessage = R.string.openapsama_dura_ISF_weight_summary, title = R.string.openapsama_dura_ISF_weight))
                 addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsAutoIsfIobThPercent, dialogMessage = R.string.openapsama_iob_threshold_percent_summary, title = R.string.openapsama_iob_threshold_percent))
-                addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                    key = "ketoacidosis_protection"
-                    title = rh.gs(R.string.ketoacidosis_protection_title)
-                    addPreference(
-                        AdaptiveSwitchPreference(
-                            ctx = context,
-                            booleanKey = BooleanKey.ApsKetoacidosisProtection,
-                            summary = R.string.ketoacidosis_protection_summary,
-                            title = R.string.ketoacidosis_protection_title)
-                    )
-                })
-                addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                                addPreference(preferenceManager.createPreferenceScreen(context).apply {
                     key = "smb_delivery_settings"
                     title = rh.gs(R.string.smb_delivery_settings_title)
                     summary = rh.gs(R.string.smb_delivery_settings_summary)
@@ -1027,6 +1017,12 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                     addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbMaxRangeExtension, dialogMessage = R.string.openapsama_smb_max_range_extension_summary, title = R.string.openapsama_smb_max_range_extension))
                     addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfSmbOnEvenTarget, summary = R.string.enableSMB_EvenOn_OddOff_always_summary, title = R.string.enableSMB_EvenOn_OddOff_always))
                 })
+            })
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "ketoacidosis_protection"
+                title = rh.gs(R.string.ketoacidosis_protection_title)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
+                addPreference(AdaptiveIntPreference(ctx=context, intKey = IntKey.ApsKetoacidosisProtectionBasal, dialogMessage = R.string.ketoacidosis_protection_basal_summary, title = R.string.ketoacidosis_protection_basal_title))
             })
         }
     }
