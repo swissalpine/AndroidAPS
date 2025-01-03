@@ -236,8 +236,7 @@ class ReplayApsResultsTest @Inject constructor() {
             variable_sens = 0.0,
             insulinDivisor = 0,
             TDD = 0.0,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectBasal)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -411,8 +410,7 @@ class ReplayApsResultsTest @Inject constructor() {
             variable_sens = determineBasalResult.profile.getDouble("variable_sens"),
             insulinDivisor = determineBasalResult.profile.getInt("insulinDivisor"),
             TDD = determineBasalResult.profile.getDouble("TDD"),
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectBasal).toDouble()
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -580,8 +578,7 @@ class ReplayApsResultsTest @Inject constructor() {
             variable_sens = 0.0,
             insulinDivisor = 0,
             TDD = 0.0,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectBasal).toDouble()
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val mealData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),

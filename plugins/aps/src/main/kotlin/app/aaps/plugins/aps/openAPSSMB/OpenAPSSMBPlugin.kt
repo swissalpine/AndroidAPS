@@ -468,8 +468,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             variable_sens = if (dynIsfMode) dynIsfResult.variableSensitivity ?: 0.0 else 0.0,
             insulinDivisor = dynIsfResult.insulinDivisor,
             TDD = dynIsfResult.tdd ?: 0.0,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectBasal)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
         )
         val microBolusAllowed = constraintsChecker.isSMBModeEnabled(ConstraintObject(tempBasalFallback.not(), aapsLogger)).also { inputConstraints.copyReasons(it) }.value()
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
@@ -639,7 +638,6 @@ open class OpenAPSSMBPlugin @Inject constructor(
                 key = "ketoacidosis_protection"
                 title = rh.gs(R.string.ketoacidosis_protection_title)
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
-                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsKetoacidosisProtectBasal, dialogMessage = R.string.ketoacidosis_protect_basal_summary, title = R.string.ketoacidosis_protect_basal_title))
             })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "absorption_smb_advanced"

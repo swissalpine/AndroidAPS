@@ -60,6 +60,5 @@ data class OapsProfile(
     var variable_sens: Double,
     var insulinDivisor: Int,
     var TDD: Double,
-    val ketoacidosis_protection: Boolean,
-    val ketoacidosis_protection_basal: Int
+    val ketoacidosis_protection: Boolean
 )
