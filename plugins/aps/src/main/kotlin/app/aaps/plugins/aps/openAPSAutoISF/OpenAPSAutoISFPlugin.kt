@@ -382,7 +382,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             enableSMB_EvenOn_OddOff_always = enableSMB_EvenOn_OddOff_always,
             iob_threshold_percent = iobThresholdPercent,
             profile_percentage = profile_percentage,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection)
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectBasal)
         )
         //done calculate exercise ratio
         var exerciseRatio = 1.0

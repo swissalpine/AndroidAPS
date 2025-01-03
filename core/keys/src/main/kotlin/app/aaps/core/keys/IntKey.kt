@@ -57,6 +57,8 @@ enum class IntKey(
     AlertsPumpUnreachableThreshold("pump_unreachable_threshold", 30, 30, 300, defaultedBySM = true, dependency = BooleanKey.AlertPumpUnreachable),
     InsulinOrefPeak("insulin_oref_peak", 75, 35, 120, hideParentScreenIfHidden = true),
 
+    ApsKetoacidosisProtectBasal("ketoacidosis_protect_basal", 20, 10, 40, defaultedBySM = true, dependency = BooleanKey.ApsKetoacidosisProtection),
+
     AutotuneDefaultTuneDays("autotune_default_tune_days", 5, 1, 30),
 
     // AutoExportPasswordExpiryDays("auto_export_password_expiry_days", 28, 7, 28),
