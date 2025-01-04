@@ -28,6 +28,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
 
     override fun getGlucoseStatusData(allowOldData: Boolean): GlucoseStatus? {
         val data = iobCobCalculator.ads.getBucketedDataTableCopy() ?: return null
+        val orig = iobCobCalculator.ads.getBgReadingsDataTableCopy() // ?: return null
 
         var sizeRecords = data.size
         if (sizeRecords == 0) {
@@ -41,6 +42,18 @@ class GlucoseStatusProviderImpl @Inject constructor(
         val now = data[0]
         val nowDate = now.timestamp
         var change: Double
+        val nowValue = now.value
+        val recalc = now.recalculated
+        val smooth = now.smoothed
+        val filled = now.filledGap
+        val cgm = now.sourceSensor
+        val fsl = orig[0]
+        val fslDate = fsl.timestamp
+        val fslValue = fsl.value
+        val fslRaw = fsl.raw
+        //al fslReally = cgm.text == "Libre2" || cgm.text == "Libre3"  // was .isLibre()
+        val fslReally = true    // "RANDOM" while testing with virtual phone in AS
+        var fslMinDur = 15  // default for 5m CGM
         if (sizeRecords == 1) {
             aapsLogger.debug(LTag.GLUCOSE, "sizeRecords==1")
             return GlucoseStatus(
@@ -71,6 +84,10 @@ class GlucoseStatusProviderImpl @Inject constructor(
             if (data[i].value > 39 && !data[i].filledGap) {   // if (data[i].recalculated > 38) {
                 val then = data[i]
                 val thenDate = then.timestamp
+                val valueAgo = then.value
+                val bgAgo = then.recalculated
+                val smoothAgo = then.smoothed
+                val filledAgo = then.filledGap
 
                 val minutesAgo = ((nowDate - thenDate) / (1000.0 * 60)).roundToLong()
                 // multiply by 5 to get the same units as delta, i.e. mg/dL/5m
@@ -147,6 +164,20 @@ class GlucoseStatusProviderImpl @Inject constructor(
         var a1 = 0.0
         var a2 = 0.0
         //var b = 0.0
+        var use1MinuteRaw = false
+        if ( fslReally ) {
+            // original FSL 1-minute cgm data from Juggluco direct to AAPS although not smoothed
+            if ( orig.size>2 ) {
+                if ( orig[0].timestamp - orig[2].timestamp < 3 * 60000 ) {
+                    use1MinuteRaw = true
+                    sizeRecords = orig.size
+                    fslMinDur = 20  //sp.getInt(R.string.key_fslMinFitMinutes, 20)
+                }
+            }
+        }
+        aapsLogger.debug(LTag.GLUCOSE, "BgReadings stamp=$fslDate; raw=$fslRaw; value=$fslValue; " +
+            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm; Libre=$fslReally; fitDura=$fslMinDur")
+
 
         if (sizeRecords > 3) {
             var sy = 0.0 // y
@@ -156,7 +187,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
             var sx4 = 0.0 // x^4
             var sxy = 0.0 // x*y
             var sx2y = 0.0 // x^2*y
-            val time0 = data[0].timestamp
+            val time0 = if (use1MinuteRaw) orig[0].timestamp else data[0].timestamp
             var tiLast = 0.0
             //# for best numerical accuracy time and bg must be of same order of magnitude
             val scaleTime = 300.0 // in 5m; values are  0, -1, -2, -3, -4, ...
@@ -165,19 +196,27 @@ class GlucoseStatusProviderImpl @Inject constructor(
             // if (data[i].recalculated > 38) {  } // not checked in past 1.5 years
             n = 0
             for (i in 0 until sizeRecords) {
-                val noGap = !data[i].filledGap
-                if (data[i].recalculated > 39 && noGap) {
+                val noGap = if (fslReally) true else !data[i].filledGap
+                if (orig[i].value > 39 && noGap) {
                     n += 1
                     val thenDate: Long
                     var bg: Double
-                    val then = data[i]
-                    thenDate = then.timestamp
-                    bg = then.recalculated / scaleBg
+                    if (use1MinuteRaw) {
+                        val then = orig[i]
+                        thenDate = then.timestamp
+                        bg = then.value / scaleBg
+
+                    } else {    // all other including standard 5m CGM smoothed
+                        val then = data[i]
+                        thenDate = then.timestamp
+                        bg = then.recalculated / scaleBg
+                    }
+
                     val ti = (thenDate - time0) / 1000.0 / scaleTime
                     if (-ti * scaleTime > 47 * 60) {                       // skip records older than 47.5 minutes
                         break
                     } else if (ti < tiLast - 7.5 * 60 / scaleTime) {       // stop scan if a CGM gap > 7.5 minutes is detected
-                        if (i < 3) {   // history too short for fit
+                        if (i < 3 || -ti * scaleTime < fslMinDur * 60) {   // history too short for fit
                             duraP = -tiLast * scaleTime / 60.0
                             deltaPl = 0.0
                             deltaPn = 0.0
@@ -202,7 +241,7 @@ class GlucoseStatusProviderImpl @Inject constructor(
                     var detA = 0.0
                     var detB = 0.0
                     var detC = 0.0
-                    if (n > 3) {
+                    if (n > 3 && -ti * scaleTime > fslMinDur * 60) {
                         detH = sx4 * (sx2 * n - sx * sx) - sx3 * (sx3 * n - sx * sx2) + sx2 * (sx3 * sx - sx2 * sx2)
                         detA = sx2y * (sx2 * n - sx * sx) - sxy * (sx3 * n - sx * sx2) + sy * (sx3 * sx - sx2 * sx2)
                         detB = sx4 * (sxy * n - sy * sx) - sx3 * (sx2y * n - sy * sx2) + sx2 * (sx2y * sx - sxy * sx2)
@@ -215,28 +254,38 @@ class GlucoseStatusProviderImpl @Inject constructor(
                         val yMean = sy / n
                         var sSquares = 0.0
                         var sResidualSquares = 0.0
+                        var rawBg: Double
                         for (j in 0..i) {
-                            val before = data[j]
-                            sSquares += (before.recalculated / scaleBg - yMean).pow(2.0)
-                            val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
-                            val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
-                            sResidualSquares += (before.recalculated / scaleBg - bgj).pow(2.0)
-                        }
-                        var rSqu = 0.64
-                        if (sSquares != 0.0) {
-                            rSqu = 1 - sResidualSquares / sSquares
-                        }
-                        if (rSqu >= corrMax) {
-                            corrMax = rSqu
-                            // double delta_t = (then_date - time_0) / 1000;
-                            duraP = -ti * scaleTime / 60.0 // remember we are going backwards in time
-                            val delta5Min = 5 * 60 / scaleTime
-                            deltaPl = -scaleBg * (a * (-delta5Min).pow(2.0) - b * delta5Min)    // 5 minute slope from last fitted bg ending at this bg, i.e. t=0
-                            deltaPn = scaleBg * (a * delta5Min.pow(2.0) + b * delta5Min)    // 5 minute slope to next fitted bg starting from this bg, i.e. t=0
-                            bgAcceleration = 2 * a * scaleBg
-                            a0 = c * scaleBg
-                            a1 = b * scaleBg
-                            a2 = a * scaleBg
+                            if (use1MinuteRaw) {
+                                val before = orig[j]
+                                rawBg = before.value
+                                sSquares += (rawBg / scaleBg - yMean).pow(2.0)
+                                val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
+                                val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
+                                sResidualSquares += (rawBg / scaleBg - bgj).pow(2.0)
+                            } else {                            // default case anyway
+                                val before = data[j]
+                                sSquares += (before.recalculated / scaleBg - yMean).pow(2.0)
+                                val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
+                                val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
+                                sResidualSquares += (before.recalculated / scaleBg - bgj).pow(2.0)
+                            }
+                            var rSqu = 0.64
+                            if (sSquares != 0.0) {
+                                rSqu = 1 - sResidualSquares / sSquares
+                            }
+                            if (rSqu >= corrMax) {
+                                corrMax = rSqu
+                                // double delta_t = (then_date - time_0) / 1000;
+                                duraP = -ti * scaleTime / 60.0 // remember we are going backwards in time
+                                val delta5Min = 5 * 60 / scaleTime
+                                deltaPl = -scaleBg * (a * (-delta5Min).pow(2.0) - b * delta5Min)    // 5 minute slope from last fitted bg ending at this bg, i.e. t=0
+                                deltaPn = scaleBg * (a * delta5Min.pow(2.0) + b * delta5Min)    // 5 minute slope to next fitted bg starting from this bg, i.e. t=0
+                                bgAcceleration = 2 * a * scaleBg
+                                a0 = c * scaleBg
+                                a1 = b * scaleBg
+                                a2 = a * scaleBg
+                            }
                         }
                     }
                 }
