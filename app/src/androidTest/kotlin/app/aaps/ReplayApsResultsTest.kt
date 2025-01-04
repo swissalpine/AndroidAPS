@@ -1,5 +1,6 @@
 package app.aaps
 
+import android.icu.util.Calendar
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -725,6 +726,15 @@ class ReplayApsResultsTest @Inject constructor() {
             adv_target_adjustments = determineBasalResult.profile.getBoolean("adv_target_adjustments"),
             exercise_mode = determineBasalResult.profile.getBoolean("exercise_mode"),
             half_basal_exercise_target = determineBasalResult.profile.getInt("half_basal_exercise_target"),
+            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            phone_moved = PhoneMovementDetector.phoneMoved(),
+            time_since_start = elapsedTimeSinceLastStart,
+            now = calendar.get(Calendar.HOUR_OF_DAY),
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),
@@ -736,7 +746,7 @@ class ReplayApsResultsTest @Inject constructor() {
             allowSMB_with_high_temptarget = determineBasalResult.profile.getBoolean("allowSMB_with_high_temptarget"),
             enableSMB_always = determineBasalResult.profile.getBoolean("enableSMB_always"),
             enableSMB_after_carbs = determineBasalResult.profile.getBoolean("enableSMB_after_carbs"),
-            maxSMBBasalMinutes = determineBasalResult.profile.getInt("maxSMBBasalMinutes"),
+            maxSMBBasalMinutes = determineBasalResult.profile.getInt("maxSMBBasalMinutes"), // TODO only available in result.variableSens? , not in determineBasalResult.profile.getDouble("variable_sens"),
             maxUAMSMBBasalMinutes = determineBasalResult.profile.getInt("maxUAMSMBBasalMinutes"),
             bolus_increment = determineBasalResult.profile.getDouble("bolus_increment"),
             carbsReqThreshold = determineBasalResult.profile.getInt("carbsReqThreshold"),
@@ -745,7 +755,7 @@ class ReplayApsResultsTest @Inject constructor() {
             autosens_max = determineBasalResult.profile.getDouble("autosens_max"),
             out_units = determineBasalResult.profile.optString("out_units"),
             lgsThreshold = null,
-            variable_sens = varSens, // TODO only available in result.variableSens? , not in determineBasalResult.profile.getDouble("variable_sens"),
+            variable_sens = varSens,
             autoISF_version = determineBasalResult.profile.optString("autoISF_version"),
             enable_autoISF = determineBasalResult.profile.getBoolean("enable_autoISF"),
             autoISF_max = determineBasalResult.profile.getDouble("autoISF_max"),

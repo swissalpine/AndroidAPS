@@ -269,18 +269,18 @@ class DetermineBasalSMB @Inject constructor(
             } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
                 stepActivityDetected = true
                 activityRatio = 0.7
-                consoleError.add("-> Activity monitor detected activity, sensitivity ratio: $activityRatio")
+                consoleError.add("-> Activity monitor detected activity, activity ratio: $activityRatio")
             } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
                 || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
                 stepActivityDetected = true
                 activityRatio = 0.85
-                consoleError.add("-> Activity monitor detected partial activity, sensitivity ratio: $activityRatio")
+                consoleError.add("-> Activity monitor detected partial activity, activity ratio: $activityRatio")
             } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
                 consoleError.add("Activity monitor disabled inactivity detection: : bg < target")
             } else if ( recentSteps60Minutes < 50 ) {
                 stepInactivityDetected = true
                 activityRatio = 1.2
-                consoleError.add("-> Activity monitor detected inactivity, sensitivity ratio: $activityRatio")
+                consoleError.add("-> Activity monitor detected inactivity, activity ratio: $activityRatio")
             } else if ( recentSteps60Minutes <= 200 ) {
                 stepInactivityDetected = true
                 activityRatio = 1.1

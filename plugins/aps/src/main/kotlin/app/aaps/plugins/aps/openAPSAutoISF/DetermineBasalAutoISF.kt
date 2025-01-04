@@ -6,7 +6,6 @@ import app.aaps.core.interfaces.aps.CurrentTemp
 import app.aaps.core.interfaces.aps.GlucoseStatus
 import app.aaps.core.interfaces.aps.IobTotal
 import app.aaps.core.interfaces.aps.MealData
-import app.aaps.core.interfaces.aps.OapsProfile
 import app.aaps.core.interfaces.aps.OapsProfileAutoIsf
 import app.aaps.core.interfaces.aps.Predictions
 import app.aaps.core.interfaces.aps.RT
@@ -231,6 +230,65 @@ class DetermineBasalAutoISF @Inject constructor(
         var min_bg = profile.min_bg
         var max_bg = profile.max_bg
 
+        // Activity detection (steps)
+        consoleError.add("----------------------------------")
+        consoleError.add("Activity detection: ")
+        consoleError.add("----------------------------------")
+
+        val activityDetection = profile.activity_detection
+        var stepActivityDetected = false
+        var stepInactivityDetected = false
+        var activityRatio = 1.0
+        val recentSteps5Minutes = profile.recent_steps_5_minutes
+        val recentSteps10Minutes = profile.recent_steps_10_minutes
+        val recentSteps15Minutes = profile.recent_steps_15_minutes
+        val recentSteps30Minutes = profile.recent_steps_30_minutes
+        val recentSteps60Minutes = profile.recent_steps_60_minutes
+        val phoneMoved = profile.phone_moved
+        val now = profile.now
+        val timeSinceStart = profile.time_since_start
+
+        if ( !activityDetection ) {
+            consoleError.add("Activity monitor disabled in the settings")
+        } else if ( profile.temptargetSet) {
+            consoleError.add("Activity monitor disabled: tempTarget")
+        } else if (!phoneMoved) {
+            consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15 m")
+        } else {
+            consoleError.add("0-5 m ago: $recentSteps5Minutes steps; ")
+            consoleError.add("5-10 m ago: $recentSteps10Minutes steps; ")
+            consoleError.add("10-15 m ago: $recentSteps15Minutes steps; ")
+            consoleError.add("Last 30 m: $recentSteps30Minutes steps; ")
+            consoleError.add("Last 60 m: $recentSteps60Minutes steps; ")
+            if ( timeSinceStart < 60 && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Activity monitor initialising for "+(60-timeSinceStart)+" more minutes: inactivity detection disabled")
+            } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Activity monitor disabled inactivity detection: sleeping hours")
+            } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
+                stepActivityDetected = true
+                activityRatio = 0.7
+                consoleError.add("-> Activity monitor detected activity, activity ratio: $activityRatio")
+            } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
+                || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
+                stepActivityDetected = true
+                activityRatio = 0.85
+                consoleError.add("-> Activity monitor detected partial activity, activity ratio: $activityRatio")
+            } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
+                consoleError.add("Activity monitor disabled inactivity detection: : bg < target")
+            } else if ( recentSteps60Minutes < 50 ) {
+                stepInactivityDetected = true
+                activityRatio = 1.2
+                consoleError.add("-> Activity monitor detected inactivity, activity ratio: $activityRatio")
+            } else if ( recentSteps60Minutes <= 200 ) {
+                stepInactivityDetected = true
+                activityRatio = 1.1
+                consoleError.add("-> Activity monitor detected partial inactivity, activity ratio: $activityRatio")
+            } else {
+                consoleError.add("-> Activity monitor detected neutral state, activity ratio unchanged: $activityRatio")
+            }
+        }
+        consoleError.add("----------------------------------")
+
         var sensitivityRatio = 1.0
         // var origin_sens = ""
         var exercise_ratio = 1.0
@@ -258,8 +316,12 @@ class DetermineBasalAutoISF @Inject constructor(
                 consoleError.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
             }
         } else {
-            sensitivityRatio = autosens_data.ratio
-            consoleError.add("Autosens ratio: $sensitivityRatio; ")
+            sensitivityRatio = autosens_data.ratio * activityRatio
+            if (!stepActivityDetected && !stepInactivityDetected) {
+                consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens; ")
+            } else {
+                consoleError.add("Sensitivity ratio set to $sensitivityRatio based on autosens (" + autosens_data.ratio + ") and activity monitor (" + activityRatio + "); ")
+            }
         }
         var iobTH_reduction_ratio = 1.0
         if (iob_threshold_percent != 100) {
