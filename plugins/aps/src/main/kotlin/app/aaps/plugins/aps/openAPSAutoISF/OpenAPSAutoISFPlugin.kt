@@ -331,9 +331,25 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             variableSensitivity = autoISF(now, profile)
         }
 
+        // mod get app start time
         val calendar = Calendar.getInstance()
         val lastAppStart = preferences.get(LongKey.AppStart)
         val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
+
+        // mod get steps from wear
+        val nowMillis = System.currentTimeMillis()
+        val timeMillis5 = nowMillis - 5 * 60 * 1000 // 5 minutes in milliseconds
+        val timeMillis10 = nowMillis - 10 * 60 * 1000 // 10 minutes in milliseconds
+        val timeMillis15 = nowMillis - 15 * 60 * 1000 // 15 minutes in milliseconds
+        val timeMillis30 = nowMillis - 30 * 60 * 1000 // 30 minutes in milliseconds
+        val timeMillis60 = nowMillis - 60 * 60 * 1000 // 60 minutes in milliseconds
+
+        val stepsFromWear = persistenceLayer.getStepsCountFromTimeToTime(timeMillis60, now)
+        val wearableStepsInLast5Minutes = stepsFromWear.filter { it.timestamp >= timeMillis5 }.sumOf { it.steps5min }
+        val wearableStepsInLast10Minutes = stepsFromWear.filter { it.timestamp >= timeMillis10 }.sumOf { it.steps10min }
+        val wearableStepsInLast15Minutes = stepsFromWear.filter { it.timestamp >= timeMillis15 }.sumOf { it.steps15min }
+        val wearableStepsInLast30Minutes = stepsFromWear.filter { it.timestamp >= timeMillis30 }.sumOf { it.steps30min }
+        val wearableStepsInLast60Minutes = stepsFromWear.filter { it.timestamp >= timeMillis60 }.sumOf { it.steps60min }
 
         val oapsProfile = OapsProfileAutoIsf(
             dia = 0.0, // not used
@@ -359,11 +375,11 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
             // mod activity mode
             activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
-            recent_steps_5_minutes = StepService.getRecentStepCount5Min(),
-            recent_steps_10_minutes = StepService.getRecentStepCount10Min(),
-            recent_steps_15_minutes = StepService.getRecentStepCount15Min(),
-            recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
-            recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
+            recent_steps_5_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast5Minutes else StepService.getRecentStepCount5Min(),
+            recent_steps_10_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast10Minutes - wearableStepsInLast5Minutes) else StepService.getRecentStepCount10Min(),
+            recent_steps_15_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast15Minutes - wearableStepsInLast10Minutes) else StepService.getRecentStepCount15Min(),
+            recent_steps_30_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast30Minutes else StepService.getRecentStepCount30Min(),
+            recent_steps_60_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast60Minutes else StepService.getRecentStepCount60Min(),
             phone_moved = PhoneMovementDetector.phoneMoved(),
             time_since_start = elapsedTimeSinceLastStart,
             now = calendar.get(Calendar.HOUR_OF_DAY),
@@ -980,13 +996,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "activity_modifies_sensitivity"
                 title = rh.gs(R.string.activity_mode_title)
-                addPreference(
-                    AdaptiveSwitchPreference(
-                        ctx = context,
-                        booleanKey = BooleanKey.ApsActivityDetection,
-                        summary = R.string.activity_mode_summary,
-                        title = R.string.activity_mode_title)
-                )
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetection, summary = R.string.activity_mode_summary, title = R.string.activity_mode_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetectionSource, summary = R.string.activity_detection_source_summary, title = R.string.activity_detection_source_title))
             })
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmb, summary = R.string.enable_smb_summary, title = R.string.enable_smb))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbWithHighTt, summary = R.string.enable_smb_with_high_temp_target_summary, title = R.string.enable_smb_with_high_temp_target))
