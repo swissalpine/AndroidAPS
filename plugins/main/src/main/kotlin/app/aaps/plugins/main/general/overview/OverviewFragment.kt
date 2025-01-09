@@ -38,6 +38,7 @@ import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
+import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
 import app.aaps.core.interfaces.nsclient.NSSettingsStatus
 import app.aaps.core.interfaces.nsclient.ProcessedDeviceStatusData
@@ -449,8 +450,8 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 }
 
                 R.id.cgm_button          -> {
-                    if (xDripSource.isEnabled())
-                        openCgmApp("com.eveningoutpost.dexdrip", "Home")
+                    if (xDripSource.isEnabled()) openCgmApp("com.eveningoutpost.dexdrip")
+                    else if (dexcomBoyda.isEnabled()) dexcomBoyda.dexcomPackages().forEach { openCgmApp(it) }
                 }
 
                 R.id.calibration_button  -> {
@@ -493,12 +494,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         }
     }
 
-    @Suppress("SameParameterValue")
-    private fun openCgmApp(packageName: String, launchActivity: String) {
-        try {
-            requireContext().startActivity(Intent(Intent.ACTION_MAIN).setClassName(packageName, "$packageName.$launchActivity"))
-        } catch (_: ActivityNotFoundException) {
-            OKDialog.show(requireContext(), "", rh.gs(R.string.error_starting_cgm))
+    private fun openCgmApp(packageName: String) {
+        context?.let {
+            val packageManager = it.packageManager
+            try {
+                val intent = packageManager.getLaunchIntentForPackage(packageName) ?: throw ActivityNotFoundException()
+                intent.addCategory(Intent.CATEGORY_LAUNCHER)
+                it.startActivity(intent)
+            } catch (_: ActivityNotFoundException) {
+                aapsLogger.debug(LTag.CORE, "Error opening CGM app")
+            }
         }
     }
 
@@ -621,8 +626,16 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
 
             // **** Calibration & CGM buttons ****
             val xDripIsBgSource = xDripSource.isEnabled()
+            val dexcomIsSource = dexcomBoyda.isEnabled()
             binding.buttonsLayout.calibrationButton.visibility = (xDripIsBgSource && actualBG != null && preferences.get(BooleanKey.OverviewShowCalibrationButton)).toVisibility()
-            if (xDripIsBgSource) {
+            if (dexcomIsSource) {
+                binding.buttonsLayout.cgmButton.setCompoundDrawablesWithIntrinsicBounds(null, rh.gd(R.drawable.ic_byoda), null, null)
+                for (drawable in binding.buttonsLayout.cgmButton.compoundDrawables) {
+                    drawable?.mutate()
+                    drawable?.colorFilter = PorterDuffColorFilter(rh.gac(context, app.aaps.core.ui.R.attr.cgmDexColor), PorterDuff.Mode.SRC_IN)
+                }
+                binding.buttonsLayout.cgmButton.setTextColor(rh.gac(context, app.aaps.core.ui.R.attr.cgmDexColor))
+            } else if (xDripIsBgSource) {
                 binding.buttonsLayout.cgmButton.setCompoundDrawablesWithIntrinsicBounds(null, rh.gd(app.aaps.core.objects.R.drawable.ic_xdrip), null, null)
                 for (drawable in binding.buttonsLayout.cgmButton.compoundDrawables) {
                     drawable?.mutate()
@@ -630,7 +643,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                 }
                 binding.buttonsLayout.cgmButton.setTextColor(rh.gac(context, app.aaps.core.ui.R.attr.cgmXdripColor))
             }
-            binding.buttonsLayout.cgmButton.visibility = (preferences.get(BooleanKey.OverviewShowCgmButton) && xDripIsBgSource).toVisibility()
+            binding.buttonsLayout.cgmButton.visibility = (preferences.get(BooleanKey.OverviewShowCgmButton) && (xDripIsBgSource || dexcomIsSource)).toVisibility()
 
             // Automation buttons
             binding.buttonsLayout.userButtonsLayout.removeAllViews()
@@ -1172,7 +1185,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     when {
                         it > 100.0 -> app.aaps.core.objects.R.drawable.ic_as_above
                         it < 100.0 -> app.aaps.core.objects.R.drawable.ic_as_below
-                        else     -> app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green
+                        else       -> app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green
                     }
                 }
                     ?: app.aaps.core.objects.R.drawable.ic_swap_vert_black_48dp_green
@@ -1183,13 +1196,12 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     when {
                         it > 100.0 -> app.aaps.core.objects.R.drawable.ic_x_as_above
                         it < 100.0 -> app.aaps.core.objects.R.drawable.ic_x_as_below
-                        else     -> app.aaps.core.objects.R.drawable.ic_x_swap_vert
+                        else       -> app.aaps.core.objects.R.drawable.ic_x_swap_vert
                     }
                 }
                     ?: app.aaps.core.objects.R.drawable.ic_x_swap_vert
             )
         }
-
 
         // Show variable sensitivity
         val profile = profileFunction.getProfile()
@@ -1214,7 +1226,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             val autoSensMax = 100.0 + (preferences.get(DoubleKey.AutosensMax) - 1.0) * autoSensHiddenRange * 100.0
             val autoSensMin = 100.0 + (preferences.get(DoubleKey.AutosensMin) - 1.0) * autoSensHiddenRange * 100.0
             lastAutosensRatio?.let {
-                if(it < autoSensMin || it > autoSensMax)
+                if (it < autoSensMin || it > autoSensMax)
                     overViewText.add(rh.gs(app.aaps.core.ui.R.string.autosens_short, it))
                 okDialogText.add(rh.gs(app.aaps.core.ui.R.string.autosens_long, it))
             }
@@ -1234,7 +1246,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             if (config.APS) {
                 val aps = activePlugin.activeAPS
                 aps.getSensitivityOverviewString()?.let {
-                    okDialogText.add("$it")
+                    okDialogText.add(it)
                 }
             }
             binding.infoLayout.asLayout.setOnClickListener { activity?.let { OKDialog.show(it, rh.gs(app.aaps.core.ui.R.string.sensitivity), okDialogText.joinToString("\n")) } }
@@ -1242,7 +1254,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         } else {
             binding.infoLayout.sensitivity.text =
                 lastAutosensData?.let {
-                    rh.gs(app.aaps.core.ui.R.string.autosens_short,it.autosensResult.ratio * 100)
+                    rh.gs(app.aaps.core.ui.R.string.autosens_short, it.autosensResult.ratio * 100)
                 } ?: ""
             binding.infoLayout.variableSensitivity.visibility = View.GONE
             binding.infoLayout.sensitivity.visibility = View.VISIBLE
