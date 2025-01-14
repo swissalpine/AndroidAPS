@@ -131,6 +131,15 @@
     <string name="key_low_temptarget_lowers_sensitivity" translatable="false">low_temptarget_lowers_sensitivity</string>
     <string name="key_openapsama_iob_threshold_percent" translatable="false">iob_threshold_percent</string>
 
+    <!--    Libre -->
+    <string name="key_fslMinFitMinutes" translatable="false">fslFitMinutes</string>
+    <string name="key_fslCal_Offset" translatable="false">fslCalOffset</string>
+    <string name="key_fslCal_Slope" translatable="false">fslCalSlope</string>
+    <string name="key_fsl_exp1_factor" translatable="false">fslExp1SmoothFactor</string>
+    <string name="key_fsl_exp1_correction" translatable="false">fslExp1SmoothCorrection</string>
+    <string name="key_fsl_exp1_max_smooth_gap" translatable="false">fslExp1SmoothGap</string>
+
+
     <!--    Sensitivity-->
     <string name="key_absorption_cutoff" translatable="false">absorption_cutoff</string>
     <string name="key_openaps_autosens_max" translatable="false">autosens_max</string>

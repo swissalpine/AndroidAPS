@@ -3,6 +3,7 @@ package app.aaps.plugins.source
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.util.LongSparseArray
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import app.aaps.core.data.model.GV
@@ -24,7 +25,8 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.DoubleKey
-import app.aaps.core.keys.UnitDoubleKey
+import app.aaps.core.keys.IntKey
+import app.aaps.core.keys.LongKey
 import app.aaps.core.objects.workflow.LoggingWorker
 import app.aaps.core.utils.receivers.DataWorkerStorage
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +34,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.abs
 import kotlin.math.round
+import kotlin.math.min
 
 @Singleton
 class XdripSourcePlugin @Inject constructor(
@@ -55,6 +58,7 @@ class XdripSourcePlugin @Inject constructor(
     override fun advancedFilteringSupported(): Boolean = advancedFiltering
 
     private fun detectSource(glucoseValue: GV) {
+        aapsLogger.debug(LTag.BGSOURCE, "Libre reading coming from source ${glucoseValue.sourceSensor}")
         advancedFiltering = arrayOf(
             SourceSensor.DEXCOM_NATIVE_UNKNOWN,
             SourceSensor.DEXCOM_G5_NATIVE,
@@ -97,6 +101,8 @@ class XdripSourcePlugin @Inject constructor(
             return sensorStartTime
         }
 
+
+
         @SuppressLint("CheckResult")
         override suspend fun doWorkAndLog(): Result {
             //val preferences = Preferences
@@ -113,16 +119,44 @@ class XdripSourcePlugin @Inject constructor(
             //val offset = preferences.get(UnitDoubleKey.FslCalOffset)
             val offset = preferences.get(DoubleKey.FslCalOffset)
             val slope = preferences.get(DoubleKey.FslCalSlope)
+            val factor = preferences.get(DoubleKey.FslSmoothAlpha)
+            val correction = preferences.get(DoubleKey.FslSmoothCorrection)
+            val lastRaw = preferences.get(DoubleKey.FslLastRaw)
+            val lastSmooth = preferences.get(DoubleKey.FslLastSmooth)
+            val lastTimeRaw = preferences.get(LongKey.FslSmoothLastTimeRaw)  // sp.getLong(app.aaps.database.impl.R.string.key_fsl_last_timeRaw, 0L)
+            val thisTimeRaw = bundle.getLong(Intents.EXTRA_TIMESTAMP, 0)
+            val elapsedMinutes = (thisTimeRaw - lastTimeRaw) / 60000.0
+            var smooth = extraBgEstimate
             if (extraRaw == 0.0) {
                 extraRaw = extraBgEstimate
                 extraBgEstimate = extraRaw * slope + offset
-                aapsLogger.debug(LTag.BGSOURCE, "Applied Libre 1 minute calibration: offset=$offset, slope=$slope")
+                val maxGap = preferences.get(IntKey.FslMaxSmoothGap)
+                val effectiveAlpha = min(factor*(maxGap-10.0+9.0*elapsedMinutes)/(maxGap-1.0), 1.0)    // limit smoothing to alpha=1, i.e. no smoothing for longer gaps
+                if (lastSmooth > 0.0) {
+                    // exponential smoothing, see https://en.wikipedia.org/wiki/Exponential_smoothing
+                    // y'[t]=y'[t-1] + (a*(y-y'[t-1])) = a*y+(1-a)*y'[t-1]
+                    // factor is a, value is y, lastSmooth y'[t-1], smooth y'
+                    // factor between 0 and 1, default 0.3
+                    // factor = 0: always last smooth (constant)
+                    // factor = 1: no smoothing
+                    smooth = lastSmooth + effectiveAlpha * (extraBgEstimate - lastSmooth)
+
+                    // correction: average of delta between raw and smooth value, added to smooth with correction factor
+                    // correction between 0 and 1, default 0.5
+                    // correction = 0: no correction, full smoothing
+                    // correction > 0: less smoothing
+                    smooth += correction * ((lastRaw - lastSmooth) + (extraBgEstimate - smooth)) / 2.0
+                }
+                preferences.put(DoubleKey.FslLastRaw, extraBgEstimate)
+                preferences.put(DoubleKey.FslLastSmooth, smooth)
+                preferences.put(LongKey.FslSmoothLastTimeRaw, thisTimeRaw)
+                aapsLogger.debug(LTag.BGSOURCE, "Applied Libre 1 minute calibration and smoothing: offset=$offset, slope=$slope, smoothFactor=$factor, effectiveAlpha=$effectiveAlpha, smoothCorrection=$correction")
             }
             glucoseValues += GV(
-                timestamp = bundle.getLong(Intents.EXTRA_TIMESTAMP, 0),
-                value = round(extraBgEstimate), //round(bundle.getDouble(Intents.EXTRA_BG_ESTIMATE, 0.0)),
-                raw = round(extraRaw),          //round(bundle.getDouble(Intents.EXTRA_RAW, 0.0)),
-                noise = null,
+                timestamp = thisTimeRaw,        // bundle.getLong(Intents.EXTRA_TIMESTAMP, 0),
+                value = round(smooth),          // round(extraBgEstimate), //round(bundle.getDouble(Intents.EXTRA_BG_ESTIMATE, 0.0)),
+                raw = round(extraBgEstimate),   // round(bundle.getDouble(Intents.EXTRA_RAW, 0.0)),
+                noise = round(extraRaw),        // piggy pack; raw can also be extracted from Juggluco export or above debug
                 trendArrow = TrendArrow.fromString(bundle.getString(Intents.EXTRA_BG_SLOPE_NAME)),
                 sourceSensor = SourceSensor.fromString(bundle.getString(Intents.XDRIP_DATA_SOURCE) ?: "")
             )

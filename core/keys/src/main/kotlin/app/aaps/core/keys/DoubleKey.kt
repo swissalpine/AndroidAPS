@@ -49,5 +49,9 @@ enum class DoubleKey(
     EquilMaxBolus("key_equil_maxbolus", 10.0, 0.1, 25.0),
     FslCalOffset("key_fslCal_Offset", 0.0, -50.0, 50.0, defaultedBySM = true),    // TODO: resolve UnitDouble problem
     FslCalSlope("key_fslCal_Slope", 1.0, 0.0, 1.5, defaultedBySM = true),
+    FslSmoothAlpha("key_fsl_exp1_factor", 1.0, 0.01, 1.0, defaultedBySM = true),
+    FslSmoothCorrection("key_fsl_exp1_correction", 0.0, 0.0, 1.0, defaultedBySM = true),
+    FslLastRaw("key_fsl_last_raw", -1.0, 40.0, 400.0, defaultedBySM = true),
+    FslLastSmooth("key_fsl_last_smooth", -1.0, 40.0, 400.0, defaultedBySM = true),
 
 }

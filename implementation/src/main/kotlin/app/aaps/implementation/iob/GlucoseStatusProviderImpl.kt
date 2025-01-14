@@ -14,8 +14,12 @@ import javax.inject.Inject
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import app.aaps.implementation.R
+//import app.aaps.implementation.R
 import app.aaps.core.interfaces.sharedPreferences.SP
+//import app.aaps.core.keys.DoubleKey
+import app.aaps.core.keys.IntKey
+import app.aaps.core.keys.Preferences
+
 
 @Reusable
 class GlucoseStatusProviderImpl @Inject constructor(
@@ -25,6 +29,8 @@ class GlucoseStatusProviderImpl @Inject constructor(
     private val decimalFormatter: DecimalFormatter
 ) : GlucoseStatusProvider {
     @Inject lateinit var sp: SP
+    @Inject lateinit var preferences: Preferences
+
 
     override val glucoseStatusData: GlucoseStatus?
         get() = getGlucoseStatusData()
@@ -51,8 +57,9 @@ class GlucoseStatusProviderImpl @Inject constructor(
         val cgm = now.sourceSensor
         val fsl = orig[0]
         val fslDate = fsl.timestamp
-        val fslValue = fsl.value
-        val fslRaw = fsl.raw
+        val fslValue = fsl.raw
+        val fslRaw = fsl.noise
+        val fslSmooth = fsl.value
         var fslReally = cgm.text=="Libre2" || cgm.text=="Libre2 Native" || cgm.text=="Libre3"
         //fslReally = true    // "RANDOM" while testing with virtual phone in AS or until xDrip/Juggluco label=="Libre2/3" is implemented
         var fslMinDur = 15  // default for 5m CGM
@@ -174,12 +181,12 @@ class GlucoseStatusProviderImpl @Inject constructor(
                 if ( orig[0].timestamp - orig[2].timestamp < 3 * 60000 ) {
                     use1MinuteRaw = true
                     sizeRecords = orig.size
-                    fslMinDur = 20   //sp.getInt(R.string.key_fslMinFitMinutes, 20)
+                    fslMinDur = preferences.get(IntKey.FslMinFitMinutes)    //sp.getInt(R.string.key_fslMinFitMinutes, 20)
                 }
             }
         }
-        aapsLogger.debug(LTag.GLUCOSE, "BgReadings stamp=$fslDate; raw=$fslRaw; value=$fslValue; " +
-            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm; Libre=$fslReally; fitDura=$fslMinDur")
+        aapsLogger.debug(LTag.GLUCOSE, "BgReadings stamp=$fslDate; raw=$fslRaw; value=$fslValue; Libre=$fslReally; fitMinutes=$fslMinDur; fslSmooth=$fslSmooth; " +
+            "BgBucketed value=$nowValue; recalc=$recalc; smooth=$smooth; filled=$filled; CGM=$cgm")
 
         if (sizeRecords > 3) {
             var sy = 0.0 // y
