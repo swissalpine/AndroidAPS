@@ -17,7 +17,7 @@ class HeartRateDataPoint(
     override val label: String = ""
     override val duration = data.duration
     override val shape = Shape.HEARTRATE
-    override val size = 10f
+    override val size = 2f
     override val paintStyle: Paint.Style = Paint.Style.FILL
 
     override fun color(context: Context?): Int = rh.gac(context, app.aaps.core.ui.R.attr.heartRateColor)
