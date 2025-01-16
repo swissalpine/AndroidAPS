@@ -3,10 +3,11 @@ package app.aaps.plugins.source
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import android.util.LongSparseArray
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.GV
+import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.SourceSensor
 import app.aaps.core.data.model.TrendArrow
 import app.aaps.core.data.plugin.PluginType
@@ -17,6 +18,7 @@ import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
 import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.receivers.Intents
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.source.BgSource
@@ -86,6 +88,7 @@ class XdripSourcePlugin @Inject constructor(
         @Inject lateinit var dataWorkerStorage: DataWorkerStorage
         @Inject lateinit var uel: UserEntryLogger
         @Inject lateinit var preferences: Preferences
+        @Inject lateinit var profileUtil: ProfileUtil
 
         fun getSensorStartTime(bundle: Bundle): Long? {
             val now = dateUtil.now()
@@ -116,7 +119,6 @@ class XdripSourcePlugin @Inject constructor(
             val glucoseValues = mutableListOf<GV>()
             var extraBgEstimate = round(bundle.getDouble(Intents.EXTRA_BG_ESTIMATE, 0.0))
             var extraRaw = round(bundle.getDouble(Intents.EXTRA_RAW, 0.0))
-            //val offset = preferences.get(UnitDoubleKey.FslCalOffset)
             val offset = preferences.get(DoubleKey.FslCalOffset)
             val slope = preferences.get(DoubleKey.FslCalSlope)
             val factor = preferences.get(DoubleKey.FslSmoothAlpha)
@@ -127,9 +129,10 @@ class XdripSourcePlugin @Inject constructor(
             val thisTimeRaw = bundle.getLong(Intents.EXTRA_TIMESTAMP, 0)
             val elapsedMinutes = (thisTimeRaw - lastTimeRaw) / 60000.0
             var smooth = extraBgEstimate
-            if (extraRaw == 0.0) {
+            val sourceCGM = bundle.getString(Intents.XDRIP_DATA_SOURCE) ?: ""
+            if (extraRaw == 0.0 && sourceCGM=="Libre2" || sourceCGM=="Libre2 Native" || sourceCGM=="Libre3") {
                 extraRaw = extraBgEstimate
-                extraBgEstimate = extraRaw * slope + offset
+                extraBgEstimate = extraRaw * slope + offset * ( if (profileUtil.units == GlucoseUnit.MMOL) Constants.MMOLL_TO_MGDL else 1.0)
                 val maxGap = preferences.get(IntKey.FslMaxSmoothGap)
                 val effectiveAlpha = min(factor*(maxGap-10.0+9.0*elapsedMinutes)/(maxGap-1.0), 1.0)    // limit smoothing to alpha=1, i.e. no smoothing for longer gaps
                 if (lastSmooth > 0.0) {

@@ -21,5 +21,4 @@ enum class UnitDoubleKey(
     OverviewHighMark("key_high_mark", 180.0, 90, 250, showInNsClientMode = false),
     ApsLgsThreshold("key_dynamic_isf_lgs_threshold", 65.0, 65, 120, defaultedBySM = true, dependency =BooleanKey.ApsUseDynamicSensitivity),
     ApsAutoIsfSmbDeliveryRatioBgRange("key_openapsama_smb_delivery_ratio_bg_range", 0.0, 0, 100, defaultedBySM = true),
-    //FslCalOffset("key_fslCal_Offset", 0.0, -50, 50, defaultedBySM = true),  // applied factor 18 twice
 }
