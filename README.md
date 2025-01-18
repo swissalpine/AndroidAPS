@@ -1,3 +1,17 @@
+# AAPS 3.3.1.2 modified (alpha status)
+
+There may be problems installing this version as an update over the previous one. Please uninstall the previous version before installation and then import your settings.
+
+This version does not have all changes of my branch sport-changes. Fully integrated are
+- Activity mode
+- Ketoacidosis protection
+- reduced SMB functionality (no SMB if blood glucose is below 100 mg/dl)
+autoISF has the same status as in the official master branch, but does not yet have all the functions of the current version
+The additional hypo-strategy is missing and possibly not all designs are adapted to very small screens.
+
+Otherwise the usual disclaimer applies:
+This repo has some private changes concerning tbr management, iob and layout. This is experimental! Please use the master branch Nightscout! URL: https://github.com/nightscout/AndroidAPS
+
 # AAPS
 * Check the wiki: https://wiki.aaps.app
 *  Everyone who’s been looping with AAPS needs to fill out the form after 3 days of looping  https://docs.google.com/forms/d/14KcMjlINPMJHVt28MDRupa4sz4DDIooI4SrW0P3HSN8/viewform?c=0&w=1
