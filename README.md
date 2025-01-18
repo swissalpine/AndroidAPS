@@ -5,11 +5,12 @@ There may be problems installing this version as an update over the previous one
 This version does not have all changes of my branch sport-changes. Fully integrated are
 - Activity mode
 - Ketoacidosis protection
+- Additional hypo strategy: hypoTT + tbr 50% @ 60 min
 - reduced SMB functionality (no SMB if blood glucose is below 100 mg/dl)
 
-autoISF has the same status as in the official master branch, but does not yet have all the functions of the current version
+autoISF has the same status as in the official master branch 3.3.1, but does not yet have all the functions which are developed
 
-The additional hypo-strategy is missing and possibly not all designs are adapted to very small screens.
+The attempt to use steps from Wear OS watches for Activity Mode has not yet been tested.
 
 Otherwise the usual disclaimer applies:
 This repo has some private changes concerning tbr management, iob and layout. This is experimental! Please use the master branch Nightscout! URL: https://github.com/nightscout/AndroidAPS
