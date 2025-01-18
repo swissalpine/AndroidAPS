@@ -6,7 +6,8 @@ This version does not have all changes of my branch sport-changes. Fully integra
 - Activity mode
 - Ketoacidosis protection
 - Additional hypo strategy: hypoTT + tbr 50% @ 60 min
-- reduced SMB functionality (no SMB if blood glucose is below 100 mg/dl)
+- Reduced SMB functionality (no SMB if blood glucose is below 100 mg/dl)
+- Allow temp targets up to 220 mg/dl (12 mmol/l)
 
 autoISF has the same status as in the official master branch 3.3.1, but does not yet have all the functions which are developed
 
