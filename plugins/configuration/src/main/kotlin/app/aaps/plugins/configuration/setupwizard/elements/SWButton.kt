@@ -1,6 +1,5 @@
 package app.aaps.plugins.configuration.setupwizard.elements
 
-import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import dagger.android.HasAndroidInjector
@@ -9,7 +8,7 @@ class SWButton(injector: HasAndroidInjector) : SWItem(injector, Type.BUTTON) {
 
     private var buttonRunnable: Runnable? = null
     private var buttonText = 0
-    private var buttonValidator: (() -> Boolean)? = { false }
+    private var buttonValidator: (() -> Boolean)? = null
     private var button: Button? = null
 
     fun text(buttonText: Int): SWButton {
@@ -38,7 +37,12 @@ class SWButton(injector: HasAndroidInjector) : SWItem(injector, Type.BUTTON) {
     }
 
     override fun processVisibility() {
-        if (buttonValidator?.invoke() == false) button?.visibility = View.GONE
-        else button?.visibility = View.VISIBLE
+        if (buttonValidator?.invoke() == false) {
+            button?.isEnabled = false
+            button?.alpha = .5f
+        } else {
+            button?.isEnabled = true
+            button?.alpha = 1f
+        }
     }
 }

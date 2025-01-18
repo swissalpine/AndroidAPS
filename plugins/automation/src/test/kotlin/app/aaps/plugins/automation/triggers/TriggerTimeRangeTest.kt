@@ -16,7 +16,7 @@ class TriggerTimeRangeTest : TriggerTestBase() {
     @BeforeEach
     fun mock() {
         now = 754 // in minutes from midnight
-        val nowMills = MidnightTime.calcPlusMinutes(now.toInt())
+        val nowMills = MidnightTime.calcMidnightPlusMinutes(now.toInt())
         `when`(dateUtil.now()).thenReturn(nowMills)
         `when`(rh.gs(R.string.timerange_value)).thenReturn("Time is between %1\$s and %2\$s")
     }
@@ -66,6 +66,6 @@ class TriggerTimeRangeTest : TriggerTestBase() {
     }
 
     @Test fun iconTest() {
-        assertThat(TriggerTimeRange(injector).icon().get()).isEqualTo(app.aaps.core.main.R.drawable.ic_access_alarm_24dp)
+        assertThat(TriggerTimeRange(injector).icon().get()).isEqualTo(app.aaps.core.objects.R.drawable.ic_access_alarm_24dp)
     }
 }
