@@ -6,7 +6,9 @@ This version does not have all changes of my branch sport-changes. Fully integra
 - Activity mode
 - Ketoacidosis protection
 - reduced SMB functionality (no SMB if blood glucose is below 100 mg/dl)
+
 autoISF has the same status as in the official master branch, but does not yet have all the functions of the current version
+
 The additional hypo-strategy is missing and possibly not all designs are adapted to very small screens.
 
 Otherwise the usual disclaimer applies:
