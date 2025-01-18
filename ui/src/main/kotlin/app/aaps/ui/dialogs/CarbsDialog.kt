@@ -10,10 +10,12 @@ import android.view.ViewGroup
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.TE
 import app.aaps.core.data.model.TT
+import app.aaps.core.data.pump.defs.PumpDescription
 import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
+import app.aaps.core.interfaces.aps.Loop
 import app.aaps.core.interfaces.automation.Automation
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
@@ -21,10 +23,13 @@ import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.protection.ProtectionCheck
 import app.aaps.core.interfaces.protection.ProtectionCheck.Protection.BOLUS
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
+import app.aaps.core.interfaces.pump.PumpSync
 import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.resources.ResourceHelper
@@ -56,7 +61,10 @@ class CarbsDialog : DialogFragmentWithDate() {
     @Inject lateinit var ctx: Context
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var constraintChecker: ConstraintsChecker
+    @Inject lateinit var profileFunction: ProfileFunction
     @Inject lateinit var profileUtil: ProfileUtil
+    @Inject lateinit var loop: Loop
+    @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var iobCobCalculator: IobCobCalculator
     @Inject lateinit var glucoseStatusProvider: GlucoseStatusProvider
     @Inject lateinit var uel: UserEntryLogger
@@ -70,6 +78,7 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     private var queryingProtection = false
     private val disposable = CompositeDisposable()
+    private var isPercentPump = true
 
     private val textWatcher: TextWatcher = object : TextWatcher {
         override fun afterTextChanged(s: Editable) {
@@ -190,14 +199,22 @@ class CarbsDialog : DialogFragmentWithDate() {
         binding.hypoTt.setOnClickListener {
             binding.activityTt.isChecked = false
             binding.eatingSoonTt.isChecked = false
+            binding.hypoAction.isChecked = false
         }
         binding.activityTt.setOnClickListener {
             binding.hypoTt.isChecked = false
             binding.eatingSoonTt.isChecked = false
+            binding.hypoAction.isChecked = false
         }
         binding.eatingSoonTt.setOnClickListener {
             binding.hypoTt.isChecked = false
             binding.activityTt.isChecked = false
+            binding.hypoAction.isChecked = false
+        }
+        binding.hypoAction.setOnClickListener {
+            binding.hypoTt.isChecked = false
+            binding.activityTt.isChecked = false
+            binding.eatingSoonTt.isChecked = false
         }
         binding.durationLabel.labelFor = binding.duration.editTextId
         binding.timeLabel.labelFor = binding.time.editTextId
@@ -216,6 +233,11 @@ class CarbsDialog : DialogFragmentWithDate() {
 
     override fun submit(): Boolean {
         if (_binding == null) return false
+
+        //hypo mod 1
+        val profile = profileFunction.getProfile() ?: return false
+        //end mod
+
         val carbs = binding.carbs.value.toInt()
         var carbsAfterConstraints = constraintChecker.applyCarbsConstraints(ConstraintObject(carbs, aapsLogger)).value()
         val units = profileUtil.units
@@ -264,6 +286,21 @@ class CarbsDialog : DialogFragmentWithDate() {
                 )
             )
 
+        // hypo mod 2
+        val hypoActionSelected = binding.hypoAction.isChecked
+        if (hypoActionSelected)
+            actions.add(
+                rh.gs(R.string.temp_target_short) + ": " + (decimalFormatter.to1Decimal(hypoTT) + " " + unitLabel + " (" + rh.gs(
+                    app.aaps.core.ui.R.string.format_mins,
+                    hypoTTDuration
+                ) + ")  + TBR: 50% (60 min)").formatColor(
+                    context,
+                    rh,
+                    app.aaps.core.ui.R.attr.tempTargetConfirmation
+                )
+            )
+        // end mod
+
         val timeOffset = binding.time.value.toInt()
         if (useAlarm && carbs > 0 && timeOffset > 0)
             actions.add(rh.gs(app.aaps.core.ui.R.string.alarminxmin, timeOffset).formatColor(context, rh, app.aaps.core.ui.R.attr.infoColor))
@@ -299,26 +336,62 @@ class CarbsDialog : DialogFragmentWithDate() {
         if (eventTimeChanged)
             actions.add(rh.gs(app.aaps.core.ui.R.string.time) + ": " + dateUtil.dateAndTimeString(eventTime))
 
-        if (carbsAfterConstraints != 0 || activitySelected || eatingSoonSelected || hypoSelected) {
+        if (carbsAfterConstraints != 0 || activitySelected || eatingSoonSelected || hypoSelected || hypoActionSelected) {
             activity?.let { activity ->
                 OKDialog.showConfirmation(activity, rh.gs(app.aaps.core.ui.R.string.carbs), HtmlHelper.fromHtml(Joiner.on("<br/>").join(actions)), {
                     val selectedTTDuration = when {
                         activitySelected   -> activityTTDuration
                         eatingSoonSelected -> eatingSoonTTDuration
                         hypoSelected       -> hypoTTDuration
+                        hypoActionSelected -> hypoTTDuration
                         else               -> 0
                     }
                     val selectedTT = when {
                         activitySelected   -> activityTT
                         eatingSoonSelected -> eatingSoonTT
                         hypoSelected       -> hypoTT
+                        hypoActionSelected -> hypoTT
                         else               -> 0.0
                     }
                     val reason = when {
                         activitySelected   -> TT.Reason.ACTIVITY
                         eatingSoonSelected -> TT.Reason.EATING_SOON
                         hypoSelected       -> TT.Reason.HYPOGLYCEMIA
+                        hypoActionSelected -> TT.Reason.HYPOGLYCEMIAPLUS
                         else               -> TT.Reason.CUSTOM
+                    }
+                    if (reason == TT.Reason.HYPOGLYCEMIAPLUS) {
+                        loop.suspendLoop(T.hours(1).mins().toInt(), Action.SUSPEND, Sources.LoopDialog, listValues = listOf(ValueWithUnit.Hour(1)))
+                        val percent = 50
+                        val absolute = profile.getBasal() * 0.5
+                        val durationInMinutes = 60
+                        isPercentPump = activePlugin.activePump.pumpDescription.tempBasalStyle and PumpDescription.PERCENT == PumpDescription.PERCENT
+                        val callback: Callback = object : Callback() {
+                            override fun run() {
+                                if (!result.success) {
+                                    uiInteraction.runAlarm(result.comment, rh.gs(app.aaps.core.ui.R.string.temp_basal_delivery_error), app.aaps.core.ui.R.raw.boluserror)
+                                }
+                            }
+                        }
+                        if (isPercentPump) {
+                            uel.log(
+                                action = Action.TEMP_BASAL, source = Sources.TempBasalDialog,
+                                listValues = listOf(
+                                    ValueWithUnit.Percent(percent),
+                                    ValueWithUnit.Minute(durationInMinutes)
+                                )
+                            )
+                            commandQueue.tempBasalPercent(percent, durationInMinutes, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
+                        } else {
+                            uel.log(
+                                action = Action.TEMP_BASAL, source = Sources.TempBasalDialog,
+                                listValues = listOf(
+                                    ValueWithUnit.Insulin(absolute),
+                                    ValueWithUnit.Minute(durationInMinutes)
+                                )
+                            )
+                            commandQueue.tempBasalAbsolute(absolute, durationInMinutes, true, profile, PumpSync.TemporaryBasalType.NORMAL, callback)
+                        }
                     }
                     if (reason != TT.Reason.CUSTOM)
                         disposable += persistenceLayer.insertAndCancelCurrentTemporaryTarget(

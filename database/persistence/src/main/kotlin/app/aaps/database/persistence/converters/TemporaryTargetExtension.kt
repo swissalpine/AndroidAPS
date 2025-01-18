@@ -17,6 +17,7 @@ fun TT.Reason.toDb(): TemporaryTarget.Reason =
     when (this) {
         TT.Reason.CUSTOM       -> TemporaryTarget.Reason.CUSTOM
         TT.Reason.HYPOGLYCEMIA -> TemporaryTarget.Reason.HYPOGLYCEMIA
+        TT.Reason.HYPOGLYCEMIAPLUS -> TemporaryTarget.Reason.HYPOGLYCEMIA
         TT.Reason.ACTIVITY     -> TemporaryTarget.Reason.ACTIVITY
         TT.Reason.EATING_SOON  -> TemporaryTarget.Reason.EATING_SOON
         TT.Reason.AUTOMATION   -> TemporaryTarget.Reason.AUTOMATION
