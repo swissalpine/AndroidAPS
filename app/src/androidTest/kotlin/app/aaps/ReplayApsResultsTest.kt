@@ -1,6 +1,5 @@
 package app.aaps
 
-import android.icu.util.Calendar
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -238,7 +237,9 @@ class ReplayApsResultsTest @Inject constructor() {
             insulinDivisor = 0,
             TDD = 0.0,
             ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            ketoacidosis_protection_iob = 0.0
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -413,7 +414,9 @@ class ReplayApsResultsTest @Inject constructor() {
             insulinDivisor = determineBasalResult.profile.getInt("insulinDivisor"),
             TDD = determineBasalResult.profile.getDouble("TDD"),
             ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            ketoacidosis_protection_iob = 0.0
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -582,7 +585,9 @@ class ReplayApsResultsTest @Inject constructor() {
             insulinDivisor = 0,
             TDD = 0.0,
             ketoacidosis_protection = false,
-            ketoacidosis_protection_basal = 20
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = 20,
+            ketoacidosis_protection_iob = 0.0
         )
         val mealData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),
@@ -733,8 +738,8 @@ class ReplayApsResultsTest @Inject constructor() {
             recent_steps_30_minutes = StepService.getRecentStepCount30Min(),
             recent_steps_60_minutes = StepService.getRecentStepCount60Min(),
             phone_moved = PhoneMovementDetector.phoneMoved(),
-            time_since_start = elapsedTimeSinceLastStart,
-            now = calendar.get(Calendar.HOUR_OF_DAY),
+            time_since_start = 0,
+            now = 0,
             maxCOB = determineBasalResult.profile.getInt("maxCOB"),
             skip_neutral_temps = determineBasalResult.profile.getBoolean("skip_neutral_temps"),
             remainingCarbsCap = determineBasalResult.profile.getInt("remainingCarbsCap"),
@@ -775,7 +780,9 @@ class ReplayApsResultsTest @Inject constructor() {
             iob_threshold_percent = determineBasalResult.profile.getInt("iob_threshold_percent"),
             profile_percentage = determineBasalResult.profile.getInt("profile_percentage"),
             ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            ketoacidosis_protection_iob = ketoacidosisProtectionIob
         )
         val meatData = MealData(
             carbs = determineBasalResult.mealData.getDouble("carbs"),

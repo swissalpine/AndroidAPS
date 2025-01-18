@@ -76,5 +76,7 @@ data class OapsProfileAutoIsf(
     var iob_threshold_percent: Int,
     var profile_percentage: Int,
     var ketoacidosis_protection: Boolean,
-    var ketoacidosis_protection_basal: Int = 20
+    val ketoacidosis_protection_var_strategy: Boolean = false,
+    var ketoacidosis_protection_basal: Int = 20,
+    val ketoacidosis_protection_iob: Double = 0.0
 )

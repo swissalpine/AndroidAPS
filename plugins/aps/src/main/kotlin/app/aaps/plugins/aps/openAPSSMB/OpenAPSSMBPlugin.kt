@@ -433,6 +433,9 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val wearableStepsInLast30Minutes = stepsFromWear.filter { it.timestamp >= timeMillis30 }.sumOf { it.steps30min }
         val wearableStepsInLast60Minutes = stepsFromWear.filter { it.timestamp >= timeMillis60 }.sumOf { it.steps60min }
 
+        val ketoacidosisProtectionIob : Double = iobCobCalculator.calculateIobFromBolus().iob +
+            iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended().basaliob
+
         @Suppress("KotlinConstantConditions")
         val oapsProfile = OapsProfile(
             dia = 0.0, // not used
@@ -497,7 +500,9 @@ open class OpenAPSSMBPlugin @Inject constructor(
             insulinDivisor = dynIsfResult.insulinDivisor,
             TDD = dynIsfResult.tdd ?: 0.0,
             ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            ketoacidosis_protection_iob = ketoacidosisProtectionIob
         )
         val microBolusAllowed = constraintsChecker.isSMBModeEnabled(ConstraintObject(tempBasalFallback.not(), aapsLogger)).also { inputConstraints.copyReasons(it) }.value()
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
@@ -662,6 +667,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
                 key = "ketoacidosis_protection"
                 title = rh.gs(R.string.ketoacidosis_protection_title)
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisVarStrategy, summary = R.string.ketoacidosis_protection_var_strategy_summary, title = R.string.ketoacidosis_protection_var_strategy_title))
                 addPreference(AdaptiveIntPreference(ctx=context, intKey = IntKey.ApsKetoacidosisProtectionBasal, dialogMessage = R.string.ketoacidosis_protection_basal_summary, title = R.string.ketoacidosis_protection_basal_title))
             })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {

@@ -11,7 +11,6 @@ import app.aaps.core.interfaces.aps.Predictions
 import app.aaps.core.interfaces.aps.RT
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
-import app.aaps.core.keys.BooleanKey
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -110,14 +109,19 @@ class DetermineBasalSMB @Inject constructor(
 
     // mod ketoacidosis protection
     private fun ketoProtection(_proposedRate: Double, profile: OapsProfile, rT: RT): Double {
-        val baseBasalRate = profile.current_basal
-        var proposedRate = _proposedRate
+        var proposedRate : Double = _proposedRate
         val protectionRate : Double = profile.ketoacidosis_protection_basal.toDouble() * 0.01
-        val cutOff : Double = round_basal(baseBasalRate * protectionRate)
+        val cutOff : Double = round_basal(profile.current_basal * protectionRate)
         if (profile.ketoacidosis_protection && proposedRate < cutOff) {
-            proposedRate = cutOff
-            rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
-            consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+            if (profile.ketoacidosis_protection_var_strategy && profile.ketoacidosis_protection_iob < (0 - profile.current_basal) ) {
+                proposedRate = cutOff
+                rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
+                consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+            } else if (!profile.ketoacidosis_protection_var_strategy) {
+                proposedRate = cutOff
+                rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
+                consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+            }
         }
         return proposedRate
     }

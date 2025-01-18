@@ -353,6 +353,9 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         val wearableStepsInLast30Minutes = stepsFromWear.filter { it.timestamp >= timeMillis30 }.sumOf { it.steps30min }
         val wearableStepsInLast60Minutes = stepsFromWear.filter { it.timestamp >= timeMillis60 }.sumOf { it.steps60min }
 
+        val ketoacidosisProtectionIob : Double = iobCobCalculator.calculateIobFromBolus().iob +
+            iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended().basaliob
+
         val oapsProfile = OapsProfileAutoIsf(
             dia = 0.0, // not used
             min_5m_carbimpact = 0.0, // not used
@@ -425,7 +428,9 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             iob_threshold_percent = iobThresholdPercent,
             profile_percentage = profile_percentage,
             ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            ketoacidosis_protection_iob = ketoacidosisProtectionIob
         )
         //done calculate exercise ratio
         var exerciseRatio = 1.0
@@ -1013,6 +1018,13 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsUamMaxMinutesOfBasalToLimitSmb, dialogMessage = R.string.uam_smb_max_minutes, title = R.string.uam_smb_max_minutes_summary))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsCarbsRequestThreshold, dialogMessage = R.string.carbs_req_threshold_summary, title = R.string.carbs_req_threshold))
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "ketoacidosis_protection"
+                title = rh.gs(R.string.ketoacidosis_protection_title)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisVarStrategy, summary = R.string.ketoacidosis_protection_var_strategy_summary, title = R.string.ketoacidosis_protection_var_strategy_title))
+                addPreference(AdaptiveIntPreference(ctx=context, intKey = IntKey.ApsKetoacidosisProtectionBasal, dialogMessage = R.string.ketoacidosis_protection_basal_summary, title = R.string.ketoacidosis_protection_basal_title))
+            })
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "absorption_smb_advanced"
                 title = rh.gs(app.aaps.core.ui.R.string.advanced_settings_title)
                 addPreference(
@@ -1066,12 +1078,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                     addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbMaxRangeExtension, dialogMessage = R.string.openapsama_smb_max_range_extension_summary, title = R.string.openapsama_smb_max_range_extension))
                     addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfSmbOnEvenTarget, summary = R.string.enableSMB_EvenOn_OddOff_always_summary, title = R.string.enableSMB_EvenOn_OddOff_always))
                 })
-            })
-            addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                key = "ketoacidosis_protection"
-                title = rh.gs(R.string.ketoacidosis_protection_title)
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
-                addPreference(AdaptiveIntPreference(ctx=context, intKey = IntKey.ApsKetoacidosisProtectionBasal, dialogMessage = R.string.ketoacidosis_protection_basal_summary, title = R.string.ketoacidosis_protection_basal_title))
             })
         }
     }

@@ -106,15 +106,19 @@ class DetermineBasalAutoISF @Inject constructor(
 
     // mod ketoacidosis protection
     private fun ketoProtection(_proposedRate: Double, profile: OapsProfileAutoIsf, rT: RT): Double {
-        val baseBasalRate = profile.current_basal
-        var proposedRate = _proposedRate
+        var proposedRate : Double = _proposedRate
         val protectionRate : Double = profile.ketoacidosis_protection_basal.toDouble() * 0.01
-        val cutOff : Double = round_basal(baseBasalRate * protectionRate)
-        consoleError.add("cutOff: $cutOff")
+        val cutOff : Double = round_basal(profile.current_basal * protectionRate)
         if (profile.ketoacidosis_protection && proposedRate < cutOff) {
-            proposedRate = cutOff
-            rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
-            consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+            if (profile.ketoacidosis_protection_var_strategy && profile.ketoacidosis_protection_iob < (0 - profile.current_basal) ) {
+                proposedRate = cutOff
+                rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
+                consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+            } else if (!profile.ketoacidosis_protection_var_strategy) {
+                proposedRate = cutOff
+                rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
+                consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+            }
         }
         return proposedRate
     }

@@ -60,6 +60,7 @@ enum class BooleanKey(
     ApsActivityDetection("activity_detection", false, defaultedBySM = true),
     ApsActivityDetectionSource("activity_detection_source", false, defaultedBySM = true),
     ApsKetoacidosisProtection("ketoacidosis_protection", false, defaultedBySM = true),
+    ApsKetoacidosisVarStrategy("ketoacidosis_variable_strategy", false, defaultedBySM = true),
     ApsUseAutoIsfWeights("openapsama_enable_autoISF", false, defaultedBySM = true),
     ApsAutoIsfSmbOnEvenTarget("Enable alternative activation of SMB always", false, defaultedBySM = true),   // profile target
 

@@ -219,7 +219,9 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             iob_threshold_percent = 100,
             profile_percentage = 100,
             ketoacidosis_protection = false,
-            ketoacidosis_protection_basal = 20
+            ketoacidosis_protection_var_strategy = false,
+            ketoacidosis_protection_basal = 20,
+            ketoacidosis_protection_iob = 0.0
         )
         assertThat(openAPSAutoISFPlugin.loop_smb(false, profile, 11.0, false, 11.1)).isEqualTo("AAPS")
         `when`(preferences.get(BooleanKey.ApsAutoIsfSmbOnEvenTarget)).thenReturn(true)
@@ -317,7 +319,9 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
             iob_threshold_percent = 100,
             profile_percentage = 100,
             ketoacidosis_protection = false,
-            ketoacidosis_protection_basal = 20
+            ketoacidosis_protection_var_strategy = false,
+            ketoacidosis_protection_basal = 20,
+            ketoacidosis_protection_iob = 0.0
         )
         assertThat(openAPSAutoISFPlugin.autoISF(now, profile)).isEqualTo(47.11)                             // inactive
         `when`(oapsProfile.enable_autoISF).thenReturn(true)
