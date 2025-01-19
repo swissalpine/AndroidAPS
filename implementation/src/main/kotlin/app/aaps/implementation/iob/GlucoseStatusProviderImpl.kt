@@ -205,8 +205,9 @@ class GlucoseStatusProviderImpl @Inject constructor(
             // if (data[i].recalculated > 38) {  } // not checked in past 1.5 years
             n = 0
             for (i in 0 until sizeRecords) {
-                val noGap = if (fslReally) true else !data[i].filledGap
-                if (orig[i].value > 39 && noGap) {
+                val noGap = if (use1MinuteRaw) true else !data[i].filledGap
+                val usableValue = if (use1MinuteRaw) orig[i].value else data[i].value
+                if (usableValue > 39 && noGap) {
                     n += 1
                     val thenDate: Long
                     var bg: Double
