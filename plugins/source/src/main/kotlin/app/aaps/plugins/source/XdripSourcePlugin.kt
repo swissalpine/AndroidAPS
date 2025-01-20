@@ -35,8 +35,10 @@ import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.abs
-import kotlin.math.round
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.round
 
 @Singleton
 class XdripSourcePlugin @Inject constructor(
@@ -134,7 +136,7 @@ class XdripSourcePlugin @Inject constructor(
                 extraRaw = extraBgEstimate
                 extraBgEstimate = extraRaw * slope + offset * ( if (profileUtil.units == GlucoseUnit.MMOL) Constants.MMOLL_TO_MGDL else 1.0)
                 val maxGap = preferences.get(IntKey.FslMaxSmoothGap)
-                val effectiveAlpha = min(factor*(maxGap-10.0+9.0*elapsedMinutes)/(maxGap-1.0), 1.0)    // limit smoothing to alpha=1, i.e. no smoothing for longer gaps
+                val effectiveAlpha =  min(1.0, factor + (1.0-factor) * ((max(0.0, elapsedMinutes-1.0) /(maxGap-1.0)).pow(2.0)) )   // limit smoothing to alpha=1, i.e. no smoothing for longer gaps
                 if (lastSmooth > 0.0) {
                     // exponential smoothing, see https://en.wikipedia.org/wiki/Exponential_smoothing
                     // y'[t]=y'[t-1] + (a*(y-y'[t-1])) = a*y+(1-a)*y'[t-1]
