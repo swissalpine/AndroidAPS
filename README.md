@@ -3,7 +3,7 @@
 There may be problems installing this version as an update over the previous one. Please uninstall the previous version before installation and then import your settings.
 
 This version does not have all changes of my branch sport-changes. Fully integrated are
-- Activity mode
+- Activity mode (full integrated in OpenAPS SMB, partially in Auto ISF)
 - Ketoacidosis protection
 - Additional hypo strategy: hypoTT + tbr 50% @ 60 min
 - Reduced SMB functionality (no SMB if blood glucose is below 100 mg/dl)
