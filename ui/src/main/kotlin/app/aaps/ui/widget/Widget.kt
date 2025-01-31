@@ -325,7 +325,7 @@ class Widget : AppWidgetProvider() {
         // end mod
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             val overViewText: ArrayList<String> = ArrayList()
-            if (ratioUsed != 1.0 && ratioUsed != lastAutosensData?.autosensResult?.ratio) overViewText.add(rh.gs(app.aaps.core.ui.R.string.algorithm_short,ratioUsed * 100))
+            //if (ratioUsed != 1.0 && ratioUsed != lastAutosensData?.autosensResult?.ratio) overViewText.add(rh.gs(app.aaps.core.ui.R.string.algorithm_short,ratioUsed * 100))
             overViewText.add(
                 String.format(
                     Locale.getDefault(), formatVariableSense, //"%1$.1f→%2$.1f",
