@@ -115,12 +115,12 @@ class DetermineBasalSMB @Inject constructor(
         if (profile.ketoacidosis_protection && proposedRate < cutOff) {
             if (profile.ketoacidosis_protection_var_strategy && profile.ketoacidosis_protection_iob < (0 - profile.current_basal) ) {
                 proposedRate = cutOff
-                rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
-                consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+                rT.reason.append("\nKetoacidosis protection sets temp basal to " + round(proposedRate,2) +" U/h.")
+                consoleError.add("Ketoacidosis protection sets temp basal to " + round(proposedRate,2) + " U/h")
             } else if (!profile.ketoacidosis_protection_var_strategy) {
                 proposedRate = cutOff
-                rT.reason.append("\nKetoacidosis protection sets temp basal to $proposedRate U/h.")
-                consoleError.add("Ketoacidosis protection sets temp basal to $proposedRate U/h")
+                rT.reason.append("\nKetoacidosis protection sets temp basal to " + round(proposedRate,2) + " U/h")
+                consoleError.add("Ketoacidosis protection sets temp basal to  " + round(proposedRate,2) + " U/h")
             }
         }
         return proposedRate
