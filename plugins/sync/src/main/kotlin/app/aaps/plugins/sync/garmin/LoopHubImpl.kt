@@ -18,7 +18,6 @@ import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
-import app.aaps.core.interfaces.overview.OverviewData
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
@@ -49,7 +48,6 @@ class LoopHubImpl @Inject constructor(
     private val loop: Loop,
     private val profileFunction: ProfileFunction,
     private val profileUtil: ProfileUtil,
-    private val overviewData: OverviewData,
     private val persistenceLayer: PersistenceLayer,
     private val userEntryLogger: UserEntryLogger,
     private val preferences: Preferences,
@@ -103,14 +101,6 @@ class LoopHubImpl @Inject constructor(
                 tb?.convertedToPercent(clock.millis(), it)?.div(100.0)
             } ?: Double.NaN
         }
-
-    // mod temp basal in percent
-    /** Returns the current temporary basal rate in percent **/
-    override val temporaryBasalPercent: String
-        get() {
-            return overviewData.temporaryBasalText()
-        }
-    // mod end
 
     override val lowGlucoseMark get() = profileUtil.convertToMgdl(
         preferences.get(UnitDoubleKey.OverviewLowMark), glucoseUnit)

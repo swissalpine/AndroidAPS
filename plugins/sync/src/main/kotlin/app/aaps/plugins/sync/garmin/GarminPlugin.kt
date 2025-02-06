@@ -510,7 +510,12 @@ class GarminPlugin @Inject constructor(
                     GlucoseUnit.MMOL -> jo.addProperty("units_hint", "mmol")
                 }
                 jo.addProperty("iob", loopHub.insulinOnboard + loopHub.insulinBasalOnboard)
-                jo.addProperty("tbr", loopHub.temporaryBasalPercent)
+                loopHub.temporaryBasal.also {
+                    if (!it.isNaN()) {
+                        val temporaryBasalRateInPercent = (it * 100.0).toInt()
+                        jo.addProperty("tbr", temporaryBasalRateInPercent)
+                    }
+                }
                 jo.addProperty("cob", loopHub.carbsOnboard)
             }
             joa.add(jo)

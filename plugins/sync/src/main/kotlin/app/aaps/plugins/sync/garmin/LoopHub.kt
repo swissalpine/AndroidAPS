@@ -35,11 +35,6 @@ interface LoopHub {
     /** Returns the factor by which the basal rate is currently raised (> 1) or lowered (< 1). */
     val temporaryBasal: Double
 
-    // mod temporary basal rate
-    /** Returns the current temporary basal rate in percent **/
-    val temporaryBasalPercent: String
-    // end mod
-
     /** Returns the lower bound of the target glucose range. */
     val lowGlucoseMark: Double
 

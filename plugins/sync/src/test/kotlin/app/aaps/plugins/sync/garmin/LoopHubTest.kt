@@ -22,7 +22,6 @@ import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.db.ProcessedTbrEbData
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.UserEntryLogger
-import app.aaps.core.interfaces.overview.OverviewData
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
@@ -63,7 +62,6 @@ class LoopHubTest : TestBase() {
     @Mock lateinit var loop: Loop
     @Mock lateinit var profileFunction: ProfileFunction
     @Mock lateinit var profileUtil: ProfileUtil
-    @Mock lateinit var overviewData: OverviewData
     @Mock lateinit var persistenceLayer: PersistenceLayer
     @Mock lateinit var userEntryLogger: UserEntryLogger
     @Mock lateinit var preferences: Preferences
@@ -82,7 +80,7 @@ class LoopHubTest : TestBase() {
         }
         loopHub = LoopHubImpl(
             aapsLogger, commandQueue, constraints, iobCobCalculator, loop,
-            profileFunction, profileUtil, overviewData, persistenceLayer, userEntryLogger, preferences, processedTbrEbData, dateUtil
+            profileFunction, profileUtil, persistenceLayer, userEntryLogger, preferences, processedTbrEbData, dateUtil
         )
         loopHub.clock = clock
     }
