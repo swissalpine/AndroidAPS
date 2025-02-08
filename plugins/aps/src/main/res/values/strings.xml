@@ -195,8 +195,8 @@
     <string name="ketoacidosis_protection_var_strategy_summary">If activated the small safety TBR kicks in when IOB is in negative range as if no basal insulin has been delivered for one hour.\nIf deactivated every Zero Temp is replaced with the small TBR.</string>
     <string name="activity_mode_title">"Activity modifies sensitivity"</string>
     <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA temp target disables this.\nPlease note: Inactivity detection is deactivated if the smartphone is not carried for at least 15 minutes and at night between 10 pm and 8 am (sleeping time)."</string>
-    <string name="activity_detection_source_title">Use your smartwatch\'s step counter (Wear OS only)\nDefault: false</string>
-    <string name="activity_detection_source_summary">It is recommended that you use your smartphone\'s step counter! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
+    <string name="activity_detection_source_title">Use your WATCH\'s step counter (Wear OS only)\nDefault: false (= Do NOT use WATCH\'s step counter)</string>
+    <string name="activity_detection_source_summary">It is recommended that you use your PHONE\'s step counter instead! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
 
     <!--    autoISF -->
     <string name="half_basal_exercise_target_title">Half basal exercise target</string>

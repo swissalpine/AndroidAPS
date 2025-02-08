@@ -13,6 +13,7 @@ import androidx.preference.PreferenceScreen
 import androidx.preference.SwitchPreference
 import app.aaps.core.data.aps.SMBDefaults
 import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.data.model.SC
 import app.aaps.core.data.plugin.PluginType
 import app.aaps.core.data.time.T
 import app.aaps.core.interfaces.aps.APS
@@ -75,6 +76,8 @@ import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
 import app.aaps.plugins.aps.openAPS.TddStatus
 import dagger.android.HasAndroidInjector
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.kotlin.plusAssign
 import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -139,6 +142,8 @@ open class OpenAPSSMBPlugin @Inject constructor(
     override val algorithm = APSResult.Algorithm.SMB
     override var lastAPSResult: DetermineBasalResult? = null
     override fun supportsDynamicIsf(): Boolean = preferences.get(BooleanKey.ApsUseDynamicSensitivity)
+
+    private val disposable = CompositeDisposable()
 
     override fun getIsfMgdl(profile: Profile, caller: String): Double? {
         val start = dateUtil.now()
@@ -433,6 +438,27 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val wearableStepsInLast30Minutes = stepsFromWear.filter { it.timestamp >= timeMillis30 }.sumOf { it.steps30min }
         val wearableStepsInLast60Minutes = stepsFromWear.filter { it.timestamp >= timeMillis60 }.sumOf { it.steps60min }
 
+        val recentSteps5Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast5Minutes else StepService.getRecentStepCount5Min()
+        val recentSteps10Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast10Minutes - wearableStepsInLast5Minutes) else StepService.getRecentStepCount10Min()
+        val recentSteps15Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast15Minutes - wearableStepsInLast10Minutes) else StepService.getRecentStepCount15Min()
+        val recentSteps30Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast30Minutes else StepService.getRecentStepCount30Min()
+        val recentSteps60Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast60Minutes else StepService.getRecentStepCount60Min()
+
+        if (!preferences.get(BooleanKey.ApsActivityDetectionSource)) {
+            val stepsCount = SC(
+                duration = 0,
+                timestamp = nowMillis,
+                steps5min = recentSteps5Minutes,
+                steps10min = recentSteps5Minutes + recentSteps10Minutes,
+                steps15min = recentSteps5Minutes + recentSteps10Minutes + recentSteps15Minutes,
+                steps30min = recentSteps30Minutes,
+                steps60min = recentSteps60Minutes,
+                steps180min = StepService.getRecentStepCount180Min(),
+                device = "Smartphone"
+            )
+            disposable += persistenceLayer.insertOrUpdateStepsCount(stepsCount).subscribe()
+        }
+
         val ketoacidosisProtectionIob : Double = iobCobCalculator.calculateIobFromBolus().iob +
             iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended().basaliob
 
@@ -468,11 +494,11 @@ open class OpenAPSSMBPlugin @Inject constructor(
             // mod finish
             // mod activity mode
             activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
-            recent_steps_5_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast5Minutes else StepService.getRecentStepCount5Min(),
-            recent_steps_10_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast10Minutes - wearableStepsInLast5Minutes) else StepService.getRecentStepCount10Min(),
-            recent_steps_15_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast15Minutes - wearableStepsInLast10Minutes) else StepService.getRecentStepCount15Min(),
-            recent_steps_30_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast30Minutes else StepService.getRecentStepCount30Min(),
-            recent_steps_60_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast60Minutes else StepService.getRecentStepCount60Min(),
+            recent_steps_5_minutes = recentSteps5Minutes,
+            recent_steps_10_minutes = recentSteps10Minutes,
+            recent_steps_15_minutes = recentSteps15Minutes,
+            recent_steps_30_minutes = recentSteps30Minutes,
+            recent_steps_60_minutes = recentSteps60Minutes,
             phone_moved = PhoneMovementDetector.phoneMoved(),
             time_since_start = elapsedTimeSinceLastStart,
             now = calendar.get(Calendar.HOUR_OF_DAY),
