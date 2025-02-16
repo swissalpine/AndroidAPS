@@ -124,6 +124,7 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
         // assertThat(openAPSAutoISFPlugin.activityMonitor(false, 99.0, 90.0, 2)).isEqualTo(0.85) // activity
     }
 
+    @Test
     fun withinISFLimitsTest() {
         val autoIsfMin = 0.7
         val autoIsfMax = 1.2
