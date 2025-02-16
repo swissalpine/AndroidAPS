@@ -156,6 +156,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     private val recentSteps30Minutes; get() = StepService.getRecentStepCount30Min()
     private val recentSteps60Minutes; get() = StepService.getRecentStepCount60Min()
     private val phone_moved; get() = PhoneMovementDetector.phoneMoved()
+    private val calendar = Calendar.getInstance()
 
 
     override fun onStart() {
@@ -339,7 +340,13 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         //consoleLog = mutableListOf()
         consoleError.clear()
         consoleLog.clear()
-        var activityRatio = activityMonitor(isTempTarget, glucoseStatus.glucose, targetBg)
+        // Time - not used without sleep window
+        //val calendar = Calendar.getInstance()
+        val hour = min(1, Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
+        //if (hour < 1) {
+        //   hour = 1
+        //}
+        var activityRatio = activityMonitor(isTempTarget, glucoseStatus.glucose, targetBg, hour)
         val activityLog = if (consoleLog.size==0) "Activity Monitor skipped" else consoleLog[0]
         consoleLog.clear()
         // activityRatio = 0.5 // while testing
@@ -593,23 +600,22 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     fun convert_bg_to_units(value: Double, profile: OapsProfileAutoIsf): Double =
         if (profile.out_units == "mmol/L") value * Constants.MGDL_TO_MMOLL else value
 
-    fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double): Double
+    fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double, now: Int): Double
     {
         // Time - not used without sleep window
-        val calendar = Calendar.getInstance()
-        var now = calendar.get(Calendar.HOUR_OF_DAY)
-        if (now < 1) {
-            now = 1
-        }
+        // val calendar = Calendar.getInstance()
+        // var now = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        // if (now < 1) {
+        //     now = 1
+        // }
 
         // Activity detection (steps)
-        aapsLogger.debug(LTag.APS, "Activity Monitor found step counts 5m:$recentSteps5Minutes, 10m:$recentSteps10Minutes, 15m:$recentSteps15Minutes, 30m:$recentSteps30Minutes, 60m:$recentSteps60Minutes")
         // val recentSteps5Minutes = StepService.getRecentStepCount5Min()
         // val recentSteps10Minutes = StepService.getRecentStepCount10Min()
         // val recentSteps15Minutes = StepService.getRecentStepCount15Min()
         // val recentSteps30Minutes = StepService.getRecentStepCount30Min()
         // val recentSteps60Minutes = StepService.getRecentStepCount60Min()
-        // val phone_moved = PhoneMovementDetector.phoneMoved()
+        val phoneMoved = PhoneMovementDetector.phoneMoved()
         val lastAppStart = preferences.get(LongKey.AppStart)
         //val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val time_since_start = (dateUtil.now() - lastAppStart) / 60000
@@ -632,10 +638,10 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             consoleLog.add("Activity monitor disabled in settings")
         } else if ( isTempTarget ) {
             consoleLog.add("Activity monitor disabled: tempTarget")
-            //} else if ( !phoneMoved ) {
-            //    consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
+            } else if ( !phoneMoved ) {
+                consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
         } else {
-            if ( false && time_since_start < 60 && recentSteps60Minutes <= 200 ) {
+            if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
                 consoleLog.add("Activity monitor initialising for ${60-time_since_start} more minutes: inactivity detection disabled")
             } else if ( ( inactivity_idle_start>inactivity_idle_end && ( now>=inactivity_idle_start || now<inactivity_idle_end ) )  // includes midnight
                 || ( now>=inactivity_idle_start && now<inactivity_idle_end)                                                         // excludes midnight
@@ -665,6 +671,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             }
         }
         preferences.put(DoubleKey.ActivityMonitorRatio, activityRatio)
+        aapsLogger.debug(LTag.APS, "Activity Monitor found steps 5m:$recentSteps5Minutes, 10m:$recentSteps10Minutes, 15m:$recentSteps15Minutes, 30m:$recentSteps30Minutes, 60m:$recentSteps60Minutes, activityRatio:$activityRatio")
+        aapsLogger.debug(LTag.APS, "Activity Monitor used phoneMoved:$phoneMoved, lastAppStart:$lastAppStart, activityDetection:$activityDetection, ignoreSleep:$ignore_inactivity_overnight, sleepStart:$inactivity_idle_start, sleepEnd:$inactivity_idle_end")
         return activityRatio
     }
 

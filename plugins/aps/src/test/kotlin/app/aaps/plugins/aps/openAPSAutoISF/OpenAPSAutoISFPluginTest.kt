@@ -19,6 +19,8 @@ import app.aaps.core.validators.preferences.AdaptiveIntPreference
 import app.aaps.core.validators.preferences.AdaptiveIntentPreference
 import app.aaps.core.validators.preferences.AdaptiveSwitchPreference
 import app.aaps.core.validators.preferences.AdaptiveUnitPreference
+import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
+import app.aaps.plugins.aps.openAPSSMB.StepService
 import app.aaps.shared.tests.TestBaseWithProfile
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -97,6 +99,31 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
 
     @Suppress("KotlinConstantConditions")
     @Test
+    fun activityMonitor() {
+        //`when`(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)).thenReturn(0)
+        // TODO without being able to provide tests data for phone_moved most tests are useless
+        //`when`(PhoneMovementDetector.phoneMoved()).thenReturn(false)
+        `when`(preferences.get(DoubleKey.ActivityScaleFactor)).thenReturn(0.5)
+        `when`(preferences.get(DoubleKey.InactivityScaleFactor)).thenReturn(1.0)
+        `when`(preferences.get(BooleanKey.ActivityMonitorOvernight)).thenReturn(false)
+        `when`(preferences.get(IntKey.ActivityMonitorIdleStart)).thenReturn(22)
+        `when`(preferences.get(IntKey.ActivityMonitorIdleEnd)).thenReturn(6)
+        `when`(preferences.get(BooleanKey.ApsActivityDetection)).thenReturn(false)
+
+        assertThat(openAPSAutoISFPlugin.activityMonitor(true, 80.0, 90.0, 2)).isEqualTo(1.0) // not selected in preferences
+
+        `when`(preferences.get(BooleanKey.ApsActivityDetection)).thenReturn(true)
+        assertThat(openAPSAutoISFPlugin.activityMonitor(true, 80.0, 90.0, 2)).isEqualTo(1.0) // Temp Target
+        assertThat(openAPSAutoISFPlugin.activityMonitor(false, 80.0, 90.0, 2)).isEqualTo(1.0) // bg < target
+        assertThat(openAPSAutoISFPlugin.activityMonitor(false, 99.0, 90.0, 2)).isEqualTo(1.0) // bg < target
+        //`when`(PhoneMovementDetector.phoneMoved()).thenReturn(true)
+        assertThat(openAPSAutoISFPlugin.activityMonitor(false, 99.0, 90.0, 2)).isEqualTo(1.0) // sleeping hours
+        `when`(preferences.get(IntKey.ActivityMonitorIdleStart)).thenReturn(3)
+        assertThat(openAPSAutoISFPlugin.activityMonitor(false, 99.0, 90.0, 2)).isEqualTo(1.2) // inactivity
+        //`when`(StepService.getRecentStepCount5Min()).thenReturn(500)
+        // assertThat(openAPSAutoISFPlugin.activityMonitor(false, 99.0, 90.0, 2)).isEqualTo(0.85) // activity
+    }
+
     fun withinISFLimitsTest() {
         val autoIsfMin = 0.7
         val autoIsfMax = 1.2
@@ -106,7 +133,7 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
         var exerciseMode = false
         val targetBg = 120.0
         val normalTarget = 100
-        val stepActivityDetected = false
+        var stepActivityDetected = false
         val stepInactivityDetected = false
         `when`(preferences.get(BooleanKey.ApsActivityDetection)).thenReturn(false)
 
@@ -119,6 +146,8 @@ class OpenAPSAutoISFPluginTest : TestBaseWithProfile() {
         exerciseMode = true
         ttSet = true
         assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(0.35) // exercise mode
+        stepActivityDetected = true
+        assertThat(openAPSAutoISFPlugin.withinISFlimits(0.5, autoIsfMin, autoIsfMax, sens, originSens, ttSet, exerciseMode, targetBg, normalTarget, stepActivityDetected, stepInactivityDetected)).isEqualTo(0.35) // Activity mode
     }
 
     @Test
