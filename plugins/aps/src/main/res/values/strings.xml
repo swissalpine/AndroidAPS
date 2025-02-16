@@ -245,5 +245,24 @@
     <string name="inactivity_idle_end_title">End hour for disabling inactivity monitoring</string>
     <string name="inactivity_idle_end_summary">End hour of sleep when inactivity monitoring is re-enabled again\nDefault in 24h notation is 6</string>
 
+    <!-- Libre special    -->
+    <string name="fslCal_Offset_title">Offset of Libre calibration versus finger like in xDrip</string>
+    <string name="fslCal_Offset_summary">OFFSET value as in calibration formula\nLibre_calibrated = OFFSET + slope * Libre_raw</string>
+    <string name="fslCal_Slope_title">Slope of Libre calibration versus finger like in xDrip</string>
+    <string name="fslCal_Slope_summary">SLOPE value as in calibration formula\nLibre_calibrated = offset + SLOPE * Libre_raw</string>
+    <string name="key_fslMinFitMinutes" translatable="false">fslFitMinutes</string>
+    <string name="fslMinFitMinutes_summary">Minimum fit length</string>
+    <string name="fslMinFitMinutes_title">Minimum minutes for parabola fit from Libre</string>
+    <string name="key_fslCal_Offset" translatable="false">fslCalOffset</string>
+    <string name="key_fslCal_Slope" translatable="false">fslCalSlope</string>
+    <string name="key_fsl_exp1_factor" translatable="false">fslExp1SmoothFactor</string>
+    <string name="fsl_exp1_factor_title">Libre 1st order exponential smoothing factor</string>
+    <string name="fsl_exp1_factor_summary">Used without xDrip 1 minute smoothing in between\n0.0 : max. effect\n1.0 : min. effect</string>
+    <string name="key_fsl_exp1_correction" translatable="false">fslExp1SmoothCorrection</string>
+    <string name="fsl_exp1_correction_title">Libre 1st order exponential smoothing correction</string>
+    <string name="fsl_exp1_correction_summary">Used without xDrip 1 minute smoothing in between; takes back part of the factor effect\n0.0 : min. effect\n1.0 : max. effect</string>
+    <string name="key_fsl_exp1_max_smooth_gap" translatable="false">fslExp1SmoothGap</string>
+    <string name="fsl_exp1_max_smooth_gap_title">max. minutes of gap to smooth</string>
+    <string name="fsl_exp1_max_smooth_gap_summary">The longer the gap the less smoothing effect; uses last value before the gap if longer than this</string>
 
 </resources>

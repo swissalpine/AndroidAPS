@@ -127,7 +127,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     override var lastAPSResult: DetermineBasalResult? = null
     private var consoleError = mutableListOf<String>()
     private var consoleLog = mutableListOf<String>()
-    val autoIsfVersion = "3.0.1"
+    val autoIsfVersion = "3.0.2"
     val autoIsfWeights; get() = preferences.get(BooleanKey.ApsUseAutoIsfWeights)
     private val autoISF_max; get() = preferences.get(DoubleKey.ApsAutoIsfMax)
     private val autoISF_min; get() = preferences.get(DoubleKey.ApsAutoIsfMin)
@@ -1083,7 +1083,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             requiredKey != "absorption_smb_advanced" &&
             requiredKey != "activity_monitor" &&
             requiredKey != "auto_isf_settings" &&
-            requiredKey != "smb_delivery_settings"
+            requiredKey != "smb_delivery_settings" &&
+            requiredKey != "Libre_special_settings"
         ) return
         val category = PreferenceCategory(context)
         parent.addPreference(category)
@@ -1148,6 +1149,18 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 key = "auto_isf_settings"
                 title = rh.gs(R.string.autoISF_settings_title)
                 summary = rh.gs(R.string.autoISF_settings_summary)
+                addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                    key = "Libre_special_settings"
+                    title = "Libre special test settings"  //rh.gs(R.string.smb_delivery_settings_title)
+                    summary = "Calibrating Juggluco raw data"  //rh.gs(R.string.smb_delivery_settings_summary)
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslCalOffset, dialogMessage = R.string.fslCal_Offset_summary, title = R.string.fslCal_Offset_title))
+                    //addPreference(AdaptiveUnitPreference(ctx = context, unitKey = UnitDoubleKey.FslCalOffset, dialogMessage = R.string.fslCal_Offset_summary, title = R.string.fslCal_Offset_title))  // assumed input was always in mmol
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslCalSlope, dialogMessage = R.string.fslCal_Slope_summary, title = R.string.fslCal_Slope_title))
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslSmoothAlpha, dialogMessage = R.string.fsl_exp1_factor_summary, title = R.string.fsl_exp1_factor_title))
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslSmoothCorrection, dialogMessage = R.string.fsl_exp1_correction_summary, title = R.string.fsl_exp1_correction_title))
+                    addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.FslMaxSmoothGap, dialogMessage = R.string.fsl_exp1_max_smooth_gap_summary, title = R.string.fsl_exp1_max_smooth_gap_title))
+                    addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.FslMinFitMinutes, dialogMessage = R.string.fslMinFitMinutes_summary, title = R.string.fslMinFitMinutes_title))
+                })
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseAutoIsfWeights, summary = R.string.openapsama_enable_autoISF, title = R.string.openapsama_enable_autoISF))
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfMin, dialogMessage = R.string.openapsama_autoISF_min_summary, title = R.string.openapsama_autoISF_min))
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfMax, dialogMessage = R.string.openapsama_autoISF_max_summary, title = R.string.openapsama_autoISF_max))
@@ -1169,7 +1182,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                     addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbMaxRangeExtension, dialogMessage = R.string.openapsama_smb_max_range_extension_summary, title = R.string.openapsama_smb_max_range_extension))
                     addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfSmbOnEvenTarget, summary = R.string.enableSMB_EvenOn_OddOff_always_summary, title = R.string.enableSMB_EvenOn_OddOff_always))
                 })
-            })
+             })
         }
     }
 }

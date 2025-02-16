@@ -16,8 +16,11 @@ enum class LongKey(
     override val showInPumpControlMode: Boolean = true,
     override val dependency: BooleanPreferenceKey? = null,
     override val negativeDependency: BooleanPreferenceKey? = null,
-    override val hideParentScreenIfHidden: Boolean = false
+    override val hideParentScreenIfHidden: Boolean = false,
+    override val engineeringModeOnly: Boolean = false
 ) : LongPreferenceKey {
 
-    AppStart("app_start_time", 0),
+    FslSmoothLastTimeRaw("fsl_last_time_raw", -1, -1, defaultedBySM = true),
+    AppStart("app_start_time", 0, defaultedBySM = true),
+
 }

@@ -47,6 +47,12 @@ enum class DoubleKey(
     ApsAutoIsfSmbDeliveryRatioMin("openapsama_smb_delivery_ratio_min", 0.5, 0.5, 1.0, defaultedBySM = true),
     ApsAutoIsfSmbDeliveryRatioMax("openapsama_smb_delivery_ratio_max", 0.5, 0.5, 1.0, defaultedBySM = true),
     ApsAutoIsfSmbMaxRangeExtension("openapsama_smb_max_range_extension", 1.0, 1.0, 5.0, defaultedBySM = true),
+    FslCalOffset("fslCal_Offset", 0.0, -50.0, 50.0, defaultedBySM = true),    // TODO: resolve UnitDouble problem
+    FslCalSlope("fslCal_Slope", 1.0, 0.5, 1.5, defaultedBySM = true),
+    FslSmoothAlpha("fsl_exp1_factor", 1.0, 0.01, 1.0, defaultedBySM = true),
+    FslSmoothCorrection("fsl_exp1_correction", 0.0, 0.0, 1.0, defaultedBySM = true),
+    FslLastRaw("fsl_last_raw", -1.0, 40.0, 400.0, defaultedBySM = true),
+    FslLastSmooth("fsl_last_smooth", -1.0, 40.0, 400.0, defaultedBySM = true),
 
     ActivityMonitorRatio("activity_ratio", 1.0, 0.0, 2.0, defaultedBySM = true),
     ActivityScaleFactor("activity_scale_factor", 1.0, 0.0, 1.5, defaultedBySM = true, dependency = BooleanKey.ActivityMonitorDetection),
