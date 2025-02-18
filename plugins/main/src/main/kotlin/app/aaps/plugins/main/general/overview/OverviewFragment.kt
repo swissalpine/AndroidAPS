@@ -200,13 +200,14 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
         if (config.AAPSCLIENT2)
             binding.nsclientCard.setBackgroundColor(Color.argb(80, 0x0F, 0xBB, 0xE0))
 
+        /* Mod Disable config display
         //if (config.APS || config.PUMPCONTROL)
             binding.graphsLayout.version.text = "${config.VERSION_NAME}(${config.HEAD.substring(0, 4)})"
             binding.graphsLayout.version.setTextColor(
                 if (config.COMMITTED) rh.gac(context, app.aaps.core.ui.R.attr.defaultTextColor)
                 else rh.gac(context, app.aaps.core.ui.R.attr.urgentColor)
             )
-        binding.graphsLayout.version.alpha = 0.4f
+        binding.graphsLayout.version.alpha = 0.4f*/
 
         skinProvider.activeSkin().preProcessLandscapeOverviewLayout(binding, landscape, rh.gb(app.aaps.core.ui.R.bool.isTablet), smallHeight)
         binding.nsclientCard.visibility = config.AAPSCLIENT.toVisibility()
