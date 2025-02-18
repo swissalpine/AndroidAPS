@@ -59,6 +59,7 @@ enum class BooleanKey(
     ApsAutoIsfLowTtLowersSens("low_temptarget_lowers_sensitivity", false, defaultedBySM = true),
     ApsActivityDetection("activity_detection", false, defaultedBySM = true),
     ApsActivityDetectionSource("activity_detection_source", false, defaultedBySM = true),
+    ApsActivitySaveStepsFromSmartphone("activity_save_steps_from_smartphone", true, defaultedBySM = true),
     ApsKetoacidosisProtection("ketoacidosis_protection", false, defaultedBySM = true),
     ApsKetoacidosisVarStrategy("ketoacidosis_variable_strategy", false, defaultedBySM = true),
     ApsUseAutoIsfWeights("openapsama_enable_autoISF", false, defaultedBySM = true),

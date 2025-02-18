@@ -197,6 +197,8 @@
     <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA temp target disables this.\nPlease note: Inactivity detection is deactivated if the smartphone is not carried for at least 15 minutes and at night between 10 pm and 8 am (sleeping time)."</string>
     <string name="activity_detection_source_title">Use your WATCH\'s step counter (Wear OS only)\nDefault: false (= Do NOT use WATCH\'s step counter)</string>
     <string name="activity_detection_source_summary">It is recommended that you use your PHONE\'s step counter instead! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
+    <string name="activity_save_steps_from_smartphone_title">Save steps from smartphone</string>
+    <string name="activity_save_steps_from_smartphone_summary">Default: true</string>
 
     <!--    autoISF -->
     <string name="half_basal_exercise_target_title">Half basal exercise target</string>

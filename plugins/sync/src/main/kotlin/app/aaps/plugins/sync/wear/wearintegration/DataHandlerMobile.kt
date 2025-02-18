@@ -1816,7 +1816,9 @@ class DataHandlerMobile @Inject constructor(
             steps180min = actionStepsRate.steps180min,
             device = actionStepsRate.device
         )
-        disposable += persistenceLayer.insertOrUpdateStepsCount(stepsCount).subscribe()
+        if (!preferences.get(BooleanKey.ApsActivitySaveStepsFromSmartphone)) {
+            disposable += persistenceLayer.insertOrUpdateStepsCount(stepsCount).subscribe()
+        }
     }
 
     private fun handleGetCustomWatchface(command: EventData.ActionGetCustomWatchface) {

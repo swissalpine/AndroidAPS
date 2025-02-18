@@ -425,12 +425,8 @@ open class OpenAPSSMBPlugin @Inject constructor(
 
         // mod get steps from wear
         val nowMillis = System.currentTimeMillis()
-        val timeMillis5 = nowMillis - 5 * 60 * 1000 // 5 minutes in milliseconds
-        val timeMillis10 = nowMillis - 10 * 60 * 1000 // 10 minutes in milliseconds
-        val timeMillis15 = nowMillis - 15 * 60 * 1000 // 15 minutes in milliseconds
-        val timeMillis30 = nowMillis - 30 * 60 * 1000 // 30 minutes in milliseconds
-        val timeMillis60 = nowMillis - 60 * 60 * 1000 // 60 minutes in milliseconds
 
+        /*
         val stepsFromWear = persistenceLayer.getStepsCountFromTimeToTime(timeMillis60, now)
         val wearableStepsInLast5Minutes = stepsFromWear.filter { it.timestamp >= timeMillis5 }.sumOf { it.steps5min }
         val wearableStepsInLast10Minutes = stepsFromWear.filter { it.timestamp >= timeMillis10 }.sumOf { it.steps10min }
@@ -443,8 +439,15 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val recentSteps15Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast15Minutes - wearableStepsInLast10Minutes) else StepService.getRecentStepCount15Min()
         val recentSteps30Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast30Minutes else StepService.getRecentStepCount30Min()
         val recentSteps60Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast60Minutes else StepService.getRecentStepCount60Min()
+        */
 
-        if (!preferences.get(BooleanKey.ApsActivityDetectionSource)) {
+        val recentSteps5Minutes = StepService.getRecentStepCount5Min()
+        val recentSteps10Minutes = StepService.getRecentStepCount10Min()
+        val recentSteps15Minutes = StepService.getRecentStepCount15Min()
+        val recentSteps30Minutes = StepService.getRecentStepCount30Min()
+        val recentSteps60Minutes = StepService.getRecentStepCount60Min()
+
+        if (preferences.get(BooleanKey.ApsActivitySaveStepsFromSmartphone)) {
             val stepsCount = SC(
                 duration = 0,
                 timestamp = nowMillis,
@@ -676,7 +679,8 @@ open class OpenAPSSMBPlugin @Inject constructor(
                 key = "activity_modifies_sensitivity"
                 title = rh.gs(R.string.activity_mode_title)
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetection, summary = R.string.activity_mode_summary, title = R.string.activity_mode_title))
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetectionSource, summary = R.string.activity_detection_source_summary, title = R.string.activity_detection_source_title))
+                //addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetectionSource, summary = R.string.activity_detection_source_summary, title = R.string.activity_detection_source_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivitySaveStepsFromSmartphone, summary = R.string.activity_save_steps_from_smartphone_summary, title = R.string.activity_save_steps_from_smartphone_title))
             })
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmb, summary = R.string.enable_smb_summary, title = R.string.enable_smb))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbWithHighTt, summary = R.string.enable_smb_with_high_temp_target_summary, title = R.string.enable_smb_with_high_temp_target))
