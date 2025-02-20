@@ -830,11 +830,13 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             if (glucoseStatus != null) {
                 binding.infoLayout.deltaLarge.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.delta)
                 binding.infoLayout.deltaLarge.setTextColor(lastBgColor)
+                binding.infoLayout.bgAcceleration.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.bgAcceleration)
                 binding.infoLayout.delta.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.delta)
                 binding.infoLayout.avgDelta.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.shortAvgDelta)
                 binding.infoLayout.longAvgDelta.text = profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.longAvgDelta)
             } else {
                 binding.infoLayout.deltaLarge.text = ""
+                binding.infoLayout.bgAcceleration.text = rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
                 binding.infoLayout.delta.text = "Δ " + rh.gs(app.aaps.core.ui.R.string.value_unavailable_short)
                 binding.infoLayout.avgDelta.text = ""
                 binding.infoLayout.longAvgDelta.text = ""
@@ -848,7 +850,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             val outDate = (if (!isActualBg) rh.gs(R.string.a11y_bg_outdated) else "")
             binding.infoLayout.bg.contentDescription = rh.gs(R.string.a11y_blood_glucose) + " " + binding.infoLayout.bg.text.toString() + " " + lastBgDescription + " " + outDate
 
-            binding.infoLayout.timeAgo.text = dateUtil.minAgo(rh, lastBg?.timestamp)
+            binding.infoLayout.timeAgo.text = dateUtil.minOrSecAgo(rh, lastBg?.timestamp)
             binding.infoLayout.timeAgo.contentDescription = dateUtil.minAgoLong(rh, lastBg?.timestamp)
             binding.infoLayout.timeAgoShort.text = "(" + dateUtil.minAgoShort(lastBg?.timestamp) + ")"
 
@@ -1196,13 +1198,23 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
                     overViewText.add(rh.gs(app.aaps.core.ui.R.string.autosens_short, it))
                 okDialogText.add(rh.gs(app.aaps.core.ui.R.string.autosens_long, it))
             }
-            overViewText.add(
-                String.format(
-                    Locale.getDefault(), "%1$.1f→%2$.1f",
-                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
-                    profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+            if (activePlugin.activeAPS.algorithm.name == "AUTO_ISF") {
+                val aiRatio = 100.0  * profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()) / profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+                overViewText.add(
+                    String.format(
+                        Locale.getDefault(), rh.gs(app.aaps.core.ui.R.string.autoisf_short), aiRatio
+                    )
                 )
-            )
+                okDialogText.add(rh.gs(app.aaps.core.ui.R.string.autoisf_long, aiRatio))
+            } else {
+                overViewText.add(
+                    String.format(
+                        Locale.getDefault(), "%1$.1f→%2$.1f",
+                        profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
+                        profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+                    )
+                )
+            }
             binding.infoLayout.sensitivity.text = overViewText.joinToString("\n")
             binding.infoLayout.sensitivity.visibility = View.VISIBLE
             binding.infoLayout.variableSensitivity.visibility = View.GONE

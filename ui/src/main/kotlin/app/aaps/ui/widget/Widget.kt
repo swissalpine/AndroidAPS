@@ -168,10 +168,12 @@ class Widget : AppWidgetProvider() {
 
         val glucoseStatus = glucoseStatusProvider.glucoseStatusData
         if (glucoseStatus != null) {
+            views.setTextViewText(R.id.bgAcceleration, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.bgAcceleration))
             views.setTextViewText(R.id.delta, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.delta))
             views.setTextViewText(R.id.avg_delta, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.shortAvgDelta))
             views.setTextViewText(R.id.long_avg_delta, profileUtil.fromMgdlToSignedStringInUnits(glucoseStatus.longAvgDelta))
         } else {
+            views.setTextViewText(R.id.bgAcceleration, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
             views.setTextViewText(R.id.delta, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
             views.setTextViewText(R.id.avg_delta, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
             views.setTextViewText(R.id.long_avg_delta, rh.gs(app.aaps.core.ui.R.string.value_unavailable_short))
@@ -181,7 +183,7 @@ class Widget : AppWidgetProvider() {
         if (!lastBgData.isActualBg()) views.setInt(R.id.bg, "setPaintFlags", Paint.STRIKE_THRU_TEXT_FLAG or Paint.ANTI_ALIAS_FLAG)
         else views.setInt(R.id.bg, "setPaintFlags", Paint.ANTI_ALIAS_FLAG)
 
-        views.setTextViewText(R.id.time_ago, dateUtil.minAgo(rh, lastBgData.lastBg()?.timestamp))
+        views.setTextViewText(R.id.time_ago, dateUtil.minOrSecAgo(rh, lastBgData.lastBg()?.timestamp))
         //views.setTextViewText(R.id.time_ago_short, "(" + dateUtil.minAgoShort(overviewData.lastBg?.timestamp) + ")")
     }
 
@@ -320,13 +322,23 @@ class Widget : AppWidgetProvider() {
         if (variableSens != isfMgdl && variableSens != 0.0 && isfMgdl != null) {
             val overViewText: ArrayList<String> = ArrayList()
             if (ratioUsed != 1.0 && ratioUsed != lastAutosensData?.autosensResult?.ratio) overViewText.add(rh.gs(app.aaps.core.ui.R.string.algorithm_short,ratioUsed * 100))
-            overViewText.add(
-                String.format(
-                    Locale.getDefault(), "%1$.1f→%2$.1f",
-                    profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
-                    profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+            if (activePlugin.activeAPS.algorithm.name == "AUTO_ISF") {
+                overViewText.add(
+                    String.format(
+                        Locale.ENGLISH, rh.gs(app.aaps.core.ui.R.string.autoisf_short),
+                        100.0  * profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits())
+                            / profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+                    )
                 )
-            )
+            } else {
+                overViewText.add(
+                    String.format(
+                        Locale.getDefault(), "%1$.1f→%2$.1f",
+                        profileUtil.fromMgdlToUnits(isfMgdl, profileFunction.getUnits()),
+                        profileUtil.fromMgdlToUnits(variableSens, profileFunction.getUnits())
+                    )
+                )
+            }
             views.setTextViewText(R.id.variable_sensitivity, overViewText.joinToString("\n"))
             views.setViewVisibility(R.id.variable_sensitivity, View.VISIBLE)
         } else views.setViewVisibility(R.id.variable_sensitivity, View.GONE)
