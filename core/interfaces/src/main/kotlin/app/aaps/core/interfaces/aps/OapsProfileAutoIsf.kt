@@ -26,6 +26,7 @@ data class OapsProfileAutoIsf(
     var adv_target_adjustments: Boolean,
     var exercise_mode: Boolean,
     var half_basal_exercise_target: Int,
+    // Activity monitor
     val activity_detection: Boolean,
     val recent_steps_5_minutes: Int,
     val recent_steps_10_minutes: Int,
@@ -35,6 +36,7 @@ data class OapsProfileAutoIsf(
     val phone_moved: Boolean,
     val time_since_start: Long,
     val now: Int,
+    // Activity Monitor end
     var maxCOB: Int,
     var skip_neutral_temps: Boolean,
     var remainingCarbsCap: Int,
@@ -46,7 +48,6 @@ data class OapsProfileAutoIsf(
     var allowSMB_with_high_temptarget: Boolean,
     var enableSMB_always: Boolean,
     var enableSMB_after_carbs: Boolean,
-    //AutoISF only
     var maxSMBBasalMinutes: Int,
     var maxUAMSMBBasalMinutes: Int,
     var bolus_increment: Double,
@@ -56,6 +57,7 @@ data class OapsProfileAutoIsf(
     var autosens_max: Double,
     var out_units: String,
     var lgsThreshold: Int?,
+    //AutoISF only
     var variable_sens: Double,
     var autoISF_version: String,
     var enable_autoISF: Boolean,

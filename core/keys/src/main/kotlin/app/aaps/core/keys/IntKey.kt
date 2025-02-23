@@ -50,6 +50,12 @@ enum class IntKey(
     ApsCarbsRequestThreshold("carbsReqThreshold", 1, 1, 10, defaultedBySM = true),
     ApsAutoIsfHalfBasalExerciseTarget("half_basal_exercise_target", 160, 120, 200, defaultedBySM = true),
     ApsAutoIsfIobThPercent("iob_threshold_percent", 100, 10, 100, defaultedBySM = true),
+    FslMinFitMinutes("fslMinMinutes", 20, 3, 20, defaultedBySM = true),
+    FslMaxSmoothGap("Exp1SmoothGap", 20, 10, 60, defaultedBySM = true),
+
+    ActivityMonitorIdleStart("inactivity_idle_start", 22, 0, 23, defaultedBySM=true, dependency = BooleanKey.ActivityMonitorOvernight),
+    ActivityMonitorIdleEnd("inactivity_idle_end", 6, 0, 23, defaultedBySM=true, dependency = BooleanKey.ActivityMonitorOvernight),
+
     ApsDynIsfAdjustmentFactor("DynISFAdjust", 100, 1, 300, dependency = BooleanKey.ApsUseDynamicSensitivity),
     AutosensPeriod("openapsama_autosens_period", 24, 4, 24, calculatedDefaultValue = true),
     MaintenanceLogsAmount("maintenance_logs_amount", 2, 1, 10, defaultedBySM = true),

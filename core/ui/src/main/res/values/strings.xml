@@ -433,7 +433,9 @@
     <string name="sensitivity">Sensitivity</string>
     <string name="isf_for_carbs">ISF for Calculator and Carbs Absorption: %1$.1f</string>
     <string name="autosens_long">Autosens Value: %.0f%%</string>
+    <string name="autoisf_long">AutoISF final Value: %.0f%%</string>
     <string name="autosens_short">%.0f%%</string>
+    <string name="autoisf_short">AI: %.0f%%</string>
     <string name="algorithm_long">Autosens in algorithm: %.0f%%</string>
     <string name="algorithm_short">Alg: %.0f%%</string>
     <string name="a11y_file">file</string>
@@ -444,6 +446,11 @@
     <string name="autotune_tune_days">Tune days :</string>
     <string name="autotune_select_profile">Select profile to tune</string>
 
+    <!-- AutoISF -->
+    <string name="uel_autoisf_enabled">AUTOISF ENABLED</string>
+    <string name="uel_autoisf_disabled">AUTOISF DISABLED</string>
+    <string name="uel_iobth_set">IOBTH SET</string>
+    <string name="uel_acce_weight_set">ACCE WeIGHT SET</string>
 
     <!-- Alerts -->
     <string name="key_raise_notifications_as_android_notifications" translatable="false">raise_urgent_alarms_as_android_notification</string>

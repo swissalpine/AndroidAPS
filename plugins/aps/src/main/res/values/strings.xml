@@ -193,12 +193,6 @@
     <string name="ketoacidosis_protection_basal_summary">Default: 20</string>
     <string name="ketoacidosis_protection_var_strategy_title">Variable strategy?</string>
     <string name="ketoacidosis_protection_var_strategy_summary">If activated the small safety TBR kicks in when IOB is in negative range as if no basal insulin has been delivered for one hour.\nIf deactivated every Zero Temp is replaced with the small TBR.</string>
-    <string name="activity_mode_title">"Activity modifies sensitivity"</string>
-    <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA temp target disables this.\nPlease note: Inactivity detection is deactivated if the smartphone is not carried for at least 15 minutes and at night between 10 pm and 8 am (sleeping time)."</string>
-    <string name="activity_detection_source_title">Use your WATCH\'s step counter (Wear OS only)\nDefault: false (= Do NOT use WATCH\'s step counter)</string>
-    <string name="activity_detection_source_summary">It is recommended that you use your PHONE\'s step counter instead! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
-    <string name="activity_save_steps_from_smartphone_title">Save steps from smartphone</string>
-    <string name="activity_save_steps_from_smartphone_summary">Default: true</string>
 
     <!--    autoISF -->
     <string name="half_basal_exercise_target_title">Half basal exercise target</string>
@@ -238,5 +232,47 @@
     <string name="enableSMB_EvenOn_OddOff_always_summary">\nenabled ...\nif active target(mmol/L) has even decimal\nor active target(mg/dL) is even number\n\ndisabled otherwise</string>
     <string name="openapsama_iob_threshold_percent_summary" formatted="false">Percentage of maxIOB above which SMBs are disabled.\nDefault value: 100%\nWith 100% this feature is effectively disabled.</string>
     <string name="openapsama_iob_threshold_percent">maxIOB threshold percent for SMB\n(iob_threshold_percent)</string>
+
+    <!--    Activity Monitor -->
+    <string name="activity_mode_title">"Activity modifies sensitivity"</string>
+    <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA temp target disables this.\nPlease note: Inactivity detection is deactivated if the smartphone is not carried for at least 15 minutes and at night between 10 pm and 8 am (sleeping time)."</string>
+    <string name="activity_detection_source_title">Use your WATCH\'s step counter (Wear OS only)\nDefault: false (= Do NOT use WATCH\'s step counter)</string>
+    <string name="activity_detection_source_summary">It is recommended that you use your PHONE\'s step counter instead! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
+    <string name="activity_save_steps_from_smartphone_title">Save steps from smartphone</string>
+    <string name="activity_save_steps_from_smartphone_summary">Default: true</string>
+    <string name="activity_monitor_title">Activity modifies sensitivity</string>
+    <string name="activity_monitor_summary">Activity is detected in form of steps as measured by the phone. It does not replace an explicit sport adjustment but is a lower level complement.</string>
+    <!-- <string name="activity_detection_summary" formatted="false">If activity is detected in form of steps, sensitivity and basal are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.\nDuring TempTarget (in)activity will not be monitored.</string> -->
+    <string name="key_app_start" translatable="false">app_start</string>
+    <string name="activity_scale_factor_title">Scale factor for final activity sensitivity</string>
+    <string name="activity_scale_factor_summary" formatted="false">If activity is detected then its default contribution of 15% or 30% is scaled up or down by this ratio\nA value of 0.0 disables activity contribution to sensitivity</string>
+    <string name="inactivity_scale_factor_title">Scale factor for final inactivity sensitivity</string>
+    <string name="inactivity_scale_factor_summary" formatted="false">If inactivity is detected then its default contribution of 10% or 20% is scaled up or down by this ratio\nA value of 0.0 disables inactivity contribution to sensitivity</string>
+    <string name="ignore_inactivity_overnight_title">Disable inactivity detection during sleep</string>
+    <string name="ignore_inactivity_overnight_summary">Stop inactivity adaptation during sleeping hours\nDefault is true, i.e. adaptation is off\n\nIf false, leave phone beside bed during short breaks to keep monitoring disabled</string>
+    <string name="inactivity_idle_start_title">Start hour for disabling inactivity monitoring</string>
+    <string name="inactivity_idle_start_summary">Start hour when inactivity monitoring is disabled for sleep\nDefault in 24h notation is 22</string>
+    <string name="inactivity_idle_end_title">End hour for disabling inactivity monitoring</string>
+    <string name="inactivity_idle_end_summary">End hour of sleep when inactivity monitoring is re-enabled again\nDefault in 24h notation is 6</string>
+
+    <!-- Libre special    -->
+    <string name="fslCal_Offset_title">Offset of Libre calibration versus finger like in xDrip</string>
+    <string name="fslCal_Offset_summary">OFFSET value as in calibration formula\nLibre_calibrated = OFFSET + slope * Libre_raw</string>
+    <string name="fslCal_Slope_title">Slope of Libre calibration versus finger like in xDrip</string>
+    <string name="fslCal_Slope_summary">SLOPE value as in calibration formula\nLibre_calibrated = offset + SLOPE * Libre_raw</string>
+    <string name="key_fslMinFitMinutes" translatable="false">fslFitMinutes</string>
+    <string name="fslMinFitMinutes_summary">Minimum fit length</string>
+    <string name="fslMinFitMinutes_title">Minimum minutes for parabola fit from Libre</string>
+    <string name="key_fslCal_Offset" translatable="false">fslCalOffset</string>
+    <string name="key_fslCal_Slope" translatable="false">fslCalSlope</string>
+    <string name="key_fsl_exp1_factor" translatable="false">fslExp1SmoothFactor</string>
+    <string name="fsl_exp1_factor_title">Libre 1st order exponential smoothing factor</string>
+    <string name="fsl_exp1_factor_summary">Used without xDrip 1 minute smoothing in between\n0.0 : max. effect\n1.0 : min. effect</string>
+    <string name="key_fsl_exp1_correction" translatable="false">fslExp1SmoothCorrection</string>
+    <string name="fsl_exp1_correction_title">Libre 1st order exponential smoothing correction</string>
+    <string name="fsl_exp1_correction_summary">Used without xDrip 1 minute smoothing in between; takes back part of the factor effect\n0.0 : min. effect\n1.0 : max. effect</string>
+    <string name="key_fsl_exp1_max_smooth_gap" translatable="false">fslExp1SmoothGap</string>
+    <string name="fsl_exp1_max_smooth_gap_title">max. minutes of gap to smooth</string>
+    <string name="fsl_exp1_max_smooth_gap_summary">The longer the gap the less smoothing effect; uses last value before the gap if longer than this</string>
 
 </resources>

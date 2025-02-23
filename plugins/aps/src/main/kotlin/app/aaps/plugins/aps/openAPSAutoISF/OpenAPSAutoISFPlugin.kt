@@ -69,11 +69,11 @@ import app.aaps.core.validators.preferences.AdaptiveIntPreference
 import app.aaps.core.validators.preferences.AdaptiveIntentPreference
 import app.aaps.core.validators.preferences.AdaptiveSwitchPreference
 import app.aaps.core.validators.preferences.AdaptiveUnitPreference
+import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
 import app.aaps.plugins.aps.OpenAPSFragment
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
-import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
 import app.aaps.plugins.aps.openAPSSMB.StepService
 import dagger.android.HasAndroidInjector
 import org.json.JSONObject
@@ -127,7 +127,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     override var lastAPSResult: DetermineBasalResult? = null
     private var consoleError = mutableListOf<String>()
     private var consoleLog = mutableListOf<String>()
-    val autoIsfVersion = "3.0.1"
+    val autoIsfVersion = "3.0.2"
     val autoIsfWeights; get() = preferences.get(BooleanKey.ApsUseAutoIsfWeights)
     private val autoISF_max; get() = preferences.get(DoubleKey.ApsAutoIsfMax)
     private val autoISF_min; get() = preferences.get(DoubleKey.ApsAutoIsfMin)
@@ -149,6 +149,14 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     private val highTemptargetRaisesSensitivity; get() = preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens)
     val normalTarget = 100
     private val minutesClass; get() = if (preferences.get(IntKey.ApsMaxSmbFrequency) == 1) 6L else 30L  // ga-zelle: later get correct 1 min CGM flag from glucoseStatus ? ... or from apsResults?
+    // Activity detection (steps)
+    private val recentSteps5Minutes ; get() = StepService.getRecentStepCount5Min()
+    private val recentSteps10Minutes; get() = StepService.getRecentStepCount10Min()
+    private val recentSteps15Minutes; get() = StepService.getRecentStepCount15Min()
+    private val recentSteps30Minutes; get() = StepService.getRecentStepCount30Min()
+    private val recentSteps60Minutes; get() = StepService.getRecentStepCount60Min()
+    private val phone_moved; get() = PhoneMovementDetector.phoneMoved()
+    private val calendar = Calendar.getInstance()
 
 
     override fun onStart() {
@@ -327,35 +335,34 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         val profile_percentage = if (profile is ProfileSealed.EPS) profile.value.originalPercentage else 100
         val microBolusAllowed = constraintsChecker.isSMBModeEnabled(ConstraintObject(tempBasalFallback.not(), aapsLogger)).also { inputConstraints.copyReasons(it) }.value()
 
+        aapsLogger.debug(LTag.APS, "invoke found step counts 5m:$recentSteps5Minutes, 10m:$recentSteps10Minutes, 15m:$recentSteps15Minutes, 30m:$recentSteps30Minutes, 60m:$recentSteps60Minutes")
+        //consoleError = mutableListOf()
+        //consoleLog = mutableListOf()
+        consoleError.clear()
+        consoleLog.clear()
+        // Time - not used without sleep window
+        //val calendar = Calendar.getInstance()
+        val hour = min(1, Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
+        //if (hour < 1) {
+        //   hour = 1
+        //}
+        var activityRatio = activityMonitor(isTempTarget, glucoseStatus.glucose, targetBg, hour)
+        val activityLog = if (consoleLog.size==0) "Activity Monitor skipped" else consoleLog[0]
+        consoleLog.clear()
+        // activityRatio = 0.5 // while testing
+        var stepActivityDetected = false
+        var stepInactivityDetected = false
+        if (activityRatio < 1) {
+            stepActivityDetected = true
+        } else if (activityRatio>1)   { stepInactivityDetected = true}
+        preferences.put(BooleanKey.ActivityMonitorStepsActive, stepActivityDetected)
+        preferences.put(BooleanKey.ActivityMonitorStepsInactive, stepInactivityDetected)
         if (autoIsfMode) {
-            consoleError = mutableListOf()
-            consoleLog = mutableListOf()
             variableSensitivity = autoISF(now, profile)
         }
-
-        // mod get app start time
         val calendar = Calendar.getInstance()
         val lastAppStart = preferences.get(LongKey.AppStart)
         val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
-
-        // mod get steps from wear
-        val nowMillis = System.currentTimeMillis()
-        val timeMillis5 = nowMillis - 5 * 60 * 1000 // 5 minutes in milliseconds
-        val timeMillis10 = nowMillis - 10 * 60 * 1000 // 10 minutes in milliseconds
-        val timeMillis15 = nowMillis - 15 * 60 * 1000 // 15 minutes in milliseconds
-        val timeMillis30 = nowMillis - 30 * 60 * 1000 // 30 minutes in milliseconds
-        val timeMillis60 = nowMillis - 60 * 60 * 1000 // 60 minutes in milliseconds
-
-        val stepsFromWear = persistenceLayer.getStepsCountFromTimeToTime(timeMillis60, now)
-        val wearableStepsInLast5Minutes = stepsFromWear.filter { it.timestamp >= timeMillis5 }.sumOf { it.steps5min }
-        val wearableStepsInLast10Minutes = stepsFromWear.filter { it.timestamp >= timeMillis10 }.sumOf { it.steps10min }
-        val wearableStepsInLast15Minutes = stepsFromWear.filter { it.timestamp >= timeMillis15 }.sumOf { it.steps15min }
-        val wearableStepsInLast30Minutes = stepsFromWear.filter { it.timestamp >= timeMillis30 }.sumOf { it.steps30min }
-        val wearableStepsInLast60Minutes = stepsFromWear.filter { it.timestamp >= timeMillis60 }.sumOf { it.steps60min }
-
-        val ketoacidosisProtectionIob : Double = iobCobCalculator.calculateIobFromBolus().iob +
-            iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended().basaliob
-
         val oapsProfile = OapsProfileAutoIsf(
             dia = 0.0, // not used
             min_5m_carbimpact = 0.0, // not used
@@ -380,12 +387,12 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
             // mod activity mode
             activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
-            recent_steps_5_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast5Minutes else StepService.getRecentStepCount5Min(),
-            recent_steps_10_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast10Minutes - wearableStepsInLast5Minutes) else StepService.getRecentStepCount10Min(),
-            recent_steps_15_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast15Minutes - wearableStepsInLast10Minutes) else StepService.getRecentStepCount15Min(),
-            recent_steps_30_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast30Minutes else StepService.getRecentStepCount30Min(),
-            recent_steps_60_minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast60Minutes else StepService.getRecentStepCount60Min(),
-            phone_moved = PhoneMovementDetector.phoneMoved(),
+            recent_steps_5_minutes  = recentSteps5Minutes,
+            recent_steps_10_minutes = recentSteps10Minutes,
+            recent_steps_15_minutes = recentSteps15Minutes,
+            recent_steps_30_minutes = recentSteps30Minutes,
+            recent_steps_60_minutes = recentSteps60Minutes,
+            phone_moved = phone_moved,
             time_since_start = elapsedTimeSinceLastStart,
             now = calendar.get(Calendar.HOUR_OF_DAY),
             // end mod
@@ -426,11 +433,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             smb_max_range_extension = smbMaxRangeExtension,
             enableSMB_EvenOn_OddOff_always = enableSMB_EvenOn_OddOff_always,
             iob_threshold_percent = iobThresholdPercent,
-            profile_percentage = profile_percentage,
-            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
-            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
-            ketoacidosis_protection_iob = ketoacidosisProtectionIob
+            profile_percentage = profile_percentage
         )
         //done calculate exercise ratio
         var exerciseRatio = 1.0
@@ -451,10 +454,11 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 exerciseRatio = sensitivityRatio
             }
         }
+
         var iobTH_reduction_ratio = 1.0
         var use_iobTH = false
         if (iobThresholdPercent != 100) {
-            iobTH_reduction_ratio = profile_percentage / 100.0 * exerciseRatio
+            iobTH_reduction_ratio = profile_percentage / 100.0 * exerciseRatio * activityRatio
             use_iobTH = true
         }
         val iobTHtolerance = 130.0
@@ -462,6 +466,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         val loopWantedSmb = loop_smb(microBolusAllowed, oapsProfile, iobData.iob, use_iobTH, iobTHvirtual / iobTHtolerance * 100.0)
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
         val smbRatio = determine_varSMBratio(glucoseStatus.glucose.toInt(), target_bg, loopWantedSmb)
+        //consoleError.clear()
+        //consoleError.add(activityLog)
 
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal AutoISF <<<")
         aapsLogger.debug(LTag.APS, "Glucose status:     $glucoseStatus")
@@ -491,6 +497,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             smb_ratio = smbRatio,
             smb_max_range_extension = smbMaxRangeExtension,
             iob_threshold_percent = iobThresholdPercent,
+            activity_consoleLog = activityLog,
             auto_isf_consoleError = consoleError,
             auto_isf_consoleLog = consoleLog
         ).also {
@@ -593,6 +600,82 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     fun convert_bg_to_units(value: Double, profile: OapsProfileAutoIsf): Double =
         if (profile.out_units == "mmol/L") value * Constants.MGDL_TO_MMOLL else value
 
+    fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double, now: Int): Double
+    {
+        // Time - not used without sleep window
+        // val calendar = Calendar.getInstance()
+        // var now = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        // if (now < 1) {
+        //     now = 1
+        // }
+
+        // Activity detection (steps)
+        // val recentSteps5Minutes = StepService.getRecentStepCount5Min()
+        // val recentSteps10Minutes = StepService.getRecentStepCount10Min()
+        // val recentSteps15Minutes = StepService.getRecentStepCount15Min()
+        // val recentSteps30Minutes = StepService.getRecentStepCount30Min()
+        // val recentSteps60Minutes = StepService.getRecentStepCount60Min()
+        val phoneMoved = PhoneMovementDetector.phoneMoved()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        //val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
+        val time_since_start = (dateUtil.now() - lastAppStart) / 60000
+        val activityDetection = preferences.get(BooleanKey.ApsActivityDetection)
+        //val recentSteps5Minutes = profile.recent_steps_5_minutes
+        //val recentSteps10Minutes = profile.recent_steps_10_minutes
+        //val recentSteps15Minutes = profile.recent_steps_15_minutes
+        //val recentSteps30Minutes = profile.recent_steps_30_minutes
+        //val recentSteps60Minutes = profile.recent_steps_60_minutes
+        //val phoneMoved = profile.phone_moved
+        //val time_since_start = profile.time_since_start
+        val activity_scale_factor = preferences.get(DoubleKey.ActivityScaleFactor)              // profile.activity_scale_factor;
+        val inactivity_scale_factor = preferences.get(DoubleKey.InactivityScaleFactor)          // profile.inactivity_scale_factor;
+        var activityRatio = 1.0
+        val ignore_inactivity_overnight = preferences.get(BooleanKey.ActivityMonitorOvernight)  // profile.ignore_inactivity_overnight;
+        val inactivity_idle_start =  preferences.get(IntKey.ActivityMonitorIdleStart)           // profile.inactivity_idle_start;
+        val inactivity_idle_end = preferences.get(IntKey.ActivityMonitorIdleEnd)                // profile.inactivity_idle_end;
+
+        if ( !activityDetection ) {
+            consoleLog.add("Activity monitor disabled in settings")
+        } else if ( isTempTarget ) {
+            consoleLog.add("Activity monitor disabled: tempTarget")
+            } else if ( !phoneMoved ) {
+                consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
+        } else {
+            if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
+                consoleLog.add("Activity monitor initialising for ${60-time_since_start} more minutes: inactivity detection disabled")
+            } else if ( ( inactivity_idle_start>inactivity_idle_end && ( now>=inactivity_idle_start || now<inactivity_idle_end ) )  // includes midnight
+                || ( now>=inactivity_idle_start && now<inactivity_idle_end)                                                         // excludes midnight
+                && recentSteps60Minutes <= 200 && ignore_inactivity_overnight ) {
+                consoleLog.add("Activity monitor disabled inactivity detection: sleeping hours")
+            } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
+                //stepActivityDetected = true;
+                activityRatio = 1 - 0.3 * activity_scale_factor
+                consoleLog.add("Activity monitor detected activity, sensitivity ratio: $activityRatio")
+            } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
+                || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
+                //stepActivityDetected = true;
+                activityRatio = 1 - 0.15 * activity_scale_factor
+                consoleLog.add("Activity monitor detected partial activity, sensitivity ratio: $activityRatio")
+            } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
+                consoleLog.add("Activity monitor disabled inactivity detection: bg < target")
+            } else if ( recentSteps60Minutes < 50 ) {
+                //stepInactivityDetected = true;
+                activityRatio = 1 + 0.2 * inactivity_scale_factor
+                consoleLog.add("Activity monitor detected inactivity, sensitivity ratio: $activityRatio")
+            } else if ( recentSteps60Minutes <= 200 ) {
+                //stepInactivityDetected = true;
+                activityRatio = 1 + 0.1 * inactivity_scale_factor
+                consoleLog.add("Activity monitor detected partial inactivity, sensitivity ratio: $activityRatio")
+            } else {
+                consoleLog.add("Activity monitor detected neutral state, sensitivity ratio unchanged: $activityRatio")
+            }
+        }
+        preferences.put(DoubleKey.ActivityMonitorRatio, activityRatio)
+        aapsLogger.debug(LTag.APS, "Activity Monitor found steps 5m:$recentSteps5Minutes, 10m:$recentSteps10Minutes, 15m:$recentSteps15Minutes, 30m:$recentSteps30Minutes, 60m:$recentSteps60Minutes, activityRatio:$activityRatio")
+        aapsLogger.debug(LTag.APS, "Activity Monitor used phoneMoved:$phoneMoved, lastAppStart:$lastAppStart, activityDetection:$activityDetection, ignoreSleep:$ignore_inactivity_overnight, sleepStart:$inactivity_idle_start, sleepEnd:$inactivity_idle_end")
+        return activityRatio
+    }
+
     fun autoISF(currentTime: Long, profile: Profile): Double {
         val sens = profile.getProfileIsfMgdl()
         val glucose_status = glucoseStatusProvider.glucoseStatusData
@@ -604,28 +687,43 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             isTempTarget = true
             target_bg = hardLimits.verifyHardLimits(tempTarget.target(), app.aaps.core.ui.R.string.temp_target_value, HardLimits.LIMIT_TEMP_TARGET_BG[0], HardLimits.LIMIT_TEMP_TARGET_BG[1])
         }
-        var sensitivityRatio: Double
+        val activityRatio = preferences.get(DoubleKey.ActivityMonitorRatio)
+        val stepActivityDetected = preferences.get(BooleanKey.ActivityMonitorStepsActive)
+        val stepInactivityDetected = preferences.get(BooleanKey.ActivityMonitorStepsInactive)
+        var exercise_ratio = 1.0
+        var sensitivityRatio = 1.0
         var origin_sens = ""
         val low_temptarget_lowers_sensitivity = preferences.get(BooleanKey.ApsAutoIsfLowTtLowersSens)
         if (high_temptarget_raises_sensitivity && isTempTarget && target_bg > normalTarget
             || low_temptarget_lowers_sensitivity && isTempTarget && target_bg < normalTarget
-        ) {
-            // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
-            // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
-            //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
-            val halfBasalTarget = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget)
-            val c = (halfBasalTarget - normalTarget).toDouble()
-            if (c * (c + target_bg - normalTarget) <= 0.0) {
-                sensitivityRatio = preferences.get(DoubleKey.AutosensMax)
-                // consoleError.add("Sensitivity decrease for temp target of $target_bg limited by Autosens_max; ")
+            || stepActivityDetected || stepInactivityDetected ) {
+            if ( high_temptarget_raises_sensitivity && isTempTarget && target_bg > normalTarget
+                || low_temptarget_lowers_sensitivity && isTempTarget && target_bg < normalTarget ) {
+                // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
+                // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
+                //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
+                val halfBasalTarget = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget)
+                val c = (halfBasalTarget - normalTarget).toDouble()
+                if (c * (c + target_bg - normalTarget) <= 0.0) {
+                    sensitivityRatio = preferences.get(DoubleKey.AutosensMax)
+                    // consoleError.add("Sensitivity decrease for temp target of $target_bg limited by Autosens_max; ")
 
-            } else {
-                sensitivityRatio = c / (c + target_bg - normalTarget)
-                // limit sensitivityRatio to profile.autosens_max (1.2x by default)
+                } else {
+                    sensitivityRatio = c / (c + target_bg - normalTarget)
+                    // limit sensitivityRatio to profile.autosens_max (1.2x by default)
+                }
                 sensitivityRatio = min(sensitivityRatio, preferences.get(DoubleKey.AutosensMax))
                 sensitivityRatio = round(sensitivityRatio, 2)
-                origin_sens = " from low TT modifier"
+                exercise_ratio = sensitivityRatio
+                origin_sens = " from TT modifier"
                 // consoleError.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
+
+            } else if ( stepActivityDetected ) {
+                sensitivityRatio = activityRatio
+                // origin_sens = "from activity detection";
+            } else if ( stepInactivityDetected ) {
+                sensitivityRatio = activityRatio
+                // origin_sens = "from inactivity detection";
             }
         } else {
             var autosensResult = AutosensResult()
@@ -722,7 +820,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 liftISF = bg_ISF * acce_ISF                                 // bg_ISF could become > 1 now
                 consoleError.add("bg_ISF adaptation lifted to ${round(liftISF, 2)} as bg accelerates already")
             }
-            final_ISF = withinISFlimits(liftISF, autoISF_min, maxISFReduction, sensitivityRatio, origin_sens, isTempTarget, high_temptarget_raises_sensitivity, target_bg, normalTarget)
+            final_ISF = withinISFlimits(liftISF, autoISF_min, maxISFReduction, sensitivityRatio, origin_sens, isTempTarget, high_temptarget_raises_sensitivity, target_bg, normalTarget, stepActivityDetected, stepInactivityDetected)
             return min(720.0, round(sens / final_ISF, 1))         // observe ISF maximum of 720(?)
         } else if (bg_ISF > 1.0) {
             sens_modified = true
@@ -732,11 +830,11 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         val deltaType = "pp"
         when {
             bg_off > 0.0                     -> {
-                consoleError.add(deltaType + "_ISF adaptation by-passed as average glucose < $target_bg+10")
+                consoleError.add("${deltaType}_ISF adaptation by-passed as average glucose < $target_bg+10")
             }
 
             glucose_status.shortAvgDelta < 0 -> {
-                consoleError.add(deltaType + "_ISF adaptation by-passed as no rise or too short lived")
+                consoleError.add("${deltaType}_ISF adaptation by-passed as no rise or too short lived")
             }
 
             else                             -> {
@@ -775,7 +873,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 consoleError.add("strongest autoISF factor ${round(liftISF, 2)} weakened to ${round(liftISF * acce_ISF, 2)} as bg decelerates already")
                 liftISF = liftISF * acce_ISF
             }
-            final_ISF = withinISFlimits(liftISF, autoISF_min, maxISFReduction, sensitivityRatio, origin_sens, isTempTarget, high_temptarget_raises_sensitivity, target_bg, normalTarget)
+            final_ISF = withinISFlimits(liftISF, autoISF_min, maxISFReduction, sensitivityRatio, origin_sens, isTempTarget, high_temptarget_raises_sensitivity, target_bg, normalTarget, stepActivityDetected, stepInactivityDetected)
             return round(sens / final_ISF, 1)
         }
         consoleError.add("----------------------------------")
@@ -852,7 +950,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
 
     fun withinISFlimits(
         liftISF: Double, minISFReduction: Double, maxISFReduction: Double, sensitivityRatio: Double, origin_sens: String, temptargetSet: Boolean,
-        high_temptarget_raises_sensitivity: Boolean, target_bg: Double, normalTarget: Int
+        high_temptarget_raises_sensitivity: Boolean, target_bg: Double, normalTarget: Int, stepActivityDetected:Boolean, stepInactivityDetected: Boolean
     ): Double {
         var liftISFlimited: Double = liftISF
         if (liftISF < minISFReduction) {
@@ -862,11 +960,14 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             consoleError.add("strongest autoISF factor ${round(liftISF, 2)} limited by autoISF_max $maxISFReduction")
             liftISFlimited = maxISFReduction
         }
-        val finalISF: Double
+        var finalISF = 1.0
         var originSensFinal = origin_sens
         if (high_temptarget_raises_sensitivity && temptargetSet && target_bg > normalTarget) {
             finalISF = liftISFlimited * sensitivityRatio
-            originSensFinal = " including exercise mode impact"
+            originSensFinal = "including exercise mode impact"
+        } else if ( stepActivityDetected || stepInactivityDetected ) {
+            finalISF = liftISFlimited * sensitivityRatio ;                 //# on top of activity detection
+            originSensFinal  = "including (in-)activity detection impact";
         } else if (liftISFlimited >= 1) {
             finalISF = max(liftISFlimited, sensitivityRatio)
             originSensFinal = if (liftISFlimited >= sensitivityRatio) "" else "from low TT modifier"
@@ -884,19 +985,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     }
 
     fun loop_smb(microBolusAllowed: Boolean, profile: OapsProfileAutoIsf, iob_data_iob: Double, useIobTh: Boolean, iobThEffective: Double): String {
-        val iobThUser = preferences.get(IntKey.ApsAutoIsfIobThPercent)  //iobThresholdPercent
-        if (useIobTh) {
-            val iobThPercent = round(iobThEffective / profile.max_iob * 100.0, 0)
-            if (iobThPercent == iobThUser.toDouble()) {
-                consoleLog.add("User setting iobTH=$iobThUser% not modulated")
-            } else {
-                consoleLog.add("User setting iobTH=$iobThUser% modulated to ${iobThPercent.toInt()}% or ${round(iobThEffective, 2)}U")
-                consoleLog.add("  due to profile %, exercise mode or similar")
-            }
-        } else {
-            consoleLog.add("User setting iobTH=100% disables iobTH method")
-        }
-
         if (!microBolusAllowed) {
             return "AAPS"                                                 // see message in enable_smb
         }
@@ -919,6 +1007,19 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 msgTail = "number"
             }
             val msgEven: String = if (evenTarget) "even" else "odd"
+
+            val iobThUser = preferences.get(IntKey.ApsAutoIsfIobThPercent)  //iobThresholdPercent
+            if (useIobTh) {
+                val iobThPercent = round(iobThEffective / profile.max_iob * 100.0, 0)
+                if (iobThPercent == iobThUser.toDouble()) {
+                    consoleLog.add("User setting iobTH=$iobThUser% not modulated")
+                } else {
+                    consoleLog.add("User setting iobTH=$iobThUser% modulated to ${iobThPercent.toInt()}% or ${round(iobThEffective, 2)}U")
+                    consoleLog.add("  due to profile %, exercise mode or similar")
+                }
+            } else {
+                consoleLog.add("User setting iobTH=100% disables iobTH method")
+            }
 
             if (!evenTarget) {
                 consoleLog.add("SMB disabled; current target $target $msgUnits $msgEven $msgTail")
@@ -980,10 +1081,10 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     override fun addPreferenceScreen(preferenceManager: PreferenceManager, parent: PreferenceScreen, context: Context, requiredKey: String?) {
         if (requiredKey != null &&
             requiredKey != "absorption_smb_advanced" &&
-            requiredKey != "activity_modifies_sensitivity" &&
+            requiredKey != "activity_monitor" &&
             requiredKey != "auto_isf_settings" &&
-            requiredKey != "ketoacidosis_protection" &&
-            requiredKey != "smb_delivery_settings"
+            requiredKey != "smb_delivery_settings" &&
+            requiredKey != "Libre_special_settings"
         ) return
         val category = PreferenceCategory(context)
         parent.addPreference(category)
@@ -1000,12 +1101,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfHighTtRaisesSens, summary = R.string.high_temptarget_raises_sensitivity_summary, title = R.string.high_temptarget_raises_sensitivity_title))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfLowTtLowersSens, summary = R.string.low_temptarget_lowers_sensitivity_summary, title = R.string.low_temptarget_lowers_sensitivity_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsAutoIsfHalfBasalExerciseTarget, dialogMessage = R.string.half_basal_exercise_target_summary, title = R.string.half_basal_exercise_target_title))
-            addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                key = "activity_modifies_sensitivity"
-                title = rh.gs(R.string.activity_mode_title)
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetection, summary = R.string.activity_mode_summary, title = R.string.activity_mode_title))
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetectionSource, summary = R.string.activity_detection_source_summary, title = R.string.activity_detection_source_title))
-            })
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmb, summary = R.string.enable_smb_summary, title = R.string.enable_smb))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbWithHighTt, summary = R.string.enable_smb_with_high_temp_target_summary, title = R.string.enable_smb_with_high_temp_target))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbAlways, summary = R.string.enable_smb_always_summary, title = R.string.enable_smb_always))
@@ -1017,13 +1112,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsMaxMinutesOfBasalToLimitSmb, title = R.string.smb_max_minutes_summary))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsUamMaxMinutesOfBasalToLimitSmb, dialogMessage = R.string.uam_smb_max_minutes, title = R.string.uam_smb_max_minutes_summary))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsCarbsRequestThreshold, dialogMessage = R.string.carbs_req_threshold_summary, title = R.string.carbs_req_threshold))
-            addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                key = "ketoacidosis_protection"
-                title = rh.gs(R.string.ketoacidosis_protection_title)
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisVarStrategy, summary = R.string.ketoacidosis_protection_var_strategy_summary, title = R.string.ketoacidosis_protection_var_strategy_title))
-                addPreference(AdaptiveIntPreference(ctx=context, intKey = IntKey.ApsKetoacidosisProtectionBasal, dialogMessage = R.string.ketoacidosis_protection_basal_summary, title = R.string.ketoacidosis_protection_basal_title))
-            })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "absorption_smb_advanced"
                 title = rh.gs(app.aaps.core.ui.R.string.advanced_settings_title)
@@ -1047,9 +1135,32 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 )
             })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "activity_monitor"
+                title = rh.gs(R.string.activity_monitor_title)
+                summary = rh.gs(R.string.activity_monitor_summary)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorDetection, summary = R.string.activity_monitor_summary, title = R.string.activity_monitor_title))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ActivityScaleFactor, dialogMessage = R.string.activity_scale_factor_summary, title = R.string.activity_scale_factor_title))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.InactivityScaleFactor, dialogMessage = R.string.inactivity_scale_factor_summary, title = R.string.inactivity_scale_factor_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorOvernight, summary = R.string.ignore_inactivity_overnight_summary, title = R.string.ignore_inactivity_overnight_title))
+                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleStart, summary = R.string.inactivity_idle_start_summary, title = R.string.inactivity_idle_start_title ))
+                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleEnd, summary = R.string.inactivity_idle_end_summary, title = R.string.inactivity_idle_end_title ))
+            })
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "auto_isf_settings"
                 title = rh.gs(R.string.autoISF_settings_title)
                 summary = rh.gs(R.string.autoISF_settings_summary)
+                addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                    key = "Libre_special_settings"
+                    title = "Libre special test settings"  //rh.gs(R.string.smb_delivery_settings_title)
+                    summary = "Calibrating Juggluco raw data"  //rh.gs(R.string.smb_delivery_settings_summary)
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslCalOffset, dialogMessage = R.string.fslCal_Offset_summary, title = R.string.fslCal_Offset_title))
+                    //addPreference(AdaptiveUnitPreference(ctx = context, unitKey = UnitDoubleKey.FslCalOffset, dialogMessage = R.string.fslCal_Offset_summary, title = R.string.fslCal_Offset_title))  // assumed input was always in mmol
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslCalSlope, dialogMessage = R.string.fslCal_Slope_summary, title = R.string.fslCal_Slope_title))
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslSmoothAlpha, dialogMessage = R.string.fsl_exp1_factor_summary, title = R.string.fsl_exp1_factor_title))
+                    addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.FslSmoothCorrection, dialogMessage = R.string.fsl_exp1_correction_summary, title = R.string.fsl_exp1_correction_title))
+                    addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.FslMaxSmoothGap, dialogMessage = R.string.fsl_exp1_max_smooth_gap_summary, title = R.string.fsl_exp1_max_smooth_gap_title))
+                    addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.FslMinFitMinutes, dialogMessage = R.string.fslMinFitMinutes_summary, title = R.string.fslMinFitMinutes_title))
+                })
                 addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseAutoIsfWeights, summary = R.string.openapsama_enable_autoISF, title = R.string.openapsama_enable_autoISF))
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfMin, dialogMessage = R.string.openapsama_autoISF_min_summary, title = R.string.openapsama_autoISF_min))
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfMax, dialogMessage = R.string.openapsama_autoISF_max_summary, title = R.string.openapsama_autoISF_max))
@@ -1060,7 +1171,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfPpWeight, dialogMessage = R.string.openapsama_pp_ISF_weight_summary, title = R.string.openapsama_pp_ISF_weight))
                 addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfDuraWeight, dialogMessage = R.string.openapsama_dura_ISF_weight_summary, title = R.string.openapsama_dura_ISF_weight))
                 addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsAutoIsfIobThPercent, dialogMessage = R.string.openapsama_iob_threshold_percent_summary, title = R.string.openapsama_iob_threshold_percent))
-                                addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                addPreference(preferenceManager.createPreferenceScreen(context).apply {
                     key = "smb_delivery_settings"
                     title = rh.gs(R.string.smb_delivery_settings_title)
                     summary = rh.gs(R.string.smb_delivery_settings_summary)
@@ -1071,7 +1182,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                     addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ApsAutoIsfSmbMaxRangeExtension, dialogMessage = R.string.openapsama_smb_max_range_extension_summary, title = R.string.openapsama_smb_max_range_extension))
                     addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfSmbOnEvenTarget, summary = R.string.enableSMB_EvenOn_OddOff_always_summary, title = R.string.enableSMB_EvenOn_OddOff_always))
                 })
-            })
+             })
         }
     }
 }

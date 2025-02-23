@@ -19,5 +19,7 @@ enum class LongKey(
     override val hideParentScreenIfHidden: Boolean = false
 ) : LongPreferenceKey {
 
-    AppStart("app_start_time", 0),
+    FslSmoothLastTimeRaw("fsl_last_time_raw", -1, -1, defaultedBySM = true),
+    AppStart("app_start_time", 0, defaultedBySM = true),
+
 }

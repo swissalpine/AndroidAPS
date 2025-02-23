@@ -1,5 +1,6 @@
 package app.aaps
 
+import android.icu.util.Calendar
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.GrantPermissionRule
@@ -20,6 +21,7 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntKey
+import app.aaps.core.keys.LongKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.keys.StringKey
 import app.aaps.core.utils.JsonHelper
@@ -183,6 +185,9 @@ class ReplayApsResultsTest @Inject constructor() {
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
         val currentTime = determineBasalResult.currentTime
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfile(
             dia = 0.0,
             min_5m_carbimpact = 0.0,
@@ -360,6 +365,9 @@ class ReplayApsResultsTest @Inject constructor() {
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
         val currentTime = determineBasalResult.currentTime
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfile(
             dia = 0.0,
             min_5m_carbimpact = 0.0,
@@ -531,6 +539,9 @@ class ReplayApsResultsTest @Inject constructor() {
         val iobData = arrayListOf<IobTotal>()
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfile(
             dia = determineBasalResult.profile.getDouble("dia"),
             min_5m_carbimpact = determineBasalResult.profile.getDouble("min_5m_carbimpact"),
@@ -710,6 +721,9 @@ class ReplayApsResultsTest @Inject constructor() {
         for (i in 0 until determineBasalResult.iobData!!.length())
             iobData.add(determineBasalResult.iobData!!.getJSONObject(i).toIob())
         val currentTime = determineBasalResult.currentTime
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val profile = OapsProfileAutoIsf(
             dia = 0.0,
             min_5m_carbimpact = 0.0,
@@ -808,6 +822,7 @@ class ReplayApsResultsTest @Inject constructor() {
             profile_percentage = profile.profile_percentage, // 100,
             smb_ratio = profile.smb_delivery_ratio, // 0.5,
             loop_wanted_smb = "dummy",
+            activity_consoleLog = "Activity Monitor ...",
             auto_isf_consoleLog = mutableListOf<String>("end AutoISF"),
             auto_isf_consoleError = mutableListOf<String>("start AutoISF")
         )

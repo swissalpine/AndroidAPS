@@ -2,6 +2,7 @@ package app.aaps.plugins.aps.openAPSAMA
 
 import android.content.Context
 import android.content.Intent
+import android.icu.util.Calendar
 import android.net.Uri
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceManager
@@ -38,6 +39,7 @@ import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntentKey
+import app.aaps.core.keys.LongKey
 import app.aaps.core.keys.Preferences
 import app.aaps.core.objects.aps.DetermineBasalResult
 import app.aaps.core.objects.constraints.ConstraintObject
@@ -53,6 +55,8 @@ import app.aaps.plugins.aps.OpenAPSFragment
 import app.aaps.plugins.aps.R
 import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
+import app.aaps.plugins.aps.openAPSSMB.PhoneMovementDetector
+import app.aaps.plugins.aps.openAPSSMB.StepService
 import dagger.android.HasAndroidInjector
 import org.json.JSONObject
 import javax.inject.Inject
@@ -184,6 +188,9 @@ class OpenAPSAMAPlugin @Inject constructor(
 
         val iobArray = iobCobCalculator.calculateIobArrayInDia(profile)
         val mealData = iobCobCalculator.getMealDataWithWaitingForCalculationFinish()
+        val calendar = Calendar.getInstance()
+        val lastAppStart = preferences.get(LongKey.AppStart)
+        val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
 
         val oapsProfile = OapsProfile(
             dia = min(profile.dia, 3.0),
