@@ -201,7 +201,7 @@ class OverviewFragment : DaggerFragment(), View.OnClickListener, OnLongClickList
             binding.nsclientCard.setBackgroundColor(Color.argb(80, 0x0F, 0xBB, 0xE0))
 
         //if (config.APS || config.PUMPCONTROL)
-        binding.infoLayout.version.text = "${config.VERSION_NAME}" //(${config.HEAD.substring(0, 4)})"
+        binding.infoLayout.version.text = "${config.VERSION_NAME} (${config.HEAD.substring(0, 4)})"
         if (config.COMMITTED) {
             binding.infoLayout.version.setTextColor(rh.gac(context, app.aaps.core.ui.R.attr.defaultTextColor))
             binding.infoLayout.version.alpha = 0.4f
