@@ -234,20 +234,17 @@
     <string name="openapsama_iob_threshold_percent">maxIOB threshold percent for SMB\n(iob_threshold_percent)</string>
 
     <!--    Activity Monitor -->
-    <string name="activity_mode_title">"Activity modifies sensitivity"</string>
-    <string name="activity_mode_summary">"If activity is detected in form of steps, sensitivity and basal are reduced up to 30%; in case of inactivity, both are increased by up to 20%. \nA temp target disables this.\nPlease note: Inactivity detection is deactivated if the smartphone is not carried for at least 15 minutes and at night between 10 pm and 8 am (sleeping time)."</string>
-    <string name="activity_detection_source_title">Use your WATCH\'s step counter (Wear OS only)\nDefault: false (= Do NOT use WATCH\'s step counter)</string>
-    <string name="activity_detection_source_summary">It is recommended that you use your PHONE\'s step counter instead! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
-    <string name="activity_save_steps_from_smartphone_title">Save steps from smartphone</string>
-    <string name="activity_save_steps_from_smartphone_summary">Default: true</string>
     <string name="activity_monitor_title">Activity modifies sensitivity</string>
     <string name="activity_monitor_summary">Activity is detected in form of steps as measured by the phone. It does not replace an explicit sport adjustment but is a lower level complement.</string>
-    <!-- <string name="activity_detection_summary" formatted="false">If activity is detected in form of steps, sensitivity and basal are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.\nDuring TempTarget (in)activity will not be monitored.</string> -->
+    <string name="activity_mode_source_title">Use your WATCH\'s step counter (Wear OS only)\nDefault: false (= Do NOT use WATCH\'s step counter)</string>
+    <string name="activity_mode_source_summary">It is recommended that you use your PHONE\'s step counter instead! This offers the following advantages: \n- Detection when the watch is not worn (otherwise inactivity can be falsely detected).\n- Cycling is recognized as movement.</string>
+    <string name="activity_save_steps_from_smartphone_title">Save steps from smartphone</string>
+    <string name="activity_save_steps_from_smartphone_summary">Default: true</string>
     <string name="key_app_start" translatable="false">app_start</string>
     <string name="activity_scale_factor_title">Scale factor for final activity sensitivity</string>
-    <string name="activity_scale_factor_summary" formatted="false">If activity is detected then its default contribution of 15% or 30% is scaled up or down by this ratio\nA value of 0.0 disables activity contribution to sensitivity</string>
+    <string name="activity_scale_factor_summary" formatted="false">Default: 1.0\nIf activity is detected then its default contribution of 15% or 30% is scaled up or down by this ratio\nA value of 0.0 disables activity contribution to sensitivity</string>
     <string name="inactivity_scale_factor_title">Scale factor for final inactivity sensitivity</string>
-    <string name="inactivity_scale_factor_summary" formatted="false">If inactivity is detected then its default contribution of 10% or 20% is scaled up or down by this ratio\nA value of 0.0 disables inactivity contribution to sensitivity</string>
+    <string name="inactivity_scale_factor_summary" formatted="false">Default: 1.0\nIf inactivity is detected then its default contribution of 10% or 20% is scaled up or down by this ratio\nA value of 0.0 disables inactivity contribution to sensitivity</string>
     <string name="ignore_inactivity_overnight_title">Disable inactivity detection during sleep</string>
     <string name="ignore_inactivity_overnight_summary">Stop inactivity adaptation during sleeping hours\nDefault is true, i.e. adaptation is off\n\nIf false, leave phone beside bed during short breaks to keep monitoring disabled</string>
     <string name="inactivity_idle_start_title">Start hour for disabling inactivity monitoring</string>

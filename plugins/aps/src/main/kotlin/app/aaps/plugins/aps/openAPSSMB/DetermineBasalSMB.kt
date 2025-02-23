@@ -11,6 +11,10 @@ import app.aaps.core.interfaces.aps.Predictions
 import app.aaps.core.interfaces.aps.RT
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
+import app.aaps.core.keys.BooleanKey
+import app.aaps.core.keys.DoubleKey
+import app.aaps.core.keys.IntKey
+import app.aaps.core.keys.Preferences
 import java.text.DecimalFormat
 import java.time.Instant
 import java.time.ZoneId
@@ -25,7 +29,8 @@ import kotlin.math.roundToInt
 @Singleton
 class DetermineBasalSMB @Inject constructor(
     private val profileUtil: ProfileUtil,
-    private val fabricPrivacy: FabricPrivacy
+    private val fabricPrivacy: FabricPrivacy,
+    private val preferences: Preferences
 ) {
 
     private val consoleError = mutableListOf<String>()
@@ -116,7 +121,7 @@ class DetermineBasalSMB @Inject constructor(
             if (profile.ketoacidosis_protection_var_strategy && profile.ketoacidosis_protection_iob < (0 - profile.current_basal) ) {
                 proposedRate = cutOff
                 rT.reason.append("\nKetoacidosis protection sets temp basal to " + round(proposedRate,2) +" U/h.")
-                consoleError.add("Ketoacidosis protection sets temp basal to " + round(proposedRate,2) + " U/h")
+                consoleError.add("Ketoacidosis protection sets temp basal to " + round(proposedRate,2) + "fsteps U/h")
             } else if (!profile.ketoacidosis_protection_var_strategy) {
                 proposedRate = cutOff
                 rT.reason.append("\nKetoacidosis protection sets temp basal to " + round(proposedRate,2) + " U/h")
@@ -253,6 +258,11 @@ class DetermineBasalSMB @Inject constructor(
         val phoneMoved = profile.phone_moved
         val now = profile.now
         val timeSinceStart = profile.time_since_start
+        val ignore_inactivity_overnight = preferences.get(BooleanKey.ActivityMonitorOvernight)
+        val inactivity_idle_start =  preferences.get(IntKey.ActivityMonitorIdleStart)
+        val inactivity_idle_end = preferences.get(IntKey.ActivityMonitorIdleEnd)
+        val activity_scale_factor = preferences.get(DoubleKey.ActivityScaleFactor)
+        val inactivity_scale_factor = preferences.get(DoubleKey.InactivityScaleFactor)
 
         if ( !activityDetection ) {
             consoleError.add("Activity monitor disabled in the settings")
@@ -268,26 +278,28 @@ class DetermineBasalSMB @Inject constructor(
             consoleError.add("Last 60 m: $recentSteps60Minutes steps; ")
             if ( timeSinceStart < 60 && recentSteps60Minutes <= 200 ) {
                 consoleError.add("Activity monitor initialising for "+(60-timeSinceStart)+" more minutes: inactivity detection disabled")
-            } else if ( (now < 8 || now >= 22) && recentSteps60Minutes <= 200 ) {
+            } else if ( ( inactivity_idle_start>inactivity_idle_end && ( now>=inactivity_idle_start || now<inactivity_idle_end ) )  // includes midnight
+                || ( now>=inactivity_idle_start && now<inactivity_idle_end)                                                         // excludes midnight
+                && recentSteps60Minutes <= 200 && ignore_inactivity_overnight )  {
                 consoleError.add("Activity monitor disabled inactivity detection: sleeping hours")
             } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
                 stepActivityDetected = true
-                activityRatio = 0.7
+                activityRatio = 1 - 0.3 * activity_scale_factor
                 consoleError.add("-> Activity monitor detected activity, activity ratio: $activityRatio")
             } else if ( recentSteps5Minutes > 200 || recentSteps10Minutes > 200  || recentSteps15Minutes > 200
                 || recentSteps30Minutes > 500 || recentSteps60Minutes > 800 ) {
                 stepActivityDetected = true
-                activityRatio = 0.85
+                activityRatio = 1 - 0.15 * activity_scale_factor
                 consoleError.add("-> Activity monitor detected partial activity, activity ratio: $activityRatio")
             } else if ( bg < target_bg && recentSteps60Minutes <= 200 ) {
                 consoleError.add("Activity monitor disabled inactivity detection: : bg < target")
             } else if ( recentSteps60Minutes < 50 ) {
                 stepInactivityDetected = true
-                activityRatio = 1.2
+                activityRatio =  1 + 0.2 * inactivity_scale_factor
                 consoleError.add("-> Activity monitor detected inactivity, activity ratio: $activityRatio")
             } else if ( recentSteps60Minutes <= 200 ) {
                 stepInactivityDetected = true
-                activityRatio = 1.1
+                activityRatio =  1 + 0.1 * inactivity_scale_factor
                 consoleError.add("-> Activity monitor detected partial inactivity, activity ratio: $activityRatio")
             } else {
                 consoleError.add("-> Activity monitor detected neutral state, activity ratio unchanged: $activityRatio")

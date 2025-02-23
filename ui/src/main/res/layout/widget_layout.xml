@@ -114,36 +114,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:contentDescription="last accel"
-                    android:text="acc: "
-                    android:textAlignment="textEnd"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    tools:ignore="HardcodedText" />
-
-                <TextView
-                    android:id="@+id/bgAcceleration"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:text="n/a"
-                    android:textAlignment="textEnd"
-                    android:textColor="@color/white"
-                    android:textSize="12sp"
-                    tools:ignore="HardcodedText" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
                     android:contentDescription="last delta"
                     android:text="Δ: "
                     android:textAlignment="textEnd"

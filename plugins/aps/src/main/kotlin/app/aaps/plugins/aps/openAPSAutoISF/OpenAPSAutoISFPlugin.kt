@@ -14,6 +14,7 @@ import androidx.preference.SwitchPreference
 import app.aaps.core.data.aps.SMBDefaults
 import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.data.model.SC
 import app.aaps.core.data.plugin.PluginType
 import app.aaps.core.data.time.T
 import app.aaps.core.interfaces.aps.APS
@@ -76,6 +77,8 @@ import app.aaps.plugins.aps.events.EventOpenAPSUpdateGui
 import app.aaps.plugins.aps.events.EventResetOpenAPSGui
 import app.aaps.plugins.aps.openAPSSMB.StepService
 import dagger.android.HasAndroidInjector
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.kotlin.plusAssign
 import org.json.JSONObject
 import java.util.Locale
 import javax.inject.Inject
@@ -157,6 +160,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     private val recentSteps60Minutes; get() = StepService.getRecentStepCount60Min()
     private val phone_moved; get() = PhoneMovementDetector.phoneMoved()
     private val calendar = Calendar.getInstance()
+
+    private val disposable = CompositeDisposable()
 
 
     override fun onStart() {
@@ -363,6 +368,10 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         val calendar = Calendar.getInstance()
         val lastAppStart = preferences.get(LongKey.AppStart)
         val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
+
+        val ketoacidosisProtectionIob : Double = iobCobCalculator.calculateIobFromBolus().iob +
+            iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended().basaliob
+
         val oapsProfile = OapsProfileAutoIsf(
             dia = 0.0, // not used
             min_5m_carbimpact = 0.0, // not used
@@ -386,7 +395,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             exercise_mode = SMBDefaults.exercise_mode,
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
             // mod activity mode
-            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            activity_detection = preferences.get(BooleanKey.ActivityMonitorDetection),
             recent_steps_5_minutes  = recentSteps5Minutes,
             recent_steps_10_minutes = recentSteps10Minutes,
             recent_steps_15_minutes = recentSteps15Minutes,
@@ -433,7 +442,11 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             smb_max_range_extension = smbMaxRangeExtension,
             enableSMB_EvenOn_OddOff_always = enableSMB_EvenOn_OddOff_always,
             iob_threshold_percent = iobThresholdPercent,
-            profile_percentage = profile_percentage
+            profile_percentage = profile_percentage,
+            ketoacidosis_protection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosis_protection_var_strategy = preferences.get(BooleanKey.ApsKetoacidosisVarStrategy),
+            ketoacidosis_protection_basal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            ketoacidosis_protection_iob = ketoacidosisProtectionIob
         )
         //done calculate exercise ratio
         var exerciseRatio = 1.0
@@ -609,17 +622,27 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         //     now = 1
         // }
 
-        // Activity detection (steps)
-        // val recentSteps5Minutes = StepService.getRecentStepCount5Min()
-        // val recentSteps10Minutes = StepService.getRecentStepCount10Min()
-        // val recentSteps15Minutes = StepService.getRecentStepCount15Min()
-        // val recentSteps30Minutes = StepService.getRecentStepCount30Min()
-        // val recentSteps60Minutes = StepService.getRecentStepCount60Min()
+        if (preferences.get(BooleanKey.ActivityMonitorSaveStepsFromSmartphone)) {
+            val nowMillis = System.currentTimeMillis()
+            val stepsCount = SC(
+                duration = 0,
+                timestamp = nowMillis,
+                steps5min = recentSteps5Minutes,
+                steps10min = recentSteps5Minutes + recentSteps10Minutes,
+                steps15min = recentSteps5Minutes + recentSteps10Minutes + recentSteps15Minutes,
+                steps30min = recentSteps30Minutes,
+                steps60min = recentSteps60Minutes,
+                steps180min = StepService.getRecentStepCount180Min(),
+                device = "Smartphone"
+            )
+            disposable += persistenceLayer.insertOrUpdateStepsCount(stepsCount).subscribe()
+        }
+
         val phoneMoved = PhoneMovementDetector.phoneMoved()
         val lastAppStart = preferences.get(LongKey.AppStart)
         //val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val time_since_start = (dateUtil.now() - lastAppStart) / 60000
-        val activityDetection = preferences.get(BooleanKey.ApsActivityDetection)
+        val activityDetection = preferences.get(BooleanKey.ActivityMonitorDetection)
         //val recentSteps5Minutes = profile.recent_steps_5_minutes
         //val recentSteps10Minutes = profile.recent_steps_10_minutes
         //val recentSteps15Minutes = profile.recent_steps_15_minutes
@@ -1101,6 +1124,18 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfHighTtRaisesSens, summary = R.string.high_temptarget_raises_sensitivity_summary, title = R.string.high_temptarget_raises_sensitivity_title))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfLowTtLowersSens, summary = R.string.low_temptarget_lowers_sensitivity_summary, title = R.string.low_temptarget_lowers_sensitivity_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsAutoIsfHalfBasalExerciseTarget, dialogMessage = R.string.half_basal_exercise_target_summary, title = R.string.half_basal_exercise_target_title))
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "activity_monitor"
+                title = rh.gs(R.string.activity_monitor_title)
+                summary = rh.gs(R.string.activity_monitor_summary)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorDetection, summary = R.string.activity_monitor_summary, title = R.string.activity_monitor_title))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ActivityScaleFactor, dialogMessage = R.string.activity_scale_factor_summary, title = R.string.activity_scale_factor_title))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.InactivityScaleFactor, dialogMessage = R.string.inactivity_scale_factor_summary, title = R.string.inactivity_scale_factor_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorOvernight, summary = R.string.ignore_inactivity_overnight_summary, title = R.string.ignore_inactivity_overnight_title))
+                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleStart, summary = R.string.inactivity_idle_start_summary, title = R.string.inactivity_idle_start_title ))
+                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleEnd, summary = R.string.inactivity_idle_end_summary, title = R.string.inactivity_idle_end_title ))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorSaveStepsFromSmartphone, summary = R.string.activity_save_steps_from_smartphone_summary, title = R.string.activity_save_steps_from_smartphone_title))
+            })
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmb, summary = R.string.enable_smb_summary, title = R.string.enable_smb))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbWithHighTt, summary = R.string.enable_smb_with_high_temp_target_summary, title = R.string.enable_smb_with_high_temp_target))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbAlways, summary = R.string.enable_smb_always_summary, title = R.string.enable_smb_always))
@@ -1112,6 +1147,13 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsMaxMinutesOfBasalToLimitSmb, title = R.string.smb_max_minutes_summary))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsUamMaxMinutesOfBasalToLimitSmb, dialogMessage = R.string.uam_smb_max_minutes, title = R.string.uam_smb_max_minutes_summary))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsCarbsRequestThreshold, dialogMessage = R.string.carbs_req_threshold_summary, title = R.string.carbs_req_threshold))
+            addPreference(preferenceManager.createPreferenceScreen(context).apply {
+                key = "ketoacidosis_protection"
+                title = rh.gs(R.string.ketoacidosis_protection_title)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisProtection, summary = R.string.ketoacidosis_protection_summary, title = R.string.ketoacidosis_protection_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsKetoacidosisVarStrategy, summary = R.string.ketoacidosis_protection_var_strategy_summary, title = R.string.ketoacidosis_protection_var_strategy_title))
+                addPreference(AdaptiveIntPreference(ctx=context, intKey = IntKey.ApsKetoacidosisProtectionBasal, dialogMessage = R.string.ketoacidosis_protection_basal_summary, title = R.string.ketoacidosis_protection_basal_title))
+            })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "absorption_smb_advanced"
                 title = rh.gs(app.aaps.core.ui.R.string.advanced_settings_title)
@@ -1133,17 +1175,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
                         title = R.string.openapsama_current_basal_safety_multiplier
                     )
                 )
-            })
-            addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                key = "activity_monitor"
-                title = rh.gs(R.string.activity_monitor_title)
-                summary = rh.gs(R.string.activity_monitor_summary)
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorDetection, summary = R.string.activity_monitor_summary, title = R.string.activity_monitor_title))
-                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ActivityScaleFactor, dialogMessage = R.string.activity_scale_factor_summary, title = R.string.activity_scale_factor_title))
-                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.InactivityScaleFactor, dialogMessage = R.string.inactivity_scale_factor_summary, title = R.string.inactivity_scale_factor_title))
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorOvernight, summary = R.string.ignore_inactivity_overnight_summary, title = R.string.ignore_inactivity_overnight_title))
-                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleStart, summary = R.string.inactivity_idle_start_summary, title = R.string.inactivity_idle_start_title ))
-                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleEnd, summary = R.string.inactivity_idle_end_summary, title = R.string.inactivity_idle_end_title ))
             })
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
                 key = "auto_isf_settings"

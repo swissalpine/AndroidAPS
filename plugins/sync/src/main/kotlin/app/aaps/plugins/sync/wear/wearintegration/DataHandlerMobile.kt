@@ -1832,7 +1832,7 @@ class DataHandlerMobile @Inject constructor(
             steps180min = actionStepsRate.steps180min,
             device = actionStepsRate.device
         )
-        if (!preferences.get(BooleanKey.ApsActivitySaveStepsFromSmartphone)) {
+        if (!preferences.get(BooleanKey.ActivityMonitorSaveStepsFromSmartphone)) {
             disposable += persistenceLayer.insertOrUpdateStepsCount(stepsCount).subscribe()
         }
     }

@@ -426,28 +426,13 @@ open class OpenAPSSMBPlugin @Inject constructor(
         // mod get steps from wear
         val nowMillis = System.currentTimeMillis()
 
-        /*
-        val stepsFromWear = persistenceLayer.getStepsCountFromTimeToTime(timeMillis60, now)
-        val wearableStepsInLast5Minutes = stepsFromWear.filter { it.timestamp >= timeMillis5 }.sumOf { it.steps5min }
-        val wearableStepsInLast10Minutes = stepsFromWear.filter { it.timestamp >= timeMillis10 }.sumOf { it.steps10min }
-        val wearableStepsInLast15Minutes = stepsFromWear.filter { it.timestamp >= timeMillis15 }.sumOf { it.steps15min }
-        val wearableStepsInLast30Minutes = stepsFromWear.filter { it.timestamp >= timeMillis30 }.sumOf { it.steps30min }
-        val wearableStepsInLast60Minutes = stepsFromWear.filter { it.timestamp >= timeMillis60 }.sumOf { it.steps60min }
-
-        val recentSteps5Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast5Minutes else StepService.getRecentStepCount5Min()
-        val recentSteps10Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast10Minutes - wearableStepsInLast5Minutes) else StepService.getRecentStepCount10Min()
-        val recentSteps15Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) kotlin.math.abs(wearableStepsInLast15Minutes - wearableStepsInLast10Minutes) else StepService.getRecentStepCount15Min()
-        val recentSteps30Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast30Minutes else StepService.getRecentStepCount30Min()
-        val recentSteps60Minutes = if (preferences.get(BooleanKey.ApsActivityDetectionSource)) wearableStepsInLast60Minutes else StepService.getRecentStepCount60Min()
-        */
-
         val recentSteps5Minutes = StepService.getRecentStepCount5Min()
         val recentSteps10Minutes = StepService.getRecentStepCount10Min()
         val recentSteps15Minutes = StepService.getRecentStepCount15Min()
         val recentSteps30Minutes = StepService.getRecentStepCount30Min()
         val recentSteps60Minutes = StepService.getRecentStepCount60Min()
 
-        if (preferences.get(BooleanKey.ApsActivitySaveStepsFromSmartphone)) {
+        if (preferences.get(BooleanKey.ActivityMonitorSaveStepsFromSmartphone)) {
             val stepsCount = SC(
                 duration = 0,
                 timestamp = nowMillis,
@@ -496,7 +481,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             half_basal_exercise_target = preferences.get(IntKey.ApsAutoIsfHalfBasalExerciseTarget),
             // mod finish
             // mod activity mode
-            activity_detection = preferences.get(BooleanKey.ApsActivityDetection),
+            activity_detection = preferences.get(BooleanKey.ActivityMonitorDetection),
             recent_steps_5_minutes = recentSteps5Minutes,
             recent_steps_10_minutes = recentSteps10Minutes,
             recent_steps_15_minutes = recentSteps15Minutes,
@@ -654,7 +639,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
     override fun addPreferenceScreen(preferenceManager: PreferenceManager, parent: PreferenceScreen, context: Context, requiredKey: String?) {
         if (requiredKey != null &&
             requiredKey != "absorption_smb_advanced" &&
-            requiredKey != "activity_modifies_sensitivity" &&
+            requiredKey != "activity_monitor" &&
             requiredKey != "ketoacidosis_protection"
             ) return
         val category = PreferenceCategory(context)
@@ -676,11 +661,16 @@ open class OpenAPSSMBPlugin @Inject constructor(
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsAutoIsfLowTtLowersSens, summary = R.string.low_temptarget_lowers_sensitivity_summary, title = R.string.low_temptarget_lowers_sensitivity_title))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ApsAutoIsfHalfBasalExerciseTarget, dialogMessage = R.string.half_basal_exercise_target_summary, title = R.string.half_basal_exercise_target_title))
             addPreference(preferenceManager.createPreferenceScreen(context).apply {
-                key = "activity_modifies_sensitivity"
-                title = rh.gs(R.string.activity_mode_title)
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetection, summary = R.string.activity_mode_summary, title = R.string.activity_mode_title))
-                //addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivityDetectionSource, summary = R.string.activity_detection_source_summary, title = R.string.activity_detection_source_title))
-                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsActivitySaveStepsFromSmartphone, summary = R.string.activity_save_steps_from_smartphone_summary, title = R.string.activity_save_steps_from_smartphone_title))
+                key = "activity_monitor"
+                title = rh.gs(R.string.activity_monitor_title)
+                summary = rh.gs(R.string.activity_monitor_summary)
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorDetection, summary = R.string.activity_monitor_summary, title = R.string.activity_monitor_title))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.ActivityScaleFactor, dialogMessage = R.string.activity_scale_factor_summary, title = R.string.activity_scale_factor_title))
+                addPreference(AdaptiveDoublePreference(ctx = context, doubleKey = DoubleKey.InactivityScaleFactor, dialogMessage = R.string.inactivity_scale_factor_summary, title = R.string.inactivity_scale_factor_title))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorOvernight, summary = R.string.ignore_inactivity_overnight_summary, title = R.string.ignore_inactivity_overnight_title))
+                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleStart, summary = R.string.inactivity_idle_start_summary, title = R.string.inactivity_idle_start_title ))
+                addPreference(AdaptiveIntPreference(ctx = context, intKey = IntKey.ActivityMonitorIdleEnd, summary = R.string.inactivity_idle_end_summary, title = R.string.inactivity_idle_end_title ))
+                addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ActivityMonitorSaveStepsFromSmartphone, summary = R.string.activity_save_steps_from_smartphone_summary, title = R.string.activity_save_steps_from_smartphone_title))
             })
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmb, summary = R.string.enable_smb_summary, title = R.string.enable_smb))
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = BooleanKey.ApsUseSmbWithHighTt, summary = R.string.enable_smb_with_high_temp_target_summary, title = R.string.enable_smb_with_high_temp_target))
