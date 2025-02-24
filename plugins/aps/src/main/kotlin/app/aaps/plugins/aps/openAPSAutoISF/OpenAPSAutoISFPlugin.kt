@@ -616,11 +616,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double, now: Int): Double
     {
         // Time - not used without sleep window
-        // val calendar = Calendar.getInstance()
-        // var now = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        // if (now < 1) {
-        //     now = 1
-        // }
+        var now = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        if (now < 1) now = 1
 
         if (preferences.get(BooleanKey.ActivityMonitorSaveStepsFromSmartphone)) {
             val nowMillis = System.currentTimeMillis()
@@ -1103,8 +1100,9 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
 
     override fun addPreferenceScreen(preferenceManager: PreferenceManager, parent: PreferenceScreen, context: Context, requiredKey: String?) {
         if (requiredKey != null &&
-            requiredKey != "absorption_smb_advanced" &&
             requiredKey != "activity_monitor" &&
+            requiredKey != "absorption_smb_advanced" &&
+            requiredKey != "ketoacidosis_protection" &&
             requiredKey != "auto_isf_settings" &&
             requiredKey != "smb_delivery_settings" &&
             requiredKey != "Libre_special_settings"

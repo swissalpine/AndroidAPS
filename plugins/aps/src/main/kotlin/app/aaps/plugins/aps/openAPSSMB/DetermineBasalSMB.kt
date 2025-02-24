@@ -225,7 +225,7 @@ class DetermineBasalSMB @Inject constructor(
                 rT.reason.append(". Shortening " + currenttemp.duration + "m long zero temp to 30m. ")
                 rT.deliverAt = deliverAt
                 rT.duration = 30
-                rT.rate = 0.0
+                rT.rate = ketoProtection(0.0, profile, rT)
                 return rT
             } else { //do nothing.
                 rT.reason.append(". Temp ${currenttemp.rate} <= current basal ${round(basal, 2)}U/hr; doing nothing. ")
