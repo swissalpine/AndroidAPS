@@ -615,9 +615,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
 
     fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double, now: Int): Double
     {
-        // Time - not used without sleep window
-        var now = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        if (now < 1) now = 1
 
         if (preferences.get(BooleanKey.ActivityMonitorSaveStepsFromSmartphone)) {
             val nowMillis = System.currentTimeMillis()
@@ -635,18 +632,14 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             disposable += persistenceLayer.insertOrUpdateStepsCount(stepsCount).subscribe()
         }
 
+        // Time - used for sleep window
+        var now = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        if (now < 1) now = 1
+
         val phoneMoved = PhoneMovementDetector.phoneMoved()
         val lastAppStart = preferences.get(LongKey.AppStart)
-        //val elapsedTimeSinceLastStart = (dateUtil.now() - lastAppStart) / 60000
         val time_since_start = (dateUtil.now() - lastAppStart) / 60000
         val activityDetection = preferences.get(BooleanKey.ActivityMonitorDetection)
-        //val recentSteps5Minutes = profile.recent_steps_5_minutes
-        //val recentSteps10Minutes = profile.recent_steps_10_minutes
-        //val recentSteps15Minutes = profile.recent_steps_15_minutes
-        //val recentSteps30Minutes = profile.recent_steps_30_minutes
-        //val recentSteps60Minutes = profile.recent_steps_60_minutes
-        //val phoneMoved = profile.phone_moved
-        //val time_since_start = profile.time_since_start
         val activity_scale_factor = preferences.get(DoubleKey.ActivityScaleFactor)              // profile.activity_scale_factor;
         val inactivity_scale_factor = preferences.get(DoubleKey.InactivityScaleFactor)          // profile.inactivity_scale_factor;
         var activityRatio = 1.0
@@ -658,13 +651,18 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             consoleLog.add("Activity monitor disabled in settings")
         } else if ( isTempTarget ) {
             consoleLog.add("Activity monitor disabled: tempTarget")
-            } else if ( !phoneMoved ) {
-                consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
+        } else if ( !phoneMoved ) {
+            consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
         } else {
+            consoleError.add("0-5 m ago: $recentSteps5Minutes steps; ")
+            consoleError.add("5-10 m ago: $recentSteps10Minutes steps; ")
+            consoleError.add("10-15 m ago: $recentSteps15Minutes steps; ")
+            consoleError.add("Last 30 m: $recentSteps30Minutes steps; ")
+            consoleError.add("Last 60 m: $recentSteps60Minutes steps; ")
             if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
                 consoleLog.add("Activity monitor initialising for ${60-time_since_start} more minutes: inactivity detection disabled")
-            } else if ( ( inactivity_idle_start>inactivity_idle_end && ( now>=inactivity_idle_start || now<inactivity_idle_end ) )  // includes midnight
-                || ( now>=inactivity_idle_start && now<inactivity_idle_end)                                                         // excludes midnight
+            } else if ( ( inactivity_idle_start > inactivity_idle_end && ( now>=inactivity_idle_start || now < inactivity_idle_end ) )  // includes midnight
+                || ( now >= inactivity_idle_start && now < inactivity_idle_end)                                                         // excludes midnight
                 && recentSteps60Minutes <= 200 && ignore_inactivity_overnight ) {
                 consoleLog.add("Activity monitor disabled inactivity detection: sleeping hours")
             } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
