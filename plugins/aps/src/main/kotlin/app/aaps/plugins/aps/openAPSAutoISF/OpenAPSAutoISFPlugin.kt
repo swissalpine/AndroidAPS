@@ -651,11 +651,6 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         } else if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
             consoleLog.add("Activity monitor initialising for ${60-time_since_start} more minutes: inactivity detection disabled")
         } else {
-            consoleLog.add("0-5 m ago: $recentSteps5Minutes steps; ")
-            consoleLog.add("5-10 m ago: $recentSteps10Minutes steps; ")
-            consoleLog.add("10-15 m ago: $recentSteps15Minutes steps; ")
-            consoleLog.add("Last 30 m: $recentSteps30Minutes steps; ")
-            consoleLog.add("Last 60 m: $recentSteps60Minutes steps; ")
             if ( ( inactivity_idle_start > inactivity_idle_end && ( now >= inactivity_idle_start || now < inactivity_idle_end ) )  // includes midnight
                 || ( now >= inactivity_idle_start && now < inactivity_idle_end)                                                    // excludes midnight
                 && recentSteps60Minutes <= 200 && ignore_inactivity_overnight ) {

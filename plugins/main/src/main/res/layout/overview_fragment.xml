@@ -69,7 +69,7 @@
                     android:paddingBottom="7dp"
                     android:text="Profile"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textStyle="bold"
                     tools:ignore="HardcodedText"
                     android:background="@color/ribbonDefault" />
@@ -104,7 +104,7 @@
                     android:hint="temp target"
                     android:text="@string/value_unavailable_short"
                     android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:textStyle="bold"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     tools:ignore="HardcodedText"

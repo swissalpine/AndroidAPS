@@ -215,7 +215,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="0dp"
-            android:layout_marginLeft="0dp"
+            android:layout_marginStart="0dp"
             android:layout_marginTop="-2dp"
             android:visibility="visible"
             app:srcCompat="@drawable/ic_loop_closed"
@@ -238,12 +238,12 @@
 
         <TextView
             android:id="@+id/version"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal|center_vertical"
             android:paddingTop="3dp"
-            android:text="3.3.1.3 (hash)"
-            android:textSize="8dp"
+            android:text="3.3.1.3-sport"
+            android:textSize="9dp"
             tools:ignore="HardcodedText,SmallSp" />
 
     </LinearLayout>
