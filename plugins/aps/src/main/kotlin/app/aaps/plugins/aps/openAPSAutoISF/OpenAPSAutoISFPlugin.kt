@@ -345,13 +345,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         //consoleLog = mutableListOf()
         consoleError.clear()
         consoleLog.clear()
-        // Time - not used without sleep window
-        //val calendar = Calendar.getInstance()
-        val hour = min(1, Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
-        //if (hour < 1) {
-        //   hour = 1
-        //}
-        var activityRatio = activityMonitor(isTempTarget, glucoseStatus.glucose, targetBg, hour)
+
+        var activityRatio = activityMonitor(isTempTarget, glucoseStatus.glucose, targetBg)
         val activityLog = if (consoleLog.size==0) "Activity Monitor skipped" else consoleLog[0]
         consoleLog.clear()
         // activityRatio = 0.5 // while testing
@@ -613,7 +608,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     fun convert_bg_to_units(value: Double, profile: OapsProfileAutoIsf): Double =
         if (profile.out_units == "mmol/L") value * Constants.MGDL_TO_MMOLL else value
 
-    fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double, now: Int): Double
+    fun activityMonitor(isTempTarget: Boolean, bg: Double, target_bg: Double): Double
     {
 
         if (preferences.get(BooleanKey.ActivityMonitorSaveStepsFromSmartphone)) {
@@ -652,17 +647,17 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         } else if ( isTempTarget ) {
             consoleLog.add("Activity monitor disabled: tempTarget")
         } else if ( !phoneMoved ) {
-            consoleError.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
+            consoleLog.add("Activity monitor disabled: Phone seems not to be carried for the last 15m")
+        } else if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
+            consoleLog.add("Activity monitor initialising for ${60-time_since_start} more minutes: inactivity detection disabled")
         } else {
-            consoleError.add("0-5 m ago: $recentSteps5Minutes steps; ")
-            consoleError.add("5-10 m ago: $recentSteps10Minutes steps; ")
-            consoleError.add("10-15 m ago: $recentSteps15Minutes steps; ")
-            consoleError.add("Last 30 m: $recentSteps30Minutes steps; ")
-            consoleError.add("Last 60 m: $recentSteps60Minutes steps; ")
-            if ( time_since_start < 60 && recentSteps60Minutes <= 200 ) {
-                consoleLog.add("Activity monitor initialising for ${60-time_since_start} more minutes: inactivity detection disabled")
-            } else if ( ( inactivity_idle_start > inactivity_idle_end && ( now>=inactivity_idle_start || now < inactivity_idle_end ) )  // includes midnight
-                || ( now >= inactivity_idle_start && now < inactivity_idle_end)                                                         // excludes midnight
+            consoleLog.add("0-5 m ago: $recentSteps5Minutes steps; ")
+            consoleLog.add("5-10 m ago: $recentSteps10Minutes steps; ")
+            consoleLog.add("10-15 m ago: $recentSteps15Minutes steps; ")
+            consoleLog.add("Last 30 m: $recentSteps30Minutes steps; ")
+            consoleLog.add("Last 60 m: $recentSteps60Minutes steps; ")
+            if ( ( inactivity_idle_start > inactivity_idle_end && ( now >= inactivity_idle_start || now < inactivity_idle_end ) )  // includes midnight
+                || ( now >= inactivity_idle_start && now < inactivity_idle_end)                                                    // excludes midnight
                 && recentSteps60Minutes <= 200 && ignore_inactivity_overnight ) {
                 consoleLog.add("Activity monitor disabled inactivity detection: sleeping hours")
             } else if ( recentSteps5Minutes > 300 || recentSteps10Minutes > 300  || recentSteps15Minutes > 300  || recentSteps30Minutes > 1500 || recentSteps60Minutes > 2500 ) {
