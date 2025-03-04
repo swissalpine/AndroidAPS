@@ -987,10 +987,16 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     fun loop_smb(microBolusAllowed: Boolean, profile: OapsProfileAutoIsf, iob_data_iob: Double, useIobTh: Boolean, iobThEffective: Double): String {
         val iobThUser = preferences.get(IntKey.ApsAutoIsfIobThPercent)  //iobThresholdPercent
         if (useIobTh) {
-            val iobThPercent = round(iobThEffective / profile.max_iob * 100.0, 0)
+            val iobThPercent: Double
+            if ( profile.max_iob<0.001 ) {
+                iobThPercent = 0.0
+                consoleLog.add("User setting iobTH disabled in LGS mode")
+            } else {
+                iobThPercent = round(iobThEffective/profile.max_iob*100.0, 0);
+            }
             if (iobThPercent == iobThUser.toDouble()) {
                 consoleLog.add("User setting iobTH=$iobThUser% not modulated")
-            } else {
+            } else if (iobThPercent > 0.0) {
                 consoleLog.add("User setting iobTH=$iobThUser% modulated to ${iobThPercent.toInt()}% or ${round(iobThEffective, 2)}U")
                 consoleLog.add("  due to profile %, exercise mode or similar")
             }
