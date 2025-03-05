@@ -301,17 +301,16 @@ class DetermineBasalAutoISF @Inject constructor(
         val stepInactivityDetected = preferences.get(BooleanKey.ActivityMonitorStepsInactive)
         //consoleError.add("Activity Monitor found step counts ${profile.recent_steps_5_minutes}, ${profile.recent_steps_10_minutes}, ${profile.recent_steps_15_minutes}, ${profile.recent_steps_30_minutes}, ${profile.recent_steps_60_minutes}")
         var sensitivityRatio = 1.0
+        val normalTarget = 100 // evaluate high/low temptarget against 100, not scheduled target (which might change)
         // var origin_sens = ""
         var exercise_ratio = 1.0
-        val high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity
-        val normalTarget = 100 // evaluate high/low temptarget against 100, not scheduled target (which might change)
-        // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%),  80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
+        val exerciseModeActive = (profile.exercise_mode || profile.high_temptarget_raises_sensitivity) && profile.temptargetSet && target_bg > normalTarget
+        val resistanceModeActive = profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget
+        //val high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity
+         // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%),  80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
         val halfBasalTarget = profile.half_basal_exercise_target
-        if ( high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget
-            || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget
-            || stepActivityDetected || stepInactivityDetected ) {
-            if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget
-                || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget ) {
+        if ( exerciseModeActive || resistanceModeActive || stepActivityDetected || stepInactivityDetected ) {
+            if ( exerciseModeActive || resistanceModeActive ) {
                 // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
                 // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
                 //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
