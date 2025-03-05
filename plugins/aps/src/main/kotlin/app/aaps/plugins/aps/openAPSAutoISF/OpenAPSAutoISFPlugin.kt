@@ -445,11 +445,12 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
             // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
             //sensitivityRatio = 2/(2+(target_bg-normalTarget)/40);
+            val resistanceMax = min(1.5, preferences.get(DoubleKey.AutosensMax))  // additional safety limit
             val c = (oapsProfile.half_basal_exercise_target - normalTarget).toDouble()
             if (c * (c + target_bg - normalTarget) > 0.0) {
                 var sensitivityRatio = c / (c + target_bg - normalTarget)
                 // limit sensitivityRatio to profile.autosens_max (1.2x by default)
-                sensitivityRatio = min(sensitivityRatio, preferences.get(DoubleKey.AutosensMax))
+                sensitivityRatio = min(sensitivityRatio, resistanceMax)
                 sensitivityRatio = round(sensitivityRatio, 2)
                 exerciseRatio = sensitivityRatio
             }
