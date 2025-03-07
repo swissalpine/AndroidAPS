@@ -75,6 +75,7 @@ interface DateUtil {
     fun getTimeZoneOffsetMs(): Long
     fun getTimeZoneOffsetMinutes(timestamp: Long): Int
     fun isSameDay(timestamp1: Long, timestamp2: Long): Boolean
+    fun isAfterNoon(): Boolean
 
     fun isSameDayGroup(timestamp1: Long, timestamp2: Long): Boolean
 

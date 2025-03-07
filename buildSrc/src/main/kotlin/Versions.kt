@@ -1,9 +1,10 @@
 import org.gradle.api.JavaVersion
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+@Suppress("ConstPropertyName")
 object Versions {
 
-    const val appVersion = "3.3.1.3-sport"
+    const val appVersion = "3.3.2.0-sport"
     const val versionCode = 1500
 
     const val ndkVersion = "21.1.6352462"
