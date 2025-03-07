@@ -895,6 +895,14 @@ class DetermineBasalAutoISF @Inject constructor(
             enableSMB = false
         }
 
+        // mod no smb if bg < 100
+        if (enableSMB && bg < 100) {
+            consoleError.add("BG < 100 - disabling SMB")
+            rT.reason.append("BG < 100 - disabling SMB")
+            enableSMB = false
+        }
+        // end mod
+
         consoleError.add("BG projected to remain above ${convert_bg(min_bg)} for $minutesAboveMinBG minutes")
         if (minutesAboveThreshold < 240 || minutesAboveMinBG < 60) {
             consoleError.add("BG projected to remain above ${convert_bg(threshold)} for $minutesAboveThreshold minutes")
