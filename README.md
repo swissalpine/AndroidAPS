@@ -1,9 +1,8 @@
-# AAPS 3.3.2.0 | Modified version, especially for active people
+# AAPS 3.4.0 | Modified version, especially for active people
 
 There may be problems installing this version as an update over the previous one. Please uninstall the previous version before installation and then import your settings.
 
-This version contains the main changes of my previous sport-changes version 3.2.0.4; the Activity Monitor in the openAPSSMB algorithm has been added:
-This version includes the main modifications from sport-changes v3.2.0.4:
+This version includes the following main modifications:
 - Exercise Mode (→ setting: high tt raises sensitivity), toggleable via the overview icon for openAPSSMB, dynISF and autoISF.
 - Activity Monitor (enable in settings): Uses phone step counter (ensure movement permission granted). Adjusts basal and ISF based on activity/inactivity.
 - Ketoacidosis Protection (enable in settings):
@@ -15,7 +14,7 @@ This version includes the main modifications from sport-changes v3.2.0.4:
 - Layout fixes for small devices.
 - autoISF no longer requires engineering mode.
 
-autoISF 3.1.0 has more functions than in the official master branch (3.2.0); dynISF isn't modified anymore (imho dynISF in particular is not recommended!)
+autoISF 3.1.0 has more functions than in the official master branch; dynISF isn't modified anymore (imho dynISF in particular is not recommended!)
 
 Otherwise the usual disclaimer applies:
 This repo has some private changes concerning tbr management, iob and layout. This is experimental!
