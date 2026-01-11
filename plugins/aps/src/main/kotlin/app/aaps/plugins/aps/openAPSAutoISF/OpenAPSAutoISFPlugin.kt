@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.collection.LongSparseArray
 import androidx.collection.forEach
 import android.icu.util.Calendar
+import android.net.Uri
 import androidx.core.net.toUri
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
@@ -158,7 +159,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
     val iobThresholdPercent; get() = preferences.get(IntKey.ApsAutoIsfIobThPercent)
     private val exerciseMode; get() = SMBDefaults.exercise_mode
     private val highTemptargetRaisesSensitivity; get() = preferences.get(BooleanKey.ApsAutoIsfHighTtRaisesSens)
-    val mgdlHalfBasalExerciseTarget = preferences.get(UnitDoubleKey.ApsAutoIsfHalfBasalExerciseTarget) * if (profileFunction.getUnits() == GlucoseUnit.MMOL) GlucoseUnit.MMOLL_TO_MGDL else 1.0
+    val mgdlHalfBasalExerciseTarget;  get() = preferences.get(UnitDoubleKey.ApsAutoIsfHalfBasalExerciseTarget) * if (profileFunction.getUnits() == GlucoseUnit.MMOL) GlucoseUnit.MMOLL_TO_MGDL else 1.0
     val normalTarget = 100
     val calibrationDuration = preferences.get(IntKey.FslCalibrationDuration)
     private val minutesClass; get() = if (preferences.get(IntKey.ApsMaxSmbFrequency) == 1) 6L else 30L  // ga-zelle: later get correct 1 min CGM flag from glucoseStatus ? ... or from apsResults?
@@ -553,10 +554,10 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
             rxBus.send(EventAPSCalculationFinished())
         }
         autoIsfValues.timestamp = now
-        aapsLogger.debug(LTag.APS, "autoIsfValues to write contains: $autoIsfValues")
+        //aapsLogger.debug(LTag.APS, "autoIsfValues to write contains: $autoIsfValues")
         disposable += persistenceLayer.insertOrUpdateAutoIsfValues(autoIsfValues).subscribe()
-        val autoIsfRecords = persistenceLayer.getAutoIsfValuesFromTime(now-100000L)
-        aapsLogger.debug(LTag.APS, "autoIsfValues records read contain: $autoIsfRecords")
+        //val autoIsfRecords = persistenceLayer.getAutoIsfValuesFromTime(now-100000L)
+        //aapsLogger.debug(LTag.APS, "autoIsfValues records read contain: $autoIsfRecords")
         rxBus.send(EventOpenAPSUpdateGui())
     }
 
