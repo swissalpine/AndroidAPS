@@ -6,8 +6,8 @@ This version includes the following main modifications:
 - Exercise Mode (→ setting: high tt raises sensitivity), toggleable via the overview icon for openAPSSMB, dynISF and autoISF.
 - Activity Monitor (enable in settings): Uses phone step counter (ensure movement permission granted). Adjusts basal and ISF based on activity/inactivity.
 - Ketoacidosis Protection (enable in settings):
-(a) Reduces basal if IOB ≈ no insulin for 1h, or
-(b) Ensures a minimum basal (e.g., 20%) to avoid 0% TBR.
+(a) Replaces zerotemp with a minimum tbr if IOB ≈ no insulin for 1h, or
+(b) Ensures always a minimum basal (e.g., 20%) to avoid 0% TBR.
 - Additional hypo strategy: hypoTT + 50% TBR for 60 min.
 - Possibility to reduce SMB: Set a threshold value (default: 100 mg/dl) below which no SMBs are released
 - Temp targets up to 220 mg/dl (12 mmol/l) allowed.
