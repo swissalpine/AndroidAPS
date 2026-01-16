@@ -5,21 +5,19 @@ import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.utils.DateUtil
-import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.plugins.aps.openAPS.DeltaCalculator
 import app.aaps.plugins.aps.openAPSAutoISF.extensions.asRounded
-import app.aaps.plugins.aps.openAPSAutoISF.extensions.log
 import dagger.Reusable
 import javax.inject.Inject
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 @Reusable
 class GlucoseStatusCalculatorAutoIsf @Inject constructor(
     private val aapsLogger: AAPSLogger,
     private val iobCobCalculator: IobCobCalculator,
     private val dateUtil: DateUtil,
-    private val decimalFormatter: DecimalFormatter,
     private val deltaCalculator: DeltaCalculator,
 ) {
 
@@ -93,7 +91,7 @@ class GlucoseStatusCalculatorAutoIsf @Inject constructor(
                 if (then.recalculated > oldAvg * (1 - bw) && then.recalculated < oldAvg * (1 + bw)) {
                     sumBG += then.recalculated
                     oldAvg = sumBG / n  // was: (i + 1)
-                    minutesDur = ((nowDate - thenDate) / (1000.0 * 60)).roundToInt().toLong()
+                    minutesDur = ((nowDate - thenDate) / (1000.0 * 60)).roundToLong()
                 } else {
                     break
                 }
@@ -105,7 +103,6 @@ class GlucoseStatusCalculatorAutoIsf @Inject constructor(
         //
         //  y = a2*x^2 + a1*x + a0      or
         //  y = a*x^2  + b*x  + c       respectively
-        @Suppress("SpellCheckingInspection")
         var duraP = 0.0
         var deltaPl = 0.0
         var deltaPn = 0.0
@@ -139,8 +136,8 @@ class GlucoseStatusCalculatorAutoIsf @Inject constructor(
             val time0 = if (use1MinuteRaw) orig[0].timestamp else data[0].timestamp
             var tiLast = 0.0
             //# for best numerical accuracy time and bg must be of same order of magnitude
-            val scaleTime = 300.0 // in 5m; values are  0, -1, -2, -3, -4, ...
-            val scaleBg = 50.0 // TIR range is now 1.4 - 3.6
+            val scaleTime = 1.0 // was 00.0 // in 5m; values are  0, -1, -2, -3, -4, ...
+            val scaleBg = 1.0   // was 50.0 // TIR range is now 1.4 - 3.6
 
             // if (data[i].recalculated > 38) {  } // not checked in past 1.5 years
             var n = 0
@@ -196,44 +193,45 @@ class GlucoseStatusCalculatorAutoIsf @Inject constructor(
                         detC = sx4 * (sx2 * sy - sx * sxy) - sx3 * (sx3 * sy - sx * sx2y) + sx2 * (sx3 * sxy - sx2 * sx2y)
                     }
                     if (detH != 0.0) {
-                        val a: Double = detA / detH
-                        val b = detB / detH
-                        val c: Double = detC / detH
+                        val a: Double = detA / detH * scaleBg * (300 / scaleTime).pow(2.0)
+                        val b = detB / detH * scaleBg * (300 / scaleTime)
+                        val c: Double = detC / detH * scaleBg
                         val yMean = sy / n
                         var sSquares = 0.0
                         var sResidualSquares = 0.0
-                        var rawBg: Double
+                        //var rawBg: Double
                         for (j in 0..i) {
                             if (use1MinuteRaw) {
                                 val before = orig[j]
-                                rawBg = before.value
-                                sSquares += (rawBg / scaleBg - yMean).pow(2.0)
-                                val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
+                                val scaledBg = before.value / scaleBg
+                                sSquares += (scaledBg - yMean).pow(2.0)
+                                val deltaT: Double = (before.timestamp - time0) / 1000.0 / 300
                                 val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
-                                sResidualSquares += (rawBg / scaleBg - bgj).pow(2.0)
+                                sResidualSquares += (scaledBg - bgj/scaleBg).pow(2.0)
                             } else {                            // default case anyway
                                 val before = data[j]
-                                sSquares += (before.recalculated / scaleBg - yMean).pow(2.0)
-                                val deltaT: Double = (before.timestamp - time0) / 1000.0 / scaleTime
+                                val scaledBg = before.recalculated/ scaleBg
+                                sSquares += (scaledBg - yMean).pow(2.0)
+                                val deltaT: Double = (before.timestamp - time0) / 1000.0 / 300.0
                                 val bgj: Double = a * deltaT.pow(2.0) + b * deltaT + c
-                                sResidualSquares += (before.recalculated / scaleBg - bgj).pow(2.0)
+                                sResidualSquares += (scaledBg - bgj/scaleBg).pow(2.0)
                             }
-                            var rSqu = 0.64
-                            if (sSquares != 0.0) {
-                                rSqu = 1 - sResidualSquares / sSquares
-                            }
-                            if (rSqu >= corrMax) {
-                                corrMax = rSqu
+                        }
+                        var rSqu = 0.0
+                        if (sSquares != 0.0) {
+                            rSqu = 1 - sResidualSquares / sSquares
+                        }
+                        if (rSqu >= corrMax) {
+                            corrMax = rSqu
 
-                                duraP = -ti * scaleTime / 60.0 // remember we are going backwards in time
-                                val delta5Min = 5 * 60 / scaleTime
-                                deltaPl = -scaleBg * (a * (-delta5Min).pow(2.0) - b * delta5Min)    // 5 minute slope from last fitted bg ending at this bg, i.e. t=0
-                                deltaPn = scaleBg * (a * delta5Min.pow(2.0) + b * delta5Min)    // 5 minute slope to next fitted bg starting from this bg, i.e. t=0
-                                bgAcceleration = 2 * a * scaleBg
-                                a0 = c * scaleBg
-                                a1 = b * scaleBg
-                                a2 = a * scaleBg
-                            }
+                            duraP = -ti * scaleTime / 60.0 // remember we are going backwards in time
+                            val delta5Min = 1.0 //5 * 60 / scaleTime
+                            deltaPl = - (a * (-delta5Min).pow(2.0) - b * delta5Min)    // 5 minute slope from last fitted bg ending at this bg, i.e. t=0
+                            deltaPn =   (a * delta5Min.pow(2.0) + b * delta5Min)    // 5 minute slope to next fitted bg starting from this bg, i.e. t=0
+                            bgAcceleration = 2 * a
+                            a0 = c
+                            a1 = b
+                            a2 = a
                         }
                     }
                 }
@@ -258,7 +256,7 @@ class GlucoseStatusCalculatorAutoIsf @Inject constructor(
             a0 = a0,
             a1 = a1,
             a2 = a2,
-        ).also { aapsLogger.debug(LTag.GLUCOSE, it.log(decimalFormatter)) }.asRounded()
+        )   //.also { aapsLogger.debug(LTag.GLUCOSE, it.log(decimalFormatter)) }.asRounded()
     }
 
     companion object {
