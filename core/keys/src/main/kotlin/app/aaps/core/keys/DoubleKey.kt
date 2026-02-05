@@ -45,7 +45,7 @@ enum class DoubleKey(
     ApsAutoIsfLowBgWeight("lower_ISFrange_weight", 0.0, 0.0, 2.0, defaultedBySM = true),
     ApsAutoIsfHighBgWeight("higher_ISFrange_weight", 0.0, 0.0, 2.0, defaultedBySM = true),
     ApsAutoIsfSmbDeliveryRatioBgRange("openapsama_smb_delivery_ratio_bg_range", 0.0, 0.0, 100.0, defaultedBySM = true),
-    ApsAutoIsfPpWeight("pp_ISF_weight", 0.0, 0.0, 1.0, defaultedBySM = true),
+    ApsAutoIsfPpWeight("pp_ISF_weight", 0.0, 0.0, 0.15, defaultedBySM = true),
     ApsAutoIsfDuraWeight("dura_ISF_weight", 0.0, 0.0, 3.0, defaultedBySM = true),
     ApsAutoIsfSmbDeliveryRatio("openapsama_smb_delivery_ratio", 0.2, 0.1, 1.0, defaultedBySM = true),
     ApsAutoIsfSmbDeliveryRatioMin("openapsama_smb_delivery_ratio_min", 0.5, 0.1, 1.0, defaultedBySM = true),
