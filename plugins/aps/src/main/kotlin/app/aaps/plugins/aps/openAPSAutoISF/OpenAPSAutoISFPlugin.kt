@@ -198,7 +198,8 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         aapsLogger.debug(LTag.APS, "Loaded $count variable sensitivity values from database")
     }
 
-    override fun supportsDynamicIsf() = false //: Boolean = preferences.get(BooleanKey.ApsUseAutoIsf)
+    // irrelevant here but gets called by other profile functions and must be TRUE; otherwise averageISF falls back to profile sens
+    override fun supportsDynamicIsf() = true //: Boolean = preferences.get(BooleanKey.ApsUseAutoIsf)
 
     override fun getIsfMgdl(profile: Profile, caller: String): Double? {
         val start = dateUtil.now()
@@ -815,7 +816,7 @@ open class OpenAPSAutoISFPlugin @Inject constructor(
         // calculate acce_ISF from bg acceleration and adapt ISF accordingly
         val fit_corr: Double = glucose_status.corrSqu
         val bg_acce: Double = glucose_status.bgAcceleration
-        consoleError.add("Parabola fit results were acceleration:${round(bg_acce, 2)}, correlation:$fit_corr, duration:${glucose_status.parabolaMinutes}m")
+        //consoleError.add("Parabola fit results were acceleration:${round(bg_acce, 2)}, correlation:$fit_corr, duration:${glucose_status.parabolaMinutes}m")
         if (glucose_status.a2 != 0.0 && fit_corr >= 0.9) {
             var minmax_delta: Double = -glucose_status.a1 / 2 / glucose_status.a2 * 5      // back from 5min block to 1 min
             val minmax_value: Double = round(glucose_status.a0 - minmax_delta * minmax_delta / 25 * glucose_status.a2, 1)
