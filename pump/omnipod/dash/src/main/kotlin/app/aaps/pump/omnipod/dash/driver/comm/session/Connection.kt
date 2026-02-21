@@ -132,6 +132,8 @@ class Connection(
         if (!closeGatt && gattConnection != null) {
             // Disconnect first, then close gatt
             gattConnection?.disconnect()
+            // Set connection state to DISCONNECTED immediately to prevent reconnection attempts
+            podState.bluetoothConnectionState = OmnipodDashPodStateManager.BluetoothConnectionState.DISCONNECTED
         } else {
             // Call with closeGatt=true only when ble is already disconnected or there is no connection
             gattConnection?.close()
