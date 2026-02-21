@@ -134,9 +134,23 @@ class LoopHubImpl @Inject constructor(
     }
 
     /** Retrieves the glucose values starting at from. */
-    override fun getGlucoseValues(from: Instant, ascending: Boolean): List<GV> {
+    /*override fun getGlucoseValues(from: Instant, ascending: Boolean): List<GV> {
         return persistenceLayer.getBgReadingsDataFromTime(from.toEpochMilli(), ascending)
             .blockingGet()
+    }*/
+
+    override fun getGlucoseValues(from: Instant, ascending: Boolean): List<GV> {
+        val glucose: List<GV>
+        glucose = persistenceLayer.getBgReadingsDataFromTime(from.toEpochMilli(), ascending)
+            .blockingGet()
+        for (i in glucose.indices)
+            {
+                iobCobCalculator.ads.bucketedData?.get(i)?.let {
+                    glucose[i].value = it.recalculated
+                }
+            }
+
+        return glucose
     }
 
     /** Notifies the system that carbs were eaten and stores the value. */
