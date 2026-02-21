@@ -532,6 +532,7 @@ class GarminPlugin @Inject constructor(
             title = rh.gs(R.string.garmin)
             initialExpandedChildrenCount = 0
             addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = GarminBooleanKey.LocalHttpServer, title = R.string.garmin_local_http_server))
+            addPreference(AdaptiveSwitchPreference(ctx = context, booleanKey = GarminBooleanKey.GarminSendSmoothedData, title = R.string.garmin_send_smoothed_data_title, summary = R.string.garmin_send_smoothed_data_summary))
             addPreference(AdaptiveIntPreference(ctx = context, intKey = GarminIntKey.LocalHttpPort, title = R.string.garmin_local_http_server_port))
             addPreference(
                 AdaptiveStringPreference(

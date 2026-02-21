@@ -18,5 +18,6 @@ enum class GarminBooleanKey(
 ) : BooleanPreferenceKey {
 
     LocalHttpServer("communication_http", false, defaultedBySM = true, hideParentScreenIfHidden = true),
+    GarminSendSmoothedData(key = "send_smoothed_data", defaultValue = false, defaultedBySM = true, hideParentScreenIfHidden = true)
 }
 
