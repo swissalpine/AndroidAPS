@@ -1,6 +1,7 @@
 package app.aaps.plugins.sync.garmin
 
 import androidx.annotation.VisibleForTesting
+import app.aaps.core.data.iob.InMemoryGlucoseValue
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.HR
@@ -147,7 +148,7 @@ class LoopHubImpl @Inject constructor(
             val glucose: List<GV>
             glucose = persistenceLayer.getBgReadingsDataFromTime(from.toEpochMilli(), ascending)
                 .blockingGet()
-            for (i in glucose.indices) {
+            for (i in 0 until 2) {
                 iobCobCalculator.ads.bucketedData?.get(i)?.let {
                     glucose[i].value = it.recalculated
                 }
