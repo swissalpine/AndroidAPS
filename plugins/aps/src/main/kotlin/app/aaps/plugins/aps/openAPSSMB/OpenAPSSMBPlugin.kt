@@ -600,6 +600,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             BooleanKey.ApsSensitivityRaisesTarget,
             BooleanKey.ApsResistanceLowersTarget,
             BooleanKey.ApsUseSmb,
+            UnitDoubleKey.ApsSmbThreshold,
             BooleanKey.ApsUseSmbWithHighTt,
             BooleanKey.ApsUseSmbAlways,
             BooleanKey.ApsUseSmbWithCob,
