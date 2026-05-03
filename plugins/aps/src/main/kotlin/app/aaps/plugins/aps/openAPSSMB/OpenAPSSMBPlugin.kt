@@ -440,7 +440,9 @@ open class OpenAPSSMBPlugin @Inject constructor(
             out_units = if (profileFunction.getUnits() == GlucoseUnit.MMOL) "mmol/L" else "mg/dl",
             variable_sens = if (dynIsfMode) dynIsfResult.variableSensitivity ?: 0.0 else 0.0,
             insulinDivisor = dynIsfResult.insulinDivisor,
-            TDD = dynIsfResult.tdd ?: 0.0
+            TDD = dynIsfResult.tdd ?: 0.0,
+            ketoacidosisProtection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosisProtectionBasal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
         val microBolusAllowed = constraintsChecker.isSMBModeEnabled(ConstraintObject(tempBasalFallback.not(), aapsLogger)).also { inputConstraints.copyReasons(it) }.value()
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
@@ -615,7 +617,9 @@ open class OpenAPSSMBPlugin @Inject constructor(
                     DoubleKey.ApsMaxDailyMultiplier,
                     DoubleKey.ApsMaxCurrentBasalMultiplier
                 )
-            )
+            ),
+            BooleanKey.ApsKetoacidosisProtection,
+            IntKey.ApsKetoacidosisProtectionBasal
         ),
         icon = pluginDescription.icon
     )

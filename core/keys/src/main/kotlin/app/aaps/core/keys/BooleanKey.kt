@@ -160,4 +160,6 @@ enum class BooleanKey(
     SiteRotationManagePump("site_rotation_manage_pump", defaultValue = false, titleResId = R.string.pref_title_site_rotation_manage_pump),
     SiteRotationManageCgm("site_rotation_manage_cgm", defaultValue = false, titleResId = R.string.pref_title_site_rotation_manage_cgm),
 
+    //Ketoacidosis Protection
+    ApsKetoacidosisProtection("ketoacidosis_protection", false, titleResId = R.string.pref_ketoacidosis_protection_title, summaryResId = R.string.ketoacidosis_protection_summary),
 }

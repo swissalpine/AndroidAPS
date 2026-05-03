@@ -285,4 +285,7 @@ enum class IntKey(
     NsClientUrgentAlarmStaleData(key = "ns_alarm_urgent_stale_data_value", defaultValue = 31, min = 30, max = 180, titleResId = R.string.pref_title_urgent_alarm_stale_data, unitType = UnitType.MIN),
 
     SiteRotationUserProfile(key = "site_rotation_user_profile", defaultValue = 0, min = 0, max = 2, titleResId = R.string.pref_title_site_rotation_profile),
+
+    // Ketoacidosis Protection
+    ApsKetoacidosisProtectionBasal("ketoacidosis_protection_basal", 20,10, 40, titleResId = R.string.pref_ketoacidosis_protection_basal_title, summaryResId = R.string.ketoacidosis_protection_basal_summary, dependency = BooleanKey.ApsKetoacidosisProtection),
 }

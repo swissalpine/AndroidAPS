@@ -232,7 +232,9 @@ class OpenAPSAMAPlugin @Inject constructor(
             out_units = if (profileFunction.getUnits() == GlucoseUnit.MMOL) "mmol/L" else "mg/dl",
             variable_sens = 0.0, // not used
             insulinDivisor = 0, // not used
-            TDD = 0.0 // not used
+            TDD = 0.0, // not used
+            ketoacidosisProtection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosisProtectionBasal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
 
         aapsLogger.debug(LTag.APS, ">>> Invoking determine_basal AMA <<<")

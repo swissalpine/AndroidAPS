@@ -111,6 +111,20 @@ class DetermineBasalSMB @Inject constructor(
     private fun getMaxSafeBasal(profile: OapsProfile): Double =
         min(profile.max_basal, min(profile.max_daily_safety_multiplier * profile.max_daily_basal, profile.current_basal_safety_multiplier * profile.current_basal))
 
+    // mod Ketoacidosis Protection
+    private fun ketoProtection(_proposedRate: Double, profile: OapsProfile, rT: RT): Double {
+        val baseBasalRate = profile.current_basal
+        var proposedRate = _proposedRate
+        val protectionRate: Double = profile.ketoacidosisProtectionBasal.toDouble() * 0.01
+        val cutOff: Double = round_basal(baseBasalRate * protectionRate)
+        if (profile.ketoacidosisProtection && proposedRate < cutOff) {
+            proposedRate = cutOff
+            rT.reason.append("\nKetoacidosis prot. from $_proposedRate -> $proposedRate U/h.")
+            consoleLog.add("ketoProtection sets tbr from $_proposedRate to $proposedRate U/h")
+        }
+        return proposedRate
+    }
+
     fun setTempBasal(_rate: Double, duration: Int, profile: OapsProfile, rT: RT, currenttemp: CurrentTemp): RT {
         //var maxSafeBasal = Math.min(profile.max_basal, 3 * profile.max_daily_basal, 4 * profile.current_basal);
 
@@ -130,7 +144,7 @@ class DetermineBasalSMB @Inject constructor(
                 if (currenttemp.duration > 0) {
                     reason(rT, "Suggested rate is same as profile rate, a temp basal is active, canceling current temp")
                     rT.duration = 0
-                    rT.rate = 0.0
+                    rT.rate = ketoProtection(0.0, profile, rT)
                     return rT
                 } else {
                     reason(rT, "Suggested rate is same as profile rate, no temp basal is active, doing nothing")
@@ -144,7 +158,7 @@ class DetermineBasalSMB @Inject constructor(
             }
         } else {
             rT.duration = duration
-            rT.rate = suggestedRate
+            rT.rate = ketoProtection(suggestedRate, profile, rT)
             return rT
         }
     }
@@ -202,7 +216,7 @@ class DetermineBasalSMB @Inject constructor(
                 rT.reason.append(". Shortening " + currenttemp.duration + "m long zero temp to 30m. ")
                 rT.deliverAt = deliverAt
                 rT.duration = 30
-                rT.rate = 0.0
+                rT.rate = ketoProtection(0.0, profile, rT)
                 return rT
             } else { //do nothing.
                 rT.reason.append(". Temp ${currenttemp.rate} <= current basal ${round(basal, 2)}U/hr; doing nothing. ")
