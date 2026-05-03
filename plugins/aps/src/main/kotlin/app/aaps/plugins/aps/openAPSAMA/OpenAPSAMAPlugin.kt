@@ -33,6 +33,7 @@ import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.DoubleKey
+import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.objects.extensions.convertedToAbsolute
@@ -217,6 +218,7 @@ class OpenAPSAMAPlugin @Inject constructor(
             enableUAM = false, // not used
             A52_risk_enable = SMBDefaults.A52_risk_enable,
             SMBInterval = 0, // not used
+            thresholdSMB = 100.0, // not used
             enableSMB_with_COB = false, // not used
             enableSMB_with_temptarget = false, // not used
             allowSMB_with_high_temptarget = false, // not used

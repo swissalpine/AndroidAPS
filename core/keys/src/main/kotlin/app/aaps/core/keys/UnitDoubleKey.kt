@@ -32,5 +32,7 @@ enum class UnitDoubleKey(
         summaryResId = R.string.lgs_threshold_summary,
         defaultedBySM = true,
         dependency = BooleanKey.ApsUseDynamicSensitivity
-    )
+    ),
+
+    ApsSmbThreshold("smbThreshold", 100.0, 72, 180, titleResId = R.string.pref_smb_threshold_title, summaryResId = R.string.smb_threshold_summary)
 }

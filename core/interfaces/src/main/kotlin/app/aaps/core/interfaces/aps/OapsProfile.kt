@@ -30,6 +30,7 @@ data class OapsProfile(
     var enableUAM: Boolean,
     var A52_risk_enable: Boolean,
     var SMBInterval: Int,
+    val thresholdSMB: Double,
     var enableSMB_with_COB: Boolean,
     var enableSMB_with_temptarget: Boolean,
     var allowSMB_with_high_temptarget: Boolean,

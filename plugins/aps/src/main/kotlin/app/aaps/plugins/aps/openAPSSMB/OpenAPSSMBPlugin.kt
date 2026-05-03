@@ -71,6 +71,7 @@ import kotlinx.serialization.json.JsonObject
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+import kotlin.collections.get
 import kotlin.math.floor
 import kotlin.math.ln
 
@@ -425,6 +426,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             enableUAM = constraintsChecker.isUAMEnabled().also { inputConstraints.copyReasons(it) }.value(),
             A52_risk_enable = SMBDefaults.A52_risk_enable,
             SMBInterval = preferences.get(IntKey.ApsMaxSmbFrequency),
+            thresholdSMB = preferences.get(UnitDoubleKey.ApsSmbThreshold),
             enableSMB_with_COB = smbEnabled && preferences.get(BooleanKey.ApsUseSmbWithCob),
             enableSMB_with_temptarget = smbEnabled && preferences.get(BooleanKey.ApsUseSmbWithLowTt),
             allowSMB_with_high_temptarget = smbEnabled && preferences.get(BooleanKey.ApsUseSmbWithHighTt),

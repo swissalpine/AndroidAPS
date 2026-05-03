@@ -868,6 +868,14 @@ class DetermineBasalSMB @Inject constructor(
             enableSMB = false
         }
 
+        // mod no smb if bg < threshold
+        if (enableSMB && bg < profile.thresholdSMB) {
+            consoleError.add("BG < ${convert_bg(profile.thresholdSMB)} - disabling SMB")
+            rT.reason.append("BG < ${convert_bg(profile.thresholdSMB)} - disabling SMB")
+            enableSMB = false
+        }
+        // end mod
+
         consoleError.add("BG projected to remain above ${convert_bg(min_bg)} for $minutesAboveMinBG minutes")
         if (minutesAboveThreshold < 240 || minutesAboveMinBG < 60) {
             consoleError.add("BG projected to remain above ${convert_bg(threshold)} for $minutesAboveThreshold minutes")

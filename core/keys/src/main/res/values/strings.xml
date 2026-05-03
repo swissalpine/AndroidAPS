@@ -465,6 +465,8 @@
     <string name="pref_ketoacidosis_protection_basal_title">Quantity of the safety TBR [%]</string>
     <string name="ketoacidosis_protection_basal_summary">Default: 20</string>
 
-
+    <!-- SMB threshold -->
+    <string name="pref_smb_threshold_title">SMB Threshold</string>
+    <string name="smb_threshold_summary">Value from which SMBs may be delivered</string>
 
 </resources>
