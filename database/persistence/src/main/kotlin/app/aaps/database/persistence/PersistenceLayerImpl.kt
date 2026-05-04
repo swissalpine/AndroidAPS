@@ -1187,7 +1187,7 @@ class PersistenceLayerImpl @Inject constructor(
 
     override suspend fun syncNsRunningModes(runningModes: List<RM>, doLog: Boolean): PersistenceLayer.TransactionResult<RM> = withContext(Dispatchers.IO) {
         try {
-            val result = repository.runTransactionForResultSuspend(SyncNsRunningModeTransaction(runningModes.map { it.toDb() }))
+            val result = repository.runTransactionForResultSuspend(SyncNsRunningModeTransaction(runningModes.map { it.toDb() }, config.AAPSCLIENT))
             val transactionResult = PersistenceLayer.TransactionResult<RM>()
             val ueValues = mutableListOf<UE>()
             result.inserted.forEach {

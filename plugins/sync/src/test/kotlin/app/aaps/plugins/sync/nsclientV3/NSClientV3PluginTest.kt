@@ -699,7 +699,6 @@ internal class NSClientV3PluginTest : TestBaseWithProfile() {
         // Assert
         // Verify that the call was passed through to the nsClientV3Service with the correct parameters.
         verify(nsClientV3Service).handleClearAlarm(mockAlarm, silenceDuration)
-        sut.setPluginEnabledBlocking(PluginType.SYNC, false)
     }
 
     @Test
