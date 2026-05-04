@@ -87,6 +87,46 @@ class OpenAPSViewModel(
         }
 
         val sections = buildList {
+            // --- Result group ---
+            add(OpenAPSSection(titleResId = app.aaps.core.ui.R.string.result, isGroupHeader = true))
+
+            // Script Debug
+            lastAPSResult.scriptDebug?.let { debug ->
+                if (debug.isNotEmpty()) {
+                    add(
+                        OpenAPSSection(
+                            titleResId = R.string.openapsma_script_debug_data_label,
+                            rows = debug.map { KeyValueRow("", it) },
+                            collapsedByDefault = false
+                        )
+                    )
+                }
+            }
+
+            // Raw Result (RT)
+            val rawData = lastAPSResult.rawData()
+            if (rawData is RT) {
+                add(
+                    OpenAPSSection(
+                        titleResId = app.aaps.core.ui.R.string.result,
+                        rows = rawData.toRows(),
+                        collapsedByDefault = false
+                    )
+                )
+            }
+
+            // Request (algorithm decision) — last section
+            val requestText = lastAPSResult.resultAsString()
+            if (requestText.isNotEmpty()) {
+                add(
+                    OpenAPSSection(
+                        titleResId = R.string.openapsma_request_label,
+                        rows = requestText.lines().filter { it.isNotBlank() }.map { KeyValueRow("", it) },
+                        collapsedByDefault = false
+                    )
+                )
+            }
+
             // --- Input parameters group ---
             add(OpenAPSSection(titleResId = R.string.openapsma_input_parameters_label, isGroupHeader = true))
 
@@ -97,7 +137,8 @@ class OpenAPSViewModel(
                     add(
                         OpenAPSSection(
                             titleResId = R.string.constraints,
-                            rows = reasons.split("\n").filter { it.isNotBlank() }.map { KeyValueRow("", it) }
+                            rows = reasons.split("\n").filter { it.isNotBlank() }.map { KeyValueRow("", it) },
+                            collapsedByDefault = true
                         )
                     )
                 }
@@ -108,7 +149,8 @@ class OpenAPSViewModel(
                 add(
                     OpenAPSSection(
                         titleResId = R.string.openapsma_glucose_status_label,
-                        rows = gs.toRows()
+                        rows = gs.toRows(),
+                        collapsedByDefault = true
                     )
                 )
             }
@@ -118,7 +160,8 @@ class OpenAPSViewModel(
                 add(
                     OpenAPSSection(
                         titleResId = R.string.openapsma_current_temp_label,
-                        rows = ct.toRows()
+                        rows = ct.toRows(),
+                        collapsedByDefault = true
                     )
                 )
             }
@@ -128,7 +171,8 @@ class OpenAPSViewModel(
                 add(
                     OpenAPSSection(
                         titleResId = R.string.openapsma_iob_data_label,
-                        rows = iob.toRows(lastAPSResult.iobData?.size ?: 0)
+                        rows = iob.toRows(lastAPSResult.iobData?.size ?: 0),
+                        collapsedByDefault = true
                     )
                 )
             }
@@ -151,7 +195,8 @@ class OpenAPSViewModel(
                 add(
                     OpenAPSSection(
                         titleResId = R.string.openapsma_meal_data_label,
-                        rows = md.toRows()
+                        rows = md.toRows(),
+                        collapsedByDefault = true
                     )
                 )
             }
@@ -161,46 +206,8 @@ class OpenAPSViewModel(
                 add(
                     OpenAPSSection(
                         titleResId = R.string.openapsma_autosensdata_label,
-                        rows = asr.toRows()
-                    )
-                )
-            }
-
-            // --- Result group ---
-            add(OpenAPSSection(titleResId = app.aaps.core.ui.R.string.result, isGroupHeader = true))
-
-            // Script Debug
-            lastAPSResult.scriptDebug?.let { debug ->
-                if (debug.isNotEmpty()) {
-                    add(
-                        OpenAPSSection(
-                            titleResId = R.string.openapsma_script_debug_data_label,
-                            rows = debug.map { KeyValueRow("", it) },
-                            collapsedByDefault = true
-                        )
-                    )
-                }
-            }
-
-            // Raw Result (RT)
-            val rawData = lastAPSResult.rawData()
-            if (rawData is RT) {
-                add(
-                    OpenAPSSection(
-                        titleResId = app.aaps.core.ui.R.string.result,
-                        rows = rawData.toRows(),
+                        rows = asr.toRows(),
                         collapsedByDefault = true
-                    )
-                )
-            }
-
-            // Request (algorithm decision) — last section
-            val requestText = lastAPSResult.resultAsString()
-            if (requestText.isNotEmpty()) {
-                add(
-                    OpenAPSSection(
-                        titleResId = R.string.openapsma_request_label,
-                        rows = requestText.lines().filter { it.isNotBlank() }.map { KeyValueRow("", it) }
                     )
                 )
             }
@@ -280,6 +287,7 @@ class OpenAPSViewModel(
         add(KeyValueRow("allowSMB_with_high_temptarget", allowSMB_with_high_temptarget.toString()))
         add(KeyValueRow("enableSMB_always", enableSMB_always.toString()))
         add(KeyValueRow("enableSMB_after_carbs", enableSMB_after_carbs.toString()))
+        add(KeyValueRow("SMB Threshold", thresholdSMB.toString()))
         add(KeyValueRow("maxSMBBasalMinutes", maxSMBBasalMinutes.toString()))
         add(KeyValueRow("maxUAMSMBBasalMinutes", maxUAMSMBBasalMinutes.toString()))
         add(KeyValueRow("bolus_increment", bolus_increment.toString()))
@@ -291,6 +299,8 @@ class OpenAPSViewModel(
         lgsThreshold?.let { add(KeyValueRow("lgsThreshold", it.toString())) }
         add(KeyValueRow("variable_sens", variable_sens.toString()))
         add(KeyValueRow("insulinDivisor", insulinDivisor.toString()))
+        add(KeyValueRow("Ketoacidosis Protection", ketoacidosisProtection.toString()))
+        add(KeyValueRow("Safety TBR (ketoProtect)", ketoacidosisProtectionBasal.toString()))
         add(KeyValueRow("TDD", TDD.toString()))
     }
 
