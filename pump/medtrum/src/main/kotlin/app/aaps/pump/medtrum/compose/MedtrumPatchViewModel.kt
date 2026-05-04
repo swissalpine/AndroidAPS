@@ -497,6 +497,11 @@ class MedtrumPatchViewModel @Inject constructor(
         _siteArrow.value = arrow
     }
 
+    /** Navigate from ATTACH to SITE_LOCATION if enabled, otherwise straight to ACTIVATE. */
+    fun moveAfterAttach() {
+        moveStep(if (showSiteLocationStep) PatchStep.SITE_LOCATION else PatchStep.ACTIVATE)
+    }
+
     override fun completeSiteLocation() {
         // Site location is saved after activation completes (patchStartTime not available yet)
         moveStep(PatchStep.ACTIVATE)
@@ -561,6 +566,10 @@ class MedtrumPatchViewModel @Inject constructor(
     }
 
     private fun prepareStep(newStep: PatchStep): PatchStep {
+        // Rebuild page list when re-entering a wizard entry point (e.g. New Patch after deactivation)
+        if (newStep in listOf(PatchStep.PREPARE_PATCH, PatchStep.START_DEACTIVATION, PatchStep.RETRY_ACTIVATION)) {
+            wizardPages = buildWizardPages(newStep)
+        }
         val stringResId = when (newStep) {
             PatchStep.PREPARE_PATCH            -> R.string.step_prepare_patch
             PatchStep.PREPARE_PATCH_CONNECT    -> R.string.step_prepare_patch_connect

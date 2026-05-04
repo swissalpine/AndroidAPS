@@ -300,6 +300,7 @@ class NSClientV3Plugin @Inject constructor(
         handler = null
         scope.cancel()
         stopService()
+        WorkManager.getInstance(context).cancelUniqueWork(JOB_NAME)
         super.onStop()
     }
 
@@ -348,6 +349,10 @@ class NSClientV3Plugin @Inject constructor(
     }
 
     override fun pause(newState: Boolean) {
+        // Cancel any in-flight WorkManager job so a stuck worker can't keep
+        // workIsRunning() == true after unpause and silently block all uploads
+        // (every DB_CHANGED would otherwise just log "Already running").
+        if (newState) WorkManager.getInstance(context).cancelUniqueWork(JOB_NAME)
         preferences.put(NsclientBooleanKey.NsPaused, newState)
     }
 
