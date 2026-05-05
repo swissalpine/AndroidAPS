@@ -389,7 +389,7 @@ class FillDialogViewModel @Inject constructor(
         decimalFormatter.pumpSupportedBolusFormat(uiState.value.bolusStep)
 
     private fun requestPrimeBolus(insulin: Double, notes: String, onSuccess: (() -> Unit)? = null) {
-        if (runningModeGuard.checkWithSnackbar(PumpCommandGate.CommandKind.BOLUS)) return
+        //if (runningModeGuard.checkWithSnackbar(PumpCommandGate.CommandKind.BOLUS)) return
         val detailedBolusInfo = DetailedBolusInfo().also {
             it.insulin = insulin
             it.bolusType = BS.Type.PRIMING
