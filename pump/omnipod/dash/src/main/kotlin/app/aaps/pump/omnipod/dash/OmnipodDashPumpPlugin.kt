@@ -240,8 +240,6 @@ class OmnipodDashPumpPlugin @Inject constructor(
         }
     }
 
-    override fun isConfigured(): Boolean = podStateManager.isUniqueIdSet
-
     override fun isInitialized(): Boolean {
         return podStateManager.isPodRunning
     }
@@ -788,10 +786,7 @@ class OmnipodDashPumpPlugin @Inject constructor(
                 continue
             }
             val percent = (waited.toFloat() / estimatedDeliveryTimeSeconds) * 100
-            val insulin = bolusProgressData.state.value?.insulin ?: 0.0
-            val delivered = insulin * percent / 100.0
-            val status = rh.gs(CoreInterfacesR.string.bolus_delivering, delivered)
-            bolusProgressData.updateProgress(percent.toInt(), status, delivered)
+            bolusProgressData.updateProgress(percent = percent.toInt())
         }
 
         (1..BOLUS_RETRIES).forEach { tryNumber ->
@@ -821,7 +816,7 @@ class OmnipodDashPumpPlugin @Inject constructor(
                 val percent = ((requestedBolusAmount - remainingUnits) / requestedBolusAmount) * 100
                 val delivered = requestedBolusAmount - remainingUnits
                 val status = rh.gs(CoreInterfacesR.string.bolus_delivering, delivered)
-                bolusProgressData.updateProgress(percent.toInt(), status, delivered)
+                bolusProgressData.updateProgress(percent = percent.toInt())
 
                 val sleepSeconds = if (bolusCanceled)
                     BOLUS_RETRY_INTERVAL_MS

@@ -173,8 +173,6 @@
     <string name="a11y_high">vysoká</string>
     <string name="a11y_inrange">v rozsahu</string>
     <string name="a11y_low">nízka</string>
-    <string name="average">Priemer</string>
-    <string name="tir">Čas v rozsahu</string>
     <string name="remove_label">Odstrániť</string>
     <string name="activate_profile">Aktivovať profil</string>
     <string name="activate_insulin">Aktivuj inzulín</string>
@@ -264,6 +262,9 @@
     <string name="pump_insulin_cu1">%1$.1f\u00a0CU</string>
     <string name="selected_insulin">Zvolený inzulín: %1$s</string>
     <string name="record_insulin_hint">Ak zadávaš inzulín aplikovaný perom, zvoľ nižšie ten správny typ inzulínu.</string>
+    <!--       Stats -->
+    <string name="average">Priemer</string>
+    <string name="tir">Čas v rozsahu</string>
     <!--    ProfileSwitch-->
     <!--    Temptarget-->
     <string name="mins">%1$d min.</string>
@@ -318,9 +319,7 @@
     <string name="scene_action_profile">Profil: %1$s %2$d%%</string>
     <string name="scene_action_smb_on">Povoliť SMB</string>
     <string name="scene_action_smb_off">Zakázať SMB</string>
-    <string name="scene_action_running_mode">Režim uzavretého okruhu: %1$s</string>
     <string name="scene_action_careportal">Log: %1$s</string>
-    <string name="scene_time_remaining">zostáva %1$s</string>
     <string name="scene_management">Scény</string>
     <string name="scene_management_desc">Vytvorenie, úprava a správa scén</string>
     <string name="scene_action_count">%1$d akcií</string>
@@ -347,10 +346,8 @@
     <string name="scene_no_actions">Scéna nemá žiadne akcie</string>
     <string name="scene_profile_not_found">Profil \"%1$s\" nebol nájdený</string>
     <string name="scene_revert_tt">Zrušiť dočasný cieľ</string>
-    <string name="scene_revert_profile">Vrátiť profil na %1$s %2$d%%</string>
     <string name="scene_revert_smb_on">Znovu povoliť SMB</string>
     <string name="scene_revert_smb_off">Zakázať SMB</string>
-    <string name="scene_revert_loop_mode">Zrušiť prepísanie režimu uzavretého okruhu</string>
     <string name="scene_careportal_no_revert">Záznamy portálu starostlivosti se nevrátia</string>
     <string name="careportal_sickness">Choroba</string>
     <string name="careportal_stress">Stres</string>

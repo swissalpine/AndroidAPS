@@ -379,8 +379,12 @@ class GraphViewModel @AssistedInject constructor(
         aapsLogger.debug(LTag.UI, "GraphViewModel initialized - exposing independent series flows")
     }
 
+    @Volatile var lastInteractionMs: Long = 0L
+        private set
+
     fun onGraphInteraction() {
         preferences.put(BooleanNonKey.ObjectivesScaleUsed, true)
+        lastInteractionMs = System.currentTimeMillis()
     }
 
     override fun onCleared() {

@@ -199,6 +199,10 @@ class NSClientV3Plugin @Inject constructor(
             aapsLogger.debug(LTag.NSCLIENT, "Service is connected")
             val localBinder = service as NSClientV3Service.LocalBinder
             nsClientV3Service = localBinder.serviceInstance
+            // Covers the case where Android reuses an already-alive service on rebind:
+            // onCreate doesn't fire, but onServiceConnected does. The idempotency guard
+            // in initializeWebSockets makes this safe when both fire on a fresh bind.
+            nsClientV3Service?.initializeWebSockets("serviceConnected")
         }
     }
 
@@ -316,7 +320,6 @@ class NSClientV3Plugin @Inject constructor(
                 logging = l.findByName(LTag.NSCLIENT.tag).enabled && (config.isEngineeringMode() || config.isDev()),
                 logger = { msg -> aapsLogger.debug(LTag.HTTP, msg) }
             )
-        SystemClock.sleep(2000)
         if (preferences.get(BooleanKey.NsClient3UseWs)) {
             if (nsClientV3Service == null) startService()
             else nsClientV3Service?.initializeWebSockets("setClient")
@@ -332,6 +335,9 @@ class NSClientV3Plugin @Inject constructor(
 
     private fun stopService() {
         try {
+            // Tear down sockets synchronously before unbinding so a quick rebind
+            // (e.g. via restartOnChange) doesn't race the async service onDestroy.
+            nsClientV3Service?.shutdownWebsockets()
             if (nsClientV3Service != null) context.unbindService(serviceConnection)
         } catch (_: Exception) {
         }

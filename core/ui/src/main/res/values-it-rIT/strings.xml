@@ -173,8 +173,6 @@
     <string name="a11y_high">alto</string>
     <string name="a11y_inrange">in range</string>
     <string name="a11y_low">basso</string>
-    <string name="average">Media</string>
-    <string name="tir">Tempo nell’intervallo</string>
     <string name="remove_label">Rimuovi</string>
     <string name="activate_profile">Attiva profilo</string>
     <string name="activate_insulin">Attiva insulina</string>
@@ -264,6 +262,23 @@
     <string name="pump_insulin_cu1">%1$.1f\u00a0CU</string>
     <string name="selected_insulin">Insulina Selezionata: %1$s</string>
     <string name="record_insulin_hint">Se si entra in insulina applicata dalla penna, selezionare di seguito il tipo di insulina corretto. La dose è sempre nelle Unità Internazionali.</string>
+    <!--       Stats -->
+    <string name="average">Media</string>
+    <string name="tir">Tempo nell’intervallo</string>
+    <string name="below" comment="below &quot;in range&quot;">Sotto</string>
+    <string name="in_range">In range</string>
+    <string name="veryLow" comment="below 3.1">Molto basso</string>
+    <string name="low" comment="3.1-3.9">Basso</string>
+    <string name="high" comment="10.0-13.9">Alto</string>
+    <string name="veryHigh" comment="above 13.9">Molto alto</string>
+    <string name="above" comment="above &quot;in range&quot;">Sopra</string>
+    <string name="detailed_14_days">Dettaglio 14 giorni</string>
+    <string name="day_tir">TIR giorno</string>
+    <string name="night_tir">TIR notturno</string>
+    <string name="hba1c">HbA1c: </string>
+    <string name="std_deviation">SD: %1$s</string>
+    <string name="seven_days_short">7gg</string>
+    <string name="thirty_days_short">30gg</string>
     <!--    ProfileSwitch-->
     <!--    Temptarget-->
     <string name="mins">%1$d min</string>
@@ -313,14 +328,14 @@
     <string name="scene_confirm_deactivate">Terminare la scena \"%1$s\" e ripristinare le modifiche?</string>
     <string name="scene_conflict_active_tt">Il target temporaneo attivo verrà sostituito</string>
     <string name="scene_conflict_active_profile">L\'interruttore del profilo attivo verrà sostituito</string>
+    <string name="scene_conflict_active_running_mode">La modalità di esecuzione attiva verrà sostituita</string>
     <string name="scene_conflict_active_scene">Scena attiva \"%1$s\" sarà terminata prima</string>
     <string name="scene_action_tt">Temp-Target %1$s</string>
     <string name="scene_action_profile">Profilo: %1$s %2$d%%</string>
     <string name="scene_action_smb_on">Abilita SMB</string>
     <string name="scene_action_smb_off">Disabilita SMB</string>
-    <string name="scene_action_running_mode">Modalità Loop: %1$s</string>
+    <string name="scene_action_running_mode">Modalità in esecuzione: %1$s</string>
     <string name="scene_action_careportal">Log: %1$s</string>
-    <string name="scene_time_remaining">%1$s rimanenti</string>
     <string name="scene_management">Scene</string>
     <string name="scene_management_desc">Crea, modifica e gestisci scene</string>
     <string name="scene_action_count">Azioni %1$d</string>
@@ -340,6 +355,7 @@
     <string name="scene_editor_enabled">Abilitato</string>
     <string name="scene_editor_disabled">Disabilitato</string>
     <string name="scene_summary">%1$d azioni, %2$s</string>
+    <string name="scene_duration_indefinite">Indefinito (fine manuale)</string>
     <string name="scene_some_actions_failed">Alcune azioni fallite</string>
     <string name="scene_no_active">Nessuna scena attiva</string>
     <string name="scene_some_reverts_failed">Alcune azioni di ripristino non sono riuscite</string>
@@ -347,10 +363,10 @@
     <string name="scene_no_actions">La scena non ha azioni</string>
     <string name="scene_profile_not_found">Profilo \"%1$s\" non trovato</string>
     <string name="scene_revert_tt">Cancella basali temporanee</string>
-    <string name="scene_revert_profile">Ripristina il profilo ad %1$s %2$d%%</string>
+    <string name="scene_revert_profile">Ripristina la modifica del profilo</string>
     <string name="scene_revert_smb_on">Riattiva SMB</string>
     <string name="scene_revert_smb_off">Disabilita SMB</string>
-    <string name="scene_revert_loop_mode">Annulla override modalità loop</string>
+    <string name="scene_revert_loop_mode">Annulla l\'override della modalità in esecuzione</string>
     <string name="scene_careportal_no_revert">Le voci CarePortal non verranno ripristinate</string>
     <string name="careportal_sickness">Malattia</string>
     <string name="careportal_stress">Stress</string>

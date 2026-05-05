@@ -37,7 +37,7 @@ fun AttachStep(
     }
 
     AttachStepContent(
-        onNext = { viewModel.moveAfterAttach() },
+        onNext = { viewModel.moveStep(PatchStep.ACTIVATE) },
         onCancel = onCancel
     )
 

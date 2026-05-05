@@ -124,7 +124,6 @@ import app.aaps.database.transactions.UpdateNsIdTherapyEventTransaction
 import app.aaps.database.transactions.UserEntryTransaction
 import app.aaps.database.transactions.VersionChangeTransaction
 import dagger.Reusable
-import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -2446,8 +2445,9 @@ class PersistenceLayerImpl @Inject constructor(
     }
 
     // VersionChange
-    override fun insertVersionChangeIfChanged(versionName: String, versionCode: Int, gitRemote: String?, commitHash: String?): Completable =
-        repository.runTransaction(VersionChangeTransaction(versionName, versionCode, gitRemote, commitHash))
+    override suspend fun insertVersionChangeIfChanged(versionName: String, versionCode: Int, gitRemote: String?, commitHash: String?) = withContext(Dispatchers.IO) {
+        repository.runTransactionSuspend(VersionChangeTransaction(versionName, versionCode, gitRemote, commitHash))
+    }
 
     override suspend fun collectNewEntriesSince(since: Long, until: Long, limit: Int, offset: Int): NE = withContext(Dispatchers.IO) {
         repository.collectNewEntriesSince(since, until, limit, offset).fromDb()
