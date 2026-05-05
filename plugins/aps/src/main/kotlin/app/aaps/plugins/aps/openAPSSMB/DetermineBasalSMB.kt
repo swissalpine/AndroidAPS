@@ -1139,7 +1139,7 @@ class DetermineBasalSMB @Inject constructor(
 
                 // if no zero temp is required, don't return yet; allow later code to set a high temp
                 if (durationReq > 0) {
-                    rT.rate = smbLowTempReq
+                    rT.rate = ketoProtection(smbLowTempReq, profile, rT)
                     rT.duration = durationReq
                     return rT
                 }

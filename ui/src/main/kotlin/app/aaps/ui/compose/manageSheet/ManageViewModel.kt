@@ -154,7 +154,7 @@ class ManageViewModel @Inject constructor(
                     showCancelExtendedBolus = showCancelExtendedBolus,
                     showHistoryBrowser = profile != null,
                     showBatteryChange = pumpDescription.isBatteryReplaceable || pump.isBatteryChangeLoggingEnabled(),
-                    showFill = pumpDescription.isRefillingCapable, // && isInitialized,
+                    showFill = pumpDescription.isRefillingCapable && isInitialized,
                     cancelTempBasalText = cancelTempBasalText,
                     cancelExtendedBolusText = cancelExtendedBolusText,
                     isPatchPump = pumpDescription.isPatchPump,
