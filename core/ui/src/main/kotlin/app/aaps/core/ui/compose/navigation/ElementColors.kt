@@ -148,10 +148,10 @@ val DarkElementColors = ElementColors(
     // Running mode belt graph background colors
     loopClosed = Color(0xFF4CAF50),       // green — normal operating state
     loopOpened = Color(0xFF4983D7),       // blue
-    loopLgs = Color(0xFF800080),          // purple
-    loopDisabled = Color(0xFFFF1313),     // red
+    loopLgs = Color(0xFF4CAF50),          // purple
+    loopDisabled = Color(0xFF939393),     // red
     loopSuperBolus = Color(0xFFFFA500),   // orange
-    loopDisconnected = Color(0xFF939393), // gray
+    loopDisconnected = Color(0xFFFF1313), // gray
     loopSuspended = Color(0xFFF6CE22),    // yellow
 )
 
