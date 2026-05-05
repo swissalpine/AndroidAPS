@@ -203,10 +203,10 @@
     <!-- Loop Status Colors -->
     <color name="loopClosed">#00C03E</color>
     <color name="loopOpen">#4983D7</color>
-    <color name="loopLGS">#800080</color>
+    <color name="loopLGS">#00C03E</color>
     <color name="loopSuspended">#FFFF13</color>
-    <color name="loopDisabled">#FF1313</color>
-    <color name="loopDisconnected">#939393</color>
+    <color name="loopDisabled">#939393</color>
+    <color name="loopDisconnected">#FF1313</color>
     <color name="loopUnknown">#9E9E9E</color>
     <color name="loopSuperbolus">#FFAE01</color>
     <color name="tempBasal">#FF9800</color>
