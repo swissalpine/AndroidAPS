@@ -37,7 +37,7 @@ internal class TizenPluginTest : TestBaseWithProfile() {
     @Mock lateinit var processedDeviceStatusData: ProcessedDeviceStatusData
     @Mock lateinit var pumpStatusProvider: PumpStatusProvider
 
-    private val bolusProgressData = BolusProgressData()
+    private val bolusProgressData by lazy { BolusProgressData(ch, rh) }
     private lateinit var sut: TizenPlugin
 
     @BeforeEach

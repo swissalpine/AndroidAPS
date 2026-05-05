@@ -39,7 +39,7 @@ class QueueWorkerTest : TestBaseWithProfile() {
     @Mock lateinit var workManager: WorkManager
 
     private val testScope = CoroutineScope(Dispatchers.Unconfined)
-    private val bolusProgressData = BolusProgressData()
+    private val bolusProgressData by lazy { BolusProgressData(ch, rh) }
 
     init {
         addInjector {

@@ -76,7 +76,7 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
     @Mock lateinit var infos: ListenableFuture<List<WorkInfo>>
 
     private val testScope = CoroutineScope(Dispatchers.Unconfined)
-    private val bolusProgressData = BolusProgressData()
+    private val bolusProgressData by lazy { BolusProgressData(ch, rh) }
 
     class CommandQueueMocked(
         injector: HasAndroidInjector,

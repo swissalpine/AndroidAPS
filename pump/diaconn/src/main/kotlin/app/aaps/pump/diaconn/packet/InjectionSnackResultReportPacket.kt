@@ -51,7 +51,7 @@ class InjectionSnackResultReportPacket(injector: HasAndroidInjector) : DiaconnG8
         aapsLogger.debug(LTag.PUMPCOMM, "bolusAmountToBeDelivered --> $bolusAmountToBeDelivered")
         aapsLogger.debug(LTag.PUMPCOMM, "lastBolusAmount --> ${diaconnG8Pump.lastBolusAmount}")
         aapsLogger.debug(LTag.PUMPCOMM, "lastBolusTime --> ${diaconnG8Pump.lastBolusTime}")
-        aapsLogger.debug(LTag.PUMPCOMM, "delivered --> ${bolusProgressData.state.value?.delivered ?: 0.0}")
+        aapsLogger.debug(LTag.PUMPCOMM, "delivered --> ${bolusProgressData.state.value?.delivered?.cU ?: 0.0}")
         aapsLogger.debug(LTag.PUMPCOMM, "bolusDone --> ${diaconnG8Pump.bolusDone}")
     }
 
