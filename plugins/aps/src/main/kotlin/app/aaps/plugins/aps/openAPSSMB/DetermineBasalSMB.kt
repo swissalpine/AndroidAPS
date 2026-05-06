@@ -118,7 +118,7 @@ class DetermineBasalSMB @Inject constructor(
         val protectionRate: Double = profile.ketoacidosisProtectionBasal.toDouble() * 0.01
         val cutOff: Double = round_basal(baseBasalRate * protectionRate)
         if (profile.ketoacidosisProtection && proposedRate < cutOff) {
-            proposedRate = cutOff
+            proposedRate = round(cutOff,2)
             rT.reason.append("\nKetoProtect sets tbr from $_proposedRate -> $proposedRate U/h.")
             consoleLog.add("KetoProtect sets tbr from $_proposedRate to $proposedRate U/h")
         }
