@@ -38,6 +38,7 @@ fun OverviewChipsColumn(
     runningModeText: String,
     runningModeProgress: Float,
     runningModeSceneManaged: Boolean = false,
+    smbEnabled: Boolean = false,
     isSimpleMode: Boolean,
     profileName: String,
     isProfileModified: Boolean,
@@ -76,6 +77,7 @@ fun OverviewChipsColumn(
                             runningModeText = runningModeText,
                             runningModeProgress = runningModeProgress,
                             runningModeSceneManaged = runningModeSceneManaged,
+                            smbEnabled = smbEnabled,
                             isSimpleMode = isSimpleMode,
                             profileName = profileName,
                             isProfileModified = isProfileModified,
@@ -103,6 +105,7 @@ fun OverviewChipsColumn(
                 runningModeText = runningModeText,
                 runningModeProgress = runningModeProgress,
                 runningModeSceneManaged = runningModeSceneManaged,
+                smbEnabled = smbEnabled,
                 isSimpleMode = isSimpleMode,
                 profileName = profileName,
                 isProfileModified = isProfileModified,
@@ -131,6 +134,7 @@ private fun NarrowChips(
     runningModeText: String,
     runningModeProgress: Float,
     runningModeSceneManaged: Boolean,
+    smbEnabled: Boolean,
     isSimpleMode: Boolean,
     profileName: String,
     isProfileModified: Boolean,
@@ -153,6 +157,7 @@ private fun NarrowChips(
                 progress = runningModeProgress,
                 modifier = Modifier.weight(1f),
                 sceneManaged = runningModeSceneManaged,
+                smbEnabled = smbEnabled,
                 onClick = { onNavigate(NavigationRequest.Element(ElementType.RUNNING_MODE)) }
             )
             if (isSimpleMode) {
