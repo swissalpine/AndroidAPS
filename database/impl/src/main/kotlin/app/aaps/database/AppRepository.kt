@@ -608,7 +608,9 @@ class AppRepository @Inject internal constructor(
     // DEVICE STATUS
     fun insert(deviceStatus: DeviceStatus) {
         database.deviceStatusDao.insert(deviceStatus)
-        changeSubject.onNext(mutableListOf(deviceStatus)) // Not TraceableDao
+        val changes = mutableListOf<DBEntry>(deviceStatus) // Not TraceableDao
+        changeSubject.onNext(changes)
+        _changeFlow.tryEmit(changes)
     }
 
     /*

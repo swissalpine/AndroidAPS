@@ -149,9 +149,9 @@ class PersistentNotificationPlugin @Inject constructor(
             }
             val activeTemp = processedTbrEbData.getTempBasalIncludingConvertedExtended(System.currentTimeMillis())
             line1 += if (activeTemp != null) {
-                " • " + activeTemp.toStringShort(rh)
+                " • " + activeTemp.toStringShort(rh) + " "
             } else {
-                " • " + rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, ch.fromPump(pump.baseBasalRate))
+                " • " + rh.gs(app.aaps.core.ui.R.string.pump_base_basal_rate, ch.fromPump(pump.baseBasalRate)) + " "
             }
             val profileName = profileFunction.getProfileName()
             //IOB
