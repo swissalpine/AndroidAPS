@@ -10,7 +10,7 @@ junit = "6.0.3"
 okhttp = "5.3.2"
 retrofit = "3.0.0"
 kotlinx-serialization = "1.11.0"
-kotlinx-coroutines = "1.10.2"
+kotlinx-coroutines = "1.11.0"
 work = "2.11.2"
 datastorePreferences = "1.2.1"
 

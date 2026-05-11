@@ -172,15 +172,14 @@ private fun NarrowChips(
             }
         }
     }
-    if (profileName.isNotEmpty()) {
-        ProfileChip(
-            profileName = profileName,
-            isModified = isProfileModified,
-            progress = profileProgress,
-            onClick = { onNavigate(NavigationRequest.Element(ElementType.PROFILE_MANAGEMENT)) },
-            sceneManaged = profileSceneManaged
-        )
-    }
+    ProfileChip(
+        profileName = profileName.ifEmpty { stringResource(app.aaps.core.ui.R.string.no_profile_set) },
+        isModified = isProfileModified,
+        progress = profileProgress,
+        onClick = { onNavigate(NavigationRequest.Element(ElementType.PROFILE_MANAGEMENT)) },
+        sceneManaged = profileSceneManaged,
+        isNoProfile = profileName.isEmpty()
+    )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AapsSpacing.small)
