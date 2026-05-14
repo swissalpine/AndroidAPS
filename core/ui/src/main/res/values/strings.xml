@@ -874,8 +874,11 @@
 
     <!--    Combo-->
     <string name="user_request" comment="26 characters max for translation">User request</string>
+
+    <!--    Pump pair/unpair (shared) -->
     <string name="pump_pair">Pair</string>
     <string name="pump_unpair">Unpair</string>
+    <string name="pump_unpair_confirm_title">Unpair pump?</string>
     <string name="pump_paired" comment="26 characters max for translation">Pump paired</string>
 
     <!--    BlePreCheck-->
@@ -1059,6 +1062,7 @@
     <string name="nav_resetdb">Reset Databases</string>
 
     <!--    BLE Scan Step (shared pump pairing) -->
+    <string name="step_ble_scan">Find Pump</string>
     <string name="ble_scan_select_pump">Select your pump from the list below</string>
     <string name="ble_scan_scanning">Scanning for devices…</string>
 
