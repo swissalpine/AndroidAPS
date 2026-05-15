@@ -49,6 +49,10 @@
     <string name="patient_name_default" comment="This is default patient display name, when user does not provide real one">Usuario</string>
     <string name="result">Resultado</string>
     <string name="settings">Ajustes</string>
+    <string name="open_plugin">Abrir complemento</string>
+    <string name="configbuilder_pick_one_hint">Elija uno. Solo puede haber uno activo a la vez</string>
+    <string name="configbuilder_pick_many_hint">Seleccione todas las opciones que correspondan</string>
+    <string name="configbuilder_no_selection_warning">No se ha seleccionado ningún complemento en esta categoría</string>
     <string name="simple_mode">Modo simple</string>
     <string name="expand">Expandir</string>
     <string name="collapse">Contraer</string>
@@ -832,6 +836,7 @@
     <!--    Pump pair/unpair (shared) -->
     <string name="pump_pair">Emparejar</string>
     <string name="pump_unpair">Desemparejar</string>
+    <string name="pump_unpair_confirm_title">¿Desvincular bomba?</string>
     <string name="pump_paired" comment="26 characters max for translation">Bomba emparejada</string>
     <!--    BlePreCheck-->
     <string name="ble_not_supported">Bluetooth de baja energía no soportado.</string>
@@ -996,6 +1001,7 @@
     <string name="database_cleanup">Limpieza de la base de datos</string>
     <string name="nav_resetdb">Restablecer bases de datos</string>
     <!--    BLE Scan Step (shared pump pairing) -->
+    <string name="step_ble_scan">Buscar bomba</string>
     <string name="ble_scan_select_pump">Selecciona tu bomba de la lista de abajo</string>
     <string name="ble_scan_scanning">Buscando dispositivos…</string>
     <!-- Graph configuration -->

@@ -50,6 +50,7 @@
     <string name="alarm_no_calibration">Absence d\'étalonnage</string>
     <string name="pump_time_update_failed">Impossible de mettre à jour le fuseau horaire de la pompe, mettre en veille le message et rafraîchir manuellement.</string>
     <string name="bolus_error">Erreur de bolus</string>
+    <!-- Status strings -->
     <!-- wizard-->
     <string name="retry">Réessayer</string>
     <string name="step_prepare_patch">Activer le Patch</string>
@@ -64,6 +65,7 @@
     <string name="step_deactivate">Désactiver le Patch</string>
     <string name="step_deactivating">Désactivation en cours...</string>
     <string name="step_deactivate_complete">Patch désactivé</string>
+    <string name="unpair_confirm_message">Cela effacera le numéro de série de la pompe stockée et la déconnectera. Activez un nouveau patch pour rechercher une pompe.</string>
     <string name="step_retry_activation">Activation en cours</string>
     <string name="unexpected_state">État inattendu : %1$s</string>
     <string name="patch_begin_activation">Aucun Patch actif. Appuyez sur <b>Suivant</b> pour commencer le processus d\'activation.</string>
