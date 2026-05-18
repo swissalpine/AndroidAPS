@@ -181,7 +181,9 @@ class LoopHubImpl @Inject constructor(
             eventType = TE.Type.SNACK_BOLUS
             insulin = bolus
         }
-        commandQueue.bolus(detailedBolusInfo, null)
+        appScope.launch {
+            commandQueue.bolus(detailedBolusInfo)
+        }
     }
 
     override fun postTempTarget(target: Double, duration: Int) {
