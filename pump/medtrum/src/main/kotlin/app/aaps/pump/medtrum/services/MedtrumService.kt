@@ -393,7 +393,7 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
         return sendPacketAndGetResponse(SetPatchPacket(injector))
     }
 
-    fun setBolus(detailedBolusInfo: DetailedBolusInfo): Boolean {
+    suspend fun setBolus(detailedBolusInfo: DetailedBolusInfo): Boolean {
         if (!canSetBolus()) return false
 
         val insulin = detailedBolusInfo.insulin
@@ -404,7 +404,7 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
         if (!sendBolusCommand(insulin)) {
             medtrumPump.bolusErrorReason = rh.gs(R.string.bolus_error_reason_unable_to_send_command)
             aapsLogger.error(LTag.PUMPCOMM, "Failed to set bolus")
-            commandQueue.readStatus(rh.gs(R.string.bolus_error), null) // make sure if anything is delivered (which is highly unlikely at this point) we get it
+            commandQueue.readStatus(rh.gs(R.string.bolus_error)) // make sure if anything is delivered (which is highly unlikely at this point) we get it
             medtrumPump.bolusDone = true
             bolusProgressData.updateProgress(percent = 0, status = "")
             return false
@@ -418,16 +418,14 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
         detailedBolusInfo.timestamp = bolusStart // Make sure the timestamp is set to the start of the bolus
         detailedBolusInfoStorage.add(detailedBolusInfo) // will be picked up on reading history
         // Sync the initial bolus
-        val newRecord = runBlocking {
-            pumpSync.addBolusWithTempId(
-                timestamp = detailedBolusInfo.timestamp,
-                amount = PumpInsulin(detailedBolusInfo.insulin),
-                temporaryId = detailedBolusInfo.timestamp,
-                type = detailedBolusInfo.bolusType,
-                pumpType = medtrumPump.pumpType(),
-                pumpSerial = medtrumPump.pumpSN.toString(radix = 16)
-            )
-        }
+        val newRecord = pumpSync.addBolusWithTempId(
+            timestamp = detailedBolusInfo.timestamp,
+            amount = PumpInsulin(detailedBolusInfo.insulin),
+            temporaryId = detailedBolusInfo.timestamp,
+            type = detailedBolusInfo.bolusType,
+            pumpType = medtrumPump.pumpType(),
+            pumpSerial = medtrumPump.pumpSN.toString(radix = 16)
+        )
         if (newRecord) {
             aapsLogger.debug(
                 LTag.PUMPCOMM,
@@ -441,17 +439,15 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
 
         if (medtrumPump.bolusStopped && (bolusProgressData.state.value?.delivered?.cU ?: 0.0) == 0.0) {
             // In this case we don't get a bolus end event, so need to remove all the stuff added previously
-            val syncOk = runBlocking {
-                pumpSync.syncBolusWithTempId(
-                    timestamp = bolusStart,
-                    amount = PumpInsulin(0.0),
-                    temporaryId = bolusStart,
-                    type = detailedBolusInfo.bolusType,
-                    pumpId = bolusStart,
-                    pumpType = medtrumPump.pumpType(),
-                    pumpSerial = medtrumPump.pumpSN.toString(radix = 16)
-                )
-            }
+            val syncOk = pumpSync.syncBolusWithTempId(
+                timestamp = bolusStart,
+                amount = PumpInsulin(0.0),
+                temporaryId = bolusStart,
+                type = detailedBolusInfo.bolusType,
+                pumpId = bolusStart,
+                pumpType = medtrumPump.pumpType(),
+                pumpSerial = medtrumPump.pumpSN.toString(radix = 16)
+            )
             aapsLogger.debug(
                 LTag.PUMPCOMM,
                 "set bolus: **SYNC** EVENT BOLUS (tempId) ${dateUtil.dateAndTimeString(detailedBolusInfo.timestamp)} (${bolusStart}) Bolus: ${0.0}U SyncOK: $syncOk"

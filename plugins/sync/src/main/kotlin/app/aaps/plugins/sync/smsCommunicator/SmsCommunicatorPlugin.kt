@@ -588,17 +588,14 @@ class SmsCommunicatorPlugin @Inject constructor(
 
     private suspend fun processPUMP(divided: Array<String>, receivedSms: Sms) {
         if (divided.size == 1) {
-            commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.sms), object : Callback() {
-                override fun run() {
-                    if (result.success) {
-                        val reply = shortStatusBlocking()
-                        sendSMS(Sms(receivedSms.phoneNumber, reply))
-                    } else {
-                        val reply = rh.gs(R.string.sms_read_status_failed)
-                        sendSMS(Sms(receivedSms.phoneNumber, reply))
-                    }
-                }
-            })
+            val result = commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.sms))
+            if (result.success) {
+                val reply = shortStatusBlocking()
+                sendSMS(Sms(receivedSms.phoneNumber, reply))
+            } else {
+                val reply = rh.gs(R.string.sms_read_status_failed)
+                sendSMS(Sms(receivedSms.phoneNumber, reply))
+            }
             receivedSms.processed = true
         } else if ((divided.size == 2) && (divided[1].equals("CONNECT", ignoreCase = true))) {
             if (loop.allowedNextModes().contains(RM.Mode.RESUME)) {
@@ -802,7 +799,7 @@ class SmsCommunicatorPlugin @Inject constructor(
         }
     }
 
-    private fun processEXTENDED(divided: Array<String>, receivedSms: Sms) {
+    private suspend fun processEXTENDED(divided: Array<String>, receivedSms: Sms) {
         if (divided[1].uppercase(Locale.getDefault()) == "CANCEL" || divided[1].uppercase(Locale.getDefault()) == "STOP") {
             val passCode = generatePassCode()
             val reply = rh.gs(R.string.smscommunicator_extended_stop_reply_with_code, passCode)
@@ -855,7 +852,7 @@ class SmsCommunicatorPlugin @Inject constructor(
         }
     }
 
-    private fun processBOLUS(divided: Array<String>, receivedSms: Sms) {
+    private suspend fun processBOLUS(divided: Array<String>, receivedSms: Sms) {
         var bolus = SafeParse.stringToDouble(divided[1])
         val isMeal = divided.size > 2 && divided[2].equals("MEAL", ignoreCase = true)
         bolus = constraintChecker.applyBolusConstraints(ConstraintObject(bolus, aapsLogger)).value()
