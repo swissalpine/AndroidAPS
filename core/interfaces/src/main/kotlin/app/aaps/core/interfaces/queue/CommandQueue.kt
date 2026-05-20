@@ -26,19 +26,19 @@ interface CommandQueue {
     fun stopPump(callback: Callback?)
     fun startPump(callback: Callback?)
     fun setTBROverNotification(callback: Callback?, enable: Boolean)
-    fun tempBasalAbsolute(absoluteRate: Double, durationInMinutes: Int, enforceNew: Boolean, profile: Profile, tbrType: PumpSync.TemporaryBasalType, callback: Callback?)
-    fun tempBasalPercent(percent: Int, durationInMinutes: Int, enforceNew: Boolean, profile: Profile, tbrType: PumpSync.TemporaryBasalType, callback: Callback?)
-    fun extendedBolus(insulin: Double, durationInMinutes: Int, callback: Callback?)
-    fun cancelTempBasal(enforceNew: Boolean, autoForced: Boolean = false, callback: Callback?)
-    fun cancelExtended(callback: Callback?)
+    suspend fun tempBasalAbsolute(absoluteRate: Double, durationInMinutes: Int, enforceNew: Boolean, profile: Profile, tbrType: PumpSync.TemporaryBasalType): PumpEnactResult
+    suspend fun tempBasalPercent(percent: Int, durationInMinutes: Int, enforceNew: Boolean, profile: Profile, tbrType: PumpSync.TemporaryBasalType): PumpEnactResult
+    suspend fun extendedBolus(insulin: Double, durationInMinutes: Int): PumpEnactResult
+    suspend fun cancelTempBasal(enforceNew: Boolean, autoForced: Boolean = false): PumpEnactResult
+    suspend fun cancelExtended(): PumpEnactResult
     fun readStatus(reason: String, callback: Callback?)
     fun statusInQueue(): Boolean
     fun loadHistory(type: Byte, callback: Callback?)
     fun setUserOptions(callback: Callback?)
-    fun loadTDDs(callback: Callback?)
+    suspend fun loadTDDs(): PumpEnactResult
     fun loadEvents(callback: Callback?)
-    fun clearAlarms(callback: Callback?)
-    fun deactivate(callback: Callback?)
+    suspend fun clearAlarms(): PumpEnactResult
+    suspend fun deactivate(): PumpEnactResult
     suspend fun updateTime(): PumpEnactResult
     fun customCommand(customCommand: CustomCommand, callback: Callback?)
     fun isCustomCommandRunning(customCommandType: Class<out CustomCommand>): Boolean
@@ -65,41 +65,6 @@ interface CommandQueue {
     suspend fun bolus(detailedBolusInfo: DetailedBolusInfo): PumpEnactResult =
         suspendCancellableCoroutine { cont ->
             bolus(detailedBolusInfo, object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun tempBasalAbsolute(absoluteRate: Double, durationInMinutes: Int, enforceNew: Boolean, profile: Profile, tbrType: PumpSync.TemporaryBasalType): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            tempBasalAbsolute(absoluteRate, durationInMinutes, enforceNew, profile, tbrType, object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun tempBasalPercent(percent: Int, durationInMinutes: Int, enforceNew: Boolean, profile: Profile, tbrType: PumpSync.TemporaryBasalType): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            tempBasalPercent(percent, durationInMinutes, enforceNew, profile, tbrType, object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun extendedBolus(insulin: Double, durationInMinutes: Int): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            extendedBolus(insulin, durationInMinutes, object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun cancelTempBasal(enforceNew: Boolean, autoForced: Boolean = false): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            cancelTempBasal(enforceNew, autoForced, object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun cancelExtended(): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            cancelExtended(object : Callback() {
                 override fun run() { cont.resume(result) }
             })
         }
@@ -152,30 +117,9 @@ interface CommandQueue {
             })
         }
 
-    suspend fun loadTDDs(): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            loadTDDs(object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
     suspend fun loadEvents(): PumpEnactResult =
         suspendCancellableCoroutine { cont ->
             loadEvents(object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun clearAlarms(): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            clearAlarms(object : Callback() {
-                override fun run() { cont.resume(result) }
-            })
-        }
-
-    suspend fun deactivate(): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            deactivate(object : Callback() {
                 override fun run() { cont.resume(result) }
             })
         }

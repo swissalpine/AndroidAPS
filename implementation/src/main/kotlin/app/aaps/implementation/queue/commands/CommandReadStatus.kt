@@ -24,7 +24,7 @@ class CommandReadStatus(
     @Inject lateinit var activePlugin: ActivePlugin
     @Inject lateinit var localAlertUtils: LocalAlertUtils
 
-    @Inject lateinit var pumpEnactResultProvider: Provider<PumpEnactResult>
+    @Inject override lateinit var pumpEnactResultProvider: Provider<PumpEnactResult>
 
     init {
         injector.androidInjector().inject(this)
@@ -32,7 +32,7 @@ class CommandReadStatus(
 
     override val commandType: Command.CommandType = Command.CommandType.READSTATUS
 
-    override suspend fun execute() {
+    override suspend fun executeWithCallback() {
         activePlugin.activePump.getPumpStatus(reason)
         localAlertUtils.reportPumpStatusRead()
         aapsLogger.debug(LTag.PUMPQUEUE, "CommandReadStatus executed. Reason: $reason")
@@ -46,8 +46,4 @@ class CommandReadStatus(
     override fun status(): String = rh.gs(app.aaps.core.ui.R.string.read_status, reason)
 
     override fun log(): String = "READSTATUS $reason"
-    override fun cancel() {
-        aapsLogger.debug(LTag.PUMPQUEUE, "Result cancel")
-        callback?.result(pumpEnactResultProvider.get().success(false).comment(app.aaps.core.ui.R.string.connectiontimedout))?.run()
-    }
 }

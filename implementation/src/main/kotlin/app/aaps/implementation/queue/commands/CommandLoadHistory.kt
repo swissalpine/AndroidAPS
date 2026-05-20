@@ -22,7 +22,7 @@ class CommandLoadHistory(
     @Inject lateinit var aapsLogger: AAPSLogger
     @Inject lateinit var rh: ResourceHelper
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var pumpEnactResultProvider: Provider<PumpEnactResult>
+    @Inject override lateinit var pumpEnactResultProvider: Provider<PumpEnactResult>
 
     init {
         injector.androidInjector().inject(this)
@@ -30,7 +30,7 @@ class CommandLoadHistory(
 
     override val commandType: Command.CommandType = Command.CommandType.LOAD_HISTORY
 
-    override suspend fun execute() {
+    override suspend fun executeWithCallback() {
         val pump = activePlugin.activePumpInternal
         if (pump is Dana) {
             val danaPump = pump as Dana
@@ -50,8 +50,4 @@ class CommandLoadHistory(
     override fun status(): String = rh.gs(app.aaps.core.ui.R.string.load_history, type.toInt())
 
     override fun log(): String = "LOAD HISTORY $type"
-    override fun cancel() {
-        aapsLogger.debug(LTag.PUMPQUEUE, "Result cancel")
-        callback?.result(pumpEnactResultProvider.get().success(false).comment(app.aaps.core.ui.R.string.connectiontimedout))?.run()
-    }
 }
