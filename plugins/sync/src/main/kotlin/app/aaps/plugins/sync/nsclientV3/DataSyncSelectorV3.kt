@@ -720,7 +720,7 @@ class DataSyncSelectorV3 @Inject constructor(
             // Snapshot once so the validity check and JSON read see the same store.
             val profileStore = profileRepository.profile.value ?: return
             if (!profileStore.allProfilesValid) return
-            val profileJson = profileStore.getData() ?: return
+            val profileJson = profileStore.getData()
             // add for v3
             if (JsonHelper.safeGetLongAllowNull(profileJson, "date") == null)
                 profileJson.put("date", profileStore.getStartDate())

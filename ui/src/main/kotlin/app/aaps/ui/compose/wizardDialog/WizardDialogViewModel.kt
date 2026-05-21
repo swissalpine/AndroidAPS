@@ -390,7 +390,7 @@ class WizardDialogViewModel @Inject constructor(
         val trendDetail = if (state.useTrend) {
             val signedTrendValue = (if (w.trend > 0) "+" else "") +
                 profileUtil.fromMgdlToStringInUnits(w.trend * 3, state.units)
-            rh.gs(app.aaps.core.ui.R.string.wizard_trend_detail, signedTrendValue, state.units.asText)
+            rh.gs(app.aaps.core.ui.R.string.wizard_trend_detail, signedTrendValue, profileUtil.unitLabel)
         } else ""
 
         _uiState.update {

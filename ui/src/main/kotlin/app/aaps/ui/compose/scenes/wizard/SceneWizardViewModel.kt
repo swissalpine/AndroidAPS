@@ -139,7 +139,7 @@ class SceneWizardViewModel @Inject constructor(
         get() = preferences.get(StringNonKey.TempTargetPresets).toTTPresets()
 
     fun formatBgWithUnits(mgdl: Double): String =
-        "${profileUtil.fromMgdlToStringInUnits(mgdl)} ${profileUtil.units.asText}"
+        profileUtil.fromMgdlToStringWithUnits(mgdl)
 
     fun translateEventType(type: TE.Type): String = translator.translate(type)
 

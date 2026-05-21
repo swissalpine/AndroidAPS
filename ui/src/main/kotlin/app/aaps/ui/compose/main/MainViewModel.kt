@@ -35,6 +35,7 @@ import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileRepository
+import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.protection.ProtectionCheck
 import app.aaps.core.interfaces.protection.ProtectionResult
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
@@ -97,6 +98,7 @@ class MainViewModel @Inject constructor(
     private val overviewDataCache: OverviewDataCache,
     private val iobCobCalculator: IobCobCalculator,
     private val profileFunction: ProfileFunction,
+    private val profileUtil: ProfileUtil,
     private val constraintChecker: ConstraintsChecker,
     private val quickWizard: QuickWizard,
     private val automation: Automation,
@@ -669,7 +671,7 @@ class MainViewModel @Inject constructor(
         val actionSummary = scene.actions.joinToString("\n") { action ->
             when (action) {
                 is app.aaps.core.data.model.SceneAction.TempTarget      ->
-                    rh.gs(app.aaps.core.ui.R.string.scene_action_tt, "${action.targetMgdl} mg/dL")
+                    rh.gs(app.aaps.core.ui.R.string.scene_action_tt, profileUtil.fromMgdlToStringWithUnits(action.targetMgdl))
 
                 is app.aaps.core.data.model.SceneAction.ProfileSwitch   ->
                     rh.gs(app.aaps.core.ui.R.string.scene_action_profile, action.profileName, action.percentage)

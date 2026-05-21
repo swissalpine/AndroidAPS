@@ -140,7 +140,7 @@ open class TestBaseWithProfile : TestBase() {
 
         dateUtil = spy(DateUtilImpl(context))
         decimalFormatter = DecimalFormatterImpl(rh)
-        profileUtil = ProfileUtilImpl(preferences, decimalFormatter)
+        profileUtil = ProfileUtilImpl(preferences, decimalFormatter, rh)
         testPumpPlugin = TestPumpPlugin(rh)
         hardLimits = HardLimitsMock(preferences, rh)
         whenever(context.applicationContext).thenReturn(context)

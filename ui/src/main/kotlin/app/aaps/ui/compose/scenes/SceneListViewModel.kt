@@ -213,8 +213,7 @@ class SceneListViewModel @Inject constructor(
     private fun buildActionSummary(action: SceneAction): String {
         return when (action) {
             is SceneAction.TempTarget      -> {
-                val targetStr = "${profileUtil.fromMgdlToStringInUnits(action.targetMgdl)} ${profileUtil.units.asText}"
-                rh.gs(R.string.scene_action_tt, targetStr)
+                rh.gs(R.string.scene_action_tt, profileUtil.fromMgdlToStringWithUnits(action.targetMgdl))
             }
 
             is SceneAction.ProfileSwitch   -> {
