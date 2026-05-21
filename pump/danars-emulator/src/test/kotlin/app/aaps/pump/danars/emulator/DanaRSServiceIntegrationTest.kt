@@ -127,7 +127,7 @@ class DanaRSServiceIntegrationTest : TestBase() {
     @Mock lateinit var ch: ConcentrationHelper
     @Mock lateinit var profile: Profile
 
-    private val bolusProgressData by lazy { BolusProgressData(ch, rh) }
+    private val bolusProgressData by lazy { BolusProgressData(ch, rh, CoroutineScope(Dispatchers.Unconfined)) }
     private lateinit var danaPump: DanaPump
     private lateinit var bleEncryption: BleEncryption
     private lateinit var emulatorTransport: EmulatorBleTransport

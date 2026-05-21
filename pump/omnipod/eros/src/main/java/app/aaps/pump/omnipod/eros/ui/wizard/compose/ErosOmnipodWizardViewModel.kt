@@ -14,7 +14,6 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileRepository
 import app.aaps.core.interfaces.pump.PumpEnactResult
 import app.aaps.core.interfaces.pump.PumpSync
-import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.rx.AapsSchedulers
 import app.aaps.core.keys.BooleanKey
@@ -123,14 +122,9 @@ class ErosOmnipodWizardViewModel @Inject constructor(
         aapsOmnipodManager.insertCannula(pumpSync.expectedPumpState().profile)
     }
 
-    override fun doDeactivatePod(): Single<PumpEnactResult> =
-        Single.create { source ->
-            commandQueue.customCommand(CommandDeactivatePod(), object : Callback() {
-                override fun run() {
-                    source.onSuccess(result)
-                }
-            })
-        }
+    override fun doDeactivatePod(): Single<PumpEnactResult> = rxSingle {
+        commandQueue.customCommand(CommandDeactivatePod())
+    }
 
     // endregion
 

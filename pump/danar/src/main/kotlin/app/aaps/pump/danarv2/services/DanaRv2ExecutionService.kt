@@ -54,8 +54,6 @@ import app.aaps.pump.danarv2.comm.MessageHashTableRv2
 import app.aaps.pump.danarv2.comm.MsgCheckValueV2
 import app.aaps.pump.danarv2.comm.MsgHistoryEventsV2
 import app.aaps.pump.danarv2.comm.MsgSetAPSTempBasalStartV2
-import app.aaps.core.interfaces.di.ApplicationScope
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.abs
@@ -67,7 +65,6 @@ class DanaRv2ExecutionService : AbstractDanaRExecutionService() {
     @Inject lateinit var danaRv2Plugin: DanaRv2Plugin
     @Inject lateinit var commandQueue: CommandQueue
     @Inject lateinit var messageHashTableRv2: MessageHashTableRv2
-    @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     override fun messageHashTable() = messageHashTableRv2
 

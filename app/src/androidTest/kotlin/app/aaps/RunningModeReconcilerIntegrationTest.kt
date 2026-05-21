@@ -14,9 +14,7 @@ import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileRepository
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
-import app.aaps.core.interfaces.pump.PumpEnactResult
 import app.aaps.core.interfaces.pump.PumpSync
-import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.di.TestApplication
@@ -99,12 +97,10 @@ class RunningModeReconcilerIntegrationTest @Inject constructor() {
     @Test
     fun `queue gate rejects bolus when mode is DISCONNECTED_PUMP`() = runTest {
         insertActiveMode(RM.Mode.DISCONNECTED_PUMP, durationMs = T.mins(30).msecs())
-        val rejection = CaptureCallback()
         val info = DetailedBolusInfo().apply { insulin = 1.0 }
-        commandQueue.bolus(info, rejection)
-        assertThat(rxHelper.waitUntil("bolus rejection callback fired", maxSeconds = 5) { rejection.invoked }).isTrue()
-        assertThat(rejection.capturedResult?.success).isFalse()
-        assertThat(rejection.capturedResult?.enacted).isFalse()
+        val result = commandQueue.bolus(info)
+        assertThat(result.success).isFalse()
+        assertThat(result.enacted).isFalse()
     }
 
     @Test
@@ -126,7 +122,8 @@ class RunningModeReconcilerIntegrationTest @Inject constructor() {
     fun `queue gate allows bolus when mode is working`() = runTest {
         insertActiveMode(RM.Mode.CLOSED_LOOP, durationMs = 0L)
         val info = DetailedBolusInfo().apply { insulin = 0.1 }
-        commandQueue.bolus(info, null)
+        backgroundScope.launch { commandQueue.bolus(info) }
+        yield()
         assertThat(commandQueue.size()).isGreaterThan(0)
     }
 
@@ -135,16 +132,16 @@ class RunningModeReconcilerIntegrationTest @Inject constructor() {
         // Startup in working mode.
         insertActiveMode(RM.Mode.CLOSED_LOOP, durationMs = 0L)
         // Initial bolus passes.
-        commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.05 }, null)
+        backgroundScope.launch { commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.05 }) }
+        yield()
         assertThat(commandQueue.size()).isGreaterThan(0)
         commandQueue.clear()
 
         // Transition to DISCONNECTED_PUMP.
         insertActiveMode(RM.Mode.DISCONNECTED_PUMP, durationMs = T.mins(30).msecs())
         // Same call is now rejected.
-        val rejection = CaptureCallback()
-        commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.05 }, rejection)
-        assertThat(rxHelper.waitUntil("rejection callback after mode flip", maxSeconds = 5) { rejection.invoked }).isTrue()
+        val result = commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.05 })
+        assertThat(result.success).isFalse()
     }
 
     // --- Expiry scheduler: schedules + cancels work ---
@@ -218,15 +215,6 @@ class RunningModeReconcilerIntegrationTest @Inject constructor() {
             source = Sources.Aaps,
             listValues = listOf(ValueWithUnit.SimpleString("IntegrationTest"))
         )
-    }
-
-    private class CaptureCallback : Callback() {
-
-        @Volatile var invoked: Boolean = false
-        val capturedResult: PumpEnactResult? get() = if (invoked) super.result else null
-        override fun run() {
-            invoked = true
-        }
     }
 
     // ==========================================================================================

@@ -153,55 +153,43 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
         }.launchIn(scope)
         preferences.observe(MedtrumStringKey.MedtrumAlarmSettings).drop(1).onEach {
             medtrumPump.loadUserSettingsFromSP()
-            commandQueue.setUserOptions(object : Callback() {
-                override fun run() {
-                    if (medtrumPlugin.isInitialized() && !this.result.success) {
-                        notificationManager.post(
-                            NotificationId.PUMP_SETTINGS_FAILED,
-                            R.string.pump_setting_failed,
-                        )
-                    }
-                }
-            })
+            val r = commandQueue.setUserOptions()
+            if (medtrumPlugin.isInitialized() && !r.success) {
+                notificationManager.post(
+                    NotificationId.PUMP_SETTINGS_FAILED,
+                    R.string.pump_setting_failed,
+                )
+            }
         }.launchIn(scope)
         preferences.observe(MedtrumBooleanKey.MedtrumPatchExpiration).drop(1).onEach {
             medtrumPump.loadUserSettingsFromSP()
-            commandQueue.setUserOptions(object : Callback() {
-                override fun run() {
-                    if (medtrumPlugin.isInitialized() && !this.result.success) {
-                        notificationManager.post(
-                            NotificationId.PUMP_SETTINGS_FAILED,
-                            R.string.pump_setting_failed,
-                        )
-                    }
-                }
-            })
+            val r = commandQueue.setUserOptions()
+            if (medtrumPlugin.isInitialized() && !r.success) {
+                notificationManager.post(
+                    NotificationId.PUMP_SETTINGS_FAILED,
+                    R.string.pump_setting_failed,
+                )
+            }
         }.launchIn(scope)
         preferences.observe(MedtrumIntKey.MedtrumHourlyMaxInsulin).drop(1).onEach {
             medtrumPump.loadUserSettingsFromSP()
-            commandQueue.setUserOptions(object : Callback() {
-                override fun run() {
-                    if (medtrumPlugin.isInitialized() && !this.result.success) {
-                        notificationManager.post(
-                            NotificationId.PUMP_SETTINGS_FAILED,
-                            R.string.pump_setting_failed,
-                        )
-                    }
-                }
-            })
+            val r = commandQueue.setUserOptions()
+            if (medtrumPlugin.isInitialized() && !r.success) {
+                notificationManager.post(
+                    NotificationId.PUMP_SETTINGS_FAILED,
+                    R.string.pump_setting_failed,
+                )
+            }
         }.launchIn(scope)
         preferences.observe(MedtrumIntKey.MedtrumDailyMaxInsulin).drop(1).onEach {
             medtrumPump.loadUserSettingsFromSP()
-            commandQueue.setUserOptions(object : Callback() {
-                override fun run() {
-                    if (medtrumPlugin.isInitialized() && !this.result.success) {
-                        notificationManager.post(
-                            NotificationId.PUMP_SETTINGS_FAILED,
-                            R.string.pump_setting_failed,
-                        )
-                    }
-                }
-            })
+            val r = commandQueue.setUserOptions()
+            if (medtrumPlugin.isInitialized() && !r.success) {
+                notificationManager.post(
+                    NotificationId.PUMP_SETTINGS_FAILED,
+                    R.string.pump_setting_failed,
+                )
+            }
         }.launchIn(scope)
         scope.launch {
             medtrumPump.pumpStateFlow.collect { pumpState ->
@@ -404,7 +392,8 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
         if (!sendBolusCommand(insulin)) {
             medtrumPump.bolusErrorReason = rh.gs(R.string.bolus_error_reason_unable_to_send_command)
             aapsLogger.error(LTag.PUMPCOMM, "Failed to set bolus")
-            commandQueue.readStatus(rh.gs(R.string.bolus_error)) // make sure if anything is delivered (which is highly unlikely at this point) we get it
+            // Queue-worker deadlock guard — don't unwrap the .launch. See CommandQueue kdoc.
+            scope.launch { commandQueue.readStatus(rh.gs(R.string.bolus_error)) } // make sure if anything is delivered (which is highly unlikely at this point) we get it
             medtrumPump.bolusDone = true
             bolusProgressData.updateProgress(percent = 0, status = "")
             return false

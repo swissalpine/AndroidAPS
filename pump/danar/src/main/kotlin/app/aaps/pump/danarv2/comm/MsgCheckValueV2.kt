@@ -6,7 +6,7 @@ import app.aaps.core.interfaces.notifications.NotificationId
 import app.aaps.pump.dana.DanaPump
 import app.aaps.pump.danar.comm.MessageBase
 import dagger.android.HasAndroidInjector
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 class MsgCheckValueV2(
     injector: HasAndroidInjector
@@ -33,7 +33,8 @@ class MsgCheckValueV2(
             pumpSync.connectNewPump()
             //If profile coming from pump, switch it as well
             configBuilder.storeSettings("ChangingDanaRv2Driver")
-            runBlocking { commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.pump_driver_change)) } // force new connection
+            // Queue-worker deadlock guard — don't unwrap the .launch. See CommandQueue kdoc.
+            appScope.launch { commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.pump_driver_change)) } // force new connection
             return
         }
         if (danaPump.protocol != 2) {
@@ -46,7 +47,8 @@ class MsgCheckValueV2(
             pumpSync.connectNewPump()
             //If profile coming from pump, switch it as well
             configBuilder.storeSettings("ChangingDanaRv2Driver")
-            runBlocking { commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.pump_driver_change)) } // force new connection
+            // Queue-worker deadlock guard — don't unwrap the .launch. See CommandQueue kdoc.
+            appScope.launch { commandQueue.readStatus(rh.gs(app.aaps.core.ui.R.string.pump_driver_change)) } // force new connection
             return
         }
         aapsLogger.debug(LTag.PUMPCOMM, "Model: " + String.format("%02X ", danaPump.hwModel))

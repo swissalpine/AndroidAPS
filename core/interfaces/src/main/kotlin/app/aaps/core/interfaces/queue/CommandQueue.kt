@@ -6,9 +6,23 @@ import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.PumpEnactResult
 import app.aaps.core.interfaces.pump.PumpSync
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
 
+/**
+ * **Deadlock warning** — the queue is processed by a single [QueueWorker]; one command at a
+ * time. Awaiting a suspend method on this interface from inside the body of another queued
+ * command's `execute()` (directly, or transitively via `Pump.getPumpStatus()`,
+ * `Pump.deliverTreatment()`, BLE message handlers running on the SerialIOThread, etc.) will
+ * deadlock: the awaited command sits in the queue waiting for the worker, but the worker is
+ * busy executing the caller.
+ *
+ * If you need to enqueue another command from such a context, do not await — fire-and-forget
+ * via a scope that outlives the current call:
+ *
+ * ```
+ * pluginScope.launch { commandQueue.readStatus(reason) }   // pump plugin
+ * appScope.launch { commandQueue.readStatus(reason) }      // BLE handlers, services
+ * ```
+ */
 interface CommandQueue {
 
     var waitingForDisconnect: Boolean
@@ -21,7 +35,7 @@ interface CommandQueue {
     fun performing(): Command?
     fun resetPerforming()
     fun bolusInQueue(): Boolean
-    fun bolus(detailedBolusInfo: DetailedBolusInfo, callback: Callback?)
+    suspend fun bolus(detailedBolusInfo: DetailedBolusInfo): PumpEnactResult
     fun cancelAllBoluses(id: Long?)
     suspend fun stopPump(): PumpEnactResult
     suspend fun startPump(): PumpEnactResult
@@ -33,68 +47,16 @@ interface CommandQueue {
     suspend fun cancelExtended(): PumpEnactResult
     suspend fun readStatus(reason: String): PumpEnactResult
     fun statusInQueue(): Boolean
-    fun loadHistory(type: Byte, callback: Callback?)
-    fun setUserOptions(callback: Callback?)
+    suspend fun loadHistory(type: Byte): PumpEnactResult
+    suspend fun setUserOptions(): PumpEnactResult
     suspend fun loadTDDs(): PumpEnactResult
     suspend fun loadEvents(): PumpEnactResult
     suspend fun clearAlarms(): PumpEnactResult
     suspend fun deactivate(): PumpEnactResult
     suspend fun updateTime(): PumpEnactResult
-    fun customCommand(customCommand: CustomCommand, callback: Callback?)
+    suspend fun customCommand(customCommand: CustomCommand): PumpEnactResult
     fun isCustomCommandRunning(customCommandType: Class<out CustomCommand>): Boolean
     fun isCustomCommandInQueue(customCommandType: Class<out CustomCommand>): Boolean
     fun spannedStatus(): Spanned
     suspend fun isThisProfileSet(requestedProfile: EffectiveProfile): Boolean
-
-    /**
-     * Suspend overloads for every callback-based command. Each bridges to the existing callback
-     * version via [suspendCancellableCoroutine] so callers get linear, structured-concurrency-
-     * friendly code without a callback object.
-     *
-     * **Cancellation**: cancelling the caller's scope does NOT abort the pump command already
-     * executing — the queue has no per-command abort mechanism. The command will still run to
-     * completion; only the caller stops waiting for the result.
-     *
-     * The callback-based methods always invoke the callback (either immediately on rejection or
-     * when the pump command completes), so the continuation always resumes normally —
-     * CancellationException is never thrown at these call sites.
-     *
-     * These overloads will be removed once the callback versions are deleted (future step).
-     */
-
-    suspend fun bolus(detailedBolusInfo: DetailedBolusInfo): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            bolus(detailedBolusInfo, object : Callback() {
-                override fun run() {
-                    cont.resume(result)
-                }
-            })
-        }
-
-    suspend fun loadHistory(type: Byte): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            loadHistory(type, object : Callback() {
-                override fun run() {
-                    cont.resume(result)
-                }
-            })
-        }
-
-    suspend fun setUserOptions(): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            setUserOptions(object : Callback() {
-                override fun run() {
-                    cont.resume(result)
-                }
-            })
-        }
-
-    suspend fun customCommand(customCommand: CustomCommand): PumpEnactResult =
-        suspendCancellableCoroutine { cont ->
-            customCommand(customCommand, object : Callback() {
-                override fun run() {
-                    cont.resume(result)
-                }
-            })
-        }
 }
