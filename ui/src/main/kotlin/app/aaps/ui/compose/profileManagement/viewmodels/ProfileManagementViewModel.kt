@@ -174,7 +174,7 @@ class ProfileManagementViewModel @Inject constructor(
                 val sealed = ProfileSealed.Pure(pureProfile, activePlugin)
                 val isActive = singleProfile.name == activeProfileName
                 if (isActive) {
-                    sealed.pct = activeEps!!.originalPercentage
+                    sealed.pct = activeEps.originalPercentage
                     sealed.ts = (activeEps.originalTimeshift / 3600000).toInt()
                     sealed.percentageBasalSum()
                 } else {

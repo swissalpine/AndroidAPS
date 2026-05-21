@@ -79,6 +79,8 @@ import app.aaps.pump.danars.services.BLEComm
 import app.aaps.pump.danars.services.DanaRSService
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -211,6 +213,7 @@ class DanaRSServiceIntegrationTest : TestBase() {
         danaRSService.bolusProgressData = bolusProgressData
         danaRSService.pumpEnactResultProvider = Provider { pumpEnactResult }
         danaRSService.notificationManager = notificationManager
+        danaRSService.appScope = CoroutineScope(Dispatchers.Unconfined)
 
         // Wire all packet providers with real instances
         danaRSService.danaRSPacketEtcKeepConnection = Provider { DanaRSPacketEtcKeepConnection(aapsLogger) }

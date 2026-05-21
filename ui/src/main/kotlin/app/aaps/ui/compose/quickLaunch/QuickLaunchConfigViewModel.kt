@@ -91,7 +91,7 @@ class QuickLaunchConfigViewModel @Inject constructor(
         // Available Profiles (always show all — duplicates with different presets are allowed)
         val profileNames = profileRepository.profileNames()
         val availableProfiles = profileNames
-            .map { QuickLaunchAction.ProfileAction(it.toString()) }
+            .map { QuickLaunchAction.ProfileAction(it) }
             .map { resolver.resolveItem(it) }
 
         // Available Scenes
