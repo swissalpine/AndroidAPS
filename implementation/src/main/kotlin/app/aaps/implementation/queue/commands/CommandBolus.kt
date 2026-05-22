@@ -42,8 +42,8 @@ class CommandBolus(
             if (detailedBolusInfo.carbs > 0) "CARBS " + rh.gs(app.aaps.core.ui.R.string.format_carbs, detailedBolusInfo.carbs.toInt()) else ""
     }
 
-    override fun cancel(commentResId: Int) {
-        super.cancel(commentResId)
+    override fun cancel(commentResId: Int, success: Boolean) {
+        super.cancel(commentResId, success)
         bolusProgressData.clear()
     }
 }

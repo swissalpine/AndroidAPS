@@ -53,8 +53,8 @@ class CommandSMBBolus(
 
     override fun log(): String = "SMB BOLUS ${rh.gs(app.aaps.core.ui.R.string.format_insulin_units, detailedBolusInfo.insulin)}"
 
-    override fun cancel(commentResId: Int) {
-        super.cancel(commentResId)
+    override fun cancel(commentResId: Int, success: Boolean) {
+        super.cancel(commentResId, success)
         bolusProgressData.clear()
     }
 }

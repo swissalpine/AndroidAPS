@@ -65,7 +65,7 @@ class CommandDeactivateTest : TestBaseWithProfile() {
     }
 
     @Test
-    fun `cancel invokes callback with failure result`() {
+    fun `cancel invokes callback with success by default`() {
         whenever(rh.gs(app.aaps.core.ui.R.string.command_replaced)).thenReturn("replaced")
         var received: PumpEnactResult? = null
         val callback = object : Callback() {
@@ -73,6 +73,20 @@ class CommandDeactivateTest : TestBaseWithProfile() {
         }
 
         newCommand(callback).cancel(app.aaps.core.ui.R.string.command_replaced)
+
+        assertThat(received).isNotNull()
+        assertThat(received!!.success).isTrue()
+    }
+
+    @Test
+    fun `cancel invokes callback with failure when success=false`() {
+        whenever(rh.gs(app.aaps.core.ui.R.string.command_replaced)).thenReturn("replaced")
+        var received: PumpEnactResult? = null
+        val callback = object : Callback() {
+            override fun run() { received = result }
+        }
+
+        newCommand(callback).cancel(app.aaps.core.ui.R.string.command_replaced, success = false)
 
         assertThat(received).isNotNull()
         assertThat(received!!.success).isFalse()

@@ -42,8 +42,9 @@ interface Command {
      * superseded by a newer same-type command, etc.). Resumes any caller waiting on the
      * command's [callback] with a failure result carrying [commentResId] as the reason.
      * Override to add side-effects (e.g. clearing progress UI).
+     * Return success = true to avoid command failed dialog
      */
-    fun cancel(commentResId: Int) {
-        callback?.result(pumpEnactResultProvider.get().success(false).comment(commentResId))?.run()
+    fun cancel(commentResId: Int, success: Boolean = true) {
+        callback?.result(pumpEnactResultProvider.get().success(success).comment(commentResId))?.run()
     }
 }

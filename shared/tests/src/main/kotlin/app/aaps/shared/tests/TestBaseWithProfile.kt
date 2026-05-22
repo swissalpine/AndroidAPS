@@ -194,6 +194,8 @@ open class TestBaseWithProfile : TestBase() {
 
         whenever(rh.gs(R.string.ok)).thenReturn("OK")
         whenever(rh.gs(R.string.error)).thenReturn("Error")
+        whenever(rh.gs(R.string.mgdl)).thenReturn("mg/dl")
+        whenever(rh.gs(R.string.mmol)).thenReturn("mmol/l")
 
         // Default ConcentrationHelper stubs so BolusProgressData.updateProgress() doesn't NPE
         // when pump tests trigger progress updates with a mocked ch.

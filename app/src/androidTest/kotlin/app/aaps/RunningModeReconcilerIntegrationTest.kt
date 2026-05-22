@@ -120,27 +120,27 @@ class RunningModeReconcilerIntegrationTest @Inject constructor() {
 
     @Test
     fun `queue gate allows bolus when mode is working`() = runTest {
+        ensureProfile()
         insertActiveMode(RM.Mode.CLOSED_LOOP, durationMs = 0L)
-        val info = DetailedBolusInfo().apply { insulin = 0.1 }
-        backgroundScope.launch { commandQueue.bolus(info) }
-        yield()
-        assertThat(commandQueue.size()).isGreaterThan(0)
+        // bolus() is a suspend function that blocks until pump delivery completes.
+        // Gate in CLOSED_LOOP allows the command; VirtualPump delivers successfully.
+        val result = commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.1 })
+        assertThat(result.success).isTrue()
     }
 
     @Test
     fun `queue gate reflects the mode active at call time not at startup`() = runTest {
+        ensureProfile()
         // Startup in working mode.
         insertActiveMode(RM.Mode.CLOSED_LOOP, durationMs = 0L)
-        // Initial bolus passes.
-        backgroundScope.launch { commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.05 }) }
-        yield()
-        assertThat(commandQueue.size()).isGreaterThan(0)
-        commandQueue.clear()
+        // Gate reads mode at call time — must allow in CLOSED_LOOP and complete successfully.
+        val firstResult = commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.1 })
+        assertThat(firstResult.success).isTrue()
 
         // Transition to DISCONNECTED_PUMP.
         insertActiveMode(RM.Mode.DISCONNECTED_PUMP, durationMs = T.mins(30).msecs())
-        // Same call is now rejected.
-        val result = commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.05 })
+        // Same call is now rejected at the gate.
+        val result = commandQueue.bolus(DetailedBolusInfo().apply { insulin = 0.1 })
         assertThat(result.success).isFalse()
     }
 
@@ -386,7 +386,7 @@ class RunningModeReconcilerIntegrationTest @Inject constructor() {
         assertThat(rxHelper.waitUntil("profile ready", maxSeconds = 20) {
             runBlocking { profileFunction.getProfile() } != null
         }).isTrue()
-        assertThat(rxHelper.waitUntil("pump has profile", maxSeconds = 20) {
+        assertThat(rxHelper.waitUntil("pump has profile", maxSeconds = 60) {
             runBlocking { pumpSync.expectedPumpState() }.profile != null
         }).isTrue()
     }

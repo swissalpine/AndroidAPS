@@ -288,8 +288,12 @@ class MedtrumPatchViewModel @Inject constructor(
             }
         }
 
-        prepareStep(newPatchStep)
         aapsLogger.info(LTag.PUMP, "moveStep: $oldPatchStep -> $newPatchStep")
+        if (newPatchStep == PatchStep.PREPARE_PATCH) {
+            checkAndPreparePatchStart()
+            return
+        }
+        prepareStep(newPatchStep)
     }
 
     fun forceMoveStep(newPatchStep: PatchStep) {
@@ -372,23 +376,27 @@ class MedtrumPatchViewModel @Inject constructor(
         aapsLogger.info(LTag.PUMP, "initializePatchStep: $step")
         loadInsulins()
         if (step == PatchStep.PREPARE_PATCH) {
-            // PS lookup is a Room read (suspend) — resolve on a background coroutine
-            // so we don't block the main thread when the wizard is opened.
-            scope.launch {
-                val noProfile = profileFunction.getRequestedProfile() == null
-                val noSN = medtrumPump.pumpSN == 0L
-                if (noProfile) loadAvailableProfiles()
-                val effectiveStep = when {
-                    noProfile -> PatchStep.PROFILE_GATE
-                    noSN      -> PatchStep.BLE_SCAN
-                    else      -> PatchStep.PREPARE_PATCH
-                }
-                wizardPages = buildWizardPages(effectiveStep)
-                mInitPatchStep = prepareStep(effectiveStep)
-            }
+            checkAndPreparePatchStart()
         } else {
             wizardPages = buildWizardPages(step)
             mInitPatchStep = prepareStep(step)
+        }
+    }
+
+    // PS lookup is a Room read (suspend) — resolve on a background coroutine so we don't block
+    // the main thread. Also used when transitioning to PREPARE_PATCH from the deactivation flow.
+    private fun checkAndPreparePatchStart() {
+        scope.launch {
+            val noProfile = profileFunction.getRequestedProfile() == null
+            val noSN = medtrumPump.pumpSN == 0L
+            if (noProfile) loadAvailableProfiles()
+            val effectiveStep = when {
+                noProfile -> PatchStep.PROFILE_GATE
+                noSN      -> PatchStep.BLE_SCAN
+                else      -> PatchStep.PREPARE_PATCH
+            }
+            wizardPages = buildWizardPages(effectiveStep)
+            mInitPatchStep = prepareStep(effectiveStep)
         }
     }
 
