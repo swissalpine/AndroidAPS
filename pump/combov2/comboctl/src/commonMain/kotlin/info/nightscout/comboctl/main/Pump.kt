@@ -2044,6 +2044,13 @@ class Pump(
     private fun packetReceiverExceptionThrown(e: TransportLayer.PacketReceiverException) {
         parsedDisplayFrameStream.abortDueToError(e)
 
+        // CancellationException is the normal disconnect path — the receive
+        // loop's coroutine was cancelled by disconnect(), not a real failure.
+        // Without this, every clean disconnect flips Ready → Error and the
+        // UI flow gets stuck at Error (setDriverState() does not downgrade
+        // Error → Disconnected for the UI).
+        if (e.cause is CancellationException) return
+
         // If the receive loop dies asynchronously while the pump is idle
         // (ReadyForCommands or Suspended), there is no in-flight suspend call
         // to observe the closed channel — the failure is silently swallowed
