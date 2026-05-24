@@ -73,7 +73,7 @@ class QueueWorkerTest : TestBaseWithProfile() {
     fun prepare() {
         whenever(persistenceLayer.observeChanges(anyOrNull<Class<*>>())).thenReturn(emptyFlow())
         commandQueue = CommandQueueImplementation(
-            injector, aapsLogger, rxBus, rh, constraintChecker,
+            aapsLogger, rxBus, rh, constraintChecker,
             profileFunction, activePlugin, config, dateUtil, fabricPrivacy,
             uiInteraction, notificationManager, persistenceLayer, decimalFormatter, pumpEnactResultProvider, pumpSync, preferences, localAlertUtilsProvider, smsCommunicatorProvider, jobName, workManager, testScope, bolusProgressData
         )

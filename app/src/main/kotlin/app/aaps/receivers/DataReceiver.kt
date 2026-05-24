@@ -18,10 +18,8 @@ import app.aaps.core.utils.extensions.copyDouble
 import app.aaps.core.utils.extensions.copyLong
 import app.aaps.core.utils.extensions.copyString
 import app.aaps.core.utils.receivers.BundleLogger
-import app.aaps.core.utils.receivers.DataWorkerStorage
-import app.aaps.plugins.source.AidexPlugin
-import app.aaps.plugins.source.DexcomPlugin
 import app.aaps.core.utils.receivers.DataInbox
+import app.aaps.plugins.source.AidexPlugin
 import app.aaps.plugins.source.DexcomInbox
 import app.aaps.plugins.source.GlimpPlugin
 import app.aaps.plugins.source.MM640gPlugin
@@ -134,7 +132,6 @@ open class DataReceiver : DaggerBroadcastReceiver() {
             Intents.DEXCOM_BG, Intents.DEXCOM_G7_BG   ->
                 dataInbox.putAndEnqueue(DexcomInbox, bundle)
 
-
             Intents.AIDEX_NEW_BG_ESTIMATE             ->
                 enqueueInline(
                     context, AidexPlugin.AidexWorker::class.java,
@@ -146,13 +143,12 @@ open class DataReceiver : DaggerBroadcastReceiver() {
                         it.copyString(Intents.AIDEX_TRANSMITTER_SN, bundle)
                         it.copyString(Intents.AIDEX_SENSOR_ID, bundle)
                         it.copyBoolean(Intents.AIDEX_SENSOR_EXPIRED, bundle)
-                        it.copyBoolean(Intents.EXTRA_SENSOR_ERROR,bundle)
+                        it.copyBoolean(Intents.EXTRA_SENSOR_ERROR, bundle)
                         it.copyBoolean(Intents.EXTRA_SENSOR_STABILIZING, bundle)
                         it.copyBoolean(Intents.EXTRA_REPLACE_SENSOR, bundle)
                         it.copyBoolean(Intents.EXTRA_SIGNAL_LOST, bundle)
                     }.build()
                 )
-
 
         }
 

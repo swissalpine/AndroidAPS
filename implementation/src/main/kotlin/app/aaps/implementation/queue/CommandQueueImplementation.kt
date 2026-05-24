@@ -73,13 +73,11 @@ import app.aaps.implementation.queue.commands.CommandStopPump
 import app.aaps.implementation.queue.commands.CommandTempBasalAbsolute
 import app.aaps.implementation.queue.commands.CommandTempBasalPercent
 import app.aaps.implementation.queue.commands.CommandUpdateTime
-import dagger.android.HasAndroidInjector
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Provider
@@ -88,7 +86,6 @@ import javax.inject.Singleton
 @OpenForTesting
 @Singleton
 class CommandQueueImplementation @Inject constructor(
-    private val injector: HasAndroidInjector,
     private val aapsLogger: AAPSLogger,
     private val rxBus: RxBus,
     private val rh: ResourceHelper,
@@ -137,6 +134,13 @@ class CommandQueueImplementation @Inject constructor(
         if (config.AAPSCLIENT) return // Effective profileswitch should be synced over NS, do not create EffectiveProfileSwitch here
         aapsLogger.debug(LTag.PROFILE, "onProfileChanged")
         profileFunction.getRequestedProfile()?.let {
+            // Skip if the active EPS was already triggered by this PS (e.g. NSClient updating PS with nsId
+            // retriggers observeChanges(PS)). The previous onProfileChanged already pushed the profile to the pump.
+            val active = persistenceLayer.getEffectiveProfileSwitchActiveAt(dateUtil.now())
+            if (active != null && active.originalPsId != null && active.originalPsId == it.id) {
+                aapsLogger.debug(LTag.PROFILE, "Skipping onProfileChanged: active EPS id=${active.id} already represents PS id=${it.id}")
+                return@let
+            }
             val result = setProfile(ProfileSealed.PS(it, activePlugin), it.ids.nightscoutId != null)
             if (!result.success) {
                 uiInteraction.runAlarm(result.comment, rh.gs(app.aaps.core.ui.R.string.failed_update_basal_profile), app.aaps.core.ui.R.raw.boluserror)
@@ -371,7 +375,11 @@ class CommandQueueImplementation @Inject constructor(
         detailedBolusInfo.insulin = constraintChecker.applyBolusConstraints(ConstraintObject(detailedBolusInfo.insulin, aapsLogger)).value()
         bolusProgressData.start(detailedBolusInfo.insulin, isSMB = detailedBolusInfo.bolusType === BS.Type.SMB, isPriming = detailedBolusInfo.bolusType == BS.Type.PRIMING)
         val deferred = CompletableDeferred<PumpEnactResult>()
-        val cb = object : Callback() { override fun run() { deferred.complete(result) } }
+        val cb = object : Callback() {
+            override fun run() {
+                deferred.complete(result)
+            }
+        }
         if (detailedBolusInfo.bolusType == BS.Type.SMB) {
             add(CommandSMBBolus(aapsLogger, rh, dateUtil, activePlugin, persistenceLayer, preferences, bolusProgressData, pumpEnactResultProvider, detailedBolusInfo, cb))
         } else {
@@ -424,7 +432,9 @@ class CommandQueueImplementation @Inject constructor(
     override suspend fun setTBROverNotification(enable: Boolean): PumpEnactResult {
         val deferred = CompletableDeferred<PumpEnactResult>()
         add(CommandInsightSetTBROverNotification(aapsLogger, rh, activePlugin, pumpEnactResultProvider, enable, object : Callback() {
-            override fun run() { deferred.complete(result) }
+            override fun run() {
+                deferred.complete(result)
+            }
         }))
         notifyAboutNewCommand()
         return deferred.await()
@@ -535,12 +545,15 @@ class CommandQueueImplementation @Inject constructor(
         notificationManager.dismiss(NotificationId.BASAL_VALUE_BELOW_MINIMUM)
         removeAll(CommandType.BASAL_PROFILE)
         val deferred = CompletableDeferred<PumpEnactResult>()
-        add(CommandSetProfile(
-            aapsLogger, rh, smsCommunicator.get(), activePlugin, dateUtil, this, config, persistenceLayer, pumpEnactResultProvider,
-            profile, hasNsId, object : Callback() {
-                override fun run() { deferred.complete(result) }
-            }
-        ))
+        add(
+            CommandSetProfile(
+                aapsLogger, rh, smsCommunicator.get(), activePlugin, dateUtil, this, config, persistenceLayer, pumpEnactResultProvider,
+                profile, hasNsId, object : Callback() {
+                    override fun run() {
+                        deferred.complete(result)
+                    }
+                }
+            ))
         notifyAboutNewCommand()
         return deferred.await()
     }
@@ -578,7 +591,9 @@ class CommandQueueImplementation @Inject constructor(
         removeAll(CommandType.LOAD_HISTORY)
         val deferred = CompletableDeferred<PumpEnactResult>()
         add(CommandLoadHistory(aapsLogger, rh, activePlugin, pumpEnactResultProvider, type, object : Callback() {
-            override fun run() { deferred.complete(result) }
+            override fun run() {
+                deferred.complete(result)
+            }
         }))
         notifyAboutNewCommand()
         return deferred.await()
@@ -589,7 +604,9 @@ class CommandQueueImplementation @Inject constructor(
         removeAll(CommandType.SET_USER_SETTINGS)
         val deferred = CompletableDeferred<PumpEnactResult>()
         add(CommandSetUserSettings(aapsLogger, rh, activePlugin, pumpEnactResultProvider, object : Callback() {
-            override fun run() { deferred.complete(result) }
+            override fun run() {
+                deferred.complete(result)
+            }
         }))
         notifyAboutNewCommand()
         return deferred.await()
@@ -613,7 +630,9 @@ class CommandQueueImplementation @Inject constructor(
         removeAll(CommandType.LOAD_EVENTS)
         val deferred = CompletableDeferred<PumpEnactResult>()
         add(CommandLoadEvents(aapsLogger, rh, activePlugin, pumpEnactResultProvider, object : Callback() {
-            override fun run() { deferred.complete(result) }
+            override fun run() {
+                deferred.complete(result)
+            }
         }))
         notifyAboutNewCommand()
         return deferred.await()
@@ -663,7 +682,9 @@ class CommandQueueImplementation @Inject constructor(
         removeAllCustomCommands(customCommand.javaClass)
         val deferred = CompletableDeferred<PumpEnactResult>()
         add(CommandCustomCommand(aapsLogger, activePlugin, pumpEnactResultProvider, customCommand, object : Callback() {
-            override fun run() { deferred.complete(result) }
+            override fun run() {
+                deferred.complete(result)
+            }
         }))
         notifyAboutNewCommand()
         return deferred.await()

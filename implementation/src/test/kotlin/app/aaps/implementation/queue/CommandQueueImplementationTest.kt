@@ -34,7 +34,6 @@ import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.shared.tests.TestBaseWithProfile
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
-import dagger.android.HasAndroidInjector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
@@ -74,7 +73,6 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
     private val bolusProgressData by lazy { BolusProgressData(ch, rh, testScope) }
 
     class CommandQueueMocked(
-        injector: HasAndroidInjector,
         aapsLogger: AAPSLogger,
         rxBus: RxBus,
         rh: ResourceHelper,
@@ -98,7 +96,7 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
         appScope: CoroutineScope,
         bolusProgressData: BolusProgressData
     ) : CommandQueueImplementation(
-        injector, aapsLogger, rxBus, rh, constraintChecker, profileFunction,
+        aapsLogger, rxBus, rh, constraintChecker, profileFunction,
         activePlugin, config, dateUtil, fabricPrivacy,
         uiInteraction, notificationManager, persistenceLayer, decimalFormatter, pumpEnactResultProvider, pumpSync, preferences, localAlertUtils, smsCommunicator, jobName, workManager, appScope, bolusProgressData
     ) {
@@ -130,8 +128,28 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
         runTest {
             whenever(persistenceLayer.observeChanges(anyOrNull<Class<*>>())).thenReturn(emptyFlow())
             commandQueue = CommandQueueMocked(
-                injector, aapsLogger, rxBus, rh, constraintChecker, profileFunction, activePlugin,
-                config, dateUtil, fabricPrivacy, uiInteraction, notificationManager, persistenceLayer, decimalFormatter, pumpEnactResultProvider, pumpSync, preferences, localAlertUtilsProvider, smsCommunicatorProvider, jobName, workManager, testScope, bolusProgressData
+                aapsLogger,
+                rxBus,
+                rh,
+                constraintChecker,
+                profileFunction,
+                activePlugin,
+                config,
+                dateUtil,
+                fabricPrivacy,
+                uiInteraction,
+                notificationManager,
+                persistenceLayer,
+                decimalFormatter,
+                pumpEnactResultProvider,
+                pumpSync,
+                preferences,
+                localAlertUtilsProvider,
+                smsCommunicatorProvider,
+                jobName,
+                workManager,
+                testScope,
+                bolusProgressData
             )
             testPumpPlugin.pumpDescription.basalMinimumRate = 0.1
             testPumpPlugin.connected = true
@@ -178,9 +196,28 @@ class CommandQueueImplementationTest : TestBaseWithProfile() {
     @Test
     fun commandIsPickedUp() = runTest {
         commandQueue = CommandQueueImplementation(
-            injector, aapsLogger, rxBus, rh,
-            constraintChecker, profileFunction, activePlugin,
-            config, dateUtil, fabricPrivacy, uiInteraction, notificationManager, persistenceLayer, decimalFormatter, pumpEnactResultProvider, pumpSync, preferences, localAlertUtilsProvider, smsCommunicatorProvider, jobName, workManager, testScope, bolusProgressData
+            aapsLogger,
+            rxBus,
+            rh,
+            constraintChecker,
+            profileFunction,
+            activePlugin,
+            config,
+            dateUtil,
+            fabricPrivacy,
+            uiInteraction,
+            notificationManager,
+            persistenceLayer,
+            decimalFormatter,
+            pumpEnactResultProvider,
+            pumpSync,
+            preferences,
+            localAlertUtilsProvider,
+            smsCommunicatorProvider,
+            jobName,
+            workManager,
+            testScope,
+            bolusProgressData
         )
         val handler: Handler = mock()
         whenever(handler.post(anyOrNull())).thenAnswer { invocation: InvocationOnMock ->
