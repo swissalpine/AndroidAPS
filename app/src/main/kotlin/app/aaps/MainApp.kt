@@ -311,7 +311,7 @@ class MainApp : Application(), HasAndroidInjector {
         fabricPrivacy.setUserProperty("Mode", config.APPLICATION_ID + "-" + closedLoopEnabled)
         fabricPrivacy.setUserProperty("Language", preferences.getIfExists(StringKey.GeneralLanguage) ?: Locale.getDefault().language)
         fabricPrivacy.setUserProperty("Version", config.VERSION_NAME)
-        fabricPrivacy.setUserProperty("HEAD", BuildConfig.HEAD)
+        fabricPrivacy.setUserProperty("HEAD", BuildConfig.BUILDVERSION)
         fabricPrivacy.setUserProperty("Remote", remote)
         val hashes: List<String> = signatureVerifierPlugin.shortHashes()
         if (hashes.isNotEmpty()) fabricPrivacy.setUserProperty("Hash", hashes[0])

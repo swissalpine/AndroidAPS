@@ -59,7 +59,7 @@ import app.aaps.core.objects.runningMode.RunningModeGuard
 import app.aaps.core.objects.wizard.QuickWizard
 import app.aaps.core.objects.wizard.QuickWizardEntry
 import app.aaps.core.objects.wizard.QuickWizardMode
-import app.aaps.ui.compose.alertDialogs.AboutDialogData
+import app.aaps.ui.compose.aboutDialog.AboutDialogData
 import app.aaps.ui.compose.quickLaunch.QuickLaunchResolver
 import app.aaps.ui.compose.quickLaunch.QuickLaunchSerializer
 import app.aaps.ui.compose.quickLaunch.ResolvedQuickLaunchItem

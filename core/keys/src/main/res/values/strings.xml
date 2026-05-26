@@ -34,6 +34,8 @@
     <string name="pref_title_alert_carbs_required">Alert on carbs required</string>
     <string name="pref_title_alert_urgent_as_android_notification">Raise urgent alarms as Android notifications</string>
     <string name="pref_title_alert_increase_volume">Gradually increase notification volume</string>
+    <string name="pref_title_alert_override_dnd">Override Do Not Disturb mode</string>
+    <string name="pref_summary_alert_override_dnd">When enabled, AAPS alarms play through silent and Do Not Disturb modes (alarm stream). When disabled, alarms respect silent/DND (notification stream).</string>
 
     <!-- BG Source preferences -->
     <string name="pref_title_bg_source_upload_to_ns">Upload BG data to NS</string>
