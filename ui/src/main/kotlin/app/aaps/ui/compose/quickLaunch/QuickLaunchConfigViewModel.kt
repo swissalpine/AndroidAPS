@@ -165,7 +165,7 @@ class QuickLaunchConfigViewModel @Inject constructor(
     private fun buildPluginGroups(selectedSet: Set<String>): List<PluginGroup> {
         val typeOrder = listOf(
             PluginType.PUMP, PluginType.BGSOURCE, PluginType.APS,
-            PluginType.SENSITIVITY, PluginType.SMOOTHING,
+            PluginType.SENSITIVITY, PluginType.SMOOTHING, PluginType.CALIBRATION,
             PluginType.CONSTRAINTS,
             PluginType.SYNC, PluginType.GENERAL
         )
@@ -176,6 +176,7 @@ class QuickLaunchConfigViewModel @Inject constructor(
             PluginType.LOOP to app.aaps.core.ui.R.string.configbuilder_loop,
             PluginType.SENSITIVITY to app.aaps.core.ui.R.string.configbuilder_sensitivity,
             PluginType.SMOOTHING to app.aaps.core.ui.R.string.configbuilder_smoothing,
+            PluginType.CALIBRATION to app.aaps.core.ui.R.string.configbuilder_calibration,
             PluginType.CONSTRAINTS to app.aaps.core.ui.R.string.constraints,
             PluginType.SYNC to app.aaps.core.ui.R.string.configbuilder_sync,
             PluginType.GENERAL to app.aaps.core.ui.R.string.configbuilder_general

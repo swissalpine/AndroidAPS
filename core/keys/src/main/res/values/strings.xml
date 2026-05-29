@@ -249,6 +249,8 @@
 
     <!-- IntKey: BG Source preferences -->
     <string name="pref_title_random_bg_interval">Random BG interval</string>
+    <string name="pref_title_random_bg_randomize">Randomize BG data</string>
+    <string name="pref_summary_random_bg_randomize">Add noise, jitter timestamps, randomize trend arrows, and emit occasional random carbs. Disable for a clean deterministic sine wave with the trend arrow derived from the sine slope.</string>
 
     <!-- IntKey: NS Client preferences -->
     <string name="pref_title_alarm_stale_data">Stale data alarm threshold</string>
