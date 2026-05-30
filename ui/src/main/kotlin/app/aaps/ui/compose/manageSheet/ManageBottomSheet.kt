@@ -217,7 +217,7 @@ internal fun ManageBottomSheetContent(
         }
 
         // Section: Device maintenance & basal
-        if (showTempBasal || showCancelTempBasal || showExtendedBolus || showCancelExtendedBolus) {
+        if (showTempBasal || showCancelTempBasal || showExtendedBolus || showCancelExtendedBolus || showFill) {
             HorizontalDivider(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp))
             Spacer(modifier = Modifier.height(8.dp))
 
