@@ -88,6 +88,7 @@ import app.aaps.plugins.sync.smsCommunicator.compose.SmsCommunicatorOtpScreen
 import app.aaps.plugins.sync.smsCommunicator.compose.SmsCommunicatorRepository
 import app.aaps.plugins.sync.smsCommunicator.keys.SmsIntentKey
 import app.aaps.plugins.sync.smsCommunicator.otp.OneTimePassword
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -222,6 +223,14 @@ class SmsCommunicatorPlugin @Inject constructor(
             for (bundle in bundles) {
                 try {
                     processBundle(bundle)
+                } catch (e: CancellationException) {
+                    // WorkManager stopped this run. The coroutine contract requires
+                    // CancellationException to propagate, otherwise the loop keeps fighting a
+                    // cancelled Job and spams failures for every remaining bundle. Unlike the CGM
+                    // workers we deliberately do NOT re-queue: SMS bundles carry non-idempotent
+                    // remote commands, so re-processing risks double-execution. A cancelled command
+                    // is dropped (the user re-sends) rather than re-run.
+                    throw e
                 } catch (e: Exception) {
                     aapsLogger.error(LTag.SMS, "Failed processing SMS bundle", e)
                     hadFailure = true

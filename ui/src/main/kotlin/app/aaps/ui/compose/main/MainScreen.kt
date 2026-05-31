@@ -253,6 +253,7 @@ fun MainScreen(
                         statusLightsDef = statusLightsDef,
                         onNavigate = onNavigate,
                         onTbrChipClick = mainViewModel::showTbrInfo,
+                        onIobChipClick = chipsViewModel::showIobInfo,
                         notifications = notifications,
                         onDismissNotification = onDismissNotification,
                         onNotificationActionClick = onNotificationActionClick,

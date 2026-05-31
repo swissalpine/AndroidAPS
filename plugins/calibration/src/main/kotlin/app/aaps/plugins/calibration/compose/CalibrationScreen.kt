@@ -37,16 +37,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.data.model.GlucoseUnit
-import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.ui.compose.AapsCard
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.ToolbarConfig
 import app.aaps.core.ui.compose.navigation.ElementType
 import app.aaps.core.ui.compose.navigation.LocalPluginNavigationRequest
 import app.aaps.core.ui.compose.navigation.NavigationRequest
+import app.aaps.plugins.calibration.CalibrationFit
 import app.aaps.plugins.calibration.FitMode
 import app.aaps.plugins.calibration.R
 import app.aaps.plugins.calibration.db.CalibrationEntry
@@ -76,6 +77,28 @@ internal fun CalibrationScreen(
         )
     }
 
+    val navigationRequest = LocalPluginNavigationRequest.current
+    CalibrationScreenContent(
+        state = state,
+        formatDateTime = viewModel.dateUtil::dateAndTimeString,
+        formatTime = viewModel.dateUtil::timeString,
+        onMarkSensorChange = { navigationRequest(NavigationRequest.Element(ElementType.SENSOR_INSERT)) },
+        onAddCalibration = { navigationRequest(NavigationRequest.Element(ElementType.CALIBRATION)) },
+        onSelectEntry = viewModel::selectEntry,
+        onDeleteEntry = viewModel::deleteEntry
+    )
+}
+
+@Composable
+internal fun CalibrationScreenContent(
+    state: CalibrationUiState,
+    formatDateTime: (Long) -> String,
+    formatTime: (Long) -> String,
+    onMarkSensorChange: () -> Unit,
+    onAddCalibration: () -> Unit,
+    onSelectEntry: (Long) -> Unit,
+    onDeleteEntry: (Long) -> Unit
+) {
     var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
     val listState = rememberLazyListState()
 
@@ -91,20 +114,30 @@ internal fun CalibrationScreen(
             .padding(AapsSpacing.medium),
         verticalArrangement = Arrangement.spacedBy(AapsSpacing.medium)
     ) {
-        StatusCard(state = state, dateUtil = viewModel.dateUtil)
+        StatusCard(state = state, formatDateTime = formatDateTime, formatTime = formatTime)
 
-        val navigationRequest = LocalPluginNavigationRequest.current
-        Button(
-            onClick = { navigationRequest(NavigationRequest.Element(ElementType.SENSOR_INSERT)) },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(AapsSpacing.small)
         ) {
-            Text(stringResource(R.string.cal_mark_sensor_change_now))
+            Button(
+                onClick = onMarkSensorChange,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.cal_mark_sensor_change_now))
+            }
+            Button(
+                onClick = onAddCalibration,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(stringResource(R.string.cal_add_calibration))
+            }
         }
 
         ChartCard(
             state = state,
-            dateUtil = viewModel.dateUtil,
-            onSelectEntry = viewModel::selectEntry
+            formatDateTime = formatDateTime,
+            onSelectEntry = onSelectEntry
         )
 
         Text(
@@ -122,8 +155,8 @@ internal fun CalibrationScreen(
                 glucoseUnit = state.glucoseUnit,
                 listState = listState,
                 contentPadding = PaddingValues(bottom = AapsSpacing.large),
-                formatTime = viewModel.dateUtil::dateAndTimeString,
-                onSelect = viewModel::selectEntry,
+                formatTime = formatDateTime,
+                onSelect = onSelectEntry,
                 onDelete = { pendingDeleteId = it }
             )
         }
@@ -136,7 +169,7 @@ internal fun CalibrationScreen(
             text = { Text(stringResource(R.string.cal_remove_entry_message)) },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.deleteEntry(id)
+                    onDeleteEntry(id)
                     pendingDeleteId = null
                 }) { Text(stringResource(android.R.string.ok)) }
             },
@@ -149,10 +182,59 @@ internal fun CalibrationScreen(
     }
 }
 
+@Preview(showBackground = true, name = "Calibration applied")
+@Composable
+private fun CalibrationScreenContentPreview() {
+    val now = 1_700_000_000_000L
+    val hour = 3_600_000L
+    val entries = listOf(
+        CalibrationEntry(id = 1, timestamp = now - 5 * hour, fingerstickMgdl = 120.0, sensorMgdlAtPairing = 110.0),
+        CalibrationEntry(id = 2, timestamp = now - 3 * hour, fingerstickMgdl = 150.0, sensorMgdlAtPairing = 145.0),
+        CalibrationEntry(id = 3, timestamp = now - 1 * hour, fingerstickMgdl = 95.0, sensorMgdlAtPairing = 90.0)
+    )
+    MaterialTheme {
+        CalibrationScreenContent(
+            state = CalibrationUiState(
+                sessionStart = now - 6 * hour,
+                warmUpEndsAt = now - 4 * hour,
+                isInWarmUp = false,
+                entries = entries,
+                fit = CalibrationFit(slope = 1.05, offset = 2.0, mode = FitMode.Full),
+                now = now,
+                selectedEntryId = 3,
+                glucoseUnit = GlucoseUnit.MGDL
+            ),
+            formatDateTime = { "01 Jan 12:00" },
+            formatTime = { "14:00" },
+            onMarkSensorChange = {},
+            onAddCalibration = {},
+            onSelectEntry = {},
+            onDeleteEntry = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "No session")
+@Composable
+private fun CalibrationScreenContentNoSessionPreview() {
+    MaterialTheme {
+        CalibrationScreenContent(
+            state = CalibrationUiState(),
+            formatDateTime = { "" },
+            formatTime = { "" },
+            onMarkSensorChange = {},
+            onAddCalibration = {},
+            onSelectEntry = {},
+            onDeleteEntry = {}
+        )
+    }
+}
+
 @Composable
 private fun StatusCard(
     state: CalibrationUiState,
-    dateUtil: DateUtil
+    formatDateTime: (Long) -> String,
+    formatTime: (Long) -> String
 ) {
     AapsCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(AapsSpacing.medium)) {
@@ -161,7 +243,7 @@ private fun StatusCard(
                     stringResource(R.string.cal_status_no_session)
 
                 state.isInWarmUp                       ->
-                    stringResource(R.string.cal_status_warmup, dateUtil.timeString(state.warmUpEndsAt ?: 0L))
+                    stringResource(R.string.cal_status_warmup, formatTime(state.warmUpEndsAt ?: 0L))
 
                 state.fit == null                      ->
                     stringResource(R.string.cal_status_need_more_entries, state.entries.size)
@@ -198,7 +280,7 @@ private fun StatusCard(
             state.sessionStart?.let { start ->
                 Spacer(Modifier.height(AapsSpacing.small))
                 Text(
-                    text = stringResource(R.string.cal_session_started, dateUtil.dateAndTimeString(start)),
+                    text = stringResource(R.string.cal_session_started, formatDateTime(start)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -210,7 +292,7 @@ private fun StatusCard(
 @Composable
 private fun ChartCard(
     state: CalibrationUiState,
-    dateUtil: DateUtil,
+    formatDateTime: (Long) -> String,
     onSelectEntry: (Long) -> Unit
 ) {
     AapsCard(modifier = Modifier.fillMaxWidth()) {
@@ -224,11 +306,11 @@ private fun ChartCard(
             )
             if (state.entries.size >= 2) {
                 Spacer(Modifier.height(AapsSpacing.small))
-                EntrySliderReadout(state = state, dateUtil = dateUtil)
+                EntrySliderReadout(state = state, formatDateTime = formatDateTime)
                 EntrySlider(state = state, onSelectEntry = onSelectEntry)
             } else if (state.entries.size == 1) {
                 Spacer(Modifier.height(AapsSpacing.small))
-                EntrySliderReadout(state = state, dateUtil = dateUtil)
+                EntrySliderReadout(state = state, formatDateTime = formatDateTime)
             }
         }
     }
@@ -237,7 +319,7 @@ private fun ChartCard(
 @Composable
 private fun EntrySliderReadout(
     state: CalibrationUiState,
-    dateUtil: DateUtil
+    formatDateTime: (Long) -> String
 ) {
     val selectedIndex = state.entries.indexOfFirst { it.id == state.selectedEntryId }
     if (selectedIndex < 0) return
@@ -247,7 +329,7 @@ private fun EntrySliderReadout(
             R.string.cal_chart_entry_readout,
             selectedIndex + 1,
             state.entries.size,
-            dateUtil.dateAndTimeString(entry.timestamp),
+            formatDateTime(entry.timestamp),
             entry.sensorMgdlAtPairing.formatBgDisplay(state.glucoseUnit),
             entry.fingerstickMgdl.formatBgDisplay(state.glucoseUnit)
         ),
@@ -381,4 +463,3 @@ private fun EntryRow(
         }
     }
 }
-

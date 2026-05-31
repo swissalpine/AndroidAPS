@@ -1,12 +1,12 @@
 import kotlin.math.min
-import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
     id("android-module-dependencies")
     id("test-module-dependencies")
-    jacoco
+    id("compose-test-module-dependencies")
+    id("jacoco-module-dependencies")
 }
 
 android {
@@ -17,16 +17,6 @@ android {
 
     buildFeatures {
         compose = true
-    }
-}
-
-// Robolectric runs tests in its own classloader sandbox and rewrites bytecode, so the default
-// JaCoCo on-the-fly agent records no coverage for the Compose classes exercised by those tests.
-// includeNoLocationClasses lets JaCoCo account for the Robolectric-loaded classes.
-tasks.withType<Test>().configureEach {
-    extensions.configure(JacocoTaskExtension::class) {
-        isIncludeNoLocationClasses = true
-        excludes = listOf("jdk.internal.*")
     }
 }
 
@@ -49,14 +39,4 @@ dependencies {
     implementation(project(":core:data"))
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
-
-    // Compose UI tests on the JVM via Robolectric.
-    // createComposeRule() is a JUnit4 TestRule and RobolectricTestRunner is a JUnit4 runner, so these
-    // tests run JUnit4-style; the vintage engine bridges them onto the JUnit Platform alongside the
-    // existing Jupiter tests (useJUnitPlatform() comes from test-module-dependencies).
-    testImplementation(platform(libs.androidx.compose.bom))
-    testImplementation(libs.androidx.compose.ui.test.junit4)
-    testImplementation(libs.org.robolectric)
-    testRuntimeOnly(libs.org.junit.vintage.engine)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
