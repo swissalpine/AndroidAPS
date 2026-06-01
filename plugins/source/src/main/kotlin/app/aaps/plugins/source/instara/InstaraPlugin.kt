@@ -9,6 +9,7 @@ import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.SourceSensor
 import app.aaps.core.data.model.TrendArrow
 import app.aaps.core.data.plugin.PluginType
+import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
@@ -26,7 +27,6 @@ import app.aaps.core.ui.compose.icons.IcGenericCgm
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.plugins.source.AbstractBgSourcePlugin
 import app.aaps.plugins.source.compose.BgSourceComposeContent
-import dagger.android.HasAndroidInjector
 import kotlinx.coroutines.Dispatchers
 import org.json.JSONArray
 import org.json.JSONException
@@ -89,7 +89,6 @@ class InstaraPlugin @Inject constructor(
         params: WorkerParameters
     ) : LoggingWorker(context, params, Dispatchers.IO) {
 
-        @Inject lateinit var injector: HasAndroidInjector
         @Inject lateinit var instaraPlugin: InstaraPlugin
         @Inject lateinit var persistenceLayer: PersistenceLayer
 
@@ -198,6 +197,9 @@ class InstaraPlugin @Inject constructor(
                 val nowMs = System.currentTimeMillis()
                 var hasRecentInBatch = false
 
+                // Keep the latest valid sensorStartTime found among insertable records in this batch.
+                var sensorStartTime: Long? = null
+
                 // We only keep latest device meta, so track the *latest* devicePrefix we see in this batch,
                 // and the first sgvId that carries sgvMark for that device.
                 var latestDevicePrefix: Long? = null
@@ -254,6 +256,14 @@ class InstaraPlugin @Inject constructor(
                     val ts = json.getLong("date")
                     if (!hasRecentInBatch && (nowMs - ts) in 0..INSTARA_RECENT_WINDOW_MS) {
                         hasRecentInBatch = true
+                    }
+
+                    // Check start time validity && use the latest valid sensorStartTime in this batch.
+                    if (json.has("sensorStartTime") && !json.isNull("sensorStartTime")) {
+                        val candidateSensorStartTime = json.getLong("sensorStartTime")
+                        if (candidateSensorStartTime in (nowMs - T.days(INSTARA_SENSOR_MAX_VALID_DAYS).msecs())..nowMs) {
+                            if (sensorStartTime == null || candidateSensorStartTime > sensorStartTime) sensorStartTime = candidateSensorStartTime
+                        }
                     }
 
                     val unitsField = json.optString("units")
@@ -321,7 +331,7 @@ class InstaraPlugin @Inject constructor(
                 }
 
                 // Upstream changed this to suspend; call directly and catch exceptions.
-                persistenceLayer.insertCgmSourceData(Sources.Instara, glucoseValues, emptyList(), null)
+                persistenceLayer.insertCgmSourceData(Sources.Instara, glucoseValues, emptyList(), sensorStartTime)
 
                 // Persist latest-device-only meta JSON if we saw a valid mark seed.
                 if (latestDevicePrefix != null && latestDeviceStartWithMark != null && latestDeviceMark != null) {
@@ -353,6 +363,7 @@ class InstaraPlugin @Inject constructor(
         companion object {
 
             private const val INSTARA_RECENT_WINDOW_MS = 3L * 60_000L
+            private const val INSTARA_SENSOR_MAX_VALID_DAYS = 30L
         }
     }
 }

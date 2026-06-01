@@ -54,7 +54,12 @@ class ProfileFunctionImpl @Inject constructor(
         persistenceLayer.observeChanges(EPS::class.java)
             .collectResilient(appScope, aapsLogger, LTag.PROFILE) { epsList ->
                 epsList.minOfOrNull { it.timestamp }?.let { timestamp ->
-                    synchronized(cache) { cache.keys.removeIf { key -> key > timestamp } }
+                    // Cache keys are rounded down to the second (see getProfile), so compare against
+                    // the rounded timestamp with >= to also invalidate the entry for the second in
+                    // which the change happened. A strict > against the raw ms timestamp would leave
+                    // the current-second entry stale and getProfile() would keep returning the old EPS.
+                    val rounded = timestamp - timestamp % 1000
+                    synchronized(cache) { cache.keys.removeIf { key -> key >= rounded } }
                 }
             }
     }
