@@ -1,6 +1,7 @@
 package app.aaps.di
 
 import android.app.Application
+import androidx.work.testing.WorkManagerTestInitHelper
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
@@ -23,6 +24,15 @@ import dagger.hilt.components.SingletonComponent
  * caching) so it always targets the current test's component.
  */
 open class BaseTestApp : Application(), HasAndroidInjector {
+
+    override fun onCreate() {
+        super.onCreate()
+        // Production WorkManager init lives in MainApp (Configuration.Provider) + the default
+        // androidx.startup initializer is removed from the manifest. Neither applies under the Hilt
+        // test application, so initialize a test WorkManager here — otherwise building the Hilt graph
+        // (e.g. SyncModule.providesWorkManager → WorkManager.getInstance) throws "not initialized".
+        WorkManagerTestInitHelper.initializeTestWorkManager(this)
+    }
 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
