@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Delete
@@ -17,6 +18,8 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Badge
@@ -68,7 +71,13 @@ fun MaintenanceBottomSheet(
     onToggleLogCloud: (Boolean) -> Unit = {},
     onToggleCsvLocal: (Boolean) -> Unit = {},
     onToggleCsvCloud: (Boolean) -> Unit = {},
-    isDirectoryAccessGranted: Boolean = false
+    isDirectoryAccessGranted: Boolean = false,
+    showDevTools: Boolean = false,
+    onTestInternalAlarm: () -> Unit = {},
+    onTestInternalUrgentAlarm: () -> Unit = {},
+    onTestFullScreenAlarm: () -> Unit = {},
+    onTestImportantNotification: () -> Unit = {},
+    onStopTestAlarms: () -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -98,7 +107,13 @@ fun MaintenanceBottomSheet(
             onToggleLogCloud = onToggleLogCloud,
             onToggleCsvLocal = onToggleCsvLocal,
             onToggleCsvCloud = onToggleCsvCloud,
-            isDirectoryAccessGranted = isDirectoryAccessGranted
+            isDirectoryAccessGranted = isDirectoryAccessGranted,
+            showDevTools = showDevTools,
+            onTestInternalAlarm = onTestInternalAlarm,
+            onTestInternalUrgentAlarm = onTestInternalUrgentAlarm,
+            onTestFullScreenAlarm = onTestFullScreenAlarm,
+            onTestImportantNotification = onTestImportantNotification,
+            onStopTestAlarms = onStopTestAlarms
         )
     }
 }
@@ -125,7 +140,13 @@ internal fun MaintenanceBottomSheetContent(
     onToggleLogCloud: (Boolean) -> Unit = {},
     onToggleCsvLocal: (Boolean) -> Unit = {},
     onToggleCsvCloud: (Boolean) -> Unit = {},
-    isDirectoryAccessGranted: Boolean = false
+    isDirectoryAccessGranted: Boolean = false,
+    showDevTools: Boolean = false,
+    onTestInternalAlarm: () -> Unit = {},
+    onTestInternalUrgentAlarm: () -> Unit = {},
+    onTestFullScreenAlarm: () -> Unit = {},
+    onTestImportantNotification: () -> Unit = {},
+    onStopTestAlarms: () -> Unit = {}
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     MaterialTheme.colorScheme.error
@@ -324,6 +345,53 @@ internal fun MaintenanceBottomSheetContent(
             onClick = onResetDbClick,
             danger = true
         )
+
+        // Section: Developer alarm/notification tests (dev builds only). onDismiss = {} keeps the
+        // sheet open so paths can be fired repeatedly; the full-screen test closes it so the
+        // ErrorActivity shows cleanly.
+        if (showDevTools) {
+            HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+            SectionHeader("Developer — alarm tests")
+            MaintenanceItem(
+                text = "Test internal alarm (ramp + snooze)",
+                description = "URGENT + alarm.mp3 via NotificationManager",
+                icon = Icons.Default.NotificationsActive,
+                color = primaryColor,
+                onDismiss = {},
+                onClick = onTestInternalAlarm
+            )
+            MaintenanceItem(
+                text = "Test internal URGENT alarm",
+                description = "URGENT + urgentalarm.mp3",
+                icon = Icons.Default.NotificationsActive,
+                color = primaryColor,
+                onDismiss = {},
+                onClick = onTestInternalUrgentAlarm
+            )
+            MaintenanceItem(
+                text = "Test full-screen alarm",
+                description = "runAlarm → ErrorActivity (boluserror.mp3)",
+                icon = Icons.Default.Alarm,
+                color = primaryColor,
+                onDismiss = onDismiss,
+                onClick = onTestFullScreenAlarm
+            )
+            MaintenanceItem(
+                text = "Test important (silent) notification",
+                description = "IMPORTANT level, in-app card only",
+                icon = Icons.Default.NotificationsActive,
+                color = primaryColor,
+                onDismiss = {},
+                onClick = onTestImportantNotification
+            )
+            MaintenanceItem(
+                text = "Stop / clear test alarms",
+                icon = Icons.Default.NotificationsOff,
+                color = primaryColor,
+                onDismiss = {},
+                onClick = onStopTestAlarms
+            )
+        }
     }
 }
 

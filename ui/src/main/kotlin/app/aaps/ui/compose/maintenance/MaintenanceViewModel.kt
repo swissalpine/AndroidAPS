@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
+import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
@@ -21,6 +22,9 @@ import app.aaps.core.interfaces.maintenance.ExportResult
 import app.aaps.core.interfaces.maintenance.FileListProvider
 import app.aaps.core.interfaces.maintenance.ImportExportPrefs
 import app.aaps.core.interfaces.maintenance.Maintenance
+import app.aaps.core.interfaces.notifications.NotificationAction
+import app.aaps.core.interfaces.notifications.NotificationId
+import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.overview.OverviewData
 import app.aaps.core.interfaces.overview.graph.OverviewDataCache
 import app.aaps.core.interfaces.plugin.ActivePlugin
@@ -28,6 +32,7 @@ import app.aaps.core.interfaces.plugin.OwnDatabasePlugin
 import app.aaps.core.interfaces.pump.PumpSync
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.sync.DataSyncSelectorXdrip
+import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -68,8 +73,14 @@ class MaintenanceViewModel @Inject constructor(
     private val pumpSync: PumpSync,
     private val iobCobCalculator: IobCobCalculator,
     private val overviewData: OverviewData,
-    private val overviewDataCache: OverviewDataCache
+    private val overviewDataCache: OverviewDataCache,
+    private val notificationManager: NotificationManager,
+    private val uiInteraction: UiInteraction,
+    private val config: Config
 ) : ViewModel() {
+
+    /** Dev-only flag gating the alarm/notification test panel in the maintenance sheet. */
+    val isDevMode: Boolean get() = config.isDev()
 
     private val _events = MutableSharedFlow<MaintenanceEvent>()
     val events: SharedFlow<MaintenanceEvent> = _events
@@ -83,6 +94,50 @@ class MaintenanceViewModel @Inject constructor(
 
     init {
         refreshExportConfig()
+    }
+
+    // ---- Dev-only alarm/notification test triggers (gated by isDevMode in the UI) ----------------
+    // Exercise every alarm path so the ramp / silent-notification / snooze / full-screen behaviours
+    // can be verified on-device without waiting for a real pump/NS event.
+
+    /** Internal URGENT alarm with sound — Phase 2 path (ramping player + silent notification + snooze). */
+    fun testInternalAlarm() {
+        notificationManager.post(
+            id = NotificationId.TEST_ALARM,
+            text = "TEST internal alarm (alarm.mp3) — should ramp & snooze",
+            soundRes = CoreUiR.raw.alarm,
+            actions = listOf(NotificationAction(CoreUiR.string.snooze_15m) {})
+        )
+    }
+
+    /** Internal URGENT alarm with the urgent tone. */
+    fun testInternalUrgentAlarm() {
+        notificationManager.post(
+            id = NotificationId.TEST_ALARM,
+            text = "TEST urgent alarm (urgentalarm.mp3) — should ramp & snooze",
+            soundRes = CoreUiR.raw.urgentalarm,
+            actions = listOf(NotificationAction(CoreUiR.string.snooze_15m) {})
+        )
+    }
+
+    /** Full-screen alarm — the runAlarm / ErrorActivity FSI path. */
+    fun testFullScreenAlarm() {
+        uiInteraction.runAlarm("TEST full-screen alarm (boluserror.mp3)", "Test alarm", CoreUiR.raw.boluserror)
+    }
+
+    /** IMPORTANT-level notification — silent, in-app card only (no alarm sound). */
+    fun testImportantNotification() {
+        notificationManager.post(
+            id = NotificationId.TEST_NOTIFICATION,
+            text = "TEST important notification (silent, in-app card only)"
+        )
+    }
+
+    /** Clear every test alarm + stop any full-screen alarm sound. */
+    fun stopTestAlarms() {
+        notificationManager.dismiss(NotificationId.TEST_ALARM)
+        notificationManager.dismiss(NotificationId.TEST_NOTIFICATION)
+        uiInteraction.stopAlarm("Test stop")
     }
 
     fun refreshExportConfig() {
