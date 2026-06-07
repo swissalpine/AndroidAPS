@@ -165,12 +165,7 @@ enum class NotificationId(
     SCENE_ENDED(INFO, AUTOMATION, allowMultiple = true),
     SCENE_CHAINED(INFO, AUTOMATION, allowMultiple = true),
     SCENE_CHAIN_SKIPPED(NORMAL, AUTOMATION, allowMultiple = true),
-    SCENE_CHAIN_ERROR(IMPORTANT, AUTOMATION, allowMultiple = true),
-
-    // Developer test triggers — used only by the dev (config.isDev()) alarm-test panel, kept
-    // separate from real ids so test buttons can never replace/dismiss a genuine alarm.
-    TEST_ALARM(URGENT, SYSTEM),
-    TEST_NOTIFICATION(IMPORTANT, SYSTEM);
+    SCENE_CHAIN_ERROR(IMPORTANT, AUTOMATION, allowMultiple = true);
 
     companion object {
 

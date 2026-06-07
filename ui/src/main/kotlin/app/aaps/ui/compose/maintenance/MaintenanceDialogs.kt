@@ -100,13 +100,7 @@ fun MaintenanceDialogs(
             onToggleLogEmail = { maintenanceViewModel.toggleLogEmail(it) },
             onToggleLogCloud = { maintenanceViewModel.toggleLogCloud(it) },
             onToggleCsvLocal = { maintenanceViewModel.toggleCsvLocal(it) },
-            onToggleCsvCloud = { maintenanceViewModel.toggleCsvCloud(it) },
-            showDevTools = maintenanceViewModel.isDevMode,
-            onTestInternalAlarm = { maintenanceViewModel.testInternalAlarm() },
-            onTestInternalUrgentAlarm = { maintenanceViewModel.testInternalUrgentAlarm() },
-            onTestFullScreenAlarm = { maintenanceViewModel.testFullScreenAlarm() },
-            onTestImportantNotification = { maintenanceViewModel.testImportantNotification() },
-            onStopTestAlarms = { maintenanceViewModel.stopTestAlarms() }
+            onToggleCsvCloud = { maintenanceViewModel.toggleCsvCloud(it) }
         )
     }
 
