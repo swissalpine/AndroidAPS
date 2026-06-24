@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import app.aaps.core.keys.interfaces.IntentPreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.ui.compose.ComposeScreenContent
 import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 
@@ -32,7 +32,7 @@ fun AdaptiveIntentPreferenceItem(
     titleResId: Int = 0,
     summaryResId: Int? = null,
     onClick: () -> Unit,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else intentKey.titleResId
     val effectiveSummaryResId = summaryResId ?: intentKey.summaryResId
@@ -87,7 +87,7 @@ fun AdaptiveUrlPreferenceItem(
     intentKey: IntentPreferenceKey,
     titleResId: Int = 0,
     url: String,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else intentKey.titleResId
 
@@ -124,7 +124,7 @@ fun AdaptiveDynamicActivityPreferenceItem(
     titleResId: Int = 0,
     activityClass: Class<*>,
     summaryResId: Int? = null,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else intentKey.titleResId
     val effectiveSummaryResId = summaryResId ?: intentKey.summaryResId
@@ -161,7 +161,7 @@ fun AdaptiveComposeScreenPreferenceItem(
     onNavigate: (ComposeScreenContent) -> Unit,
     titleResId: Int = 0,
     summaryResId: Int? = null,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else intentKey.titleResId
     val effectiveSummaryResId = summaryResId ?: intentKey.summaryResId

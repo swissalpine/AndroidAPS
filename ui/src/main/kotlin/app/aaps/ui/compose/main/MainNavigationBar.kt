@@ -34,6 +34,8 @@ fun MainNavigationBar(
     onManageClick: () -> Unit,
     onTreatmentClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** On a client, hide the mutating nav buttons (Treatments + Scenes) until paired. Always true on master. */
+    masterOrPairedClient: Boolean = true,
     quickWizardCount: Int = 0,
     onAutomationClick: () -> Unit = {},
     /** Total scenes + automation items defined — drives whether the nav button is shown at all. */
@@ -67,35 +69,38 @@ fun MainNavigationBar(
         windowInsets = WindowInsets(0),
         modifier = modifier
     ) {
-        // Treatment action button (opens bottom sheet)
-        NavigationBarItem(
-            selected = false,
-            onClick = onTreatmentClick,
-            icon = {
-                BadgedBox(
-                    badge = {
-                        if (quickWizardCount > 0) {
-                            Badge(containerColor = AapsTheme.generalColors.statusNormal, contentColor = Color.Black) {
-                                Text(text = quickWizardCount.toString())
+        // Treatment action button (opens bottom sheet) — hidden on an unpaired client (its bolus/carbs
+        // ride the Client-Control channel and would be dropped); always shown on a master.
+        if (masterOrPairedClient) {
+            NavigationBarItem(
+                selected = false,
+                onClick = onTreatmentClick,
+                icon = {
+                    BadgedBox(
+                        badge = {
+                            if (quickWizardCount > 0) {
+                                Badge(containerColor = AapsTheme.generalColors.statusNormal, contentColor = Color.Black) {
+                                    Text(text = quickWizardCount.toString())
+                                }
                             }
                         }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Fastfood,
+                            contentDescription = stringResource(CoreUiR.string.treatments),
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Fastfood,
-                        contentDescription = stringResource(CoreUiR.string.treatments),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            },
-            label = { Text(text = stringResource(CoreUiR.string.treatments)) },
-            colors = navColors
-        )
+                },
+                label = { Text(text = stringResource(CoreUiR.string.treatments)) },
+                colors = navColors
+            )
+        }
 
-        // Scenes/automation button — visible whenever scenes or automation items exist
-        // (regardless of pump/loop/profile state). The badge counts only items the user
-        // can act on right now; gated items are visible inside the sheet, dimmed with reason.
-        if (automationTotal > 0) {
+        // Scenes/automation button — visible whenever scenes or automation items exist on a paired
+        // client (regardless of pump/loop/profile state). The badge counts only items the user can act
+        // on right now; gated items are visible inside the sheet, dimmed with reason.
+        if (masterOrPairedClient && automationTotal > 0) {
             NavigationBarItem(
                 selected = false,
                 onClick = onAutomationClick,

@@ -8,6 +8,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.NumberInputRow
+import app.aaps.core.ui.compose.formatMinutesAsDuration
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 
@@ -45,15 +46,12 @@ internal fun DurationStep(
             valueRange = 0.0..4320.0,
             step = 5.0,
             valueFormatResId = R.string.mins,
-            formatAsInt = true
+            formatAsInt = true,
+            displayValue = when {
+                state.durationMinutes == 0 -> stringResource(R.string.scene_duration_indefinite)
+                else                       -> formatMinutesAsDuration(state.durationMinutes)
+            }
         )
-        if (state.durationMinutes == 0) {
-            Text(
-                text = stringResource(R.string.scene_duration_indefinite),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
     }
 }
 

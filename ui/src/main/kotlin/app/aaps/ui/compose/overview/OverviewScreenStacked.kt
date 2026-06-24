@@ -69,6 +69,8 @@ fun OverviewScreenStacked(
     sceneExpired: Boolean = false,
     onEndScene: () -> Unit = {},
     onDismissScene: () -> Unit = {},
+    endSceneEnabled: Boolean = true,
+    commandsAllowed: Boolean = true,
     formatDuration: (Long) -> String = { ms -> "${(ms / 60000L).toInt()}m" },
     modifier: Modifier = Modifier
 ) {
@@ -100,6 +102,7 @@ fun OverviewScreenStacked(
             expired = sceneExpired,
             onEndClick = onEndScene,
             onDismiss = onDismissScene,
+            endEnabled = endSceneEnabled,
             formatDuration = formatDuration
         )
         Row(
@@ -140,6 +143,7 @@ fun OverviewScreenStacked(
                 onNavigate = onNavigate,
                 onTbrChipClick = onTbrChipClick,
                 onIobChipClick = onIobChipClick,
+                commandsAllowed = commandsAllowed,
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 8.dp)
@@ -153,6 +157,7 @@ fun OverviewScreenStacked(
             batteryStatus = statusState.batteryStatus,
             showFill = statusState.showFill,
             showPumpBatteryChange = statusState.showPumpBatteryChange,
+            commandsAllowed = commandsAllowed,
             onNavigate = onNavigate,
             statusLightsDef = statusLightsDef,
             onCopyFromNightscout = { manageViewModel.copyStatusLightsFromNightscout() },

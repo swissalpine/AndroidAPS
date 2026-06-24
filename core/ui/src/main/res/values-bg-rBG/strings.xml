@@ -2,6 +2,10 @@
 <resources>
     <string name="error_field_must_not_be_empty">Полето не може да е празно</string>
     <string name="error_mustbe4hexadidits">Може да бъде само 4 символа между ABCDEF0123456789</string>
+    <string name="authorized_clients_manage_label">Оторизирани клиенти</string>
+    <string name="authorized_clients_manage_desc">Редактиране на позволените клиенти, на които е разрешено да контролират главния телефон.</string>
+    <string name="pair_with_master_manage_label">Свържи се с главния телефон</string>
+    <string name="pair_with_master_manage_desc">Въведете PINът от главният телефон за да позволите на този да изпраща подписани команди.</string>
     <!--    General-->
     <string name="treatments">Лечения</string>
     <string name="treatments_history">История на леченията</string>
@@ -16,6 +20,7 @@
     <string name="refresh">Обнови</string>
     <string name="no_history_records">Няма записи</string>
     <string name="error">Грешка</string>
+    <string name="navigation_error_screen_not_found">Екранът не е наличен в конфигурация.</string>
     <string name="profile_set_ok">Профила на помпата е обновен</string>
     <string name="invalid_input">Грешни входящи данни</string>
     <string name="invalid_number">Грешен брой</string>
@@ -32,10 +37,6 @@
     <string name="loop_disabled">LOOP Е СПРЯН ОТ ОГРАНИЧЕНИЯТА</string>
     <string name="loop_disabled_by_user">Кръгът изключен от потребителя</string>
     <string name="event_type">Тип събитие</string>
-    <string name="mgdl">мг/дл</string>
-    <string name="mmol">ммол/л</string>
-    <string name="bg_mgdl">%1$d мг/дл</string>
-    <string name="bg_mmol">%1$.1f ммол/л</string>
     <string name="save">Съхрани</string>
     <string name="skip">Прескочи</string>
     <string name="switch_to_edit">Редактирай</string>
@@ -103,7 +104,8 @@
     <string name="formatsignedinsulinunits">%1$+.2fЕ</string>
     <string name="format_carbs">%1$d гр</string>
     <string name="format_hours">%1$.2f ч</string>
-    <string name="format_mins">%1$d мин</string>
+    <string name="confirmation_line" comment="Confirmation-summary line, joins a label and an already-formatted value. %1$s = label, %2$s = value with its unit. Example: Bolus: 1.50 U">%1$s: %2$s</string>
+    <string name="value_with_unit" comment="A numeric value followed by its unit, when no dedicated value template exists. %1$s = value, %2$s = unit. Example: 120 mg/dl">%1$s %2$s</string>
     <string name="objectives">Цели</string>
     <string name="please_wait">Моля изчакайте...</string>
     <string name="stop">Стоп</string>
@@ -160,7 +162,7 @@
     <string name="cgm">CGM</string>
     <string name="alarminxmin">Аларма след %1$d мин</string>
     <string name="treatmentdeliveryerror">Помпата върна грешка. Проверете ръчно за реално доставените инсулин и въглехидрати</string>
-    <string name="bolus_reminder">Напомни ми за болус когато КЗ се върне</string>
+    <string name="bolus_reminder">Напомни ми за болус когато КЗ е нормална</string>
     <string name="duration_label">Продължителност</string>
     <string name="shortgramm">гр.</string>
     <string name="pumpsuspended">Помпата е спряна</string>
@@ -190,6 +192,8 @@
     <string name="reset">Нулирай</string>
     <string name="profileswitch_ismissing">Смяната на профила не е отразена. Моля, направете превключване на потребителския профил или натиснете \"Активирай профил\" в Локален профил.</string>
     <string name="profile">Профил</string>
+    <string name="percentage_label">Процент</string>
+    <string name="timeshift_label">Отместване</string>
     <string name="confirm_remove_multiple_items">Сигурен ли сте, че искате да премахнете %1$d елементи?</string>
     <string name="overview_treatment_label">Болус</string>
     <string name="copytolocalprofile">Създай нов профил копирайки този?</string>
@@ -199,7 +203,7 @@
     <string name="invalid">НЕВАЛИДНО</string>
     <string name="login">Вход</string>
     <string name="logout">Изход</string>
-    <string name="prime_fill">Пълнене/Допълване</string>
+    <string name="prime_fill">Смяна/Пълнене</string>
     <string name="site_rotation">Смяна на мястото</string>
     <string name="edit_site">Редактиране</string>
     <string name="select_arrow">Изберете стрелка</string>
@@ -242,6 +246,7 @@
     <string name="engineering_mode_enabled">Режим за раработчици (Engineering mode) включен</string>
     <string name="back">Назад</string>
     <string name="next">Напред</string>
+    <string name="pref_syncs_with_main_phone">Симхронизации с главния телефон</string>
     <string name="show_hide_records">Скрий записите от кръга</string>
     <!--    Protection-->
     <string name="wrongpassword">Грешна парола</string>
@@ -328,6 +333,8 @@
     <string name="temporary_target">Временна цел</string>
     <string name="temporary_targets">Временни цели</string>
     <string name="running_mode">Текущ режим</string>
+    <string name="running_mode_change_not_allowed">Смяна на режим не е позволена</string>
+    <string name="pump_reconnect">Свържи отново помпата</string>
     <string name="scene">Сценарий</string>
     <string name="scenes">Сценарии</string>
     <string name="scene_desc">Ситуационни предпоставки - активиране на много действия едновременно</string>
@@ -373,6 +380,39 @@
     <string name="scene_no_profile_store">Няма профили</string>
     <string name="scene_no_actions">Сценарият няма действия</string>
     <string name="scene_profile_not_found">Профил \"%1$s\" не е намерен</string>
+    <string name="scene_lock_banner_master_offline">Главния телефон е недостъпен. Контолът на сценарии ще се поднови при възстановяване на връзката.</string>
+    <string name="master_offline_banner">Главният телефон недостъпен. Редакцията е изключена до възстановяване на връзката.</string>
+    <string name="scene_lock_reason_master_offline">Главният телефон е разкачен</string>
+    <string name="scene_lock_reason_scene_active">Първо спри вървящия сценарий</string>
+    <!-- Client-control action labels (shown in the pending/failure modal as "Couldn't {label}") -->
+    <string name="clientcontrol_action_set_temp_target">Приложи временна цел</string>
+    <string name="clientcontrol_action_cancel_temp_target">Спри временна цел</string>
+    <string name="clientcontrol_action_activate_scene">Стартирай сценарий %1$s</string>
+    <string name="clientcontrol_action_deactivate_scene">Приключи сценария</string>
+    <string name="clientcontrol_action_activate_insulin">Активирай инсулин %1$s</string>
+    <string name="clientcontrol_action_update_settings">Обнови настройките</string>
+    <string name="clientcontrol_action_deliver_bolus">Стартирай болус</string>
+    <string name="clientcontrol_action_record_bolus">Запиши болус</string>
+    <!-- Client-control failure reasons (mapped from a FailureReason code on the showing device) -->
+    <string name="clientcontrol_fail_not_paired">Телефонът не е свързан с главния.</string>
+    <string name="clientcontrol_fail_not_reachable">Главният телефон няма интернет връзка.</string>
+    <string name="clientcontrol_pump_out_of_sync" comment="Shown when a follower relays a temp basal / extended bolus but its cached pump type no longer matches the master\'s pump">Конфигурацията на помпа не е синхронизирана с главния телефон. Опитайте отново.</string>
+    <string name="clientcontrol_fail_no_reply">Няма навременен отговор от главния телефон.</string>
+    <string name="clientcontrol_fail_expired">Времето за отговор изтече преди главният да потвърди.</string>
+    <string name="clientcontrol_fail_busy">Друго действие е в прогрес.</string>
+    <string name="clientcontrol_fail_send_failed">Не мога да се свържа с Nightscout.</string>
+    <string name="clientcontrol_fail_no_active_profile">Главният телефон няма активен профил.</string>
+    <string name="clientcontrol_fail_scene_not_found">Сценярият вече не съшествува.</string>
+    <string name="clientcontrol_fail_scene_disabled">Сценарият е изключен.</string>
+    <string name="clientcontrol_fail_partial">Някой действия не може да бъдат приложени.</string>
+    <string name="clientcontrol_fail_execution">Главният телефон не може да го приложи.</string>
+    <string name="clientcontrol_fail_no_pending_bolus">Болусът изтече или е бил отказан. Натиснете бутона да опитате отново.</string>
+    <string name="clientcontrol_fail_bolus_compute">Главният телефон не можа да изчисли болуса (липсват КЗ / профил или помпата не е готова).</string>
+    <string name="clientcontrol_fail_internal">Нещо се обърка.</string>
+    <string name="clientcontrol_fail_unknown">Тази команда се провали.</string>
+    <string name="clientcontrol_unconfirmed_wear">Неразпознат статус - проверете телефона/Nightscout преди да опитате отново.</string>
+    <string name="clientcontrol_bolus_progress_stalled_title">Няма връзка - не мога да потвърдя какъв болус е пуснат</string>
+    <string name="clientcontrol_bolus_progress_stalled_body">Този телефон не получава обновявания от главния. Болусът може да е пуснат или свършил. Затварянето ще го затвори тук, но няма да го спре в помпата. Проверете главния телефон за реално пуснатият болус.</string>
     <string name="scene_revert_tt">Изключи временна цел</string>
     <string name="scene_revert_profile">Върни промяната на профил</string>
     <string name="scene_revert_smb_on">Пусни SMB</string>
@@ -428,6 +468,7 @@
     <string name="activity">Физ.активност</string>
     <string name="wear">Часовник</string>
     <string name="automation">Автоматизация</string>
+    <string name="automation_management_desc">Създаване на правила за автоматични действия при определени условия</string>
     <string name="settingsexport">Експорт на настройки</string>
     <string name="custom">По избор</string>
     <string name="preset_settings">Предварителни настройки</string>
@@ -595,9 +636,10 @@
     <string name="uel_insulin_removed">ИНСУЛИН ИЗКАРАН</string>
     <string name="uel_running_mode">ТЕКУЩ РЕЖИМ</string>
     <string name="uel_running_mode_removed">ПРЕМАХНАТ ТЕКУЩ РЕЖИМ</string>
-    <string name="uel_running_mode_updarted">ТЕКУЩ РЕЖИМ ОБНОВЕН</string>
+    <string name="uel_running_mode_updarted">ТЕКУЩ РЕЖИМ ОБНОВЕН АКТИВИРАН</string>
     <string name="uel_scene_activated">СЦЕНАРИЙ АКТИВИРАН</string>
     <string name="uel_scene_deactivated">СЦЕНАРИЙ ДЕАКТИВИРАН</string>
+    <string name="uel_remote_config_changed">ОТДАЛЕЧЕНАТА КОНФИГУРАЦИЯ Е СМЕНЕНА</string>
     <!-- HardLimits -->
     <string name="profile_low_target">Профил ниска цел</string>
     <string name="profile_high_target">Профил висока цел</string>
@@ -620,6 +662,9 @@
     <string name="missing_profile_name">Няма име на профила</string>
     <string name="profile_not_saved_activate">Профила не е запазен. Моля съхранете го преди активация.</string>
     <string name="profile_activation_failed">Активацията неуспешна</string>
+    <string name="profile_switch_save_failed">Не мога да направя смяна на профил. Опитайте отново.</string>
+    <string name="profile_basal_not_compatible_with_pump">Базалът не се поддържа от помпата. Намалете процента или стойността на базала.</string>
+    <string name="profile_pump_incompatible_label">Лимит на помпата</string>
     <string name="error_in_ic_values">Грешка в стойностите на инс/въгл</string>
     <string name="error_in_isf_values">Грешка в стойностите на чувствителност ISF</string>
     <string name="error_in_basal_values">Грешка в базалите</string>
@@ -673,7 +718,7 @@
     <string name="cobvsiob">COB срещу IOB</string>
     <string name="slowabsorptiondetected_plain">!!!!! Засечено бавно усвояване на въглехидрати: %1$d%% от времето. Проверете калкулацията. Въглехидратите може би са прекалено много и това ще доведе до много инсулин !!!!!</string>
     <string name="bolus_constraint_applied_warn">Приложено болус ограничение: %1$.2f Е към %2$.2f Е</string>
-    <string name="bolus_recorded_only">Болусът ще бъде само записан (без да е доставен чрез помпата)</string>
+    <string name="bolus_recorded_only">Само запиши (без да да го стартираш в помпата)</string>
     <string name="advisoralarm">Аларма, когато е време за хранене</string>
     <string name="wizard_bg_label">КЗ</string>
     <string name="wizard_correction">Корекция</string>
@@ -688,7 +733,7 @@
     <string name="change">Промяна</string>
     <string name="grant">Разрешаване</string>
     <string name="set">Приложи</string>
-    <string name="wizard_set_alarm">Задай аларма</string>
+    <string name="wizard_set_alarm">Напомни ми</string>
     <string name="wizard_use_percentage">% от профила</string>
     <string name="wizard_include_bg">Включи КЗ</string>
     <string name="wizard_include_tt">Включи временна цел</string>
@@ -704,19 +749,10 @@
     <string name="wizard_no_active_profile">Не е настроен активен профил!</string>
     <string name="wizard_no_cob">Няма информация за активни въглехидрати! Липсваща информация за кръвна захар или рестартиране на приложението?</string>
     <string name="wizard_carbs_constraint">Нарушение на въхлехидратните ограничения!</string>
-    <string name="wizard_explain_calc">Изчисляване (въглехидратно число: %1$.1f, инсулинова чувствителност: %2$.1f)</string>
-    <string name="wizard_explain_carbs">Въглехидрати: %1$.2fЕ</string>
-    <string name="wizard_explain_cob">Активни въглехидрати: %1$.0fгр %2$.2fЕ</string>
-    <string name="wizard_explain_bg">КЗ: %1$.2fЕ</string>
-    <string name="wizard_explain_iob">Остатъчен инсулин: %1$.2fU</string>
-    <string name="wizard_explain_superbolus">Суперболус: %1$.2fЕ</string>
-    <string name="wizard_explain_trend">15\' тенденция: %1$.2fЕ</string>
     <string name="wizard_trend_detail">15мин промяна (%1$s %2$s)</string>
-    <string name="wizard_explain_percent">Проценти: %1$.2fЕ x %2$d%% ≈ %3$.2fЕ</string>
     <string name="wizard_constraint_bolus_size">Нарушение в ограничението на инсулин!\nНе може да бъде доставен %1$.2fЕ</string>
-    <string name="wizard_explain_tt">Временна цел: %1$s</string>
-    <string name="wizard_explain_tt_to">%1$s към %2$s</string>
     <string name="wizard_pump_not_available">Помпата не е налична!</string>
+    <string name="quick_wizard_not_available">Избраният съветник е недостъпе, моля опреснете</string>
     <string name="quickwizard_managemnt">Бърз съветник</string>
     <!--    Preferences-->
     <string name="child">Дете</string>
@@ -833,12 +869,12 @@
     <string name="clear_cloud_action">Изчисти настройките</string>
     <string name="clear_cloud_settings">Изчисти настройките на клауд</string>
     <string name="clear_cloud_settings_message">Това ще превключи към локалната база. Продължаваме ли?</string>
+    <string name="cloud_revoke_incomplete">Клауд настройките изтрити, но не мога да се свържа с акаунта за да премахна настройките там. Ще трбва да ги изтриете ръчно.</string>
     <string name="cloud_connection_failed">Неуспешна връзка с клауда</string>
     <string name="cloud_reauthorize_message">Неуспешна връзка с клауда. Да опитаме с друга парола?</string>
     <string name="reauthorize">Нова оторизация</string>
     <string name="cloud_auth_success">Успешно свързване с клауда</string>
     <string name="authorization_status">Статус</string>
-    <string name="format_hour_minute">%1$dч %2$dм</string>
     <!-- datetime layout -->
     <string name="event_time_label">Време на събитие</string>
     <!-- BluetoothDevicePreference -->
@@ -880,7 +916,7 @@
     <!-- Alerts -->
     <string name="localalertsettings_title">Локални аларми</string>
     <!-- Actions Screen -->
-    <string name="add">Добави</string>
+    <string name="add">Смени</string>
     <string name="remove">Изтрий</string>
     <string name="reorder">Подреди</string>
     <string name="status">Статус</string>
@@ -957,7 +993,7 @@
     <string name="clear">Изчисти</string>
     <string name="search_category_categories">Категории</string>
     <string name="search_category_preferences">Опции</string>
-    <string name="search_category_dialogs">Диалози</string>
+    <string name="search_category_dialogs">Менюта</string>
     <string name="search_category_plugins">Плъгини</string>
     <string name="search_category_wiki">Документация</string>
     <string name="wiki_search_offline">Търсенето в документацията изисква интернет</string>

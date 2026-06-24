@@ -22,7 +22,7 @@ fun interface PreferenceEnabledCondition {
      * @param context The visibility context providing access to pump, BG source, and preference state
      * @return true if the preference should be enabled, false otherwise
      */
-    fun isEnabled(context: PreferenceVisibilityContext): Boolean
+    fun isEnabled(context: VisibilityContext): Boolean
 
     companion object {
 

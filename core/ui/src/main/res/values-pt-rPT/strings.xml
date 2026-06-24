@@ -16,8 +16,6 @@
     <string name="limiting_iob">A limitar IA para %1$.1f U porque %2$s</string>
     <string name="loop_disabled">LOOP DESATIVADO POR RESTRIÇÕES</string>
     <string name="event_type">Tipo de evento</string>
-    <string name="mgdl">mg/dL</string>
-    <string name="mmol">mmol/L</string>
     <string name="save">Guardar</string>
     <string name="snooze">Silenciar</string>
     <string name="virtual_pump">Bomba virtual</string>
@@ -50,7 +48,6 @@
     <string name="formatsignedinsulinunits">%1$+.2f U</string>
     <string name="format_carbs">%1$d g</string>
     <string name="format_hours">%1$.2f h</string>
-    <string name="format_mins">%1$d mins</string>
     <string name="objectives">Objectivos</string>
     <string name="please_wait">Por favor aguarde…</string>
     <string name="stop">Parar</string>
@@ -190,6 +187,8 @@
     <string name="careportal_openapsoffline">OpenAPS Offline</string>
     <string name="pump_battery_change">Troca Bateria Bomba</string>
     <string name="temporary_target">Alvo Temporário</string>
+    <!-- Client-control action labels (shown in the pending/failure modal as "Couldn't {label}") -->
+    <!-- Client-control failure reasons (mapped from a FailureReason code on the showing device) -->
     <string name="careportal_temporarytargetvalue">Valor Alvo Temporário</string>
     <string name="careportal_temporarytargetcancel">Cancelar Alvo Temporário</string>
     <string name="boluswizard">Assistente de Bólus</string>
@@ -351,7 +350,6 @@
     <string name="cobvsiob">HCA vs IA</string>
     <string name="advisoralarm">Executar alarme quando for tempo de comer</string>
     <string name="no_action_selected">Nenhuma ação seleccionada, nada irá acontecer</string>
-    <string name="wizard_explain_iob">IOB: %1$.2fU</string>
     <!--    Preferences-->
     <string name="teenage">Adolescente</string>
     <string name="adult">Adulto</string>
@@ -400,7 +398,6 @@
     <!-- Export destination chip labels -->
     <!-- Maintenance bottom sheet descriptions -->
     <!-- Cloud directory dialog (Compose) -->
-    <string name="format_hour_minute">%1$dh %2$dm</string>
     <!-- datetime layout -->
     <string name="event_time_label">Tempo do evento</string>
     <!-- BluetoothDevicePreference -->

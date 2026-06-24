@@ -137,6 +137,10 @@
     <!-- Insulin Management -->
     <string name="missing_insulin_name">Chýba názov inzulínu</string>
     <string name="insulin_name_exists">Inzulín s názvom %1$s už existuje, zvoľ iný názov</string>
+    <!-- Client→master round-trip pending dialog -->
+    <!-- Partial success (e.g. a scene chained but some of the target\'s actions failed) — not a rejection -->
+    <!-- %1$s = action label -->
+    <!-- %1$s = action label, %2$s = reason. Sent but unconfirmed → will reconcile via sync-back -->
     <string name="a11y_add_new_insulin">Pridaj nový inzulín</string>
     <string name="a11y_delete_current_insulin">Vymaž aktuálny inzulín</string>
     <string name="activate_insulin_no_profile">Nebol nájdený žiadny aktívny profil</string>
@@ -304,5 +308,14 @@
     <string name="widget_rm_suspended">Pozastavený</string>
     <string name="widget_rm_resume">Obnoviť</string>
     <!-- Calibration entry rejection reasons -->
+    <string name="cal_reject_delta_too_high">Kalibrácia nebola uložená: glykémia sa mení príliš rýchlo (Δ %1$s %3$s za 5 minút, limit %2$s). Skúste to znovu, keď je glykémia stabilná.</string>
+    <string name="cal_reject_no_pair">Kalibrácia nebola uložená: 10 minút späť nenájdená žiadna glykémia.</string>
+    <string name="cal_reject_warmup">Kalibrácia nebola uložená: senzor je stále v dvojhodinovom zahrievacom okne.</string>
+    <string name="cal_reject_no_session">Kalibrácia nebola uložená: nie je aktívna žiadna relácia. Zaznamenajte najskôr výmenu senzora.</string>
     <!-- Calibration preflight messages shown in the dialog before submit -->
+    <string name="cal_precheck_warmup">Senzor sa stále zahrieva. Kalibrácia dostupná o %1$s.</string>
+    <string name="cal_precheck_no_session">Nie je aktívna žiadna relácia senzora.</string>
+    <string name="cal_precheck_no_pair">Žiadna hodnota CGM za posledných 10 minút. Skontrolujte pripojenie senzora.</string>
+    <string name="cal_precheck_delta_too_high">Glykémia sa mení príliš rýchlo (Δ %1$s %3$s za 5 minút, limit %2$s). Čakajte na stabilitu.</string>
+    <string name="cal_precheck_mark_sensor_change">Zaznamenať výmenu senzora</string>
 </resources>

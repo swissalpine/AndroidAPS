@@ -5,13 +5,16 @@
 package app.aaps.core.ui.compose.preference
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import androidx.compose.ui.unit.dp
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.UnitDoublePreferenceKey
 import app.aaps.core.ui.compose.LocalPreferences
 import app.aaps.core.ui.compose.LocalProfileUtil
@@ -32,7 +35,7 @@ import app.aaps.core.ui.R as UiR
 fun AdaptiveUnitDoublePreferenceItem(
     unitKey: UnitDoublePreferenceKey,
     titleResId: Int = 0,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val preferences = LocalPreferences.current
     val profileUtil = LocalProfileUtil.current
@@ -76,18 +79,23 @@ fun AdaptiveUnitDoublePreferenceItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(theme.listItemPadding)
+            .padding(theme.padding)
     ) {
-        Text(
-            text = stringResource(effectiveTitleResId),
-            style = theme.titleTextStyle,
-            color = theme.titleColor
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(effectiveTitleResId),
+                style = theme.titleTextStyle,
+                // Mirror Preference's disabled styling (the switch row greys the same way) since this
+                // slider branch builds its own row instead of going through Preference.
+                color = theme.titleColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
+            )
+            SyncBadge(unitKey, Modifier.padding(start = 6.dp))
+        }
         if (summary != null) {
             Text(
                 text = summary,
                 style = theme.summaryTextStyle,
-                color = theme.summaryColor
+                color = theme.summaryColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
             )
         }
         PreferenceSliderWithButtons(
@@ -105,7 +113,8 @@ fun AdaptiveUnitDoublePreferenceItem(
             valueFormat = valueFormat,
             unitLabel = unitLabel,
             dialogLabel = stringResource(effectiveTitleResId),
-            dialogSummary = summary
+            dialogSummary = summary,
+            enabled = visibility.enabled
         )
     }
 }

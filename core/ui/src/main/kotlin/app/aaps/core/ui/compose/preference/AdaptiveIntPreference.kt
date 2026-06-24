@@ -5,16 +5,19 @@
 package app.aaps.core.ui.compose.preference
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.interfaces.IntPreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.rangeResId
 import app.aaps.core.keys.unitLabelResId
 import app.aaps.core.keys.valueResId
@@ -32,7 +35,7 @@ fun AdaptiveIntPreferenceItem(
     intKey: IntPreferenceKey,
     titleResId: Int = 0,
     unit: String = "",
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else intKey.titleResId
 
@@ -70,18 +73,23 @@ fun AdaptiveIntPreferenceItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(theme.listItemPadding)
+                .padding(theme.padding)
         ) {
-            Text(
-                text = stringResource(effectiveTitleResId),
-                style = theme.titleTextStyle,
-                color = theme.titleColor
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(effectiveTitleResId),
+                    style = theme.titleTextStyle,
+                    // Mirror Preference's disabled styling (the switch row greys the same way) since this
+                    // slider branch builds its own row instead of going through Preference.
+                    color = theme.titleColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
+                )
+                SyncBadge(intKey, Modifier.padding(start = 6.dp))
+            }
             if (summary != null) {
                 Text(
                     text = summary,
                     style = theme.summaryTextStyle,
-                    color = theme.summaryColor
+                    color = theme.summaryColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
                 )
             }
             PreferenceSliderWithButtons(
@@ -99,7 +107,8 @@ fun AdaptiveIntPreferenceItem(
                 valueFormat = DecimalFormat("0"),
                 unitLabel = unitLabel,
                 dialogLabel = stringResource(effectiveTitleResId),
-                dialogSummary = summary
+                dialogSummary = summary,
+                enabled = visibility.enabled
             )
         }
     } else {
@@ -112,7 +121,7 @@ fun AdaptiveIntPreferenceItem(
         }
         TextFieldPreference(
             state = state,
-            title = { Text(stringResource(effectiveTitleResId)) },
+            title = { PreferenceTitleWithSyncBadge(effectiveTitleResId, intKey) },
             textToValue = { text ->
                 text.toIntOrNull()?.coerceIn(intKey.min, intKey.max)
             },

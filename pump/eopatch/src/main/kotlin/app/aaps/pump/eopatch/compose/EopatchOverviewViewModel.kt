@@ -165,7 +165,7 @@ class EopatchOverviewViewModel @Inject constructor(
         viewModelScope.launch {
             val profile = profileFunction.getProfile()
             if (profile == null) {
-                _events.tryEmit(EopatchOverviewEvent.ShowToast(R.string.no_profile_selected))
+                _events.tryEmit(EopatchOverviewEvent.ShowToast(R.string.no_profile_selected_try_again))
                 return@launch
             }
             val basalValues = profile.getBasalValues()

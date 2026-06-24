@@ -3,12 +3,14 @@ package app.aaps.ui.search
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.aaps.core.interfaces.sync.NsClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -23,7 +25,8 @@ import javax.inject.Inject
 @Stable
 class SearchViewModel @Inject constructor(
     private val searchIndexBuilder: SearchIndexBuilder,
-    private val wikiSearchRepository: WikiSearchRepository
+    private val wikiSearchRepository: WikiSearchRepository,
+    private val nsClient: NsClient
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
@@ -33,6 +36,12 @@ class SearchViewModel @Inject constructor(
 
     init {
         observeSearchQuery()
+        // Rebuild the index when the client pairs/unpairs so CLIENT_PAIRED-gated actions drop out of
+        // (or re-enter) results live. drop(1) skips the initial replay — no needless rebuild on launch.
+        nsClient.masterOrPairedClientFlow
+            .drop(1)
+            .onEach { searchIndexBuilder.invalidateIndex() }
+            .launchIn(viewModelScope)
     }
 
     @OptIn(FlowPreview::class)
@@ -71,6 +80,9 @@ class SearchViewModel @Inject constructor(
      * Called when search mode is activated (search icon tapped).
      */
     fun onSearchModeActivated() {
+        // Rebuild on open so element visibility (pairing, pump type, advanced filtering …) is fresh for
+        // this search session — cheap (lazy rebuild on the next query) and closes the prior never-invalidated gap.
+        searchIndexBuilder.invalidateIndex()
         _uiState.update { it.copy(isSearchActive = true, query = "", results = emptyList(), wikiResults = emptyList()) }
         _searchQuery.value = ""
     }

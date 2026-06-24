@@ -536,7 +536,7 @@ class DiaconnG8Service : DaggerService() {
                         progressPercent = ((totalwaitTime - waitTime) * 100 / totalwaitTime).toInt()
                     }
                     val percent = min(progressPercent, 100)
-                    bolusProgressData.updateProgress(percent, rh.gs(R.string.waitingforestimatedbolusend))
+                    bolusProgressData.updateProgress(percent, rh.gs(R.string.waitingforbolusend))
                 }
                 SystemClock.sleep(200)
             }

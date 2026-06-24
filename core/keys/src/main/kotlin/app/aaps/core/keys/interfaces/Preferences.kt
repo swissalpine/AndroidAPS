@@ -1,8 +1,63 @@
 package app.aaps.core.keys.interfaces
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
+/** Shared empty flow backing the [Preferences.syncedLocalChanges] default (one instance, never emits). */
+private object EmptySyncedChanges {
+
+    val flow: SharedFlow<NonPreferenceKey> = MutableSharedFlow()
+}
+
 interface Preferences {
+
+    /**
+     * Emits a key every time a **bidirectionally-synced** preference ([SyncDirection.Bidirectional])
+     * is written **locally** (i.e. via the ordinary `put`, not [putRemote]). The device-to-device
+     * sync publisher collects this to push local edits to the master. Writes applied FROM sync go
+     * through [putRemote] and are intentionally NOT emitted here — that is what breaks the
+     * apply → observe → publish echo without any value comparison or snapshot.
+     *
+     * Default is an empty flow so non-syncing [Preferences] implementations need not override it.
+     */
+    val syncedLocalChanges: SharedFlow<NonPreferenceKey> get() = EmptySyncedChanges.flow
+
+    /**
+     * All declared keys carrying a [SyncSpec] (the single source of truth for sync membership).
+     * Default empty for implementations that don't sync.
+     */
+    fun getSyncKeys(): List<NonPreferenceKey> = emptyList()
+
+    /**
+     * Write a value that originated from sync (the master's republished config, or a client's
+     * pushed edit applied on the master). Stamps the key's modified time to [version] (not "now")
+     * and does NOT emit on [syncedLocalChanges], so it can't echo back out. For non-synced keys this
+     * behaves like an ordinary put. Default delegates to [put] for implementations that don't sync.
+     */
+    fun putRemote(key: BooleanNonPreferenceKey, value: Boolean, version: Long) = put(key, value)
+
+    /** [String] variant of [putRemote] — applied-from-sync write, stamps [version], does not re-publish. */
+    fun putRemote(key: StringNonPreferenceKey, value: String, version: Long) = put(key, value)
+
+    /** [Int] variant of [putRemote] — applied-from-sync write, stamps [version], does not re-publish. */
+    fun putRemote(key: IntNonPreferenceKey, value: Int, version: Long) = put(key, value)
+
+    /** [DoubleNonPreferenceKey] variant of [putRemote] — applied-from-sync (raw value, 1:1). */
+    fun putRemote(key: DoubleNonPreferenceKey, value: Double, version: Long) = put(key, value)
+
+    /**
+     * [UnitDoublePreferenceKey] variant of [putRemote]. [value] is the **raw stored** value (mg/dl),
+     * written 1:1 (the normal `put` already stores raw; the unit conversion is only on read/UI).
+     */
+    fun putRemote(key: UnitDoublePreferenceKey, value: Double, version: Long) = put(key, value)
+
+    /**
+     * Raw stored value of a [UnitDoublePreferenceKey] (mg/dl), bypassing the display-unit conversion
+     * that [get] applies. Used to sync the unit-independent stored value 1:1. Default delegates to
+     * [get] for non-syncing implementations (they never serialize UnitDouble).
+     */
+    fun getRaw(key: UnitDoublePreferenceKey): Double = get(key)
 
     /**
      * Are we in currently in SimpleMode ?
@@ -33,6 +88,16 @@ interface Preferences {
      * @return value
      */
     fun get(key: BooleanNonPreferenceKey): Boolean
+
+    /**
+     * Variant for publishing to the cold running-config (sync) doc. With [forSync] = `true`, returns the
+     * persisted value, falling back to the COMPUTED default ([app.aaps.core.keys.interfaces.PreferenceKey.calculatedDefaultValue])
+     * when unset, WITHOUT simple-mode presentation forcing — i.e. the value the device operatively uses, which
+     * is what must travel to clients (a plain raw read would publish the literal default and mis-tell clients
+     * for computed-default keys). Equals the raw value for keys without a computed default (incl. defaultedBySM
+     * keys, whose underlying user setting must travel). Default impl ignores [forSync]; only the real store overrides it.
+     */
+    fun get(key: BooleanNonPreferenceKey, forSync: Boolean): Boolean = get(key)
 
     /**
      * Get [Boolean] value from [android.content.SharedPreferences] or null if doesn't exist
@@ -332,6 +397,9 @@ interface Preferences {
      * @return value
      */
     fun get(key: IntNonPreferenceKey): Int
+
+    /** Sync variant — see [get] with `forSync` for [BooleanNonPreferenceKey]; same contract for Int keys. */
+    fun get(key: IntNonPreferenceKey, forSync: Boolean): Int = get(key)
 
     /**
      * Get [Int] value from [android.content.SharedPreferences] or null if doesn't exist

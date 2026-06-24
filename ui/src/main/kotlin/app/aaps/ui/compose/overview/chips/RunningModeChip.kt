@@ -53,6 +53,7 @@ fun RunningModeChip(
     remaining: String = "",
     sceneManaged: Boolean = false,
     smbEnabled: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
     val isTemporary = mode.mustBeTemporary()
@@ -66,6 +67,7 @@ fun RunningModeChip(
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
         Surface(
             onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onClick() },
+            enabled = enabled,
             shape = RoundedCornerShape(AapsSpacing.chipCornerRadius),
             color = containerColor,
             modifier = modifier

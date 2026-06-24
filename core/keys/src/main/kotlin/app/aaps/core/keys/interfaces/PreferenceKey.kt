@@ -84,20 +84,20 @@ interface PreferenceKey : NonPreferenceKey, PreferenceItem {
 
     /**
      * Runtime visibility condition for this preference.
-     * Evaluated against [PreferenceVisibilityContext] to determine if preference should be shown.
-     * Default is [PreferenceVisibility.ALWAYS] (always visible).
+     * Evaluated against [VisibilityContext] to determine if preference should be shown.
+     * Default is [ElementVisibility.ALWAYS] (always visible).
      *
      * Example usage in key definition:
      * ```
      * IageWarning(..., visibility = PreferenceVisibility.NON_PATCH_PUMP)
      * ```
      */
-    val visibility: PreferenceVisibility
-        get() = PreferenceVisibility.ALWAYS
+    val visibility: ElementVisibility
+        get() = ElementVisibility.ALWAYS
 
     /**
      * Runtime enabled condition for this preference.
-     * Evaluated against [PreferenceVisibilityContext] to determine if preference should be enabled.
+     * Evaluated against [VisibilityContext] to determine if preference should be enabled.
      * Default is [PreferenceEnabledCondition.ALWAYS] (always enabled).
      *
      * Example usage in key definition:

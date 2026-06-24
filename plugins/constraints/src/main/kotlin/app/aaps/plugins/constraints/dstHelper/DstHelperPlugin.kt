@@ -6,6 +6,7 @@ import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.dst.DstHelper
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationAction
@@ -41,7 +42,7 @@ class DstHelperPlugin @Inject constructor(
         .pluginName(R.string.dst_plugin_name),
     ownPreferences = listOf(DstHelperLongKey::class.java),
     aapsLogger, rh, preferences
-) {
+), DstHelper {
 
     companion object {
 
@@ -50,7 +51,7 @@ class DstHelperPlugin @Inject constructor(
     }
 
     //Return false if time to DST change happened in the last 3 hours.
-    fun dstCheck() {
+    override fun dstCheck() {
         val pump = activePlugin.activePump
         if (pump.canHandleDST()) return
         val cal = Calendar.getInstance()

@@ -151,13 +151,17 @@ class SearchIndexBuilder @Inject constructor(
         return entries
     }
 
+    /**
+     * A plugin (and therefore its settings screen/category and individual preference keys) is searchable only
+     * when it's visible in its list. E.g. VirtualPump's showInList is `{ !config.AAPSCLIENT }`, so on a client it
+     * and all its settings drop out of search — the values come from the master and aren't editable locally.
+     */
+    private fun PluginBase.isListVisible(): Boolean =
+        showInList(pluginDescription.mainType) && pluginDescription.pluginName != -1
+
     private fun collectPlugins(entries: MutableList<SearchIndexEntry>, seenKeys: MutableSet<String>) {
         activePlugin.getPluginsList()
-            .filter { plugin ->
-                // Only include plugins that are visible in at least one category
-                plugin.showInList(plugin.pluginDescription.mainType) &&
-                    plugin.pluginDescription.pluginName != -1
-            }
+            .filter { it.isListVisible() }
             .forEach { plugin ->
                 val item = SearchableItem.Plugin(plugin)
                 val entry = createIndexEntry(item)
@@ -169,21 +173,24 @@ class SearchIndexBuilder @Inject constructor(
     }
 
     private fun collectPluginScreens(entries: MutableList<SearchIndexEntry>, seenKeys: MutableSet<String>) {
-        activePlugin.getPluginsList().forEach { plugin ->
-            val content = plugin.getPreferenceScreenContent()
-            if (content is PreferenceSubScreenDef) {
-                // Add the screen itself
-                val screenItem = SearchableItem.Category(content, ownerPlugin = plugin)
-                val entry = createIndexEntry(screenItem)
-                val uniqueKey = "${entry.category.name}_${entry.item.key}"
-                if (seenKeys.add(uniqueKey)) {
-                    entries.add(entry)
-                }
+        activePlugin.getPluginsList()
+            // A plugin hidden from its list must not surface its settings screen/category in search either.
+            .filter { it.isListVisible() }
+            .forEach { plugin ->
+                val content = plugin.getPreferenceScreenContent()
+                if (content is PreferenceSubScreenDef) {
+                    // Add the screen itself
+                    val screenItem = SearchableItem.Category(content, ownerPlugin = plugin)
+                    val entry = createIndexEntry(screenItem)
+                    val uniqueKey = "${entry.category.name}_${entry.item.key}"
+                    if (seenKeys.add(uniqueKey)) {
+                        entries.add(entry)
+                    }
 
-                // Recursively collect nested screens
-                collectNestedScreens(content, plugin, entries, seenKeys)
+                    // Recursively collect nested screens
+                    collectNestedScreens(content, plugin, entries, seenKeys)
+                }
             }
-        }
     }
 
     private fun collectNestedScreens(screen: PreferenceSubScreenDef, plugin: PluginBase, entries: MutableList<SearchIndexEntry>, seenKeys: MutableSet<String>) {
@@ -213,7 +220,16 @@ class SearchIndexBuilder @Inject constructor(
             // Skip keys with invalid title resource
             if (prefKey.titleResId == 0) return@forEach
 
+            // Skip keys not visible in the current build mode (mirror calculatePreferenceVisibility)
+            if (preferences.apsMode && !prefKey.showInApsMode) return@forEach
+            if (preferences.nsclientMode && !prefKey.showInNsClientMode) return@forEach
+            if (preferences.pumpControlMode && !prefKey.showInPumpControlMode) return@forEach
+
             val parentInfo = parentScreenMap[prefKey.key]
+            // Skip keys whose owning plugin is hidden from its list (e.g. VirtualPump on a client — its values
+            // come from the master, so its settings must not be searchable). Keys with no owning plugin pass.
+            val ownerPlugin = parentInfo?.plugin
+            if (ownerPlugin != null && !ownerPlugin.isListVisible()) return@forEach
             val item = SearchableItem.Preference(prefKey, parentInfo?.key, parentInfo?.plugin)
             val entry = createIndexEntry(item)
             val uniqueKey = "${entry.category.name}_${entry.item.key}"

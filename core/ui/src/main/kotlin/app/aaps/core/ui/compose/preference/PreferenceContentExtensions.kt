@@ -22,7 +22,7 @@ import app.aaps.core.keys.interfaces.IntPreferenceKey
 import app.aaps.core.keys.interfaces.IntentPreferenceKey
 import app.aaps.core.keys.interfaces.LongPreferenceKey
 import app.aaps.core.keys.interfaces.PreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import kotlinx.coroutines.delay
 
 /**
@@ -82,7 +82,7 @@ private fun RenderPreferenceItems(
     parentKey: String,
     onShowMessage: (String) -> Unit,
     sectionState: PreferenceSectionState?,
-    visibilityContext: PreferenceVisibilityContext?
+    visibilityContext: VisibilityContext?
 ) {
     items.forEach { item ->
         when (item) {
@@ -145,7 +145,7 @@ private fun RenderPreferenceItems(
 @Composable
 private fun shouldShowSubScreenInline(
     subScreen: PreferenceSubScreenDef,
-    visibilityContext: PreferenceVisibilityContext?
+    visibilityContext: VisibilityContext?
 ): Boolean {
     // Find items with hideParentScreenIfHidden = true
     for (item in subScreen.items) {

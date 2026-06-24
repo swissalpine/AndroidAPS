@@ -11,7 +11,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.interfaces.IntPreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.StringPreferenceKey
 
 /**
@@ -26,7 +26,7 @@ fun AdaptiveListIntPreferenceItem(
     titleResId: Int = 0,
     entries: List<String>,
     entryValues: List<Int>,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else intKey.titleResId
 
@@ -75,7 +75,7 @@ fun AdaptiveStringListPreferenceItem(
     stringKey: StringPreferenceKey,
     titleResId: Int = 0,
     entries: Map<String, String>,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else stringKey.titleResId
 
@@ -101,7 +101,7 @@ fun AdaptiveStringListPreferenceItem(
     ListPreference(
         state = state,
         values = values,
-        title = { Text(stringResource(effectiveTitleResId)) },
+        title = { PreferenceTitleWithSyncBadge(effectiveTitleResId, stringKey) },
         enabled = visibility.enabled,
         summary = { Text(currentEntry) },
         dialogSummary = dialogSummary,

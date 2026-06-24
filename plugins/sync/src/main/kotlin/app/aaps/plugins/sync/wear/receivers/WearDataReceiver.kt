@@ -43,8 +43,6 @@ open class WearDataReceiver : DaggerBroadcastReceiver() {
                         rxBus.send(EventMobileToWear(eventData))
                 }
             }
-
-            else                          -> null
         }
     }
 

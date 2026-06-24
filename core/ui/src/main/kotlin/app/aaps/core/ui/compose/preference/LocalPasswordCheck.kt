@@ -1,14 +1,14 @@
 package app.aaps.core.ui.compose.preference
 
 import androidx.compose.runtime.compositionLocalOf
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.ui.compose.ComposeScreenContent
 
 /**
  * CompositionLocal for providing PreferenceVisibilityContext to preference composables.
  * Used by AdaptivePreferenceList and PreferenceContentExtensions to evaluate visibility conditions.
  */
-val LocalVisibilityContext = compositionLocalOf<PreferenceVisibilityContext?> { null }
+val LocalVisibilityContext = compositionLocalOf<VisibilityContext?> { null }
 
 /**
  * CompositionLocal for password verification function.

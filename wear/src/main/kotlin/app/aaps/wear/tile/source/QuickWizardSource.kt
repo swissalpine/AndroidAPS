@@ -19,6 +19,10 @@ class QuickWizardSource @Inject constructor(private val context: Context, privat
 
     companion object {
         const val COOLDOWN_MILLIS = 3_600_000L // 1 hour
+
+        // Mirrors QuickWizardMode in :core:objects (not a wear dependency): WIZARD(0), INSULIN(1), CARBS(2).
+        // An INSULIN button shows its fixed dose in U; WIZARD/CARBS show carbs in g (the wizard's carb input).
+        private const val MODE_INSULIN = 1
     }
 
     override fun getSelectedActions(): List<Action> {
@@ -33,7 +37,10 @@ class QuickWizardSource @Inject constructor(private val context: Context, privat
                 quickList.add(
                     Action(
                         buttonText = quick.buttonText,
-                        buttonTextSub = "${quick.carbs} g",
+                        buttonTextSub = if (quick.mode == MODE_INSULIN)
+                            context.resources.getString(R.string.quick_wizard_tile_insulin, quick.insulin)
+                        else
+                            context.resources.getString(R.string.quick_wizard_tile_carbs, quick.carbs),
                         iconRes = R.drawable.ic_quick_wizard,
                         activityClass = BackgroundActionActivity::class.java.name,
                         action = EventData.ActionQuickWizardPreCheck(quick.guid),

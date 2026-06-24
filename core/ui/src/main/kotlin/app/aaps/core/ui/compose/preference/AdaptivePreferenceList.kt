@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 
 import app.aaps.core.keys.interfaces.PreferenceItem
 import app.aaps.core.keys.interfaces.PreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 
 /**
  * Renders a list of preference items (keys, subscreens, custom items).
@@ -27,7 +27,7 @@ import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
 fun AdaptivePreferenceList(
     items: List<PreferenceItem>,
     onShowMessage: (String) -> Unit = { },
-    visibilityContext: PreferenceVisibilityContext? = null,
+    visibilityContext: VisibilityContext? = null,
     onNavigateToSubScreen: ((PreferenceSubScreenDef) -> Unit)? = null
 ) {
     items.forEach { item ->

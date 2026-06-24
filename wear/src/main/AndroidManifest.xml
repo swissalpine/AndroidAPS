@@ -610,7 +610,7 @@
 
             <meta-data
                 android:name="androidx.wear.tiles.PREVIEW"
-                android:resource="@drawable/user_action_tiles" />
+                android:resource="@drawable/scene_tile" />
         </service>
 
         <service
@@ -674,7 +674,7 @@
             android:label="@string/menu_wizard"
             android:theme="@style/WearAppCompatDark" />
         <activity
-            android:name=".interaction.actions.WizardResultActivity"
+            android:name=".interaction.actions.ContactingMasterActivity"
             android:exported="false"
             android:theme="@style/WearAppCompatDark" />
         <activity

@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.keys.StringKey
 import app.aaps.core.keys.interfaces.IntPreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.StringPreferenceKey
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.LocalPreferences
@@ -40,7 +40,7 @@ fun AdaptivePasswordPreferenceItem(
     titleResId: Int = 0,
     visibilityKey: IntPreferenceKey? = null,
     visibilityValue: Int? = null,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val preferences = LocalPreferences.current
     val effectiveTitleResId = if (titleResId != 0) titleResId else stringKey.titleResId

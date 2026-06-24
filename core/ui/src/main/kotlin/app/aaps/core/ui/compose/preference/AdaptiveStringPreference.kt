@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.keys.StringKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.StringPreferenceKey
 import app.aaps.core.keys.interfaces.StringValidator
 
@@ -32,7 +32,7 @@ fun AdaptiveStringPreferenceItem(
     titleResId: Int = 0,
     summaryResId: Int? = null,
     isPassword: Boolean = false,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else stringKey.titleResId
     val effectiveSummaryResId = summaryResId ?: stringKey.summaryResId

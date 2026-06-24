@@ -228,6 +228,10 @@ class DashOmnipodWizardViewModel @Inject constructor(
             )
             notificationManager.dismiss(NotificationId.OMNIPOD_POD_NOT_ATTACHED)
             fabricPrivacy.logCustom("OmnipodDashPodActivated")
+            // Activation is COMPLETED — read pump status so the reservoir StateFlow leaves its 0.0 init right away.
+            // Without this it stays 0.0 (wrong reservoir display, and bolus/basal gates that read it) until the next
+            // loop poll. Fire-and-forget so the activation-complete UI isn't delayed by the BLE round-trip.
+            viewModelScope.launch { commandQueue.readStatus(rh.gs(CommonR.string.omnipod_common_pod_activation_wizard_pod_activated_title)) }
             pumpEnactResultProvider.get().success(true)
         } catch (throwable: Throwable) {
             logger.error(LTag.PUMP, "Error in Pod activation part 2", throwable)

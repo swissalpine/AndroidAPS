@@ -52,6 +52,7 @@
     <string name="patch_start_safety_check">Стартирайте проверката за безопасност</string>
     <string name="patch_safety_check">Проверка за безопасност…</string>
     <string name="patch_safety_check_desc_1">Отнема около 30 секунди.</string>
+    <string name="patch_safety_check_desc_2">За сигурност, не премахвайте защитата на иглата докато не мине проверката!</string>
     <string name="patch_rotate_knob">Поставяне на иглата</string>
     <string name="patch_rotate_knob_desc_1">Завъртете лоста за действие на иглата на повече от 100°, за да поставите иглата и след това завъртете напълно, за да го махнете</string>
     <string name="patch_rotate_knob_desc_2">Проверете за 1 звуков сигнал и след това натиснете „Напред“.</string>
@@ -63,6 +64,7 @@
     <string name="patch_activate_reminder_desc">Активирането на Patch не е завършено.\n Продължете.</string>
     <string name="patch_communication_check_helper_1">Доближете смарт устройството си до Patch.</string>
     <string name="patch_communication_check_helper_2">Моля, преместете се на друго място и опитайте отново.</string>
+    <string name="patch_safety_check_failed_desc">Грешка при проверката за сигурност. Опитайте отново.</string>
     <string name="patch_communication_failed">Грешка при свързване</string>
     <string name="patch_communication_succeed">Успешно свързване</string>
     <string name="patch_communication_succeed_message">Свързанo с Patch.</string>
@@ -81,9 +83,17 @@
     <string name="needle_insertion_error_3">Натиснете „Отхвърляне“, за да деактивирате Patch.</string>
     <string name="string_suspend_time_insulin_delivery_title">Време за спиране на базала</string>
     <string name="string_resume_insulin_delivery_title">Възобновяване доставянето на инсулин</string>
+    <string name="string_resume_insulin_delivery_message">Край на спирането на инсулин.\nНатиснете \'Потвърди\' за да го продължите.\n\nСпирането няма да прължи докато не натиснете \'Потвърди\'.\nАко не го направите може да изпаднете в хипергликемия.</string>
     <string name="string_suspended_insulin_delivery_message">Доставянето на инсулин е спряно.</string>
     <string name="string_resumed_insulin_delivery_message">Доставянето на инсулин е възобновено.</string>
     <string name="string_temp_basal_remained_hhmm">оставащо време: %1$s:%2$s</string>
+    <string name="string_pause_failed">Прекъсването е неуспешно.</string>
     <string name="string_resume_failed">Възобновяването е неуспешно.</string>
+    <string name="wizard_exit_activation_warning">Изход от съветника? Пач помпата ще остане в незавършен статус и ще се наложи да сложите нова.</string>
+    <string name="wizard_exit_deactivation_warning">Изход от съветника? Помпата може да остане активна и да пуска инсулин.</string>
+    <string name="patch_force_reset">Форирано нулиране</string>
+    <string name="patch_force_reset_confirm">Това ще изчисти статуса на пача локално и без да изпрати команда до помпата. Използвай само ако нормалната деактивация е невъзможна. Помпата ще доставя инсулин докато не свърши батерията или е ръчно изключена.</string>
     <!-- Permission rationales -->
+    <string name="permission_exact_alarm_title">Точни аларми</string>
+    <string name="permission_exact_alarm_description">Нуждая се от разрешение да пускам точни аларми за управление на пачовете</string>
 </resources>

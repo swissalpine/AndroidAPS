@@ -163,52 +163,46 @@ fun QuickLauchConfigScreen(
                 }
             }
 
-            // ── Available: Treatment ──
+            // ── Available: Treatment ── (whole section hidden when empty — e.g. all visibility-filtered on a client)
             val treatmentItems = state.availableStaticItems.filter {
                 it.action.elementType?.category in setOf(ElementCategory.TREATMENT, ElementCategory.CGM)
             }
-            item(key = "divider_treatment") {
-                HorizontalDivider()
-            }
-            item(key = "header_treatment") {
-                SectionHeader(stringResource(R.string.quick_launch_category_treatment))
-            }
-            if (treatmentItems.isEmpty()) {
-                item(key = "empty_treatment") { EmptyHint(stringResource(R.string.quick_launch_all_selected)) }
-            } else {
+            if (treatmentItems.isNotEmpty()) {
+                item(key = "divider_treatment") {
+                    HorizontalDivider()
+                }
+                item(key = "header_treatment") {
+                    SectionHeader(stringResource(R.string.quick_launch_category_treatment))
+                }
                 items(treatmentItems, key = { "avail_${it.action.typeId}" }) { item ->
                     AvailableActionItem(item = item, onAdd = { viewModel.addAction(item.action) }, modifier = Modifier.animateItem())
                 }
             }
 
-            // ── Available: Care Portal ──
+            // ── Available: Care Portal ── (hidden when empty)
             val careItems = state.availableStaticItems.filter {
                 it.action.elementType?.category in setOf(ElementCategory.CAREPORTAL, ElementCategory.DEVICE)
             }
-            item(key = "divider_care") {
-                HorizontalDivider()
-            }
-            item(key = "header_care") {
-                SectionHeader(stringResource(R.string.quick_launch_category_care))
-            }
-            if (careItems.isEmpty()) {
-                item(key = "empty_care") { EmptyHint(stringResource(R.string.quick_launch_all_selected)) }
-            } else {
+            if (careItems.isNotEmpty()) {
+                item(key = "divider_care") {
+                    HorizontalDivider()
+                }
+                item(key = "header_care") {
+                    SectionHeader(stringResource(R.string.quick_launch_category_care))
+                }
                 items(careItems, key = { "avail_${it.action.typeId}" }) { item ->
                     AvailableActionItem(item = item, onAdd = { viewModel.addAction(item.action) }, modifier = Modifier.animateItem())
                 }
             }
 
-            // ── Dynamic: Quick Wizard ──
-            item(key = "divider_qw") {
-                HorizontalDivider()
-            }
-            item(key = "header_qw") {
-                SectionHeader(stringResource(R.string.quick_launch_category_quick_wizard))
-            }
-            if (state.availableQuickWizardItems.isEmpty()) {
-                item(key = "empty_qw") { EmptyHint(stringResource(R.string.quick_launch_no_quick_wizard)) }
-            } else {
+            // ── Dynamic: Quick Wizard ── (hidden when empty)
+            if (state.availableQuickWizardItems.isNotEmpty()) {
+                item(key = "divider_qw") {
+                    HorizontalDivider()
+                }
+                item(key = "header_qw") {
+                    SectionHeader(stringResource(R.string.quick_launch_category_quick_wizard))
+                }
                 items(state.availableQuickWizardItems, key = { "avail_qw_${it.action.dynamicId}" }) { item ->
                     AvailableActionItem(item = item, onAdd = { viewModel.addAction(item.action) }, modifier = Modifier.animateItem())
                 }
@@ -227,46 +221,40 @@ fun QuickLauchConfigScreen(
                 }
             }
 
-            // ── Dynamic: Automation ──
-            item(key = "divider_auto") {
-                HorizontalDivider()
-            }
-            item(key = "header_auto") {
-                SectionHeader(stringResource(R.string.quick_launch_category_automation))
-            }
-            if (state.availableAutomationItems.isEmpty()) {
-                item(key = "empty_auto") { EmptyHint(stringResource(R.string.quick_launch_no_automation)) }
-            } else {
+            // ── Dynamic: Automation ── (hidden when empty)
+            if (state.availableAutomationItems.isNotEmpty()) {
+                item(key = "divider_auto") {
+                    HorizontalDivider()
+                }
+                item(key = "header_auto") {
+                    SectionHeader(stringResource(R.string.quick_launch_category_automation))
+                }
                 items(state.availableAutomationItems, key = { "avail_auto_${it.action.dynamicId}" }) { item ->
                     AvailableActionItem(item = item, onAdd = { viewModel.addAction(item.action) }, modifier = Modifier.animateItem())
                 }
             }
 
-            // ── Dynamic: TT Presets ──
-            item(key = "divider_tt") {
-                HorizontalDivider()
-            }
-            item(key = "header_tt") {
-                SectionHeader(stringResource(R.string.quick_launch_category_temp_target))
-            }
-            if (state.availableTtPresetItems.isEmpty()) {
-                item(key = "empty_tt") { EmptyHint(stringResource(R.string.quick_launch_no_tt_presets)) }
-            } else {
+            // ── Dynamic: TT Presets ── (hidden when empty)
+            if (state.availableTtPresetItems.isNotEmpty()) {
+                item(key = "divider_tt") {
+                    HorizontalDivider()
+                }
+                item(key = "header_tt") {
+                    SectionHeader(stringResource(R.string.quick_launch_category_temp_target))
+                }
                 items(state.availableTtPresetItems, key = { "avail_tt_${it.action.dynamicId}" }) { item ->
                     AvailableActionItem(item = item, onAdd = { viewModel.addAction(item.action) }, modifier = Modifier.animateItem())
                 }
             }
 
-            // ── Dynamic: Profiles ──
-            item(key = "divider_profiles") {
-                HorizontalDivider()
-            }
-            item(key = "header_profiles") {
-                SectionHeader(stringResource(R.string.quick_launch_category_profile))
-            }
-            if (state.availableProfileItems.isEmpty()) {
-                item(key = "empty_profiles") { EmptyHint(stringResource(R.string.quick_launch_no_profiles)) }
-            } else {
+            // ── Dynamic: Profiles ── (hidden when empty)
+            if (state.availableProfileItems.isNotEmpty()) {
+                item(key = "divider_profiles") {
+                    HorizontalDivider()
+                }
+                item(key = "header_profiles") {
+                    SectionHeader(stringResource(R.string.quick_launch_category_profile))
+                }
                 items(state.availableProfileItems, key = { "avail_profile_${it.action.dynamicId}" }) { item ->
                     AvailableActionItem(item = item, onAdd = { viewModel.addAction(item.action) }, modifier = Modifier.animateItem())
                 }

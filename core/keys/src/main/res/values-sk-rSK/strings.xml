@@ -147,9 +147,6 @@
     <string name="pref_summary_wear_notify_on_smb">Odosielať oznámenia na hodinky, keď je podané SMB.</string>
     <string name="pref_title_wear_broadcast_data">Odosielať dáta na hodinky</string>
     <string name="pref_summary_wear_broadcast_data">Vysielať dáta AAPS do aplikácií hodiniek tretích strán cez intent.</string>
-    <!-- Wizard preferences -->
-    <string name="pref_title_wizard_calculation_visible">Zobraziť výpočet kalkulačky</string>
-    <string name="pref_title_wizard_correction_percent">Použiť korekčné percento</string>
     <!-- Site rotation preferences -->
     <string name="pref_title_site_rotation_manage_pump">Spravovať rotáciu umiestnenia pumpy</string>
     <string name="pref_title_site_rotation_manage_cgm">Spravovať rotáciu umiestnení CGM</string>
@@ -223,6 +220,8 @@
     <string name="pref_title_sms_remote_bolus_distance">Minimálna vzdialenosť pre bolus na diaľku</string>
     <!-- IntKey: BG Source preferences -->
     <string name="pref_title_random_bg_interval">Interval náhodnej glykémie</string>
+    <string name="pref_title_random_bg_randomize">Náhodné dáta glykémie</string>
+    <string name="pref_summary_random_bg_randomize">Pridať šum, čas jitteru, náhodné trendové šípky a náhodné sacharidy. Zakážte pre čistú deterministickú sinusovú vlnu so šipkou trendu odvodenú od sínusovej krivky.</string>
     <!-- IntKey: NS Client preferences -->
     <string name="pref_title_alarm_stale_data">Prahová hodnota alarmu pre zastaralé dáta</string>
     <string name="pref_title_urgent_alarm_stale_data">Prahová hodnota naliehavého alarmu pre zastaralé dáta</string>

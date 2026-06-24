@@ -123,7 +123,7 @@ private fun TidepoolScreenContent(
             horizontalArrangement = Arrangement.spacedBy(AapsSpacing.medium)
         ) {
             Text(
-                text = stringResource(R.string.status),
+                text = stringResource(R.string.status_label),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )

@@ -15,4 +15,5 @@
     <!--    PersistentNotification-->
     <string name="description_persistent_notification">Показва известие с резюме на това, което прави вашия APS</string>
     <string name="old_data">СТАРИ ДАННИ</string>
+    <string name="notification_iob_short">%1$.1fЕ</string>
 </resources>

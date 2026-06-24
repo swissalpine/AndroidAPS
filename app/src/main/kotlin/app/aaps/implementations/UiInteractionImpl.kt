@@ -20,8 +20,6 @@ import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.AlarmIntent
 import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.ui.UiInteraction
-import app.aaps.core.keys.BooleanKey
-import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.objects.extensions.asAnnouncement
 import app.aaps.implementation.androidNotification.AlarmNotificationManager
 import app.aaps.ui.activities.ErrorActivity
@@ -40,7 +38,6 @@ class UiInteractionImpl @Inject constructor(
     private val notificationManager: Provider<NotificationManager>,
     private val aapsLogger: AAPSLogger,
     private val persistenceLayer: PersistenceLayer,
-    private val preferences: Preferences,
     private val config: Config,
     @ApplicationScope private val appScope: CoroutineScope
 ) : UiInteraction {
@@ -53,7 +50,7 @@ class UiInteractionImpl @Inject constructor(
         // preference + APS build. Done here (not in ErrorActivity) so the record is written for
         // every alarm with the true trigger time, regardless of whether/how it is later
         // acknowledged (phone activity, Wear mute, OS-trimmed notification, or never opened).
-        if (config.APS && preferences.get(BooleanKey.NsClientCreateAnnouncementsFromErrors))
+        if (config.APS)
             appScope.launch {
                 persistenceLayer.insertPumpTherapyEventIfNewByTimestamp(
                     therapyEvent = TE.asAnnouncement(status),

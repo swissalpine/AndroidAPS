@@ -68,7 +68,7 @@ private val PREDICTION_SERIES = listOf(SERIES_PRED_IOB, SERIES_PRED_COB, SERIES_
  * Layer 0 (start axis): BG readings — regular (outlined circles) + bucketed (filled, range-colored)
  * Layer 1 (end axis, hidden): Basal — profile (dashed step) + actual delivered (solid step + area fill)
  *
- * Basal Y-axis is scaled so maxBasal = 25% of chart height (maxY = maxBasal * 4).
+ * Basal Y-axis is scaled so maxBasal occupies [BASAL_HEIGHT_FRACTION] of the chart height (maxY = maxBasal / BASAL_HEIGHT_FRACTION).
  *
  * Scroll/Zoom:
  * - Accepts external scroll/zoom states for synchronization with secondary graphs
@@ -467,9 +467,9 @@ fun BgGraphCompose(
         listOf(activityHistLine, activityPredLine)
     }
 
-    // Basal Y-axis range: maxBasal * 4 so basal occupies ~25% of chart height
+    // Basal Y-axis range: maxBasal / BASAL_HEIGHT_FRACTION so basal occupies that fraction of chart height
     val basalMaxY = remember(basalData.maxBasal) {
-        if (basalData.maxBasal > 0.0) basalData.maxBasal * 4.0 else 1.0
+        if (basalData.maxBasal > 0.0) basalData.maxBasal / BASAL_HEIGHT_FRACTION else 1.0
     }
 
     // =========================================================================

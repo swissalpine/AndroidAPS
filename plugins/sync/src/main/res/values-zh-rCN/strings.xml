@@ -4,27 +4,67 @@
     <!-- ns_wifi_ssids moved to core:keys module -->
     <string name="connection_settings_title">连接设置</string>
     <!-- ns_wifi_ssids_summary moved to core:keys module -->
-    <string name="description_ns_client">使用 v1 API 与 Nightscout 同步数据</string>
     <string name="description_ns_client_v3">使用 v3 API 与 Nightscout 同步数据</string>
     <string name="blocked_by_charging">被充电选项阻止</string>
     <string name="blocked_by_connectivity">被连接选项阻止</string>
     <string name="no_connectivity">没有连线</string>
     <string name="unsupported_ns_version">不支持的 Nightscout 版本</string>
-    <string name="ns_malfunction">NSClient 故障。请考虑重新启动NS 和 NSClient 。</string>
     <!-- AAPSClient -->
     <string name="no_write_permission">NSCLIENT 没有写权限。可能是NS的 API 密钥输错了？</string>
     <string name="ns_client_v3_short_name">NSV3</string>
+    <!-- Authorized clients (paired devices that can issue signed commands) -->
+    <string name="authorized_clients_title">已授权的客户端</string>
+    <string name="authorized_clients_add">添加客户端</string>
+    <string name="authorized_clients_comm_switch_title">允许客户端控制</string>
+    <string name="authorized_clients_comm_switch_summary">允许已配对的客户端通过 Nightscout 发送已签名的命令。关闭此选项可在不移除客户端的情况下停止通信。</string>
+    <string name="authorized_clients_state_active">已激活</string>
+    <string name="authorized_clients_state_pending">等待中</string>
+    <string name="authorized_clients_last_seen">上次活跃时间 %1$s</string>
+    <string name="authorized_clients_never_seen">从未使用</string>
+    <string name="authorized_clients_pending_expires_in">配对将在 %1$s 秒后过期</string>
+    <string name="authorized_clients_empty_title">没有已授权的客户端</string>
+    <string name="authorized_clients_empty_subtitle">配对客户端设备，以允许其向此主机发送已签名的命令。</string>
+    <string name="authorized_clients_disabled_title">客户端控制已关闭</string>
+    <string name="authorized_clients_disabled_subtitle">在设置中开启客户端控制，以授权客户端设备向此主机发送已签名的命令。</string>
+    <string name="authorized_clients_open_settings">打开设置</string>
+    <string name="authorized_clients_name_dialog_title">新客户端</string>
+    <string name="authorized_clients_name_placeholder">设备名称</string>
+    <string name="authorized_clients_delete_dialog_title">撤销访问权限？</string>
+    <string name="authorized_clients_delete_dialog_message">%1$s 将无法再发送命令。</string>
+    <string name="authorized_clients_pin_dialog_title">配对客户端</string>
+    <string name="authorized_clients_pin_instructions">在客户端设备上输入此 PIN 码。该代码仅对一次配对有效。</string>
+    <string name="authorized_clients_pin_expires_in">将于 %1$s 秒后过期</string>
+    <string name="authorized_clients_pin_done">完成</string>
+    <string name="authorized_clients_pin_publishing">正在向 Nightscout 发送配对请求…</string>
+    <string name="authorized_clients_pin_published">配对请求已在 Nightscout 上就绪。</string>
+    <string name="authorized_clients_pin_publish_failed">无法将配对请求上传至 Nightscout。</string>
+    <string name="authorized_clients_pin_retry">重试</string>
+    <!-- Pair with master (client side PIN entry) -->
+    <string name="pair_with_master_title">与主机配对</string>
+    <string name="pair_with_master_pin_entry_title">输入配对 PIN</string>
+    <string name="pair_with_master_pin_entry_message">在主机设备上打开“已授权的客户端”，并添加此客户端。输入该处显示的 8 位 PIN 码。</string>
+    <string name="pair_with_master_pin_entry_label">8 位数PIN码</string>
+    <string name="pair_with_master_pin_entry_submit">配对</string>
+    <string name="pair_with_master_fetching">正在查找配对…</string>
+    <string name="pair_with_master_confirm_title">与此主机配对？</string>
+    <string name="pair_with_master_confirm_master">主机：%1$s</string>
+    <string name="pair_with_master_confirm_warning">配对后，此主机将能够向此设备发送已签名的命令。</string>
+    <string name="pair_with_master_confirm_pair">配对</string>
+    <string name="pair_with_master_error_title">无法配对</string>
+    <string name="pair_with_master_error_wrong_pin">未找到该 PIN 码对应的配对。请检查主机上的 PIN 码后重试。</string>
+    <string name="pair_with_master_error_ambiguous_pin">多个配对匹配了该 PIN 码。请让主机生成新的 PIN 码后重试。</string>
+    <string name="pair_with_master_error_expired">此配对已过期。请在主机上生成新的 PIN 码。</string>
+    <string name="pair_with_master_error_network">无法访问 Nightscout。请检查连接后重试。</string>
+    <string name="pair_with_master_retry">请重试</string>
+    <string name="pair_with_master_already_paired_title">已配对</string>
+    <string name="pair_with_master_already_paired_master">当前已与主机 %1$s 配对。请先取消配对再输入新 PIN 码。</string>
+    <string name="pair_with_master_unpair">取消配对</string>
+    <string name="pair_with_master_sending">正在发送配对消息…</string>
+    <!-- Client-control orphan notification (master no longer recognises this client) -->
+    <string name="clientcontrol_orphan_notification">主机 AAPS 不再识别此设备。请打开“管理界面” → “与主机配对”以重新配对。</string>
     <string name="ns_client">NSClient</string>
-    <string name="ns_client_short_name">NSv1</string>
     <string name="ns_client_url">URL网址：</string>
-    <string name="ns_client_title">NSClientV1</string>
     <string name="ns_client_v3_title">NSClientV3</string>
-    <!-- ns_client_url_title moved to core:keys module -->
-    <!-- ns_client_url_summary moved to core:keys module -->
-    <!-- ns_client_secret_title moved to core:keys module -->
-    <!-- ns_client_secret_summary moved to core:keys module -->
-    <!-- nsclient_token_title moved to core:keys module -->
-    <!-- nsclient_token_summary moved to core:keys module -->
     <string name="deliver_now">立即输注</string>
     <string name="queue">队列：</string>
     <string name="status">状态:</string>
@@ -68,20 +108,13 @@
     <string name="no_watch_connected">(无手表连接)</string>
     <string name="pump_status">泵状态</string>
     <string name="loop_status">闭环状态</string>
-    <string name="quick_wizard_not_available">选定的快速向导不再可用，请刷新</string>
-    <string name="quick_wizard_message">快速向导: %1$s\n胰岛素: %2$.2fU\n碳水: %3$d克</string>
     <string name="user_action_not_available">所选用户动作 %1$s 已不可用，请刷新您的面板</string>
     <string name="scene_not_available">情景 %1$s 已失效，请刷新磁贴</string>
     <string name="wear_remote_insulin_not_allowed_in_client">客户端模式下已禁用远程胰岛素指令</string>
-    <string name="wear_action_tempt_cancel_message">取消运行临时目标？</string>
     <string name="wear_action_tempt_unit_error">手表和手机上使用了不同的单位！</string>
-    <string name="wear_action_tempt_zero_message">零-临时目标-取消运行中的临时目标？</string>
     <string name="wear_action_tempt_min_bg_error">目标血糖最小值超出范围！</string>
     <string name="wear_action_tempt_max_bg_error">目标血糖最大值超出范围！</string>
     <string name="wear_action_tempt_range_error">无效范围：低目标(%1$s) 不能大于高目标(%2$s)</string>
-    <string name="wear_action_tempt_manual_range_message">临时目标\n\n最小: %1$s\n最大: %2$s\n持续时间: %3$d 分钟</string>
-    <string name="wear_action_tempt_manual_message">临时目标\n\n目标：%1$s\n持续时间：%2$d 分钟</string>
-    <string name="wear_action_tempt_preset_message">临时目标\n\n原因：%1$s\n目标%2$s\n持续时间：%3$d 分钟</string>
     <string name="wear_wizard_settings_summary">包含在向导中的计算结果：</string>
     <string name="wear_general_settings">常规设置</string>
     <string name="wear_custom_watchface_settings">自定义表盘设置</string>
@@ -105,7 +138,6 @@
     <string name="grams_short">g</string>
     <string name="hour_short">时</string>
     <string name="no_active_profile">没有激活的个人配置切换！</string>
-    <string name="profile_message">配置：%1$s\n时间偏移%2$d 小时\n百分比：%3$d%%\n持续时间：%4$d 分钟</string>
     <string name="target_only_aps_mode">目标仅适用于APS模式！</string>
     <string name="no_history">无历史数据！</string>
     <string name="temp_target">临时目标</string>

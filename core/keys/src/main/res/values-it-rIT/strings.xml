@@ -125,6 +125,8 @@
     <string name="pref_title_ns_slow_sync">Usa sincronizzazione lenta</string>
     <string name="pref_title_ns_use_ws">Usa websockets</string>
     <string name="pref_summary_ns_use_ws">Utilizzare websockets per la comunicazione in tempo reale con Nightscout.</string>
+    <string name="pref_title_ns_allow_client_control">Consenti controllo client</string>
+    <string name="pref_summary_ns_allow_client_control">Consenti ai dispositivi client associati di inviare comandi firmati (ad esempio scene di start/stop) su Nightscout.</string>
     <!-- OpenHumans preferences -->
     <string name="pref_title_openhumans_wifi_only">Solo WiFi</string>
     <string name="pref_title_openhumans_charging_only">Solo in ricarica</string>
@@ -147,9 +149,6 @@
     <string name="pref_summary_wear_notify_on_smb">Invia notifiche per quando SMB viene erogato.</string>
     <string name="pref_title_wear_broadcast_data">Trasmetti i dati all\'orologio</string>
     <string name="pref_summary_wear_broadcast_data">Trasmetti i dati AAPS alle applicazioni di terze parti.</string>
-    <!-- Wizard preferences -->
-    <string name="pref_title_wizard_calculation_visible">Mostra calcolo guidato</string>
-    <string name="pref_title_wizard_correction_percent">Usare percentuale correzione</string>
     <!-- Site rotation preferences -->
     <string name="pref_title_site_rotation_manage_pump">Gestisci la rotazione del sito del micro</string>
     <string name="pref_title_site_rotation_manage_cgm">Gestisci la rotazione del sito del CGM</string>

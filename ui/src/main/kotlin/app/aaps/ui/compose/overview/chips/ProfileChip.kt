@@ -33,7 +33,8 @@ fun ProfileChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     sceneManaged: Boolean = false,
-    isNoProfile: Boolean = false
+    isNoProfile: Boolean = false,
+    enabled: Boolean = true
 ) {
     val containerColor = when {
         isNoProfile -> MaterialTheme.colorScheme.errorContainer
@@ -49,6 +50,7 @@ fun ProfileChip(
 
     Surface(
         onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onClick() },
+        enabled = enabled,
         shape = RoundedCornerShape(AapsSpacing.chipCornerRadius),
         color = containerColor,
         modifier = modifier

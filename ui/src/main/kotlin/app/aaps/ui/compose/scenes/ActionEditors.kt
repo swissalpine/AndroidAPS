@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.data.model.RM
 import app.aaps.core.data.model.SceneAction
 import app.aaps.core.data.model.TE
+import app.aaps.core.data.model.TT
 import app.aaps.core.data.model.TTPreset
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
@@ -49,7 +50,12 @@ import app.aaps.core.ui.compose.NumberInputRow
 internal fun presetDisplayName(preset: TTPreset): String = when {
     preset.nameRes != null       -> stringResource(preset.nameRes!!)
     !preset.name.isNullOrEmpty() -> preset.name!!
-    else                         -> preset.reason.text
+    else                         -> when (preset.reason) {
+        TT.Reason.ACTIVITY     -> stringResource(R.string.activity)
+        TT.Reason.EATING_SOON  -> stringResource(R.string.eatingsoon)
+        TT.Reason.HYPOGLYCEMIA -> stringResource(R.string.hypo)
+        else                   -> preset.reason.text
+    }
 }
 
 // --- Type-specific editors ---

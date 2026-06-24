@@ -51,9 +51,9 @@ import app.aaps.core.objects.profile.ProfileSealed
 import app.aaps.core.ui.compose.icons.IcXDrip
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.plugins.sync.R
-import app.aaps.plugins.sync.nsclient.extensions.toJson
 import app.aaps.plugins.sync.xdrip.compose.XdripComposeContent
 import app.aaps.plugins.sync.xdrip.compose.XdripMvvmRepository
+import app.aaps.plugins.sync.xdrip.extensions.toJson
 import app.aaps.plugins.sync.xdrip.extensions.toXdripJson
 import app.aaps.plugins.sync.xdrip.keys.XdripIntentKey
 import app.aaps.plugins.sync.xdrip.keys.XdripLongKey
@@ -218,7 +218,7 @@ class XdripPlugin @Inject constructor(
     private fun buildStatusLine(profile: Profile): String {
         val status = StringBuilder()
         if (!runBlocking { loop.runningMode() }.isLoopRunning() && config.APS)
-            status.append(rh.gs(R.string.disabled_loop)).append("\n")
+            status.append(rh.gs(app.aaps.core.ui.R.string.disabled_loop)).append("\n")
 
         //Temp basal
         runBlocking { processedTbrEbData.getTempBasalIncludingConvertedExtended(System.currentTimeMillis()) }?.let {

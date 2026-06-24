@@ -79,6 +79,7 @@ fun NumberInputRow(
     decimalPlaces: Int = 0,
     enabled: Boolean = true,
     compact: Boolean = false,
+    displayValue: String? = null,
 ) {
     val effectiveValueFormat = valueFormat ?: remember(decimalPlaces) {
         if (decimalPlaces == 0) DecimalFormat("0")
@@ -254,9 +255,10 @@ fun NumberInputRow(
                         color = if (isError) MaterialTheme.colorScheme.error
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (showFormattedDisplay && !isError) {
+                    val rightText = displayValue ?: formattedDisplay.takeIf { showFormattedDisplay }
+                    if (rightText != null && !isError) {
                         Text(
-                            text = formattedDisplay,
+                            text = rightText,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )

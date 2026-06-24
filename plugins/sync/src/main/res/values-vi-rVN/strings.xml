@@ -4,27 +4,66 @@
     <!-- ns_wifi_ssids moved to core:keys module -->
     <string name="connection_settings_title">Cài đặt kết nối</string>
     <!-- ns_wifi_ssids_summary moved to core:keys module -->
-    <string name="description_ns_client">Đồng bộ dữ liệu của bạn với Nightscout bằng API v1</string>
     <string name="description_ns_client_v3">Đồng bộ dữ liệu của bạn với Nightscout bằng API v3</string>
     <string name="blocked_by_charging">Bị chặn bởi tùy chọn sạc pin</string>
     <string name="blocked_by_connectivity">Bị chặn bởi tùy chọn kết nối</string>
     <string name="no_connectivity">Không có kết nối</string>
     <string name="unsupported_ns_version">Phiên bản Nightscout này không được hỗ trợ</string>
-    <string name="ns_malfunction">NSClient gặp sự cố. Hãy thử khởi động lại NS và NSClient.</string>
     <!-- AAPSClient -->
     <string name="no_write_permission">NSCLIENT không có quyền ghi. Sai API secret?</string>
     <string name="ns_client_v3_short_name">NSv3</string>
+    <!-- Authorized clients (paired devices that can issue signed commands) -->
+    <string name="authorized_clients_title">Thiết bị được ủy quyền</string>
+    <string name="authorized_clients_add">Thêm máy phụ</string>
+    <string name="authorized_clients_comm_switch_title">Cho phép thiết bị phụ điều khiển</string>
+    <string name="authorized_clients_comm_switch_summary">Cho phép các thiết bị phụ đã ghép đôi gửi các lệnh đã ký xác thực qua Nightscout. Tắt tùy chọn này để ngừng liên lạc mà không cần xóa các thiết bị đó.</string>
+    <string name="authorized_clients_state_active">Kích hoạt</string>
+    <string name="authorized_clients_state_pending">Đang chờ xử lý</string>
+    <string name="authorized_clients_last_seen">Lần cuối hoạt động: %1$s</string>
+    <string name="authorized_clients_never_seen">Chưa từng được sử dụng</string>
+    <string name="authorized_clients_pending_expires_in">Ghép đôi sẽ hết hạn sau %1$s giây</string>
+    <string name="authorized_clients_empty_title">Không có thiết bị phụ nào được ủy quyền</string>
+    <string name="authorized_clients_empty_subtitle">Ghép đôi một thiết bị phụ để cho phép thiết bị đó gửi các lệnh đã ký xác thực đến thiết bị chính này.</string>
+    <string name="authorized_clients_disabled_title">Điều khiển từ thiết bị phụ đang tắt</string>
+    <string name="authorized_clients_open_settings">Mở cài đặt</string>
+    <string name="authorized_clients_name_dialog_title">Thêm máy phụ</string>
+    <string name="authorized_clients_name_placeholder">Tên thiết bị</string>
+    <string name="authorized_clients_delete_dialog_title">Thu hồi quyền truy cập?</string>
+    <string name="authorized_clients_delete_dialog_message">%1$s sẽ không còn được phép gửi lệnh.</string>
+    <string name="authorized_clients_pin_dialog_title">Ghép đôi thiết bị phụ</string>
+    <string name="authorized_clients_pin_instructions">Nhập mã PIN này trên thiết bị phụ. Mã chỉ có hiệu lực cho một lần ghép đôi duy nhất.</string>
+    <string name="authorized_clients_pin_expires_in">Hết hạn sau %1$s giây</string>
+    <string name="authorized_clients_pin_done">Hoàn thành</string>
+    <string name="authorized_clients_pin_publishing">Đang gửi yêu cầu ghép đôi đến Nightscout…</string>
+    <string name="authorized_clients_pin_published">Yêu cầu ghép đôi đã sẵn sàng trên Nightscout.</string>
+    <string name="authorized_clients_pin_publish_failed">Không thể gửi yêu cầu ghép đôi lên Nightscout.</string>
+    <string name="authorized_clients_pin_retry">Thử lại</string>
+    <!-- Pair with master (client side PIN entry) -->
+    <string name="pair_with_master_title">Ghép đôi với thiết bị chính</string>
+    <string name="pair_with_master_pin_entry_title">Nhập mã PIN ghép đôi</string>
+    <string name="pair_with_master_pin_entry_message">Mở Thiết bị phụ được ủy quyền trên thiết bị chính và thêm thiết bị này. Nhập mã PIN 8 chữ số hiển thị ở đó.</string>
+    <string name="pair_with_master_pin_entry_label">Mã PIN 8 chữ số</string>
+    <string name="pair_with_master_pin_entry_submit">Ghép đôi</string>
+    <string name="pair_with_master_fetching">Đang tìm kiếm ghép đôi…</string>
+    <string name="pair_with_master_confirm_title">Ghép đôi với thiết bị chính?</string>
+    <string name="pair_with_master_confirm_master">Thiết bị chính: %1$s</string>
+    <string name="pair_with_master_confirm_warning">Sau khi ghép đôi, thiết bị chính này sẽ có thể gửi các lệnh đã ký xác thực đến thiết bị này.</string>
+    <string name="pair_with_master_confirm_pair">Ghép đôi</string>
+    <string name="pair_with_master_error_title">Không thể ghép đôi</string>
+    <string name="pair_with_master_error_wrong_pin">Không tìm thấy ghép đôi với mã PIN này. Hãy kiểm tra mã PIN trên thiết bị chính và thử lại.</string>
+    <string name="pair_with_master_error_ambiguous_pin">Có nhiều kết nối ghép đôi khớp với mã PIN này. Hãy yêu cầu thiết bị chính tạo mã mới và thử lại.</string>
+    <string name="pair_with_master_error_expired">Ghép đôi này đã hết hạn. Hãy tạo mã PIN mới trên thiết bị chính.</string>
+    <string name="pair_with_master_error_network">Không thể kết nối đến Nightscout. Hãy kiểm tra kết nối và thử lại.</string>
+    <string name="pair_with_master_retry">Thử lại</string>
+    <string name="pair_with_master_already_paired_title">Đã được kích hoạt</string>
+    <string name="pair_with_master_already_paired_master">Hiện đang được ghép đôi với thiết bị chính %1$s. Hãy hủy ghép đôi trước khi nhập mã PIN mới.</string>
+    <string name="pair_with_master_unpair">Hủy ghép đôi</string>
+    <string name="pair_with_master_sending">Đang gửi yêu cầu ghép đôi…</string>
+    <!-- Client-control orphan notification (master no longer recognises this client) -->
+    <string name="clientcontrol_orphan_notification">Thiết bị chính AAPS không còn nhận diện thiết bị này. Mở Quản lý → Ghép đôi với thiết bị chính để ghép đôi lại.</string>
     <string name="ns_client">NSClient</string>
-    <string name="ns_client_short_name">NSv1</string>
     <string name="ns_client_url">URL:</string>
-    <string name="ns_client_title">NSClientV1</string>
     <string name="ns_client_v3_title">NSClientV3</string>
-    <!-- ns_client_url_title moved to core:keys module -->
-    <!-- ns_client_url_summary moved to core:keys module -->
-    <!-- ns_client_secret_title moved to core:keys module -->
-    <!-- ns_client_secret_summary moved to core:keys module -->
-    <!-- nsclient_token_title moved to core:keys module -->
-    <!-- nsclient_token_summary moved to core:keys module -->
     <string name="deliver_now">Thực hiện ngay</string>
     <string name="queue">Hàng đợi:</string>
     <string name="status">Trạng thái:</string>
@@ -68,20 +107,13 @@
     <string name="no_watch_connected">(Không có đồng hồ kết nối)</string>
     <string name="pump_status">Trạng thái Bơm</string>
     <string name="loop_status">Trạng thái vòng lặp</string>
-    <string name="quick_wizard_not_available">Quickwizard đã chọn không còn khả dụng nữa, vui lòng làm mới ô của bạn</string>
-    <string name="quick_wizard_message">QuickWizard: %1$s\nInsulin: %2$.2fU\nCarbs: %3$dg</string>
     <string name="user_action_not_available">Hành động người dùng đã chọn %1$s không còn khả dụng, vui lòng làm mới ô của bạn</string>
     <string name="scene_not_available">Ngữ cảnh %1$s không còn khả dụng, vui lòng làm mới ô hiển thị của bạn</string>
     <string name="wear_remote_insulin_not_allowed_in_client">Các lệnh insulin từ xa bị vô hiệu hóa ở chế độ client</string>
-    <string name="wear_action_tempt_cancel_message">Hủy mục tiêu tạm thời đang chạy không?</string>
     <string name="wear_action_tempt_unit_error">Đồng hồ và điện thoại đang dùng đơn vị khác nhau!</string>
-    <string name="wear_action_tempt_zero_message">Mục tiêu tạm thời bằng 0 – hủy Mục tiêu tạm thời đang chạy không?</string>
     <string name="wear_action_tempt_min_bg_error">Min-BG nằm ngoài phạm vi!</string>
     <string name="wear_action_tempt_max_bg_error">Max-BG nằm ngoài phạm vi!</string>
     <string name="wear_action_tempt_range_error">Phạm vi không hợp lệ: Mục tiêu thấp (%1$s) không thể lớn hơn mục tiêu cao (%2$s)</string>
-    <string name="wear_action_tempt_manual_range_message">Mục tiêu tạm thời\n\nThấp nhất: %1$s\nCao nhất: %2$s\nThời gian: %3$d phút</string>
-    <string name="wear_action_tempt_manual_message">Mục tiêu tạm thời\n\nMục tiêu: %1$s\nThời gian: %2$d phút</string>
-    <string name="wear_action_tempt_preset_message">Mục tiêu tạm thời\n\nLý do: %1$s\nMục tiêu: %2$s\nThời lượng: %3$d phút</string>
     <string name="wear_wizard_settings_summary">Các phép tính được bao gồm trong kết quả của Trình hỗ trợ:</string>
     <string name="wear_general_settings">Cài đặt chung</string>
     <string name="wear_custom_watchface_settings">Cài đặt mặt đồng hồ tùy chỉnh</string>
@@ -105,7 +137,6 @@
     <string name="grams_short">g</string>
     <string name="hour_short">h</string>
     <string name="no_active_profile">Không có chuyển đổi cấu hình nào hoạt động!</string>
-    <string name="profile_message">Cấu hình: %1$s\nDịch chuyển thời gian: %2$d giờ\nPhần trăm: %3$d%%\nThời lượng: %4$d phút</string>
     <string name="target_only_aps_mode">Các mục tiêu chỉ áp dụng trong chế độ APS!</string>
     <string name="no_history">Không có dữ liệu lịch sử!</string>
     <string name="temp_target">Mục tiêu tạm thời</string>
@@ -129,7 +160,6 @@
     <string name="full_xdrip_sync_comment">Đồng bộ đầy đủ? Quá trình này có thể mất một thời gian và cho đến khi hoàn tất, bạn sẽ không thấy dữ liệu mới trong xDrip+.</string>
     <string name="wear_action_loop_state_unauthorized">Vui lòng thử lại.</string>
     <string name="wear_action_loop_state_invalid">Trạng thái vòng lặp không hợp lệ</string>
-    <string name="wear_action_running_mode_title">CHẾ ĐỘ THỂ DỤC</string>
     <string name="wear_action_loop_state_changed_with_duration">%1$s\nThời gian: %2$d phút</string>
     <string name="wear_action_loop_state_now_closed">Vòng lặp đóng</string>
     <string name="wear_action_loop_state_now_lgs">Tạm dừng khi đường huyết thấp</string>

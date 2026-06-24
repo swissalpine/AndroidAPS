@@ -18,14 +18,13 @@ class SceneSource @Inject constructor(private val context: Context, private val 
 
     override fun getSelectedActions(): List<Action> {
         if (isSceneActive()) {
-            aapsLogger.info(LTag.WEAR, "getSelectedActions: scene is active, showing STOP")
+            aapsLogger.info(LTag.WEAR, "getSelectedActions: scene is active, showing End")
             return listOf(
                 Action(
-                    buttonText = context.resources.getString(R.string.scene_stop),
-                    iconRes = R.drawable.ic_cancel,
+                    buttonText = context.resources.getString(R.string.scene_end),
+                    iconRes = R.drawable.ic_cancel_red,
                     activityClass = BackgroundActionActivity::class.java.name,
-                    action = EventData.ActionSceneStop(),
-                    message = context.resources.getString(R.string.scene_stop)
+                    action = EventData.ActionSceneStopPreCheck(),
                 )
             )
         }
@@ -37,10 +36,10 @@ class SceneSource @Inject constructor(private val context: Context, private val 
                 sceneList.add(
                     Action(
                         buttonText = entry.title,
-                        iconRes = R.drawable.ic_scene,
+                        iconRes = R.drawable.ic_scene_purple,
                         activityClass = BackgroundActionActivity::class.java.name,
                         action = EventData.ActionScenePreCheck(entry.id, entry.title),
-                        message = context.resources.getString(R.string.action_scene_confirmation)
+                        message = context.resources.getString(R.string.action_scene_confirmation),
                     )
                 )
                 aapsLogger.info(LTag.WEAR, """getSelectedActions: scene ${entry.title} id=${entry.id}""")
@@ -60,5 +59,5 @@ class SceneSource @Inject constructor(private val context: Context, private val 
         return runCatching { (EventData.deserialize(raw) as? EventData.ActiveSceneState)?.active == true }.getOrDefault(false)
     }
 
-    override fun getResourceReferences(resources: Resources): List<Int> = listOf(R.drawable.ic_scene, R.drawable.ic_cancel)
+    override fun getResourceReferences(resources: Resources): List<Int> = listOf(R.drawable.ic_scene_purple, R.drawable.ic_cancel_red)
 }

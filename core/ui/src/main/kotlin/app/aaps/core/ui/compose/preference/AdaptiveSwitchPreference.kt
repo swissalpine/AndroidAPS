@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.interfaces.BooleanKeyWithChangeGuard
 import app.aaps.core.keys.interfaces.BooleanPreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.dialogs.OkDialog
 
@@ -33,7 +33,7 @@ fun AdaptiveSwitchPreferenceItem(
     summaryResId: Int? = null,
     summaryOnResId: Int? = null,
     summaryOffResId: Int? = null,
-    visibilityContext: PreferenceVisibilityContext? = null
+    visibilityContext: VisibilityContext? = null
 ) {
     val effectiveTitleResId = if (titleResId != 0) titleResId else booleanKey.titleResId
     val effectiveSummaryResId = summaryResId ?: booleanKey.summaryResId
@@ -77,14 +77,14 @@ fun AdaptiveSwitchPreferenceItem(
                     guardMessage = message
                 }
             },
-            title = { Text(stringResource(effectiveTitleResId)) },
+            title = { PreferenceTitleWithSyncBadge(effectiveTitleResId, booleanKey) },
             summary = summary,
             enabled = visibility.enabled
         )
     } else {
         SwitchPreference(
             state = state,
-            title = { Text(stringResource(effectiveTitleResId)) },
+            title = { PreferenceTitleWithSyncBadge(effectiveTitleResId, booleanKey) },
             summary = summary,
             enabled = visibility.enabled
         )

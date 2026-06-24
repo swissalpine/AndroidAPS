@@ -18,7 +18,7 @@ import app.aaps.core.keys.interfaces.DoublePreferenceKey
 import app.aaps.core.keys.interfaces.IntPreferenceKey
 import app.aaps.core.keys.interfaces.IntentPreferenceKey
 import app.aaps.core.keys.interfaces.PreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceVisibilityContext
+import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.StringKeyWithEntriesProvider
 import app.aaps.core.keys.interfaces.StringPreferenceKey
 import app.aaps.core.keys.interfaces.UnitDoublePreferenceKey
@@ -40,7 +40,7 @@ import app.aaps.core.ui.compose.ComposeScreenContent
 fun AdaptivePreferenceItem(
     key: PreferenceKey,
     onShowMessage: (String) -> Unit,
-    visibilityContext: PreferenceVisibilityContext? = null,
+    visibilityContext: VisibilityContext? = null,
     onIntentClick: (() -> Unit)? = null,
     intentUrl: String? = null,
     intentActivityClass: Class<*>? = null

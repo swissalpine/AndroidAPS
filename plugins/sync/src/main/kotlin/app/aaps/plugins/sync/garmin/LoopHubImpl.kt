@@ -12,6 +12,7 @@ import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
 import app.aaps.core.interfaces.aps.Loop
+import app.aaps.core.interfaces.bolus.WizardBolusExecutor
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.db.ProcessedTbrEbData
@@ -57,6 +58,7 @@ class LoopHubImpl @Inject constructor(
     private val preferences: Preferences,
     private val processedTbrEbData: ProcessedTbrEbData,
     private val dateUtil: DateUtil,
+    private val wizardBolusExecutor: WizardBolusExecutor,
     @ApplicationScope private val appScope: CoroutineScope
 ) : LoopHub {
 
@@ -152,18 +154,14 @@ class LoopHubImpl @Inject constructor(
         aapsLogger.info(LTag.GARMIN, "post $carbohydrates g carbohydrates")
         val carbsAfterConstraints =
             carbohydrates.coerceAtMost(constraintChecker.getMaxCarbsAllowed().value())
-        userEntryLogger.log(
-            action = Action.CARBS,
-            source = Sources.Garmin,
-            note = null,
-            listValues = listOf(ValueWithUnit.Gram(carbsAfterConstraints))
-        )
-        val detailedBolusInfo = DetailedBolusInfo().apply {
-            eventType = TE.Type.CARBS_CORRECTION
-            carbs = carbsAfterConstraints.toDouble()
-        }
+        // Instant carbs now ride the shared executor (one audited path); it logs the user entry + delivers.
         appScope.launch {
-            commandQueue.bolus(detailedBolusInfo)
+            wizardBolusExecutor.deliverCarbs(
+                carbs = carbsAfterConstraints,
+                note = null,
+                source = Sources.Garmin,
+                onError = { aapsLogger.error(LTag.GARMIN, "carbs delivery failed: $it") }
+            )
         }
     }
 

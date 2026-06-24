@@ -6,4 +6,7 @@
     <string name="avg_smoothing_name">Средно изглаждане</string>
     <string name="description_avg_smoothing">"Средно изглаждане, без да се включва последната стойност"</string>
     <string name="no_smoothing_name">Без изглаждане</string>
+    <string name="description_no_smoothing">"Използвайте това когато имате филтрирани данни. Наприме от BYODA G6."</string>
+    <string name="UKF_name">Unscented Kalman Filter</string>
+    <string name="description_UKF">"Подобрен алгоритъм в автоматична настройка на шум и RTS изглаждане."</string>
 </resources>

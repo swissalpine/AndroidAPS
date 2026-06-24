@@ -8,7 +8,7 @@ object Versions {
     const val appVersion = "4.0-sport-a"
     const val versionCode = 1500
 
-    const val compileSdk = 36
+    const val compileSdk = 37
     const val minSdk = 31
     const val targetSdk = 35
     const val wearMinSdk = 30
