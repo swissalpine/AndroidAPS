@@ -236,4 +236,44 @@ class LoopHubImpl @Inject constructor(
             persistenceLayer.insertOrUpdateHeartRates(listOf(hr))
         }
     }
+
+    override fun storeStepsCount(
+        samplingStart: Instant,
+        samplingEnd: Instant,
+        steps5min: Int,
+        steps10min: Int,
+        steps15min: Int,
+        steps30min: Int,
+        steps60min: Int,
+        steps180min: Int,
+        device: String?,
+    ) {
+        val sc = SC(
+            duration = samplingEnd.toEpochMilli() - samplingStart.toEpochMilli(),
+            timestamp = samplingEnd.toEpochMilli(),
+            steps5min = steps5min,
+            steps10min = steps10min,
+            steps15min = steps15min,
+            steps30min = steps30min,
+            steps60min = steps60min,
+            steps180min = steps180min,
+            device = device ?: "Garmin",
+            dateCreated = clock.millis(),
+        )
+        appScope.launch {
+            try {
+                val result: PersistenceLayer.TransactionResult<SC> = persistenceLayer.insertOrUpdateStepsCount(sc)
+                val id = result.inserted.firstOrNull()?.id ?: result.updated.firstOrNull()?.id
+                aapsLogger.info(
+                    LTag.GARMIN,
+                    "✅ Steps stored in DB: ID=$id, 5min=$steps5min, timestamp=${java.util.Date(samplingEnd.toEpochMilli())}"
+                )
+            } catch (error: Exception) {
+                aapsLogger.error(
+                    LTag.GARMIN,
+                    "❌ Failed to store steps: ${error.message}"
+                )
+            }
+        }
+    }
 }

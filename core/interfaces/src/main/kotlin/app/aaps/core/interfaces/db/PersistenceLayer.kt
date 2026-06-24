@@ -1549,6 +1549,14 @@ interface PersistenceLayer {
      */
     suspend fun insertOrUpdateStepsCounts(stepsCounts: List<SC>): TransactionResult<SC>
 
+    /**
+     * Insert or update a single step counts record. Delegates to [insertOrUpdateStepsCounts].
+     *
+     * @param stepsCount record
+     */
+    suspend fun insertOrUpdateStepsCount(stepsCount: SC): TransactionResult<SC> =
+        insertOrUpdateStepsCounts(listOf(stepsCount))
+
     // VersionChange
 
     /**
