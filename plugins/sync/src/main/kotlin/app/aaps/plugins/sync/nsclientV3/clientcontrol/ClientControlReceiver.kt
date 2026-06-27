@@ -20,6 +20,7 @@ import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.core.interfaces.scenes.SceneAutomationApi
 import app.aaps.core.interfaces.scenes.SceneAutomationResult
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.LongComposedKey
 import app.aaps.core.keys.interfaces.BooleanNonPreferenceKey
 import app.aaps.core.keys.interfaces.DoubleNonPreferenceKey
@@ -321,6 +322,18 @@ class ClientControlReceiver @Inject constructor(
         // typically. Treat it the same as an unknown type: advance the counter so the next
         // envelope can be processed.
         val message = runCatching { json.decodeFromString(ClientControlMessage.serializer(), envelope.payload) }.getOrNull()
+        // Master policy gate: when client control is OFF, reject mutating commands cleanly (signed Done/Failed ACK)
+        // instead of silently dropping them — a silent drop times the client out → Unconfirmed → a false "master
+        // offline" alarm in the toggle-propagation race window. Exempts Hello (pairing must still work while disabled)
+        // and Ping (a liveness probe). Placed BEFORE the Hello branch so that branch stays adjacent to (and keeps
+        // exhaustive) the when(message) below. Covers the WS push AND the poll fallback; consume the counter like expiry.
+        if (message !is ClientControlMessage.Hello && message !is ClientControlMessage.Ping && !preferences.get(BooleanKey.NsClientAllowClientControl)) {
+            authorizedRepository.bumpLastSeen(entry.clientId, envelope.counter, now)
+            nsClientRepository.addLog("◄ CLIENTCTL", "control disabled, rejecting ${envelope.type} from ${entry.name}")
+            aapsLogger.warn(LTag.NSCLIENT, "ClientControl: $identifier rejected — client control disabled on master")
+            if (envelope.wantsAck) writeAck(client, lookup.secretBytes, envelope.clientId, envelope.counter, AckPhase.Done, AckStatus.Failed, FailureReason.ControlDisabled.name, null, now)
+            return
+        }
         // Hello is the pairing handshake, not a user action — no ACK round-trip. Its handling
         // includes the Pending → Active transition + offer-doc cleanup (suspends on deleteOffer).
         if (message is ClientControlMessage.Hello) {

@@ -318,7 +318,9 @@ class NSClientV3Service : DaggerService() {
                         nsClientV3Plugin.handleClientControlProgressEvent(docJson)
                     // Master-side: route client-control envelopes (paired-client → master commands)
                     // to the receiver. The plugin gates on the master toggle internally.
-                    identifier.startsWith(ClientControlPublisher.IDENTIFIER_PREFIX)                               ->
+                    // !config.AAPSCLIENT: NS WS echoes every write back to the sender too — a client must not
+                    // self-process its own outgoing commands (unknown clientId → deleteSettings → HTTP 410 tombstone).
+                    !config.AAPSCLIENT && identifier.startsWith(ClientControlPublisher.IDENTIFIER_PREFIX) ->
                         nsClientV3Plugin.handleClientControlSettingsEvent(identifier, docJson)
                 }
             }

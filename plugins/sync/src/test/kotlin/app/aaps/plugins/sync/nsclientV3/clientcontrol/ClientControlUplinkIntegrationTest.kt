@@ -16,6 +16,7 @@ import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.scenes.ActiveSceneSync
 import app.aaps.core.interfaces.scenes.SceneAutomationApi
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.LongComposedKey
 import app.aaps.core.keys.StringNonKey
 import app.aaps.core.keys.interfaces.LongNonPreferenceKey
@@ -154,6 +155,9 @@ class ClientControlUplinkIntegrationTest {
         whenever(clientPrefs.get(LongComposedKey.SyncedPrefModified, StringNonKey.AutomationEvents.key)).thenReturn(clientVersion)
 
         // ---------- master Preferences fake ----------
+        // Client control ON — the receiver now gates ALL client→master traffic (commands AND the preferences-update
+        // settings sync) on this, matching the old WS-path drop. Off → the uplink is rejected (see ClientControlReceiverTest).
+        whenever(masterPrefs.get(BooleanKey.NsClientAllowClientControl)).thenReturn(true)
         whenever(masterPrefs.get(StringNonKey.NsClientControlAuthorizedClients)).thenAnswer { masterAuthorizedClients }
         doAnswer { masterAuthorizedClients = it.getArgument(1); null }
             .whenever(masterPrefs).put(eq(StringNonKey.NsClientControlAuthorizedClients), any<String>())

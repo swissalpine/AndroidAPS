@@ -26,7 +26,10 @@ sealed interface BatchAction {
         val recordOnly: Boolean,
         val notes: String,
         val timestamp: Long,
-        val iCfg: ICfg?
+        val iCfg: ICfg?,
+        val eCarbsGrams: Int = 0,
+        val eCarbsDelayMinutes: Int = 0,
+        val eCarbsDurationHours: Int = 0
     ) : BatchAction
 
     /**

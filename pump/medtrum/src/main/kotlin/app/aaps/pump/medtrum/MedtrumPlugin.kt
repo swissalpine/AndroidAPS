@@ -19,7 +19,6 @@ import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.plugin.PluginDescription
 import app.aaps.core.interfaces.protection.ProtectionCheck
 import app.aaps.core.interfaces.pump.BlePreCheck
-import app.aaps.core.interfaces.pump.BolusProgressData
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.Medtrum
 import app.aaps.core.interfaces.pump.Pump
@@ -90,7 +89,6 @@ class MedtrumPlugin @Inject constructor(
     private val notificationManager: NotificationManager,
     private val temporaryBasalStorage: TemporaryBasalStorage,
     private val pumpEnactResultProvider: Provider<PumpEnactResult>,
-    private val bolusProgressData: BolusProgressData,
     private val protectionCheck: ProtectionCheck,
     private val blePreCheck: BlePreCheck
 ) : PumpPluginBase(
@@ -288,7 +286,9 @@ class MedtrumPlugin @Inject constructor(
         aapsLogger.debug(LTag.PUMP, "deliverTreatment: Delivering bolus: " + detailedBolusInfo.insulin + "U")
         val connectionOK = medtrumService?.setBolus(detailedBolusInfo) == true
         val result = pumpEnactResultProvider.get()
-        val delivered = bolusProgressData.state.value?.delivered ?: PumpInsulin(0.0)
+        // Verdict from the PUMP-TRACKED per-bolus amount, NOT the shared BolusProgressData UI state: a concurrent
+        // SMB completing can null the shared singleton mid-bolus, which previously made this read 0.0 → false alarm.
+        val delivered = PumpInsulin(medtrumPump.bolusAmountDelivered)
         result.success = (connectionOK && abs(detailedBolusInfo.insulin - delivered.cU) < pumpDescription.bolusStep) || medtrumPump.bolusStopped
         result.bolusDelivered = delivered.cU
         if (result.success && result.bolusDelivered > 0.0) {

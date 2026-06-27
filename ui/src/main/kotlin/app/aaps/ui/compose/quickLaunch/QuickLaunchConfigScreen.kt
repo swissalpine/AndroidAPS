@@ -47,8 +47,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.TonalIcon
-import app.aaps.core.ui.compose.icons.IcBolus
-import app.aaps.core.ui.compose.icons.IcCarbs
 import app.aaps.core.ui.compose.navigation.ElementCategory
 import app.aaps.core.ui.compose.navigation.ElementType
 import app.aaps.core.ui.compose.navigation.color
@@ -293,17 +291,7 @@ private fun SectionHeader(text: String) {
 }
 
 @Composable
-private fun resolveActionColor(item: ResolvedQuickLaunchItem): Color {
-    val action = item.action
-    if (action is QuickLaunchAction.QuickWizardAction) {
-        return when (item.icon) {
-            IcBolus -> ElementType.INSULIN.color()
-            IcCarbs -> ElementType.CARBS.color()
-            else    -> ElementType.QUICK_WIZARD.color()
-        }
-    }
-    return action.elementType?.color() ?: MaterialTheme.colorScheme.primary
-}
+private fun resolveActionColor(item: ResolvedQuickLaunchItem): Color = resolveItemColor(item)
 
 @Composable
 private fun EmptyHint(text: String) {

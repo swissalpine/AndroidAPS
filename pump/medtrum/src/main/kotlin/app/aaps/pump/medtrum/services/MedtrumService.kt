@@ -383,11 +383,16 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
     }
 
     suspend fun setBolus(detailedBolusInfo: DetailedBolusInfo): Boolean {
+        // Reset the per-bolus verdict inputs (delivered amount + user-stop flag) FIRST — BEFORE the canSetBolus early
+        // return — so a rejected attempt (not connected / already in progress / stop pressed) can't leave
+        // deliverTreatment reading a STALE amount/stopped flag from a PREVIOUS bolus and mis-recording it as delivered.
+        // (bolusDone/bolusErrorReason stay below: canSetBolus reads bolusDone and sets bolusErrorReason on rejection.)
+        medtrumPump.bolusAmountDelivered = 0.0
+        medtrumPump.bolusStopped = false
         if (!canSetBolus()) return false
 
         val insulin = detailedBolusInfo.insulin
         medtrumPump.bolusDone = false
-        medtrumPump.bolusStopped = false
         medtrumPump.bolusErrorReason = null
 
         if (!sendBolusCommand(insulin)) {
@@ -485,7 +490,14 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
 
         while (!medtrumPump.bolusStopped && !medtrumPump.bolusDone && !communicationLost) {
             SystemClock.sleep(100)
-            if (medtrumPump.bolusProgressLastTimeStamp > checkTime) checkTime = medtrumPump.bolusProgressLastTimeStamp
+            if (medtrumPump.bolusProgressLastTimeStamp > checkTime) {
+                // Progress resumed → reset the CONSECUTIVE-no-progress retry count. Without this the counter only
+                // ever grows: on a slow but LIVE bolus (large dose — 0.1U increments can be >20s apart on the tail)
+                // each gap burns a retry until the 3-strike limit forces a false "communication stopped" while the
+                // pump is still delivering. Resetting on progress means we only give up after genuinely-stalled retries.
+                checkTime = medtrumPump.bolusProgressLastTimeStamp
+                connectionRetryCounter = 0
+            }
             if (System.currentTimeMillis() - checkTime > T.secs(20).msecs()) {
                 if (connectionRetryCounter < 3) {
                     aapsLogger.warn(LTag.PUMPCOMM, "No bolus progress for 20 seconds, retrying connection")

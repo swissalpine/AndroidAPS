@@ -17,6 +17,8 @@ import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.di.ApplicationScope
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventShowDialog
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.profile.ProfileUtil
@@ -56,6 +58,7 @@ class CarbsDialogViewModel @Inject constructor(
     val config: Config,
     val rh: ResourceHelper,
     val dateUtil: DateUtil,
+    private val rxBus: RxBus,
     @ApplicationScope private val appScope: CoroutineScope
 ) : ViewModel() {
 
@@ -273,10 +276,13 @@ class CarbsDialogViewModel @Inject constructor(
             when (val prepared = batchExecutor.prepare(actions, Sources.CarbDialog, rh.gs(app.aaps.core.ui.R.string.carbs))) {
                 is ActionProgress.Prepared -> _sideEffect.tryEmit(SideEffect.ShowConfirmation(prepared.id, prepared.lines))
                 is ActionProgress.Rejected -> when (prepared.reason) {
-                    FailureReason.NotReachable -> _sideEffect.tryEmit(SideEffect.ShowDeliveryError(rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                    FailureReason.NotReachable -> rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.carbs), message = rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
                     // No-op (e.g. nothing left to remove after a COB-shrink between open and confirm): neutral message, NOT the bolus-error alarm.
                     FailureReason.NoAction     -> _sideEffect.tryEmit(SideEffect.ShowNoActionDialog)
-                    else                       -> prepared.detail?.let { _sideEffect.tryEmit(SideEffect.ShowDeliveryError(it)) }
+                    else                       -> prepared.detail?.let { detail ->
+                        if (config.AAPSCLIENT) rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.carbs), message = detail))
+                        else _sideEffect.tryEmit(SideEffect.ShowDeliveryError(detail))
+                    }
                 }
 
                 else                       -> Unit // Unconfirmed → app-level modal
@@ -296,8 +302,11 @@ class CarbsDialogViewModel @Inject constructor(
             // NoPendingBolus, …) → the master's detail. Unconfirmed (state unknown) rides the round-trip's app-level modal.
             if (result is ActionProgress.Rejected) {
                 if (result.reason == FailureReason.NotReachable)
-                    _sideEffect.tryEmit(SideEffect.ShowDeliveryError(rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
-                else result.detail?.let { _sideEffect.tryEmit(SideEffect.ShowDeliveryError(it)) }
+                    rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.carbs), message = rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                else result.detail?.let { detail ->
+                    if (config.AAPSCLIENT) rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.carbs), message = detail))
+                    else _sideEffect.tryEmit(SideEffect.ShowDeliveryError(detail))
+                }
             }
             automation.removeAutomationEventEatReminder()
             // Device-local "time to eat" alarm — on confirm, when configured.

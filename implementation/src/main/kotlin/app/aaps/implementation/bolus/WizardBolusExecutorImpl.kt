@@ -399,6 +399,7 @@ class WizardBolusExecutorImpl @Inject constructor(
             insulin = insulin, carbs = carbs, bcr = null, bolusId = bolusId, entry = null,
             carbTimeMinutes = bolus?.carbsTimeOffsetMinutes ?: 0, notes = bolus?.notes, mode = BolusMode.FIXED,
             eventType = eventType, carbsDurationHours = bolus?.carbsDurationHours ?: 0,
+            eCarbsGrams = bolus?.eCarbsGrams ?: 0, eCarbsDelayMinutes = bolus?.eCarbsDelayMinutes ?: 0, eCarbsDurationHours = bolus?.eCarbsDurationHours ?: 0,
             tempTarget = tt, profileSwitch = ps, runningMode = rm, recordOnly = recordOnly, iCfg = bolus?.iCfg, bolusTimestamp = bolus?.timestamp?.takeIf { it > 0L },
             tempBasal = cappedTb, extendedBolus = cappedEb, cancelTempBasal = ctb != null, cancelExtendedBolus = ceb != null,
             insulinActivate = ia, therapyEvents = tes
@@ -476,6 +477,12 @@ class WizardBolusExecutorImpl @Inject constructor(
                     val carbsTime = if (p.carbs > 0) dateUtil.now() + T.mins(p.carbTimeMinutes.toLong()).msecs() else null
                     deliver(p.insulin, p.carbs, carbsTime = carbsTime, carbsDuration = p.carbsDurationHours, bolusCalculatorResult = p.bcr, notes = notes, source = source, onError = wrapped, eventType = p.eventType)
                 }
+            }
+            // eCarbs split (e.g. a CARBS-mode QuickWizard entry with eCarbs configured): the immediate carbs are
+            // delivered above; the extended portion is scheduled here, mirroring the wizard path's carbs2 delivery.
+            if (p.eCarbsGrams > 0) {
+                val eCarbsTime = dateUtil.now() + T.mins(p.eCarbsDelayMinutes.toLong()).msecs()
+                deliverECarbs(p.eCarbsGrams, eCarbsTime, p.eCarbsDurationHours, p.eCarbsDelayMinutes, notes, source, wrapped)
             }
             if (tt != null && !raising && accepted) applyTempTarget(tt, source)
             // Insulin activation re-applies the active profile with the new insulin — run BEFORE any explicit PS
@@ -632,6 +639,8 @@ class WizardBolusExecutorImpl @Inject constructor(
             if (bolus.carbsDurationHours > 0)
                 out += ConfirmationLine(ConfirmationRole.NORMAL, rh.gs(R.string.confirmation_line, rh.gs(R.string.duration), rh.gs(R.string.value_with_unit, bolus.carbsDurationHours.toString(), rh.gs(app.aaps.core.interfaces.R.string.shorthour))))
         }
+        if (bolus.eCarbsGrams > 0)
+            out += ConfirmationLine(ConfirmationRole.CARBS, rh.gs(R.string.wizard_ecarbs, bolus.eCarbsGrams, bolus.eCarbsDurationHours, bolus.eCarbsDelayMinutes))
         if (bolus.notes.isNotEmpty())
             out += ConfirmationLine(ConfirmationRole.NORMAL, rh.gs(R.string.confirmation_line, rh.gs(R.string.notes_label), bolus.notes))
         return out

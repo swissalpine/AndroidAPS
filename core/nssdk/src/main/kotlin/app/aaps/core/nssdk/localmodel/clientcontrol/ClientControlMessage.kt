@@ -231,7 +231,11 @@ data class BatchActionDto(
     val meterType: String? = null,
     val location: String? = null,
     val arrow: String? = null,
-    val source: String? = null // round-trips for symmetry; the master ignores it (relayed events are logged as Sources.NSClient)
+    val source: String? = null, // round-trips for symmetry; the master ignores it (relayed events are logged as Sources.NSClient)
+    // bolus eCarbs split: extended carbs amount, delay, and duration (0 = no eCarbs)
+    val eCarbsGrams: Int = 0,
+    val eCarbsDelayMinutes: Int = 0,
+    val eCarbsDurationHours: Int = 0
 ) {
 
     companion object {

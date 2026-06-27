@@ -292,6 +292,15 @@ class MedtrumPump @Inject constructor(
     private val _bolusAmountDelivered = MutableStateFlow(0.0)
     val bolusAmountDeliveredFlow: StateFlow<Double> = _bolusAmountDelivered
 
+    // Pump-tracked amount delivered for the CURRENT bolus — the source of truth for the delivery verdict
+    // (MedtrumPlugin.deliverTreatment), decoupled from the shared BolusProgressData UI/wear channel which a
+    // concurrent SMB/clear can null out mid-bolus (→ false "bolus not delivered"). Reset to 0 at each bolus start.
+    var bolusAmountDelivered: Double
+        get() = _bolusAmountDelivered.value
+        set(value) {
+            _bolusAmountDelivered.value = value
+        }
+
     // Last basal status update (from pump)
     private var _lastBasalSequence = 0
     val lastBasalSequence: Int

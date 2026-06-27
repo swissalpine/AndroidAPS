@@ -9,12 +9,19 @@ import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.profile.ProfileRepository
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.tempTargets.toTTPresets
+import app.aaps.core.ui.compose.formatMinutesAsDuration
+import app.aaps.ui.compose.tempTarget.toTTPresetsWithNameRes
 import app.aaps.core.keys.StringNonKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.objects.wizard.QuickWizard
 import app.aaps.core.objects.wizard.QuickWizardMode
+import app.aaps.core.data.model.TT
 import app.aaps.core.ui.compose.icons.IcBolus
 import app.aaps.core.ui.compose.icons.IcCarbs
+import app.aaps.core.ui.compose.icons.IcTtActivity
+import app.aaps.core.ui.compose.icons.IcTtEatingSoon
+import app.aaps.core.ui.compose.icons.IcTtHypo
+import app.aaps.core.ui.compose.icons.IcTtManual
 import app.aaps.core.ui.compose.navigation.descriptionResId
 import app.aaps.core.ui.compose.navigation.icon
 import app.aaps.core.ui.compose.navigation.labelResId
@@ -65,6 +72,17 @@ class QuickLaunchResolver @Inject constructor(
             }
         } ?: action.elementType.icon()
 
+        is QuickLaunchAction.TempTargetPreset  -> {
+            val preset = preferences.get(StringNonKey.TempTargetPresets).toTTPresets()
+                .find { it.id == action.presetId }
+            when (preset?.reason) {
+                TT.Reason.ACTIVITY     -> IcTtActivity
+                TT.Reason.EATING_SOON  -> IcTtEatingSoon
+                TT.Reason.HYPOGLYCEMIA -> IcTtHypo
+                else                   -> IcTtManual
+            }
+        }
+
         is QuickLaunchAction.SceneAction       -> sceneRepository.getScene(action.sceneId)
             ?.let { SceneIcons.fromKey(it.icon).icon }
             ?: action.elementType.icon()
@@ -106,7 +124,7 @@ class QuickLaunchResolver @Inject constructor(
         is QuickLaunchAction.AutomationAction  -> automation.findEventById(action.automationId)?.title ?: "?"
 
         is QuickLaunchAction.TempTargetPreset  -> {
-            val presets = preferences.get(StringNonKey.TempTargetPresets).toTTPresets()
+            val presets = preferences.get(StringNonKey.TempTargetPresets).toTTPresetsWithNameRes()
             val preset = presets.find { it.id == action.presetId }
             preset?.name ?: preset?.nameRes?.let { rh.gs(it) } ?: "?"
         }
@@ -149,7 +167,7 @@ class QuickLaunchResolver @Inject constructor(
             val preset = presets.find { it.id == action.presetId }
             preset?.let {
                 val durationMin = (it.duration / 60000L).toInt()
-                rh.gs(app.aaps.core.ui.R.string.format_mins, durationMin)
+                formatMinutesAsDuration(durationMin, rh)
             }
         }
 

@@ -271,7 +271,7 @@ class DataHandlerMobile @Inject constructor(
             onCommitResult(batchExecutor.commit(it.bolusId, Sources.Wear, rh.gs(app.aaps.core.ui.R.string.overview_treatment_label))) {
                 quickWizardGuid?.let { guid ->
                     quickWizard.get(guid)?.markAsUsed()
-                    sendQuickWizardListToWear() // refresh lastUsed so the fixed-mode tile cools down (matches phone)
+                    sendQuickWizardListToWear() // refresh lastUsed in the tile entry list after delivery
                 }
             }
         }
@@ -701,14 +701,14 @@ class DataHandlerMobile @Inject constructor(
         )
     }
 
-    // Parked bolusId → QuickWizard guid for a FIXED (INSULIN/CARBS) wear quick-wizard, so the entry is marked used on a
-    // successful commit and the tile cools down for an hour (matches the phone's executeFixedBatch → markAsUsed). The
+    // Parked bolusId → QuickWizard guid for a FIXED (INSULIN/CARBS) wear quick-wizard, so the entry's lastUsed
+    // timestamp is updated on a successful commit (mirrors the phone's executeFixedBatch → markAsUsed). The
     // WIZARD path marks used inside the executor — its PendingBolus carries the entry — but a fixed batch parks entry=null.
     private val quickWizardFixedUsage = ConcurrentHashMap<Long, String>()
 
     private fun rememberQuickWizardUsage(bolusId: Long, guid: String) {
-        // Drop ids older than the tile cooldown so a prepared-then-cancelled (never committed) entry can't accumulate.
-        quickWizardFixedUsage.keys.removeAll { dateUtil.now() - it > 3_600_000L } // 1 hour (QuickWizardSource.COOLDOWN_MILLIS)
+        // Drop ids older than 1 hour so a prepared-then-cancelled (never committed) entry can't accumulate.
+        quickWizardFixedUsage.keys.removeAll { dateUtil.now() - it > 3_600_000L }
         quickWizardFixedUsage[bolusId] = guid
     }
 
@@ -729,13 +729,19 @@ class DataHandlerMobile @Inject constructor(
                 label = rh.gs(app.aaps.core.ui.R.string.bolus)
             ) { bolusId -> rememberQuickWizardUsage(bolusId, command.guid); EventData.ActionBolusConfirmed(bolusId) }
 
-            QuickWizardMode.CARBS   -> sendBatchPreCheck(
-                BatchAction.Bolus(
-                    insulin = 0.0, carbs = entry.carbs(), carbsTimeOffsetMinutes = 0, carbsDurationHours = 0,
-                    recordOnly = false, notes = entry.buttonText(), timestamp = 0L, iCfg = null
-                ),
-                label = rh.gs(app.aaps.core.ui.R.string.carbs)
-            ) { bolusId -> rememberQuickWizardUsage(bolusId, command.guid); EventData.ActionBolusConfirmed(bolusId) }
+            QuickWizardMode.CARBS   -> {
+                val hasEcarbs = entry.useEcarbs() == QuickWizardEntry.YES
+                sendBatchPreCheck(
+                    BatchAction.Bolus(
+                        insulin = 0.0, carbs = entry.carbs(), carbsTimeOffsetMinutes = 0, carbsDurationHours = 0,
+                        recordOnly = false, notes = entry.buttonText(), timestamp = 0L, iCfg = null,
+                        eCarbsGrams = if (hasEcarbs) entry.carbs2() else 0,
+                        eCarbsDelayMinutes = if (hasEcarbs) entry.time() else 0,
+                        eCarbsDurationHours = if (hasEcarbs) entry.duration() else 0
+                    ),
+                    label = rh.gs(app.aaps.core.ui.R.string.carbs)
+                ) { bolusId -> rememberQuickWizardUsage(bolusId, command.guid); EventData.ActionBolusConfirmed(bolusId) }
+            }
 
             else                    -> {
                 // Role-transparent recompute: MASTER computes + caps + parks + authors lines locally; CLIENT relays a

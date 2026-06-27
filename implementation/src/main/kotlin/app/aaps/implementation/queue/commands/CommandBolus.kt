@@ -28,8 +28,9 @@ class CommandBolus(
     override suspend fun execute(): PumpEnactResult {
         val r = activePlugin.activePump.deliverTreatment(detailedBolusInfo)
         aapsLogger.debug(LTag.PUMPQUEUE, "Result success: ${r.success} enacted: ${r.enacted}")
-        // Generation-scoped clear on failure: never wipe a newer bolus enqueued behind this one (see BolusProgressData.clear).
-        if (r.success) bolusProgressData.completeAndAutoClear()
+        // Generation-scoped both ways: never stamp completion onto / wipe a NEWER bolus enqueued behind this one
+        // (an SMB + manual bolus get adjacent generations at enqueue; see BolusProgressData.clear / completeAndAutoClear).
+        if (r.success) bolusProgressData.completeAndAutoClear(bolusGeneration)
         else bolusProgressData.clear(bolusGeneration)
         return r
     }

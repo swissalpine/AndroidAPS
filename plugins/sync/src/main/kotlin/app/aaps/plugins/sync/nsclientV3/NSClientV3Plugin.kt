@@ -387,11 +387,11 @@ class NSClientV3Plugin @Inject constructor(
 
     /**
      * WS-push entry for client-control envelopes. NSClientV3Service routes settings-collection
-     * create/update events here. No-op when the master toggle is off so non-master devices ignore
-     * any client-control identifiers that happen to land in their settings stream.
+     * create/update events here. The receiver verifies every envelope and — when the master toggle is off —
+     * rejects cleanly with a signed ACK (one place, also covering the poll fallback) rather than silently
+     * dropping it, which would time a client out into a false "master offline" alarm in the toggle race window.
      */
     fun handleClientControlSettingsEvent(identifier: String, doc: JSONObject) {
-        if (!preferences.get(BooleanKey.NsClientAllowClientControl)) return
         scope.launch {
             runCatching { clientControlReceiver.onSettingsDocChanged(identifier, doc) }
                 .onFailure { aapsLogger.error(LTag.NSCLIENT, "ClientControl WS dispatch failed for $identifier: ${it.message}", it) }

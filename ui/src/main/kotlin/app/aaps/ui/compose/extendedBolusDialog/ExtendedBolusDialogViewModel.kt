@@ -10,7 +10,10 @@ import app.aaps.core.interfaces.bolus.BatchExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
 import app.aaps.core.interfaces.clientcontrol.FailureReason
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.di.ApplicationScope
+import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventShowDialog
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.resources.ResourceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,8 +34,10 @@ import javax.inject.Inject
 class ExtendedBolusDialogViewModel @Inject constructor(
     private val constraintChecker: ConstraintsChecker,
     activePlugin: ActivePlugin,
+    private val config: Config,
     private val rh: ResourceHelper,
     private val batchExecutor: BatchExecutor,
+    private val rxBus: RxBus,
     @ApplicationScope private val appScope: CoroutineScope
 ) : ViewModel() {
 
@@ -119,8 +124,11 @@ class ExtendedBolusDialogViewModel @Inject constructor(
                     is ActionProgress.Prepared -> _sideEffect.tryEmit(SideEffect.ShowConfirmation(prepared.id, prepared.lines))
                     // Offline block (and a master-local failure) surface here; a client round-trip failure already showed on the modal.
                     is ActionProgress.Rejected ->
-                        if (prepared.reason == FailureReason.NotReachable) _sideEffect.tryEmit(SideEffect.ShowDeliveryError(rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
-                        else prepared.detail?.let { _sideEffect.tryEmit(SideEffect.ShowDeliveryError(it)) }
+                        if (prepared.reason == FailureReason.NotReachable) rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.extended_bolus), message = rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                        else prepared.detail?.let { detail ->
+                            if (config.AAPSCLIENT) rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.extended_bolus), message = detail))
+                            else _sideEffect.tryEmit(SideEffect.ShowDeliveryError(detail))
+                        }
 
                     else                       -> Unit // Unconfirmed → app-level modal
                 }
@@ -135,8 +143,11 @@ class ExtendedBolusDialogViewModel @Inject constructor(
         appScope.launch {
             val result = batchExecutor.commit(bolusId, Sources.ExtendedBolusDialog, rh.gs(app.aaps.core.ui.R.string.extended_bolus), pumpDirect = true)
             if (result is ActionProgress.Rejected)
-                if (result.reason == FailureReason.NotReachable) _sideEffect.tryEmit(SideEffect.ShowDeliveryError(rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
-                else result.detail?.let { _sideEffect.tryEmit(SideEffect.ShowDeliveryError(it)) }
+                if (result.reason == FailureReason.NotReachable) rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.extended_bolus), message = rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                else result.detail?.let { detail ->
+                    if (config.AAPSCLIENT) rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.extended_bolus), message = detail))
+                    else _sideEffect.tryEmit(SideEffect.ShowDeliveryError(detail))
+                }
         }
     }
 }

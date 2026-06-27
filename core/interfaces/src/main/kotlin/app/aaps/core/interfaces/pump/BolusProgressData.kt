@@ -120,23 +120,28 @@ class BolusProgressData @Inject constructor(
     val isStopPressed: Boolean get() = _state.value?.stopPressed == true
 
     /**
-     * Called by CommandQueue when pump reports delivery complete.
+     * Unconditional completion — stamp percent=100 (UI success state) then auto-clear after [AUTO_CLEAR_DELAY_MS].
      *
-     * Sets percent to 100 so the UI shows the success state, then auto-clears after [delayMs]
-     * — but only if no newer bolus has started in the meantime (guarded by the generation
-     * counter). The clear runs on the application scope so it survives the queue worker
-     * finishing the current command.
+     * Use ONLY where frame ORDERING already guarantees no newer bolus can be displaced — the client progress
+     * mirror, whose relayed frames are timestamp-ordered. A per-command MASTER bolus MUST use the generation-scoped
+     * [completeAndAutoClear] overload instead (same rationale as [clear] vs [clear]).
      */
-    fun completeAndAutoClear(delayMs: Long = AUTO_CLEAR_DELAY_MS) {
-        // Also clear any stall flag: if the client recovered via a terminal Complete frame (no intervening
-        // Active frame to reset it), the success state must not keep showing the "connection lost" UI.
-        _state.update { it?.copy(percent = 100, stalled = false) }
-        val expectedGeneration = generation.get()
+    fun completeAndAutoClear() = completeAndAutoClear(generation.get())
+
+    /**
+     * Generation-scoped completion for a single master bolus command (mirror of [clear]). Guards BOTH the immediate
+     * percent=100 stamp AND the delayed null-clear against [expectedGeneration] (this command's [start] token): if a
+     * NEWER bolus has begun (generation bumped past the token), a finishing/older bolus can neither stamp completion
+     * onto NOR clear the newer bolus's progress state. The stamp also clears any stall flag (a terminal Complete with
+     * no intervening Active frame must not keep the "connection lost" UI). Check-and-mutate is atomic via [update].
+     */
+    fun completeAndAutoClear(expectedGeneration: Long) {
+        _state.update { current ->
+            if (current != null && generation.get() == expectedGeneration) current.copy(percent = 100, stalled = false) else current
+        }
         appScope.launch {
-            delay(delayMs)
-            if (generation.get() == expectedGeneration) {
-                _state.value = null
-            }
+            delay(AUTO_CLEAR_DELAY_MS)
+            if (generation.get() == expectedGeneration) _state.value = null
         }
     }
 

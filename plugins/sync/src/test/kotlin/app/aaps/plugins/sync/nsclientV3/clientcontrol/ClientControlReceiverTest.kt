@@ -129,6 +129,8 @@ internal class ClientControlReceiverTest {
         storage.clear()
         storage[StringNonKey.SceneDefinitions.key] = "[]"
         whenever(preferences.get(StringNonKey.NsClientControlAuthorizedClients)).thenAnswer { stored }
+        // Client control ON by default — the receiver now gates on this (rejects commands when off); see controlDisabled test.
+        whenever(preferences.get(BooleanKey.NsClientAllowClientControl)).thenReturn(true)
         whenever(preferences.get(StringNonKey.SceneDefinitions)).thenAnswer {
             storage[StringNonKey.SceneDefinitions.key] ?: "[]"
         }
@@ -684,6 +686,24 @@ internal class ClientControlReceiverTest {
         val done = acks.last()
         assertThat(done.status.name).isEqualTo("Failed")
         assertThat(done.reason).isEqualTo(FailureReason.NoPendingBolus.name)
+    }
+
+    @Test
+    fun controlOffRejectsCommandWithControlDisabledAckAndDoesNotExecute() = runTest {
+        val (clientId, secret) = pair()
+        authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
+        // Master turned client control OFF → reject cleanly with a signed ACK (NOT a silent drop, which would
+        // time the client out into a false "master offline" alarm) and do NOT execute the command.
+        whenever(preferences.get(BooleanKey.NsClientAllowClientControl)).thenReturn(false)
+        val acks = captureAcks(clientId)
+        val identifier = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}bolus_commit_$clientId"
+
+        sut.onSettingsDocChanged(identifier, wrap(envelope(clientId, secret, message = ClientControlMessage.BolusCommit(42L), counter = 5L, wantsAck = true)))
+
+        val done = acks.last()
+        assertThat(done.status.name).isEqualTo("Failed")
+        assertThat(done.reason).isEqualTo(FailureReason.ControlDisabled.name)
+        verify(wizardBolusExecutor, never()).confirm(any(), any(), any(), any())
     }
 
     @Test

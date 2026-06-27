@@ -159,7 +159,8 @@ class PreferencesImpl @Inject constructor(
     override fun get(key: BooleanPreferenceKey): Boolean =
         if (!config.isEngineeringMode() && key.engineeringModeOnly) key.defaultValue
         else if (simpleMode && key.defaultedBySM) calculatedDefaultValue(key)
-        else if (key.calculatedDefaultValue && isHidden(key)) calculatedDefaultValue(key)
+        // Recompute-when-hidden is for LOCAL values only; a synced key is remote-authoritative, so its stored value wins (visibility ≠ value).
+        else if (key.calculatedDefaultValue && isHidden(key) && key.sync == null) calculatedDefaultValue(key)
         else sp.getBoolean(key.key, calculatedDefaultValue(key))
 
     override fun get(key: StringNonPreferenceKey): String =
@@ -291,7 +292,8 @@ class PreferencesImpl @Inject constructor(
     override fun get(key: IntPreferenceKey): Int =
         if (!config.isEngineeringMode() && key.engineeringModeOnly) key.defaultValue
         else if (simpleMode && key.defaultedBySM) calculatedDefaultValue(key)
-        else if (key.calculatedDefaultValue && isHidden(key)) calculatedDefaultValue(key)
+        // Recompute-when-hidden is for LOCAL values only; a synced key is remote-authoritative, so its stored value wins (visibility ≠ value).
+        else if (key.calculatedDefaultValue && isHidden(key) && key.sync == null) calculatedDefaultValue(key)
         else sp.getInt(key.key, calculatedDefaultValue(key))
 
     override fun get(key: IntComposedNonPreferenceKey, vararg arguments: Any): Int =
@@ -333,7 +335,8 @@ class PreferencesImpl @Inject constructor(
     override fun get(key: LongPreferenceKey): Long =
         if (!config.isEngineeringMode() && key.engineeringModeOnly) key.defaultValue
         else if (simpleMode && key.defaultedBySM) calculatedDefaultValue(key)
-        else if (key.calculatedDefaultValue && isHidden(key)) calculatedDefaultValue(key)
+        // Recompute-when-hidden is for LOCAL values only; a synced key is remote-authoritative, so its stored value wins (visibility ≠ value).
+        else if (key.calculatedDefaultValue && isHidden(key) && key.sync == null) calculatedDefaultValue(key)
         else sp.getLong(key.key, calculatedDefaultValue(key))
 
     override fun remove(key: NonPreferenceKey) {

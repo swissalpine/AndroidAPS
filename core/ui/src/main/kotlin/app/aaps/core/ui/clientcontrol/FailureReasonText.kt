@@ -22,6 +22,7 @@ fun FailureReason.failTextResId(): Int = when (this) {
     FailureReason.SceneDisabled      -> R.string.clientcontrol_fail_scene_disabled
     FailureReason.PartialFailure     -> R.string.clientcontrol_fail_partial
     FailureReason.ExecutionFailed    -> R.string.clientcontrol_fail_execution
+    FailureReason.ControlDisabled    -> R.string.clientcontrol_fail_control_disabled
     FailureReason.NoAction           -> R.string.no_action_selected
     FailureReason.NoPendingBolus     -> R.string.clientcontrol_fail_no_pending_bolus
     FailureReason.BolusComputeFailed -> R.string.clientcontrol_fail_bolus_compute

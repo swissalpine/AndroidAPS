@@ -40,7 +40,7 @@ class CommandBolusTest : TestBaseWithProfile() {
         val result = newCommand().execute()
 
         assertThat(result).isSameInstanceAs(pumpResult)
-        verify(bolusProgressData).completeAndAutoClear()
+        verify(bolusProgressData).completeAndAutoClear(BOLUS_GENERATION)
     }
 
     @Test
