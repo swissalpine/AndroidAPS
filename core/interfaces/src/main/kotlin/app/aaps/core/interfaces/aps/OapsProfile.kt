@@ -49,7 +49,14 @@ data class OapsProfile(
     var variable_sens: Double,
     var insulinDivisor: Int,
     var TDD: Double,
-    // Ketoacidosis Protection
+    // Mod Ketoacidosis Protection
     var ketoacidosisProtectionBasal: Int = 20,
-    var ketoacidosisProtection: Boolean = false
+    var ketoacidosisProtection: Boolean = false,
+    // Mod Activity Tracker
+    var activityTracker: Boolean = false,
+    var steps5 : Int = 0,
+    var steps10 : Int = 0,
+    var steps15 : Int = 0,
+    var steps30 : Int = 0,
+    var steps60 : Int = 0
 )

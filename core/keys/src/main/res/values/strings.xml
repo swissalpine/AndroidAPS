@@ -473,4 +473,8 @@
     <string name="pref_smb_threshold_title">SMB Threshold</string>
     <string name="smb_threshold_summary">Value from which SMBs may be delivered</string>
 
+    <!-- Activity Tracker-->
+    <string name="pref_activity_tracker_title">Activity Tracker modifies sensitivity and basal</string>
+    <string name="pref_activity_tracker_summary">If activity is detected in the form of steps, sensitivity and basal rate are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.</string>
+
 </resources>

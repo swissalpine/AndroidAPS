@@ -237,6 +237,43 @@ class DetermineBasalSMB @Inject constructor(
         var min_bg = profile.min_bg
         var max_bg = profile.max_bg
 
+        // Mod Activity Tracker
+        var activityRatio = 1.0
+        // var stepActivityDetected = false
+        // var stepInactivityDetected = false
+        if ( !profile.activityTracker) {
+            consoleError.add("Activity tracker disabled in the settings")
+        } else if ( profile.temptargetSet) {
+            consoleError.add("Activity tracker disabled: tempTarget")
+        } else {
+            consoleError.add("Steps: 5=${profile.steps5}, 10=${profile.steps10}, 15=${profile.steps15}, 30=${profile.steps30}, 60=${profile.steps60}")
+            val hour = Instant.ofEpochMilli(currentTime).atZone(ZoneId.systemDefault()).hour
+            if ( (hour < 8 || hour >= 22) && profile.steps60 <= 200 ) {
+                consoleError.add("Activity tracker disabled inactivity detection: sleeping hours")
+            } else if ( profile.steps5 > 300 || profile.steps10 > 550  || profile.steps15 > 800  || profile.steps30 > 1500 || profile.steps60 > 2500 ) {
+                // stepActivityDetected = true
+                activityRatio = 0.7
+                consoleError.add("-> Activity tracker detected activity, sensitivity ratio: $activityRatio")
+            } else if ( profile.steps5 > 200 || profile.steps10 > 400  || profile.steps15 > 550
+                || profile.steps30 > 500 || profile.steps60 > 800 ) {
+                // stepActivityDetected = true
+                activityRatio = 0.85
+                consoleError.add("-> Activity tracker detected partial activity, sensitivity ratio: $activityRatio")
+            } else if ( bg < target_bg && profile.steps60 <= 200 ) {
+                consoleError.add("Activity tracker disabled inactivity detection: : bg < target")
+            } else if ( profile.steps60 < 50 ) {
+                // stepInactivityDetected = true
+                activityRatio = 1.2
+                consoleError.add("-> Activity tracker detected inactivity, sensitivity ratio: $activityRatio")
+            } else if ( profile.steps60 <= 200 ) {
+                // stepInactivityDetected = true
+                activityRatio = 1.1
+                consoleError.add("-> Activity tracker detected partial inactivity, sensitivity ratio: $activityRatio")
+            } else {
+                consoleError.add("-> Activity tracker detected neutral state, sensitivity ratio unchanged: $activityRatio")
+            }
+        }
+
         var sensitivityRatio: Double
         val high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity
         val normalTarget = Constants.NORMAL_TARGET_MGDL // evaluate high/low temptarget against normal target, not scheduled target (which might change)
@@ -262,13 +299,16 @@ class DetermineBasalSMB @Inject constructor(
             sensitivityRatio = round(sensitivityRatio, 2)
             consoleLog.add("Sensitivity ratio set to $sensitivityRatio based on temp target of $target_bg; ")
         } else {
-            sensitivityRatio = autosens_data.ratio
-            consoleLog.add("Autosens ratio: $sensitivityRatio; ")
+            // Mod Activity Tracker
+            sensitivityRatio = autosens_data.ratio * activityRatio
+            if (sensitivityRatio != 1.0)
+                consoleError.add("Sensitivity ratio = = $sensitivityRatio <- Autosens ratio (${autosens_data.ratio}) * Activity ratio ($activityRatio)")
         }
         basal = profile.current_basal * sensitivityRatio
         basal = round_basal(basal)
-        if (basal != profile_current_basal)
-            consoleLog.add("Adjusting basal from $profile_current_basal to $basal; ")
+        // Mod Activity tracker
+        if (basal != profile.current_basal)
+            consoleError.add("Adjusting basal from ${profile.current_basal} to $basal")
         else
             consoleLog.add("Basal unchanged: $basal; ")
 
@@ -436,7 +476,7 @@ class DetermineBasalSMB @Inject constructor(
 
         // TODO: remove commented-out code for old behavior
         //if (profile.temptargetSet) {
-        // if temptargetSet, use unadjusted profile.sens to allow activity mode sensitivityRatio to adjust CR
+        // if temptargetSet, use unadjusted profile.sens to allow exercise mode sensitivityRatio to adjust CR
         //var csf = profile.sens / profile.carb_ratio;
         //} else {
         // otherwise, use autosens-adjusted sens to counteract autosens meal insulin dosing adjustments
@@ -818,7 +858,7 @@ class DetermineBasalSMB @Inject constructor(
         if (minUAMPredBG < 999) {
             consoleLog.add(" minUAMPredBG: $minUAMPredBG")
         }
-        consoleError.add(" avgPredBG: $avgPredBG COB: ${meal_data.mealCOB} / ${meal_data.carbs}")
+        consoleError.add("avgPredBG: $avgPredBG COB: ${meal_data.mealCOB} / ${meal_data.carbs}")
         // But if the COB line falls off a cliff, don't trust UAM too much:
         // use maxCOBPredBG if it's been set and lower than minPredBG
         if (maxCOBPredBG > bg) {

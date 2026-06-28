@@ -299,8 +299,16 @@ class OpenAPSViewModel(
         lgsThreshold?.let { add(KeyValueRow("lgsThreshold", it.toString())) }
         add(KeyValueRow("variable_sens", variable_sens.toString()))
         add(KeyValueRow("insulinDivisor", insulinDivisor.toString()))
+        // Mod Ketoacidosis Protection
         add(KeyValueRow("Ketoacidosis Protection", ketoacidosisProtection.toString()))
         add(KeyValueRow("Safety TBR (ketoProtect)", ketoacidosisProtectionBasal.toString()))
+        // Mod Activity Tracker
+        add(KeyValueRow("Activity Tracker", activityTracker.toString()))
+        add(KeyValueRow("Steps 5", steps5.toString()))
+        add(KeyValueRow("Steps 10", steps10.toString()))
+        add(KeyValueRow("Steps 15", steps15.toString()))
+        add(KeyValueRow("Steps 30", steps30.toString()))
+        add(KeyValueRow("Steps 60", steps60.toString()))
         add(KeyValueRow("TDD", TDD.toString()))
     }
 

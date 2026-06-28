@@ -399,6 +399,11 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val iobArray = iobCobCalculator.calculateIobArrayForSMB(autosensResult, SMBDefaults.exercise_mode, SMBDefaults.half_basal_exercise_target, isTempTarget)
         val mealData = iobCobCalculator.getMealDataWithWaitingForCalculationFinish()
 
+        // Mod Activity Tracker
+        suspend fun getSum(minutes: Int): Int =
+            persistenceLayer.getStepsCountFromTimeToTime(now - T.mins(minutes.toLong()).msecs(), now)
+                .sumOf { it.steps5min }
+
         val oapsProfile = OapsProfile(
             dia = 0.0, // not used
             min_5m_carbimpact = 0.0, // not used
@@ -444,8 +449,16 @@ open class OpenAPSSMBPlugin @Inject constructor(
             variable_sens = if (dynIsfMode) dynIsfResult.variableSensitivity ?: 0.0 else 0.0,
             insulinDivisor = dynIsfResult.insulinDivisor,
             TDD = dynIsfResult.tdd ?: 0.0,
+            // Mod Ketoacidosis protection
             ketoacidosisProtection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
-            ketoacidosisProtectionBasal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
+            ketoacidosisProtectionBasal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal),
+            // Mod Activity tracker
+            activityTracker = preferences.get(BooleanKey.ApsActivityTracker),
+            steps5 = getSum(5),
+            steps10 = getSum(10),
+            steps15 = getSum(15),
+            steps30 = getSum(30),
+            steps60 = getSum(60)
         )
         val microBolusAllowed = constraintsChecker.isSMBModeEnabled(ConstraintObject(tempBasalFallback.not(), aapsLogger)).also { inputConstraints.copyReasons(it) }.value()
         val flatBGsDetected = bgQualityCheck.state == BgQualityCheck.State.FLAT
@@ -611,8 +624,11 @@ open class OpenAPSSMBPlugin @Inject constructor(
                     DoubleKey.ApsMaxCurrentBasalMultiplier
                 )
             ),
+            //Mod Ketoacidosis Protection
             BooleanKey.ApsKetoacidosisProtection,
-            IntKey.ApsKetoacidosisProtectionBasal
+            IntKey.ApsKetoacidosisProtectionBasal,
+            // Mod Activity Tracker
+            BooleanKey.ApsActivityTracker
         ),
         icon = pluginDescription.icon
     )
