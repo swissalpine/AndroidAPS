@@ -421,6 +421,7 @@ class DataHandlerMobileWearBolusTest : TestBaseWithProfile() {
         val bolus = captor.firstValue.single() as BatchAction.Bolus
         assertThat(bolus.insulin).isEqualTo(1.5)
         assertThat(bolus.carbs).isEqualTo(0)
+        assertThat(bolus.quickWizardGuid).isEqualTo("g1") // the MASTER marks the entry used on commit via this guid (SOT)
         // A fixed button must NOT recompute the wizard (the bug).
         verifyBlocking(wizardExecutor, never()) { prepare(any(), any()) }
         assertThat(confirm.returnCommand).isEqualTo(EventData.ActionBolusConfirmed(11L))
@@ -438,6 +439,7 @@ class DataHandlerMobileWearBolusTest : TestBaseWithProfile() {
         // Carbs-only: zero insulin (the wizard recompute could have injected a correction bolus).
         assertThat(bolus.insulin).isEqualTo(0.0)
         assertThat(bolus.carbs).isEqualTo(20)
+        assertThat(bolus.quickWizardGuid).isEqualTo("g2") // the MASTER marks the entry used on commit via this guid (SOT)
         verifyBlocking(wizardExecutor, never()) { prepare(any(), any()) }
         assertThat(confirm.returnCommand).isEqualTo(EventData.ActionBolusConfirmed(12L))
     }
@@ -466,16 +468,22 @@ class DataHandlerMobileWearBolusTest : TestBaseWithProfile() {
         assertThat(confirm.returnCommand).isEqualTo(EventData.ActionWizardConfirmed(99L))
     }
 
-    @Test fun `quick wizard fixed-mode confirm marks the entry used so the tile cools down`() = runTest {
+    @Test fun `quick wizard fixed-mode tags the batch with the guid and never marks the entry locally`() = runTest {
+        // SOT: the guid travels in the batch so the MASTER marks the entry used in confirm(); this device must NOT write
+        // the synced QuickWizard pref itself (on a client that pushes it back over the round-trip → "Update settings …
+        // Another action is already in progress").
         val entry = stubQuickWizard("g4", QuickWizardMode.INSULIN, insulin = 1.0, text = "Bolus")
         stubBatchPrepared(14L, lines = listOf(ConfirmationLine(ConfirmationRole.BOLUS, "Bolus: 1.00 U")))
         whenever(batchExecutor.commit(any(), any(), any(), any())).thenReturn(ActionProgress.Applied)
 
-        // Precheck parks the bolusId→guid mapping; the watch ✓ then commits it → the entry is marked used (tile cooldown).
+        val captor = argumentCaptor<List<BatchAction>>()
         capturedConfirm { sut.handleQuickWizardPreCheck(EventData.ActionQuickWizardPreCheck("g4")) }
+        verifyBlocking(batchExecutor) { prepare(captor.capture(), any(), any()) }
         rxBus.send(EventData.ActionBolusConfirmed(14L))
+        verifyBlocking(batchExecutor, timeout(2000)) { commit(eq(14L), any(), any(), any()) } // the commit handler ran
 
-        verify(entry, timeout(2000)).markAsUsed()
+        assertThat((captor.firstValue.single() as BatchAction.Bolus).quickWizardGuid).isEqualTo("g4")
+        verify(entry, never()).markAsUsed() // …and it did NOT mark locally — the master does, via the guid
     }
 
     // --- Subscription wiring (the onEvent / onEventSync helpers actually register each type) --------------

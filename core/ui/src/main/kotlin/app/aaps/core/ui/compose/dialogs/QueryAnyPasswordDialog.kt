@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Dialog for querying a free-form password with optional explanation and warning messages.
@@ -144,6 +145,7 @@ fun QueryAnyPasswordDialog(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun QueryAnyPasswordDialogPreview() {

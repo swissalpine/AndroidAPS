@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.data.model.Scene
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.icons.IcAutomation
 import app.aaps.plugins.automation.R
 import app.aaps.plugins.automation.actions.Action
@@ -355,6 +356,7 @@ private fun sampleEditState(
     titleError = false
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 380, heightDp = 780)
 @Composable
 private fun PreviewAutomationEditScreenNew() {
@@ -376,6 +378,7 @@ private fun PreviewAutomationEditScreenNew() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 380, heightDp = 780)
 @Composable
 private fun PreviewAutomationEditScreenEdit() {
@@ -397,6 +400,7 @@ private fun PreviewAutomationEditScreenEdit() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 380, heightDp = 780)
 @Composable
 private fun PreviewAutomationEditScreenReadOnly() {
@@ -418,6 +422,7 @@ private fun PreviewAutomationEditScreenReadOnly() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 380, heightDp = 780)
 @Composable
 private fun PreviewAutomationEditScreenUserAction() {

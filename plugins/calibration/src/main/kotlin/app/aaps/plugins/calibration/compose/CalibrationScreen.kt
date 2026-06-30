@@ -40,10 +40,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.CAL
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.ui.compose.AapsCard
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.ToolbarConfig
 import app.aaps.core.ui.compose.navigation.ElementType
 import app.aaps.core.ui.compose.navigation.LocalPluginNavigationRequest
@@ -182,6 +184,7 @@ internal fun CalibrationScreenContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Calibration applied")
 @Composable
 private fun CalibrationScreenContentPreview() {
@@ -214,6 +217,7 @@ private fun CalibrationScreenContentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "No session")
 @Composable
 private fun CalibrationScreenContentNoSessionPreview() {
@@ -339,7 +343,7 @@ private fun EntrySliderReadout(
 }
 
 private fun Double.formatBgDisplay(unit: GlucoseUnit, signed: Boolean = false): String {
-    val converted = if (unit == GlucoseUnit.MMOL) this * GlucoseUnit.MGDL_TO_MMOLL else this
+    val converted = if (unit == GlucoseUnit.MMOL) this * Constants.MGDL_TO_MMOLL else this
     val format = when {
         signed && unit == GlucoseUnit.MGDL -> "%+.0f"
         signed && unit == GlucoseUnit.MMOL -> "%+.1f"

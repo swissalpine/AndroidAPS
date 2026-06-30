@@ -4,9 +4,7 @@ import app.aaps.core.data.plugin.PluginType
 import app.aaps.core.data.pump.defs.ManufacturerType
 import app.aaps.core.data.pump.defs.PumpDescription
 import app.aaps.core.interfaces.configuration.Config
-import app.aaps.core.interfaces.constraints.Constraint
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
-import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.constraints.PumpPluginConstraints
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
@@ -15,7 +13,6 @@ import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.plugin.OwnDatabasePlugin
 import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.plugin.PluginDescription
-import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.pump.Dana
 import app.aaps.core.interfaces.pump.Pump
 import app.aaps.core.interfaces.pump.PumpEnactResult
@@ -35,7 +32,6 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.Round.roundTo
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.ui.compose.icons.IcPluginDanaI
 import app.aaps.pump.dana.DanaPump
 import app.aaps.pump.dana.comm.RecordTypes
@@ -71,7 +67,6 @@ abstract class AbstractDanaRPlugin protected constructor(
     preferences: Preferences,
     protected val config: Config,
     commandQueue: CommandQueue,
-    protected var constraintChecker: ConstraintsChecker,
     protected var aapsSchedulers: AapsSchedulers,
     protected var rxBus: RxBus,
     protected var activePlugin: ActivePlugin,
@@ -96,7 +91,7 @@ abstract class AbstractDanaRPlugin protected constructor(
         .description(app.aaps.pump.dana.R.string.description_pump_dana_r),
     ownPreferences = listOf(DanaStringNonKey::class.java, DanaIntKey::class.java, DanaIntNonKey::class.java, DanaBooleanKey::class.java, DanaIntentKey::class.java),
     aapsLogger, rh, preferences, commandQueue
-), Pump, Dana, PluginConstraints, OwnDatabasePlugin {
+), Pump, Dana, PumpPluginConstraints, OwnDatabasePlugin {
 
     protected var executionService: AbstractDanaRExecutionService? = null
     protected var disposable = CompositeDisposable()
@@ -241,11 +236,10 @@ abstract class AbstractDanaRPlugin protected constructor(
     }
 
     override suspend fun setExtendedBolus(insulin: Double, durationInMinutes: Int): PumpEnactResult {
-        var insulinReq = insulin
-        insulinReq = constraintChecker.applyExtendedBolusConstraints(ConstraintObject(insulinReq, aapsLogger)).value()
-        // needs to be rounded
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
         val durationInHalfHours = max(durationInMinutes / 30, 1)
-        insulinReq = roundTo(insulinReq, pumpDescription.extendedBolusStep)
+        // round to the pump's native extended-bolus step (cU)
+        var insulinReq = roundTo(insulin, pumpDescription.extendedBolusStep)
         val result = pumpEnactResultProvider.get()
         if (danaPump.isExtendedInProgress && abs(danaPump.extendedBolusAmount - insulinReq) < pumpDescription.extendedBolusStep) {
             result.enacted(false)
@@ -355,25 +349,15 @@ abstract class AbstractDanaRPlugin protected constructor(
     /**
      * Constraint interface
      */
-    override fun applyBasalConstraints(absoluteRate: Constraint<Double>, profile: Profile): Constraint<Double> {
-        absoluteRate.setIfSmaller(danaPump.maxBasal, rh.gs(app.aaps.core.ui.R.string.limitingbasalratio, danaPump.maxBasal, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        return absoluteRate
-    }
+    // cU-domain pump limit (PumpPluginConstraints): folded into the IU scan by ConstraintsChecker.
+    override fun applyBasalConstraints(absoluteRate: PumpRate): PumpRate =
+        PumpRate(absoluteRate.cU.coerceAtMost(danaPump.maxBasal))
 
-    override fun applyBasalPercentConstraints(percentRate: Constraint<Int>, profile: Profile): Constraint<Int> {
-        percentRate.setIfGreater(0, rh.gs(app.aaps.core.ui.R.string.limitingpercentrate, 0, rh.gs(app.aaps.core.ui.R.string.itmustbepositivevalue)), this)
-        percentRate.setIfSmaller(pumpDescription.maxTempPercent, rh.gs(app.aaps.core.ui.R.string.limitingpercentrate, pumpDescription.maxTempPercent, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        return percentRate
-    }
+    // cU-domain pump limit (PumpPluginConstraints): folded into the IU scan by ConstraintsChecker.
+    override fun applyBolusConstraints(insulin: PumpInsulin): PumpInsulin =
+        PumpInsulin(insulin.cU.coerceAtMost(danaPump.maxBolus))
 
-    override fun applyBolusConstraints(insulin: Constraint<Double>): Constraint<Double> {
-        insulin.setIfSmaller(danaPump.maxBolus, rh.gs(app.aaps.core.ui.R.string.limitingbolus, danaPump.maxBolus, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        return insulin
-    }
-
-    override fun applyExtendedBolusConstraints(insulin: Constraint<Double>): Constraint<Double> {
-        return applyBolusConstraints(insulin)
-    }
+    override fun applyExtendedBolusConstraints(insulin: PumpInsulin): PumpInsulin = applyBolusConstraints(insulin)
 
     override suspend fun loadTDDs(): PumpEnactResult {
         return loadHistory(RecordTypes.RECORD_TYPE_DAILY)

@@ -40,20 +40,22 @@ fun AapsCard(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsCardPreview() {
-    AapsTheme {
+    MaterialTheme {
         AapsCard(modifier = Modifier.padding(16.dp)) {
             Text("Card content", modifier = Modifier.padding(16.dp))
         }
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsCardSelectedPreview() {
-    AapsTheme {
+    MaterialTheme {
         AapsCard(modifier = Modifier.padding(16.dp), selected = true) {
             Text("Selected card", modifier = Modifier.padding(16.dp))
         }

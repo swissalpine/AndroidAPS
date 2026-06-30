@@ -235,7 +235,9 @@ data class BatchActionDto(
     // bolus eCarbs split: extended carbs amount, delay, and duration (0 = no eCarbs)
     val eCarbsGrams: Int = 0,
     val eCarbsDelayMinutes: Int = 0,
-    val eCarbsDurationHours: Int = 0
+    val eCarbsDurationHours: Int = 0,
+    // bolus: originating QuickWizard guid (INSULIN/CARBS mode) so the master marks the entry used on commit (lastUsed)
+    val quickWizardGuid: String? = null
 ) {
 
     companion object {
@@ -256,5 +258,9 @@ data class BatchActionDto(
 
         // therapy_event (careportal): the master persists a TherapyEvent (it is the sole writer; syncs back via NS).
         const val TYPE_THERAPY_EVENT = "therapy_event"
+
+        // therapy_event_edit: the master UPDATES an existing TherapyEvent it locates by teType+timestamp (reuses the
+        // teType/timestamp/location/arrow/notes/source fields). Distinct from create so it never insert-if-news.
+        const val TYPE_THERAPY_EVENT_EDIT = "therapy_event_edit"
     }
 }

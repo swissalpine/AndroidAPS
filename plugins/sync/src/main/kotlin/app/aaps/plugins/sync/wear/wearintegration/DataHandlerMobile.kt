@@ -105,7 +105,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -266,13 +265,13 @@ class DataHandlerMobile @Inject constructor(
             // Commit the parked dose by id through the role-transparent relay (MASTER → local deliver; CLIENT →
             // signed BolusCommit). Consume-once = no double bolus; a failure surfaces to the watch.
             contacting() // CLIENT: show the spinner during the commit round-trip too (no-op on master).
-            // Remove unconditionally (no leak even on a failed commit); mark used + refresh only on a delivered bolus.
-            val quickWizardGuid = quickWizardFixedUsage.remove(it.bolusId)
+            // markAsUsed is done by the MASTER inside the executor's confirm() (a fixed QuickWizard batch carries its
+            // quickWizardGuid) — this device must NOT write the synced QuickWizard pref itself (on a client that pushes
+            // it back over the round-trip → "Update settings … Another action is already in progress"). On a delivered
+            // bolus refresh the tile's lastUsed: immediate on a master; on a client it reflects after the master's mark
+            // syncs back via the cold-doc.
             onCommitResult(batchExecutor.commit(it.bolusId, Sources.Wear, rh.gs(app.aaps.core.ui.R.string.overview_treatment_label))) {
-                quickWizardGuid?.let { guid ->
-                    quickWizard.get(guid)?.markAsUsed()
-                    sendQuickWizardListToWear() // refresh lastUsed in the tile entry list after delivery
-                }
+                sendQuickWizardListToWear()
             }
         }
         onEvent<EventData.ActionECarbsPreCheck> { handleECarbsPreCheck(it) }
@@ -701,17 +700,6 @@ class DataHandlerMobile @Inject constructor(
         )
     }
 
-    // Parked bolusId → QuickWizard guid for a FIXED (INSULIN/CARBS) wear quick-wizard, so the entry's lastUsed
-    // timestamp is updated on a successful commit (mirrors the phone's executeFixedBatch → markAsUsed). The
-    // WIZARD path marks used inside the executor — its PendingBolus carries the entry — but a fixed batch parks entry=null.
-    private val quickWizardFixedUsage = ConcurrentHashMap<Long, String>()
-
-    private fun rememberQuickWizardUsage(bolusId: Long, guid: String) {
-        // Drop ids older than 1 hour so a prepared-then-cancelled (never committed) entry can't accumulate.
-        quickWizardFixedUsage.keys.removeAll { dateUtil.now() - it > 3_600_000L }
-        quickWizardFixedUsage[bolusId] = guid
-    }
-
     // internal (not private) so DataHandlerMobileWearBolusTest can drive it without RxBus scaffolding.
     internal suspend fun handleQuickWizardPreCheck(command: EventData.ActionQuickWizardPreCheck) {
         // Branch on the entry mode exactly like the phone (MainViewModel.executeQuickWizard): a fixed INSULIN/CARBS
@@ -724,10 +712,11 @@ class DataHandlerMobile @Inject constructor(
             QuickWizardMode.INSULIN -> sendBatchPreCheck(
                 BatchAction.Bolus(
                     insulin = entry.insulin(), carbs = 0, carbsTimeOffsetMinutes = 0, carbsDurationHours = 0,
-                    recordOnly = false, notes = entry.buttonText(), timestamp = 0L, iCfg = null
+                    recordOnly = false, notes = entry.buttonText(), timestamp = 0L, iCfg = null,
+                    quickWizardGuid = command.guid // the MASTER marks the entry used on commit (SOT) — no local pref write
                 ),
                 label = rh.gs(app.aaps.core.ui.R.string.bolus)
-            ) { bolusId -> rememberQuickWizardUsage(bolusId, command.guid); EventData.ActionBolusConfirmed(bolusId) }
+            ) { bolusId -> EventData.ActionBolusConfirmed(bolusId) }
 
             QuickWizardMode.CARBS   -> {
                 val hasEcarbs = entry.useEcarbs() == QuickWizardEntry.YES
@@ -737,10 +726,11 @@ class DataHandlerMobile @Inject constructor(
                         recordOnly = false, notes = entry.buttonText(), timestamp = 0L, iCfg = null,
                         eCarbsGrams = if (hasEcarbs) entry.carbs2() else 0,
                         eCarbsDelayMinutes = if (hasEcarbs) entry.time() else 0,
-                        eCarbsDurationHours = if (hasEcarbs) entry.duration() else 0
+                        eCarbsDurationHours = if (hasEcarbs) entry.duration() else 0,
+                        quickWizardGuid = command.guid // the MASTER marks the entry used on commit (SOT) — no local pref write
                     ),
                     label = rh.gs(app.aaps.core.ui.R.string.carbs)
-                ) { bolusId -> rememberQuickWizardUsage(bolusId, command.guid); EventData.ActionBolusConfirmed(bolusId) }
+                ) { bolusId -> EventData.ActionBolusConfirmed(bolusId) }
             }
 
             else                    -> {

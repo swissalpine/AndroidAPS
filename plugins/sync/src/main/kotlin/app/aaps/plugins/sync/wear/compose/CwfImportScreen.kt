@@ -25,11 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 @Composable
 internal fun CwfImportContent(
@@ -127,6 +127,7 @@ private fun CwfImportItemCard(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.PathParser
 import app.aaps.core.data.model.TE.Location
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Icon for Child Front View.
@@ -211,6 +212,7 @@ object ChildFrontPaths {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ChildFrontPreview() {

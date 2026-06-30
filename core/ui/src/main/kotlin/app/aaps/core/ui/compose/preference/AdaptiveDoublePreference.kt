@@ -24,6 +24,7 @@ import app.aaps.core.keys.step
 import app.aaps.core.keys.unitLabelResId
 import app.aaps.core.keys.valueResId
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalPreferences
 import java.text.DecimalFormat
 
@@ -138,6 +139,7 @@ fun AdaptiveDoublePreferenceItem(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AdaptiveDoublePreferencePreview() {

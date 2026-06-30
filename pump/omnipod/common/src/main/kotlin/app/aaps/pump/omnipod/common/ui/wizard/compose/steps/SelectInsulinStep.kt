@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.data.model.ICfg
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.insulin.SelectInsulin
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
@@ -67,6 +68,7 @@ private val previewInsulins = listOf(
     ICfg("NovoRapid U100", peak = 75, dia = 5.0, concentration = 1.0)
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Select Insulin")
 @Composable
 private fun PreviewSelectInsulin() {

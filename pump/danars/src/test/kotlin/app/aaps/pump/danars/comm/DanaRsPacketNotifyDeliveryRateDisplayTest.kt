@@ -1,10 +1,8 @@
 package app.aaps.pump.danars.comm
 
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.pump.BlePreCheck
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.DetailedBolusInfoStorage
-import app.aaps.core.interfaces.pump.PumpSync
 import app.aaps.core.interfaces.pump.TemporaryBasalStorage
 import app.aaps.core.interfaces.queue.CommandQueue
 import app.aaps.pump.dana.database.DanaHistoryDatabase
@@ -21,11 +19,9 @@ import org.mockito.kotlin.whenever
 class DanaRsPacketNotifyDeliveryRateDisplayTest : DanaRSTestBase() {
 
     @Mock lateinit var danaHistoryDatabase: DanaHistoryDatabase
-    @Mock lateinit var constraintChecker: ConstraintsChecker
     @Mock lateinit var commandQueue: CommandQueue
     @Mock lateinit var detailedBolusInfoStorage: DetailedBolusInfoStorage
     @Mock lateinit var temporaryBasalStorage: TemporaryBasalStorage
-    @Mock lateinit var pumpSync: PumpSync
     @Mock lateinit var blePreCheck: BlePreCheck
 
     private lateinit var danaRSPlugin: DanaRSPlugin
@@ -52,8 +48,24 @@ class DanaRsPacketNotifyDeliveryRateDisplayTest : DanaRSTestBase() {
     fun mock() {
         danaRSPlugin =
             DanaRSPlugin(
-                aapsLogger, rh, preferences, commandQueue, aapsSchedulers, rxBus, context, constraintChecker, danaPump, pumpSync,
-                detailedBolusInfoStorage, temporaryBasalStorage, fabricPrivacy, dateUtil, notificationManager, danaHistoryDatabase, decimalFormatter, pumpEnactResultProvider, blePreCheck, bolusProgressData
+                aapsLogger,
+                rh,
+                preferences,
+                commandQueue,
+                aapsSchedulers,
+                rxBus,
+                context,
+                danaPump,
+                detailedBolusInfoStorage,
+                temporaryBasalStorage,
+                fabricPrivacy,
+                dateUtil,
+                notificationManager,
+                danaHistoryDatabase,
+                decimalFormatter,
+                pumpEnactResultProvider,
+                blePreCheck,
+                bolusProgressData
             )
         danaPump.bolusingDetailedBolusInfo = DetailedBolusInfo()
     }

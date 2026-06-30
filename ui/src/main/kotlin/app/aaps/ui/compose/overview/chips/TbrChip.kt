@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.Dp
 import app.aaps.core.interfaces.overview.graph.TbrState
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.icons.IcNoTbr
 import app.aaps.core.ui.compose.icons.IcTbrHigh
 import app.aaps.core.ui.compose.icons.IcTbrLow
@@ -66,18 +67,21 @@ private fun TbrState.toIcon(): ImageVector = when (this) {
     TbrState.NONE -> IcNoTbr
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TbrChipHighPreview() {
     MaterialTheme { TbrChip(state = TbrState.HIGH, onClick = {}) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TbrChipLowPreview() {
     MaterialTheme { TbrChip(state = TbrState.LOW, onClick = {}) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TbrChipNonePreview() {

@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.banner.ErrorBanner
 import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 import app.aaps.core.ui.compose.dialogs.OkDialog
@@ -223,6 +224,7 @@ internal fun DeactivateCompleteContent(
 
 // region Previews
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Confirm Deactivate")
 @Composable
 private fun PreviewConfirmDeactivate() {
@@ -231,6 +233,7 @@ private fun PreviewConfirmDeactivate() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Deactivating - In Progress")
 @Composable
 private fun PreviewDeactivating() {
@@ -239,6 +242,7 @@ private fun PreviewDeactivating() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Deactivating - Error")
 @Composable
 private fun PreviewDeactivatingError() {
@@ -247,6 +251,7 @@ private fun PreviewDeactivatingError() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Deactivate Complete")
 @Composable
 private fun PreviewDeactivateComplete() {

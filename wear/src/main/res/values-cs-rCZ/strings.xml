@@ -85,8 +85,8 @@
     <string name="action_tempt_confirmation">Požadován dočasný cíl</string>
     <string name="action_quick_wizard_confirmation">Požadován rychlý bolus</string>
     <string name="action_user_action_confirmation">Požadována Uživatelská akce</string>
-    <string name="action_scene_confirmation">Aktivovat scénu</string>
-    <string name="scene_stop">ZASTAVIT</string>
+    <string name="action_scene_confirmation">Scéna byla vyžádána</string>
+    <string name="scene_end">Konec</string>
     <string name="action_treatment_confirmation">Požadováno ošetření</string>
     <string name="action_bolus_confirmation">Požadován bolus</string>
     <string name="action_wizard_confirmation">Požadován kalkulátor</string>
@@ -239,6 +239,8 @@
     <string name="title_activity_suspend_loop">Pozastavit smyčku</string>
     <string name="wizard_carbs_format">%1$d g sacharidů</string>
     <string name="insulin_unit_short">U</string>
+    <string name="quick_wizard_tile_carbs" comment="QuickWizard tile sub-label, carbs amount. %1$d=grams. Example: 30 g">%1$d g</string>
+    <string name="quick_wizard_tile_insulin" comment="QuickWizard tile sub-label, fixed insulin amount. %1$.2f=units. Example: 1.50 U">%1$.2f U</string>
     <string name="wizard_confirmation_sent">Odesláno</string>
     <string name="contacting_master">Kontaktuji hlavní zařízení…</string>
     <string name="contacting_master_unknown">Neznámý stav — zkontrolujte telefon</string>
@@ -280,4 +282,20 @@
     <string name="confirm">Potvrdit</string>
     <string name="request">Požadavek</string>
     <string name="constraint_applied">Omezení aplikováno!</string>
+    <string name="wizard_total_insulin">Celkový inzulín</string>
+    <string name="wizard_calculation">Výpočet</string>
+    <string name="wizard_settings_format">IC: %1$s | ISF: %2$s</string>
+    <string name="wizard_result_bg">GL</string>
+    <string name="wizard_result_bg_tt">GL (DC: %1$s)</string>
+    <string name="wizard_result_trend">15min trend</string>
+    <string name="wizard_result_iob">IOB</string>
+    <string name="wizard_result_new_iob">Nové IOB: %1$sU</string>
+    <string name="wizard_result_cob">COB (%1$.1f g)</string>
+    <string name="wizard_result_carbs">Sacharidy (%1$d g)</string>
+    <string name="wizard_result_subtotal">Mezisoučet</string>
+    <string name="wizard_result_total">Celkem</string>
+    <string name="wizard_insulin_format">%1$s U</string>
+    <string name="wizard_result_correction_percentage">%1$d%%</string>
+    <string name="wizard_carbs_with_time">%1$d g sacharidů (%2$s min)</string>
+    <string name="wizard_result_ecarbs">eSacharidy: %1$d g / %2$d h (+%3$d min)</string>
 </resources>

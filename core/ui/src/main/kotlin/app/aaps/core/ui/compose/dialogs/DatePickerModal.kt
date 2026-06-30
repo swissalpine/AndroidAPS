@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * A modal date picker dialog.
@@ -48,6 +49,7 @@ fun DatePickerModal(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun DatePickerModalPreview() {

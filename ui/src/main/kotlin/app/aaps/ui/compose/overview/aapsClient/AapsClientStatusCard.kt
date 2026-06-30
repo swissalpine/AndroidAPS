@@ -38,6 +38,7 @@ import app.aaps.core.interfaces.overview.graph.AapsClientLevel
 import app.aaps.core.interfaces.overview.graph.AapsClientStatusData
 import app.aaps.core.interfaces.overview.graph.AapsClientStatusItem
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.rememberBringIntoViewOnExpand
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -113,6 +114,7 @@ fun AapsClientStatusCard(
 }
 
 @OptIn(ExperimentalLayoutApi::class)
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientStatusCardCollapsedPreview() {
@@ -147,6 +149,7 @@ private fun AapsClientStatusCardCollapsedPreview() {
 }
 
 @OptIn(ExperimentalLayoutApi::class)
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientStatusCardMixedLevelsPreview() {

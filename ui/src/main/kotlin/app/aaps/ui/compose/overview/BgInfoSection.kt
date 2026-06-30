@@ -28,6 +28,7 @@ import app.aaps.core.interfaces.overview.graph.BgInfoData
 import app.aaps.core.interfaces.overview.graph.BgRange
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalAapsScale
 import kotlin.math.cos
 import kotlin.math.sin
@@ -233,6 +234,7 @@ private fun TrendArrow.toArcIndicator(): ArcIndicator? {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun BgInfoSectionInRangePreview() {
@@ -258,6 +260,7 @@ private fun BgInfoSectionInRangePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun BgInfoSectionHighPreview() {
@@ -283,6 +286,7 @@ private fun BgInfoSectionHighPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun BgInfoSectionLowPreview() {
@@ -308,6 +312,7 @@ private fun BgInfoSectionLowPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun BgInfoSectionNullPreview() {

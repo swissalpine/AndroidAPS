@@ -677,9 +677,14 @@ class NSAndroidClientImpl(
             throw UnsuccessfulNightscoutException(response.errorBody()?.string() ?: response.message())
     }
 
-    override suspend fun deleteSettings(identifier: String): CreateUpdateResponse = callWrapper(dispatcher) {
+    override suspend fun deleteSettings(identifier: String): CreateUpdateResponse = deleteSettingsInternal(identifier, permanent = false)
 
-        val response = api.deleteSetting(identifier)
+    /** Hard delete (`?permanent=true`): actually removes the doc instead of soft-deleting (tombstoning) it. */
+    override suspend fun deleteSettingsPermanent(identifier: String): CreateUpdateResponse = deleteSettingsInternal(identifier, permanent = true)
+
+    private suspend fun deleteSettingsInternal(identifier: String, permanent: Boolean): CreateUpdateResponse = callWrapper(dispatcher) {
+
+        val response = api.deleteSetting(identifier, if (permanent) true else null)
         if (response.isSuccessful || response.code() == 404) {
             return@callWrapper CreateUpdateResponse(
                 response = response.code(),

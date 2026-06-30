@@ -1,7 +1,6 @@
 package app.aaps.pump.danar.comm
 
 import app.aaps.core.interfaces.configuration.ConfigBuilder
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.pump.BolusProgressData
 import app.aaps.core.interfaces.pump.DetailedBolusInfoStorage
 import app.aaps.core.interfaces.pump.PumpSync
@@ -31,7 +30,6 @@ open class DanaRTestBase : TestBaseWithProfile() {
     @Mock lateinit var configBuilder: ConfigBuilder
     @Mock lateinit var commandQueue: CommandQueue
     @Mock lateinit var detailedBolusInfoStorage: DetailedBolusInfoStorage
-    @Mock lateinit var constraintChecker: ConstraintsChecker
     @Mock lateinit var pumpSync: PumpSync
     @Mock lateinit var danaHistoryRecordDao: DanaHistoryRecordDao
     @Mock lateinit var uiInteraction: UiInteraction
@@ -61,7 +59,6 @@ open class DanaRTestBase : TestBaseWithProfile() {
                 it.activePlugin = activePlugin
                 it.configBuilder = configBuilder
                 it.detailedBolusInfoStorage = detailedBolusInfoStorage
-                it.constraintChecker = constraintChecker
                 it.commandQueue = commandQueue
                 it.pumpSync = pumpSync
                 it.danaHistoryRecordDao = danaHistoryRecordDao

@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.StatusLevel
 import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 import app.aaps.core.ui.compose.navigation.ElementType
@@ -332,6 +333,7 @@ private val previewStatusLightsDef = PreferenceSubScreenDef(
     titleResId = 0
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 400)
 @Composable
 private fun OverviewStatusSectionCollapsedPreview() {
@@ -353,6 +355,7 @@ private fun OverviewStatusSectionCollapsedPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 400)
 @Composable
 private fun OverviewStatusSectionExpandedPreview() {

@@ -202,6 +202,16 @@ open class TestBaseWithProfile : TestBase() {
         whenever(ch.bolusProgressString(any<PumpInsulin>(), any<Boolean>())).thenReturn("")
         whenever(ch.bolusProgressString(any<PumpInsulin>(), any<Double>(), any<Boolean>())).thenReturn("")
         whenever(ch.fromPump(any<PumpInsulin>(), any<Boolean>())).thenAnswer { it.getArgument<PumpInsulin>(0).cU }
+        whenever(ch.fromPump(any<PumpRate>())).thenAnswer { it.getArgument<PumpRate>(0).cU }
+        // Default U100 (concentration 1.0): IU<->cU conversions are identity so constraint/pump tests keep their
+        // real-value expectations. ConstraintsChecker folds pump cU caps via toPump/fromPump; SafetyPlugin asks
+        // for the (concentration-adjusted) bolus step via bolusStep (delegated to the active pump's native step).
+        whenever(ch.concentration).thenReturn(1.0)
+        whenever(ch.toPump(any<Double>())).thenAnswer { PumpInsulin(it.getArgument<Double>(0)) }
+        whenever(ch.toPumpRate(any<Double>())).thenAnswer { PumpRate(it.getArgument<Double>(0)) }
+        // Deliverable IU step: delegate to the active pump's configured bolusStep (U100 identity; tests that
+        // need a specific step set testPumpPlugin.pumpDescription.bolusStep). Real impl is amount-aware (Insight).
+        whenever(ch.bolusStep(any<Double>())).thenAnswer { activePlugin.activePump.pumpDescription.bolusStep }
 
         doAnswer { invocation: InvocationOnMock ->
             val string = invocation.getArgument<Int>(0)

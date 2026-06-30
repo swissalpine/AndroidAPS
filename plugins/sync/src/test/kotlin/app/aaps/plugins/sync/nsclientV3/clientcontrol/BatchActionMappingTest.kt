@@ -16,6 +16,17 @@ import org.junit.jupiter.api.Test
 class BatchActionMappingTest {
 
     @Test
+    fun bolusRoundTripsTheQuickWizardGuid() {
+        // The guid lets the master mark the originating QuickWizard used on commit (SOT) — a dropped field would
+        // silently revert to the client-side markAsUsed bug ("Update settings … Another action is already in progress").
+        val original = BatchAction.Bolus(
+            insulin = 1.5, carbs = 20, carbsTimeOffsetMinutes = 0, carbsDurationHours = 0,
+            recordOnly = false, notes = "Lunch", timestamp = 0L, iCfg = null, quickWizardGuid = "abc-123"
+        )
+        assertThat(original.toDto().toDomain()).isEqualTo(original)
+    }
+
+    @Test
     fun tempBasalPercentRoundTrips() {
         val original = BatchAction.TempBasal(rate = 150.0, isPercent = true, durationMinutes = 30)
         assertThat(original.toDto().toDomain()).isEqualTo(original)
@@ -98,5 +109,24 @@ class BatchActionMappingTest {
     fun therapyEventWithUnknownTypeMapsToNull() {
         // An unknown/unparseable teType drops the action (the master's no-action guard then rejects an empty batch).
         assertThat(BatchActionDto(type = BatchActionDto.TYPE_THERAPY_EVENT, teType = "NOT_A_TYPE").toDomain()).isNull()
+    }
+
+    @Test
+    fun therapyEventEditRoundTrips() {
+        val original = BatchAction.TherapyEventEdit(
+            teType = TE.Type.CANNULA_CHANGE,
+            timestamp = 1_700_000_002_000L,
+            location = TE.Location.SIDE_LEFT_UPPER_ARM,
+            arrow = TE.Arrow.RIGHT,
+            note = "moved",
+            source = Sources.SiteRotationDialog
+        )
+        assertThat(original.toDto().toDomain()).isEqualTo(original)
+    }
+
+    @Test
+    fun therapyEventEditWithUnknownTypeMapsToNull() {
+        // An unknown/unparseable teType drops the action (the master's no-action guard then rejects an empty batch).
+        assertThat(BatchActionDto(type = BatchActionDto.TYPE_THERAPY_EVENT_EDIT, teType = "NOT_A_TYPE").toDomain()).isNull()
     }
 }

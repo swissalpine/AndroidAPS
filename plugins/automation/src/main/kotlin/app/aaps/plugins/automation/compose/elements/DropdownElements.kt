@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.plugins.automation.elements.InputLocationMode
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,6 +101,7 @@ fun InputLocationModeEditor(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewDropdown() {
@@ -109,6 +111,7 @@ private fun PreviewDropdown() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewOnOff() {

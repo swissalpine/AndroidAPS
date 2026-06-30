@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 import app.aaps.pump.eopatch.R
 import app.aaps.pump.eopatch.code.PatchStep
@@ -77,6 +78,7 @@ fun ConnectStep(viewModel: EopatchPatchViewModel) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Connect - Scanning")
 @Composable
 private fun ConnectStepScanningPreview() {

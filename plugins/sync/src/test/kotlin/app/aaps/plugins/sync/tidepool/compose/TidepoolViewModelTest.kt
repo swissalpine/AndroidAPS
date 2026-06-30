@@ -67,4 +67,25 @@ internal class TidepoolViewModelTest {
         sut.loadInitialData()
         verify(tidepoolRepository).updateConnectionStatus(AuthFlowOut.ConnectionStatus.FETCHING_TOKEN)
     }
+
+    @Test
+    fun `status and log are tracked independently in uiState`() {
+        connectionStatusFlow.value = AuthFlowOut.ConnectionStatus.FETCHING_TOKEN
+        logListFlow.value = listOf(TidepoolLog("a"), TidepoolLog("b"))
+
+        assertThat(sut.uiState.value.connectionStatus).isEqualTo("FETCHING_TOKEN")
+        assertThat(sut.uiState.value.logList).hasSize(2)
+
+        // A later status change must not clobber the already-collected log list.
+        connectionStatusFlow.value = AuthFlowOut.ConnectionStatus.SESSION_ESTABLISHED
+        assertThat(sut.uiState.value.connectionStatus).isEqualTo("SESSION_ESTABLISHED")
+        assertThat(sut.uiState.value.logList).hasSize(2)
+    }
+
+    @Test
+    fun `latest status wins after several updates`() {
+        connectionStatusFlow.value = AuthFlowOut.ConnectionStatus.BLOCKED
+        connectionStatusFlow.value = AuthFlowOut.ConnectionStatus.NO_SESSION
+        assertThat(sut.uiState.value.connectionStatus).isEqualTo("NO_SESSION")
+    }
 }

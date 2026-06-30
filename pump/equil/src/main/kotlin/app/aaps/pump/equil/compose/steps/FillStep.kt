@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.banner.ErrorBanner
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
@@ -121,6 +122,7 @@ private fun FillStepContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun FillStepIdlePreview() {
@@ -136,6 +138,7 @@ private fun FillStepIdlePreview() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun FillStepFillingPreview() {
@@ -151,6 +154,7 @@ private fun FillStepFillingPreview() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun FillStepCompletePreview() {
@@ -166,6 +170,7 @@ private fun FillStepCompletePreview() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun FillStepErrorPreview() {

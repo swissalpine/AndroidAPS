@@ -51,6 +51,7 @@ import app.aaps.core.data.model.TE
 import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.DateTimeSection
 import app.aaps.core.ui.compose.EventTimeRow
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
@@ -399,6 +400,7 @@ fun CareportalEventType.toElementType(): ElementType = when (this) {
     CareportalEventType.ANNOUNCEMENT   -> ElementType.ANNOUNCEMENT
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun CareDialogScreenPreview() {

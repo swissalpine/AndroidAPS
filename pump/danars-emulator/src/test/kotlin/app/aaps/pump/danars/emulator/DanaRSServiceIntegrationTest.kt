@@ -3,8 +3,6 @@ package app.aaps.pump.danars.emulator
 import android.content.Context
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.interfaces.configuration.ConfigBuilder
-import app.aaps.core.interfaces.constraints.Constraint
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.plugin.ActivePlugin
@@ -114,7 +112,6 @@ class DanaRSServiceIntegrationTest : TestBase() {
     @Mock lateinit var notificationManager: NotificationManager
     @Mock lateinit var decimalFormatter: DecimalFormatter
     @Mock lateinit var profileStoreProvider: Provider<ProfileStore>
-    @Mock lateinit var constraintsChecker: ConstraintsChecker
     @Mock lateinit var detailedBolusInfoStorage: DetailedBolusInfoStorage
     @Mock lateinit var temporaryBasalStorage: TemporaryBasalStorage
     @Mock lateinit var commandQueue: CommandQueue
@@ -158,7 +155,6 @@ class DanaRSServiceIntegrationTest : TestBase() {
         whenever(preferences.get(DanaStringNonKey.Password)).thenReturn("0000")
         whenever(preferences.get(DanaStringComposedKey.ParingKey, deviceName)).thenReturn("ABCD")
         whenever(danaRSPlugin.mDeviceName).thenReturn(deviceName)
-        whenever(constraintsChecker.applyBolusConstraints(any<Constraint<Double>>())).thenAnswer { it.arguments[0] }
         whenever(pumpWithConcentration.pumpDescription).thenReturn(
             app.aaps.core.data.pump.defs.PumpDescription().apply { basalStep = 0.01 }
         )
@@ -215,7 +211,6 @@ class DanaRSServiceIntegrationTest : TestBase() {
         danaRSService.danaRSPlugin = danaRSPlugin
         danaRSService.danaPump = danaPump
         danaRSService.activePlugin = activePlugin
-        danaRSService.constraintChecker = constraintsChecker
         danaRSService.uiInteraction = uiInteraction
         danaRSService.bleComm = bleComm
         danaRSService.fabricPrivacy = fabricPrivacy
@@ -239,7 +234,7 @@ class DanaRSServiceIntegrationTest : TestBase() {
         }
         danaRSService.danaRSPacketBolusGetCIRCFArray = Provider { DanaRSPacketBolusGetCIRCFArray(aapsLogger, danaPump) }
         danaRSService.danaRSPacketOptionGetUserOption = Provider { DanaRSPacketOptionGetUserOption(aapsLogger, danaPump) }
-        danaRSService.danaRSPacketGeneralInitialScreenInformation = Provider { DanaRSPacketGeneralInitialScreenInformation(aapsLogger, danaPump) }
+        danaRSService.danaRSPacketGeneralInitialScreenInformation = Provider { DanaRSPacketGeneralInitialScreenInformation(aapsLogger, danaPump, notificationManager) }
         danaRSService.danaRSPacketBolusGetStepBolusInformation = Provider { DanaRSPacketBolusGetStepBolusInformation(aapsLogger, dateUtil, danaPump) }
         danaRSService.danaRSPacketOptionGetPumpTime = Provider { DanaRSPacketOptionGetPumpTime(aapsLogger, dateUtil, danaPump) }
         danaRSService.danaRSPacketOptionGetPumpUTCAndTimeZone = Provider {
@@ -257,7 +252,7 @@ class DanaRSServiceIntegrationTest : TestBase() {
         danaRSService.danaRSPacketAPSBasalSetTemporaryBasal = Provider { DanaRSPacketAPSBasalSetTemporaryBasal(aapsLogger) }
         danaRSService.danaRSPacketBolusSetExtendedBolus = Provider { DanaRSPacketBolusSetExtendedBolus(aapsLogger) }
         danaRSService.danaRSPacketBolusSetExtendedBolusCancel = Provider { DanaRSPacketBolusSetExtendedBolusCancel(aapsLogger) }
-        danaRSService.danaRSPacketBolusSetStepBolusStart = Provider { DanaRSPacketBolusSetStepBolusStart(aapsLogger, danaPump, constraintsChecker) }
+        danaRSService.danaRSPacketBolusSetStepBolusStart = Provider { DanaRSPacketBolusSetStepBolusStart(aapsLogger, danaPump) }
         danaRSService.danaRSPacketBolusSetStepBolusStop = Provider { DanaRSPacketBolusSetStepBolusStop(aapsLogger, bolusProgressData, rh, danaPump) }
         danaRSService.danaRSPacketBasalSetProfileBasalRate = Provider { DanaRSPacketBasalSetProfileBasalRate(aapsLogger) }
         danaRSService.danaRSPacketBasalSetProfileNumber = Provider { DanaRSPacketBasalSetProfileNumber(aapsLogger) }

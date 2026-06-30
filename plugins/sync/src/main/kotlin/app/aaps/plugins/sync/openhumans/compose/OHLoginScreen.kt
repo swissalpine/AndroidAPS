@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTopAppBar
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.plugins.sync.R
 import app.aaps.plugins.sync.openhumans.ui.OHLoginViewModel
 
@@ -400,6 +401,7 @@ private fun DoneStep(onClose: () -> Unit) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Welcome")
 @Composable
 private fun WelcomeStepPreview() {
@@ -408,6 +410,7 @@ private fun WelcomeStepPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Consent")
 @Composable
 private fun ConsentStepPreview() {
@@ -416,6 +419,7 @@ private fun ConsentStepPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Confirm")
 @Composable
 private fun ConfirmStepPreview() {
@@ -424,6 +428,7 @@ private fun ConfirmStepPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Finishing")
 @Composable
 private fun FinishingStepPreview() {
@@ -432,6 +437,7 @@ private fun FinishingStepPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Done")
 @Composable
 private fun DoneStepPreview() {

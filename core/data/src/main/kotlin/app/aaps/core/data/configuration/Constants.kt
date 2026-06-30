@@ -5,7 +5,7 @@ package app.aaps.core.data.configuration
  */
 object Constants {
 
-    const val MMOLL_TO_MGDL = 18.0 // 18.0182;
+    const val MMOLL_TO_MGDL = 18.01559
     const val MGDL_TO_MMOLL = 1 / MMOLL_TO_MGDL
     const val defaultDIA = 5.0
     const val notificationID = 556677

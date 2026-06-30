@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.interfaces.logging.LogElement
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.consumeOverscroll
 import app.aaps.core.ui.R as CoreUiR
 
@@ -124,6 +125,7 @@ internal fun LogSettingBottomSheetContent(
 }
 
 @OptIn(ExperimentalLayoutApi::class)
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun LogSettingBottomSheetContentPreview() {

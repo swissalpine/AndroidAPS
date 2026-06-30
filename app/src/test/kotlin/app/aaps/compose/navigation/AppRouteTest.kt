@@ -32,7 +32,6 @@ class AppRouteTest {
         assertThat(AppRoute.Configuration.route).isEqualTo("configuration")
         assertThat(AppRoute.FoodManagement.route).isEqualTo("food_management")
         assertThat(AppRoute.SiteRotationManagement.route).isEqualTo("siteRotationManagement")
-        assertThat(AppRoute.SiteRotationSettings.route).isEqualTo("siteRotationSettings")
         assertThat(AppRoute.SetupWizard.route).isEqualTo("setup_wizard")
     }
 

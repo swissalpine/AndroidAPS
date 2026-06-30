@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,6 +176,7 @@ private fun formatHHmm(hour: Int, minute: Int): String = "%02d:%02d".format(hour
 private fun formatDate(cal: Calendar): String =
     "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewTime() {
@@ -184,6 +186,7 @@ private fun PreviewTime() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewTimeRange() {

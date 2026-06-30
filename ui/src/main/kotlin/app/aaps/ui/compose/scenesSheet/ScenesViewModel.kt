@@ -117,7 +117,9 @@ class ScenesViewModel @Inject constructor(
             // On AAPSCLIENT, master-disconnected overrides every per-scene / per-automation
             // gate — the action can't reach master regardless of what the local validator says.
             val masterOfflineReason: String? =
-                if (!masterReachable.value) rh.gs(CoreUiR.string.scene_lock_reason_master_offline) else null
+                if (!masterReachable.value)
+                    rh.gs(if (!nsClient.masterControlAllowed.value) CoreUiR.string.scene_lock_reason_control_disabled else CoreUiR.string.scene_lock_reason_master_offline)
+                else null
 
             // Scenes are *definitions* — show them regardless of pump/loop/profile state.
             // Per-scene activation gating is computed via the shared validator and

@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 import app.aaps.core.ui.R as CoreUiR
@@ -53,6 +54,7 @@ internal fun InfoStepContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Info - With Cancel")
 @Composable
 private fun PreviewInfoStep() {
@@ -66,6 +68,7 @@ private fun PreviewInfoStep() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Info - Finish")
 @Composable
 private fun PreviewInfoStepFinish() {

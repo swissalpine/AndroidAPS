@@ -97,7 +97,7 @@ class BolusWizardTest : TestBaseWithProfile() {
         aapsLogger, rh, rxBus, preferences, profileFunction, profileUtil, constraintChecker, activePlugin,
         loop, iobCobCalculator, dateUtil, config, uel, automation, glucoseStatusProvider, uiInteraction,
         persistenceLayer, decimalFormatter, processedDeviceStatusData, runningModeGuard, activeInsulin,
-        wizardBolusExecutor, CoroutineScope(Dispatchers.Unconfined)
+        ch, wizardBolusExecutor, CoroutineScope(Dispatchers.Unconfined)
     )
 
     // ==========================================

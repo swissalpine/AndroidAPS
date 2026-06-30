@@ -1,8 +1,9 @@
 package app.aaps.ui.compose
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.dialogs.DatePickerModal
 import app.aaps.core.ui.compose.dialogs.TimePickerModal
 import kotlinx.datetime.LocalDateTime
@@ -66,10 +67,11 @@ fun EventTimePicker(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun EventDatePickerPreview() {
-    AapsTheme {
+    MaterialTheme {
         EventDatePicker(
             eventTimeMillis = System.currentTimeMillis(),
             onEventTimeChanged = {},
@@ -78,10 +80,11 @@ private fun EventDatePickerPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun EventTimePickerPreview() {
-    AapsTheme {
+    MaterialTheme {
         EventTimePicker(
             eventTimeMillis = System.currentTimeMillis(),
             onEventTimeChanged = {},

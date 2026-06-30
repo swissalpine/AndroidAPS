@@ -34,7 +34,7 @@ import app.aaps.core.objects.extensions.tickerFlow
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTheme
-import kotlinx.coroutines.flow.collect
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Banner showing the currently active scene with name, time remaining, progress, and End button.
@@ -167,6 +167,7 @@ private fun sampleScene(name: String = "Exercise") = Scene(
     defaultDurationMinutes = 60
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ActiveSceneBannerTimedPreview() {
@@ -186,6 +187,7 @@ private fun ActiveSceneBannerTimedPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ActiveSceneBannerExpiredPreview() {
@@ -207,6 +209,7 @@ private fun ActiveSceneBannerExpiredPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ActiveSceneBannerIndefinitePreview() {

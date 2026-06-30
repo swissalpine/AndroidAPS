@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * A confirmation dialog with OK and Cancel buttons.
@@ -172,6 +173,7 @@ fun OkCancelDialog(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun OkCancelDialogPreview() {

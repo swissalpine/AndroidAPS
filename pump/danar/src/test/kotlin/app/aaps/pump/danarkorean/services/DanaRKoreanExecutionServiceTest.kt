@@ -1,7 +1,6 @@
 package app.aaps.pump.danarkorean.services
 
 import app.aaps.core.data.pump.defs.PumpDescription
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.PumpSync
@@ -22,7 +21,6 @@ import org.mockito.Mockito.`when`
 
 class DanaRKoreanExecutionServiceTest : TestBaseWithProfile() {
 
-    @Mock lateinit var constraintChecker: ConstraintsChecker
     @Mock lateinit var danaRPlugin: DanaRPlugin
     @Mock lateinit var danaRKoreanPlugin: DanaRKoreanPlugin
     @Mock lateinit var commandQueue: CommandQueue
@@ -49,7 +47,6 @@ class DanaRKoreanExecutionServiceTest : TestBaseWithProfile() {
         danaRKoreanExecutionService.activePlugin = activePlugin
         danaRKoreanExecutionService.notificationManager = notificationManager
         danaRKoreanExecutionService.pumpEnactResultProvider = pumpEnactResultProvider
-        danaRKoreanExecutionService.constraintChecker = constraintChecker
         danaRKoreanExecutionService.danaRPlugin = danaRPlugin
         danaRKoreanExecutionService.danaRKoreanPlugin = danaRKoreanPlugin
         danaRKoreanExecutionService.commandQueue = commandQueue

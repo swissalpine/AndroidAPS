@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.ToolbarConfig
 import app.aaps.plugins.sync.R
 
@@ -144,6 +145,7 @@ private fun OHScreenContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Not logged in")
 @Composable
 private fun OHScreenNotLoggedInPreview() {
@@ -157,6 +159,7 @@ private fun OHScreenNotLoggedInPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Logged in")
 @Composable
 private fun OHScreenLoggedInPreview() {

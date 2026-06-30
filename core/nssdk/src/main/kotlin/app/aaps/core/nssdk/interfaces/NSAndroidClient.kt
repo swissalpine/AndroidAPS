@@ -65,4 +65,7 @@ interface NSAndroidClient {
     /** Upsert: replaces existing doc with [identifier], or inserts if absent. NS3 "UPDATE" semantics. */
     suspend fun updateSettings(identifier: String, settings: JSONObject): CreateUpdateResponse
     suspend fun deleteSettings(identifier: String): CreateUpdateResponse
+
+    /** Hard delete via NS `?permanent=true` — removes the doc instead of soft-deleting (tombstoning) it. */
+    suspend fun deleteSettingsPermanent(identifier: String): CreateUpdateResponse
 }

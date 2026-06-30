@@ -1,5 +1,6 @@
 package app.aaps.plugins.source.notificationreader
 
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.SourceSensor
 import kotlin.math.roundToInt
 
@@ -53,8 +54,6 @@ class NotificationParser(private val packageConfig: PackageConfig) {
     companion object {
 
         val GLUCOSE_RANGE = 40..405
-        private const val MMOLL_TO_MGDL = 18.0182
-
         private val MMOL_PATTERN = Regex("^\\d+[.,]\\d+$")
 
         // Unicode ranges containing arrow and symbol characters used by CGM apps
@@ -70,7 +69,7 @@ class NotificationParser(private val packageConfig: PackageConfig) {
         fun parseMmolAsMgdl(text: String): Int? {
             if (!MMOL_PATTERN.matches(text)) return null
             val mmol = text.replace(',', '.').toDoubleOrNull() ?: return null
-            return (mmol * MMOLL_TO_MGDL).roundToInt()
+            return (mmol * Constants.MMOLL_TO_MGDL).roundToInt()
         }
 
         private fun String.stripUnicodeSymbols(): String = buildString(length) {

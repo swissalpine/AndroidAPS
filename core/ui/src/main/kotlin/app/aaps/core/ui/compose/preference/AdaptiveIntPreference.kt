@@ -22,6 +22,7 @@ import app.aaps.core.keys.rangeResId
 import app.aaps.core.keys.unitLabelResId
 import app.aaps.core.keys.valueResId
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import java.text.DecimalFormat
 
 /**
@@ -131,6 +132,7 @@ fun AdaptiveIntPreferenceItem(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AdaptiveIntPreferencePreview() {

@@ -1,5 +1,6 @@
 package app.aaps.core.objects.profile
 
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.ICfg
 import app.aaps.core.data.model.IDs
@@ -123,6 +124,7 @@ sealed class ProfileSealed(
         value.timeZone.rawOffset.toLong(),
         activePlugin?.activeAPS
     ) {
+
         override var iCfg: ICfg? = null
     }
 
@@ -149,6 +151,7 @@ sealed class ProfileSealed(
         value.timeZone.rawOffset.toLong(),
         null
     ), PumpProfile {
+
         override val iCfg = null
     }
 
@@ -293,7 +296,7 @@ sealed class ProfileSealed(
             is PS   -> value.glucoseUnit
             is EPS  -> value.glucoseUnit
             is Pure -> value.glucoseUnit
-            is PP -> value.glucoseUnit
+            is PP   -> value.glucoseUnit
         }
 
     override val timeshift: Int
@@ -556,5 +559,5 @@ sealed class ProfileSealed(
         dateUtil.now() in timestamp..timestamp + (duration ?: 0L)
 
     private fun toMgdl(value: Double, units: GlucoseUnit): Double =
-        if (units == GlucoseUnit.MGDL) value else value * GlucoseUnit.MMOLL_TO_MGDL
+        if (units == GlucoseUnit.MGDL) value else value * Constants.MMOLL_TO_MGDL
 }

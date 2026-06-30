@@ -41,7 +41,7 @@ class ProfileUtilImplTest : TestBase() {
         assertThat(sut.fromMgdlToStringInUnits(glucoseValue.value, GlucoseUnit.MGDL)).isEqualTo("100")
         assertThat(sut.fromMgdlToStringInUnits(glucoseValue.value, GlucoseUnit.MMOL)).isEqualTo("5.6")
         assertThat(sut.convertToMgdl(0.1, GlucoseUnit.MGDL)).isWithin(0.01).of(0.1)
-        assertThat(sut.convertToMgdl(1.0, GlucoseUnit.MMOL)).isWithin(0.01).of(18.0)
+        assertThat(sut.convertToMgdl(1.0, GlucoseUnit.MMOL)).isWithin(0.01).of(18.01559)
         assertThat(sut.convertToMmol(18.0, GlucoseUnit.MGDL)).isWithin(0.01).of(1.0)
         assertThat(sut.convertToMmol(18.0, GlucoseUnit.MMOL)).isWithin(0.01).of(18.0)
         assertThat(sut.fromMgdlToUnits(18.0, GlucoseUnit.MGDL)).isWithin(0.01).of(18.0)
@@ -104,7 +104,7 @@ class ProfileUtilImplTest : TestBase() {
     @Test
     fun fromMmolToUnits() {
         assertThat(sut.fromMmolToUnits(5.0, GlucoseUnit.MMOL)).isWithin(0.01).of(5.0)
-        assertThat(sut.fromMmolToUnits(5.0, GlucoseUnit.MGDL)).isWithin(0.01).of(90.0)
+        assertThat(sut.fromMmolToUnits(5.0, GlucoseUnit.MGDL)).isWithin(0.01).of(90.07795)
     }
 
     @Test
@@ -128,7 +128,7 @@ class ProfileUtilImplTest : TestBase() {
     @Test
     fun convertToMgdlDetect() {
         assertThat(sut.convertToMgdlDetect(180.0)).isWithin(0.01).of(180.0)
-        assertThat(sut.convertToMgdlDetect(10.0)).isWithin(0.01).of(180.0)
+        assertThat(sut.convertToMgdlDetect(10.0)).isWithin(0.01).of(180.1559)
     }
 
     @Test
@@ -138,14 +138,14 @@ class ProfileUtilImplTest : TestBase() {
         assertThat(sut.valueInUnitsDetect(180.0, GlucoseUnit.MMOL)).isWithin(0.01).of(10.0)
         // 10.0 is detected as mmol/l (<36)
         assertThat(sut.valueInUnitsDetect(10.0, GlucoseUnit.MMOL)).isWithin(0.01).of(10.0)
-        assertThat(sut.valueInUnitsDetect(10.0, GlucoseUnit.MGDL)).isWithin(0.01).of(180.0)
+        assertThat(sut.valueInUnitsDetect(10.0, GlucoseUnit.MGDL)).isWithin(0.01).of(180.1559)
     }
 
     @Test
     fun valueInCurrentUnitsDetect() {
         whenever(preferences.get(StringKey.GeneralUnits)).thenReturn(GlucoseUnit.MGDL.asText)
         assertThat(sut.valueInCurrentUnitsDetect(180.0)).isWithin(0.01).of(180.0) // mg/dl → mg/dl
-        assertThat(sut.valueInCurrentUnitsDetect(10.0)).isWithin(0.01).of(180.0)  // mmol/l → mg/dl
+        assertThat(sut.valueInCurrentUnitsDetect(10.0)).isWithin(0.01).of(180.1559)  // mmol/l → mg/dl
 
         whenever(preferences.get(StringKey.GeneralUnits)).thenReturn(GlucoseUnit.MMOL.asText)
         assertThat(sut.valueInCurrentUnitsDetect(180.0)).isWithin(0.01).of(10.0)  // mg/dl → mmol/l

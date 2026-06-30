@@ -72,20 +72,22 @@ fun AapsSmallFab(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsFabPreview() {
-    AapsTheme {
+    MaterialTheme {
         AapsFab(onClick = {}) {
             Icon(imageVector = Icons.Default.Add, contentDescription = null)
         }
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsSmallFabPreview() {
-    AapsTheme {
+    MaterialTheme {
         AapsSmallFab(onClick = {}) {
             Icon(imageVector = Icons.Default.Add, contentDescription = null)
         }

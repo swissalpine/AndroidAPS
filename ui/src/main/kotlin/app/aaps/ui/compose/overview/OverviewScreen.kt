@@ -1,11 +1,17 @@
 package app.aaps.ui.compose.overview
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
@@ -138,7 +144,6 @@ fun OverviewScreen(
                 tbrState = tbrState,
                 smbEnabled = smbEnabled,
                 isSimpleMode = isSimpleMode,
-                calcProgress = calcProgress,
                 graphViewModel = graphViewModel,
                 chipsViewModel = chipsViewModel,
                 manageViewModel = manageViewModel,
@@ -176,7 +181,6 @@ fun OverviewScreen(
                     tbrState = tbrState,
                     smbEnabled = smbEnabled,
                     isSimpleMode = isSimpleMode,
-                    calcProgress = calcProgress,
                     graphViewModel = graphViewModel,
                     chipsViewModel = chipsViewModel,
                     manageViewModel = manageViewModel,
@@ -213,7 +217,6 @@ fun OverviewScreen(
                     tbrState = tbrState,
                     smbEnabled = smbEnabled,
                     isSimpleMode = isSimpleMode,
-                    calcProgress = calcProgress,
                     graphViewModel = graphViewModel,
                     chipsViewModel = chipsViewModel,
                     manageViewModel = manageViewModel,
@@ -232,6 +235,25 @@ fun OverviewScreen(
                     formatDuration = formatDuration
                 )
             }
+        }
+
+        // Calculation progress (IOB / graph data). Overlaid on top of content so it never reflows
+        // the layout — previously a flow child of the content Column which caused the screen to jump.
+        AnimatedVisibility(
+            visible = calcProgress < 100,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(paddingValues)
+                .fillMaxWidth()
+        ) {
+            LinearProgressIndicator(
+                progress = { calcProgress / 100f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+            )
         }
 
         PumpActivityFab(

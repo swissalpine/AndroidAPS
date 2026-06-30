@@ -11,8 +11,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.interfaces.IntPreferenceKey
-import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.StringPreferenceKey
+import app.aaps.core.keys.interfaces.VisibilityContext
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Composable list int preference for use inside card sections.
@@ -111,6 +112,7 @@ fun AdaptiveStringListPreferenceItem(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AdaptiveListIntPreferencePreview() {

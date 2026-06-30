@@ -82,6 +82,7 @@ import app.aaps.implementation.lifecycle.ProcessLifecycleListener
 import app.aaps.implementation.plugin.PluginStore
 import app.aaps.implementation.receivers.BTReceiver
 import app.aaps.implementation.receivers.ChargingStateReceiver
+import app.aaps.implementation.profile.ProfileSwitchExpiryScheduler
 import app.aaps.implementation.receivers.KeepAliveWorker
 import app.aaps.implementation.receivers.NetworkChangeReceiver
 import app.aaps.implementation.receivers.TimeDateOrTZChangeReceiver
@@ -168,6 +169,7 @@ class MainApp : Application(), HasAndroidInjector, Configuration.Provider {
     @Inject lateinit var widgetUpdater: WidgetUpdater
     @Inject lateinit var runningModeReconciler: RunningModeReconciler
     @Inject lateinit var runningModeExpiryScheduler: RunningModeExpiryScheduler
+    @Inject lateinit var profileSwitchExpiryScheduler: ProfileSwitchExpiryScheduler
     @Inject lateinit var automationRuntime: AutomationRuntime
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
@@ -241,6 +243,9 @@ class MainApp : Application(), HasAndroidInjector, Configuration.Provider {
                 // pluginStore.plugins to be populated. Both internally gated by config.APS.
                 runningModeReconciler.start()
                 runningModeExpiryScheduler.start()
+                // Fires a profile change at the exact end of a temporary ProfileSwitch (master-only),
+                // removing the up-to-5-min KeepAlive latency. KeepAlive remains the backstop.
+                profileSwitchExpiryScheduler.start()
 
                 // Standalone automation runtime (no longer a plugin). Loads definitions on all
                 // flavors; the processing loop + location service are master-only (gated internally).

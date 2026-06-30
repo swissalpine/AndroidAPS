@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * High-visibility banner for failure / error conditions (Material3 errorContainer).
@@ -83,12 +84,14 @@ private fun BannerCore(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ErrorBannerPreview() {
     ErrorBanner(message = "Communication error. Please retry.")
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun WarningBannerPreview() {

@@ -143,7 +143,7 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
         whenever(preferences.get(DanaStringNonKey.RName)).thenReturn("")
 
         //SafetyPlugin
-        constraintChecker = ConstraintsCheckerImpl(activePlugin, aapsLogger)
+        constraintChecker = ConstraintsCheckerImpl(activePlugin, aapsLogger, ch, rh)
 
         insightDbHelper = InsightDbHelper(insightDatabaseDao)
         danaPump = DanaPump(aapsLogger, preferences, dateUtil, decimalFormatter, profileStoreProvider)
@@ -162,13 +162,13 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
         objectivesPlugin = ObjectivesPlugin(aapsLogger, rh, preferences, config, objectives)
         runBlocking { objectivesPlugin.onStart() }
         danaRPlugin = DanaRPlugin(
-            aapsLogger, rh, preferences, config, commandQueue, aapsSchedulers, rxBus, context, constraintChecker, activePlugin, danaPump, dateUtil, fabricPrivacy, pumpSync,
+            aapsLogger, rh, preferences, config, commandQueue, aapsSchedulers, rxBus, context, activePlugin, danaPump, dateUtil, fabricPrivacy, pumpSync,
             notificationManager, danaHistoryDatabase, decimalFormatter, bolusProgressData, pumpEnactResultProvider
         )
         danaRSPlugin =
             DanaRSPlugin(
-                aapsLogger, rh, preferences, commandQueue, aapsSchedulers, rxBus, context, constraintChecker,
-                danaPump, pumpSync, detailedBolusInfoStorage, temporaryBasalStorage,
+                aapsLogger, rh, preferences, commandQueue, aapsSchedulers, rxBus, context,
+                danaPump, detailedBolusInfoStorage, temporaryBasalStorage,
                 fabricPrivacy, dateUtil, notificationManager, danaHistoryDatabase, decimalFormatter, pumpEnactResultProvider, blePreCheck, bolusProgressData
             )
         insightPlugin = InsightPlugin(
@@ -196,9 +196,8 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
         val constraintsPluginsList = ArrayList<PluginBase>()
         constraintsPluginsList.add(safetyPlugin)
         constraintsPluginsList.add(objectivesPlugin)
-        constraintsPluginsList.add(danaRPlugin)
-        constraintsPluginsList.add(danaRSPlugin)
-        constraintsPluginsList.add(insightPlugin)
+        // Pump plugins are no longer PluginConstraints — their cU delivery caps are PumpPluginConstraints,
+        // folded into the scan by ConstraintsCheckerImpl via activePumpInternal (stubbed per test).
         constraintsPluginsList.add(openAPSAMAPlugin)
         constraintsPluginsList.add(openAPSSMBPlugin)
         whenever(activePlugin.getSpecificPluginsListByInterface(PluginConstraints::class.java)).thenReturn(constraintsPluginsList)
@@ -274,6 +273,8 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
     @Test
     fun basalRateShouldBeLimited() {
         whenever(pumpWithConcentration.activePumpInternal).thenReturn(danaRPlugin)
+        // The active pump's cU cap is folded into the IU scan by ConstraintsChecker via activePumpInternal.
+        whenever(activePlugin.activePumpInternal).thenReturn(danaRPlugin)
         // DanaR, RS
         danaRPlugin.setPluginEnabledBlocking(PluginType.PUMP, true)
         danaRSPlugin.setPluginEnabledBlocking(PluginType.PUMP, true)
@@ -294,7 +295,9 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
         // Apply all limits
         val d = constraintChecker.getMaxBasalAllowed(validProfile)
         assertThat(d.value()).isWithin(0.01).of(0.8)
-        assertThat(d.reasonList).hasSize(3)
+        // Safety hard-limit + the active pump's cU cap (DanaR), now folded into the IU scan by ConstraintsChecker.
+        // DanaRS no longer contributes (only the active pump's PumpPluginConstraints cap is folded).
+        assertThat(d.reasonList).hasSize(2)
         assertThat(d.getMostLimitedReasons()).isEqualTo("DanaR: Limiting max basal rate to 0.80 U/h because of pump limit")
     }
 
@@ -321,7 +324,9 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
         // Apply all limits
         val i = constraintChecker.getMaxBasalPercentAllowed(validProfile)
         assertThat(i.value()).isEqualTo(200)
-        assertThat(i.reasonList).hasSize(6)
+        // Pump plugins no longer contribute percent reasons — their percent cap was redundant with SafetyPlugin,
+        // which still caps to the same value (tbrSettings.maxDose); remaining reasons are all from SafetyPlugin.
+        assertThat(i.reasonList).hasSize(4)
         assertThat(i.getMostLimitedReasons()).isEqualTo("Safety: Limiting max percent rate to 200% because of pump limit")
     }
 
@@ -348,7 +353,9 @@ class ConstraintsCheckerImplTest : TestBaseWithProfile() {
         // Apply all limits
         val d = constraintChecker.getMaxBolusAllowed()
         assertThat(d.value()).isWithin(0.01).of(3.0)
-        assertThat(d.reasonList).hasSize(4) // 2x Safety & RS & R
+        // 2x Safety only. Pump bolus caps (DanaR/RS) are now cU-domain (PumpPluginConstraints), applied at the
+        // PumpWithConcentration boundary, NOT in the IU global fan-out, so they no longer add reasons here.
+        assertThat(d.reasonList).hasSize(2)
         assertThat(d.getMostLimitedReasons()).isEqualTo("Safety: Limiting bolus to 3.0 U because of max value in preferences")
     }
 

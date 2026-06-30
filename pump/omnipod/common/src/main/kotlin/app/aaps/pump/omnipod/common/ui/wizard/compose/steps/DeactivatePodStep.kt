@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.banner.ErrorBanner
 import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 import app.aaps.core.ui.compose.pump.WizardButton
@@ -128,6 +129,7 @@ internal fun DeactivatePodStepContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Deactivate - In Progress")
 @Composable
 private fun PreviewDeactivating() {
@@ -140,6 +142,7 @@ private fun PreviewDeactivating() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Deactivate - Success")
 @Composable
 private fun PreviewDeactivateSuccess() {
@@ -152,6 +155,7 @@ private fun PreviewDeactivateSuccess() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Deactivate - Error with Discard")
 @Composable
 private fun PreviewDeactivateError() {

@@ -34,6 +34,7 @@ import app.aaps.core.interfaces.utils.Translator
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.icons.IcCannulaChange
 import app.aaps.core.ui.compose.icons.IcCgmInsert
 
@@ -191,6 +192,7 @@ fun TE.toDisplayData(
     location = location ?: TE.Location.NONE
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteEntryListPreview() {

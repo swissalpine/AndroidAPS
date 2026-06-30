@@ -126,6 +126,8 @@ class WizardBolusExecutorImpl @Inject constructor(
         val insulinActivate: BatchAction.InsulinActivate? = null,
         // Careportal events — a LIST (defensive; clients currently send one per batch), unlike the ≤1 single-slot types.
         val therapyEvents: List<BatchAction.TherapyEvent> = emptyList(),
+        // Edits of existing therapy events (location/arrow/note) — likewise list-handled; the master updates in place.
+        val therapyEventEdits: List<BatchAction.TherapyEventEdit> = emptyList(),
         val recordOnly: Boolean = false,
         val iCfg: ICfg? = null,
         val bolusTimestamp: Long? = null
@@ -300,7 +302,12 @@ class WizardBolusExecutorImpl @Inject constructor(
         val ceb = actions.filterIsInstance<BatchAction.CancelExtendedBolus>().firstOrNull() // ≤1 by construction
         val ia = actions.filterIsInstance<BatchAction.InsulinActivate>().firstOrNull() // ≤1 by construction
         val tes = actions.filterIsInstance<BatchAction.TherapyEvent>() // ≥0; handled as a list (defensive — clients currently send one per batch)
+        val teEdits = actions.filterIsInstance<BatchAction.TherapyEventEdit>() // ≥0; existing-event metadata edits (location/arrow/note)
         val recordOnly = bolus?.recordOnly == true
+        // Originating QuickWizard (INSULIN/CARBS mode), resolved on the MASTER's own store so confirm() can mark it used
+        // (lastUsed cooldown) here — the master is SOT and republishes the pref; the client never writes it. Null for a
+        // dialog/wear batch, or a guid the master hasn't synced yet (graceful → no mark).
+        val entry = bolus?.quickWizardGuid?.takeIf { it.isNotEmpty() }?.let { quickWizard.get(it) }
         // Gate + pump-init only for an actual INSULIN delivery — carbs-only, a record-only log, and a TT-only batch
         // are always allowed (mirrors executeBolus, which gates only when insulin > 0).
         if (bolus != null && !recordOnly && bolus.insulin > 0.0) {
@@ -389,24 +396,24 @@ class WizardBolusExecutorImpl @Inject constructor(
         // client gets an error instead of a silent no-op at confirm (the batch confirm path has no per-action failure channel).
         if (ia != null && profileFunction.getProfile() !is ProfileSealed.EPS)
             return WizardBolusExecutor.PrepareResult.Error(rh.gs(R.string.no_profile_set))
-        if (insulin <= 0.0 && carbs == 0 && tt == null && ps == null && rm == null && tb == null && eb == null && ctb == null && ceb == null && ia == null && tes.isEmpty())
-            // Nothing to do after caps/clamps (e.g. negative carbs with no COB to remove): a no-op, NOT a delivery
-            // error — the caller renders the neutral "no action selected" message, never the bolus-error title.
+        if (insulin <= 0.0 && carbs == 0 && tt == null && ps == null && rm == null && tb == null && eb == null && ctb == null && ceb == null && ia == null && tes.isEmpty() && teEdits.isEmpty())
+        // Nothing to do after caps/clamps (e.g. negative carbs with no COB to remove): a no-op, NOT a delivery
+        // error — the caller renders the neutral "no action selected" message, never the bolus-error title.
             return WizardBolusExecutor.PrepareResult.NoAction
         val bolusId = dateUtil.now()
         evictStalePending()
         pending[bolusId] = PendingBolus(
-            insulin = insulin, carbs = carbs, bcr = null, bolusId = bolusId, entry = null,
+            insulin = insulin, carbs = carbs, bcr = null, bolusId = bolusId, entry = entry,
             carbTimeMinutes = bolus?.carbsTimeOffsetMinutes ?: 0, notes = bolus?.notes, mode = BolusMode.FIXED,
             eventType = eventType, carbsDurationHours = bolus?.carbsDurationHours ?: 0,
             eCarbsGrams = bolus?.eCarbsGrams ?: 0, eCarbsDelayMinutes = bolus?.eCarbsDelayMinutes ?: 0, eCarbsDurationHours = bolus?.eCarbsDurationHours ?: 0,
             tempTarget = tt, profileSwitch = ps, runningMode = rm, recordOnly = recordOnly, iCfg = bolus?.iCfg, bolusTimestamp = bolus?.timestamp?.takeIf { it > 0L },
             tempBasal = cappedTb, extendedBolus = cappedEb, cancelTempBasal = ctb != null, cancelExtendedBolus = ceb != null,
-            insulinActivate = ia, therapyEvents = tes
+            insulinActivate = ia, therapyEvents = tes, therapyEventEdits = teEdits
         )
         // The master is the SOLE author of the confirmation: build the MERGED lines for the whole batch here, so the
         // client renders the master's exact string and a master-local dialog renders the identical one (decision 1).
-        val isTtOnly = bolus == null && ps == null && rm == null && cappedTb == null && cappedEb == null && ctb == null && ceb == null && ia == null && tes.isEmpty()
+        val isTtOnly = bolus == null && ps == null && rm == null && cappedTb == null && cappedEb == null && ctb == null && ceb == null && ia == null && tes.isEmpty() && teEdits.isEmpty()
         val lines = buildFixedLines(bolus, insulin, carbs, recordOnly) +
             (tt?.let { buildTtLine(it, isTtOnly) } ?: emptyList()) +
             (ps?.let { buildPsLine(it) } ?: emptyList()) +
@@ -416,7 +423,8 @@ class WizardBolusExecutorImpl @Inject constructor(
             (ctb?.let { buildCancelLine(R.string.tempbasal_label) } ?: emptyList()) +
             (ceb?.let { buildCancelLine(R.string.extended_bolus) } ?: emptyList()) +
             (ia?.let { buildInsulinActivateLine(it) } ?: emptyList()) +
-            tes.flatMap { buildTherapyEventLine(it) }
+            tes.flatMap { buildTherapyEventLine(it) } +
+            teEdits.flatMap { buildTherapyEventEditLine(it) }
         return WizardBolusExecutor.PrepareResult.Preview(insulin, carbs, bolusId, lines = lines, advisorApplies = false, advisorLines = emptyList())
     }
 
@@ -445,7 +453,7 @@ class WizardBolusExecutorImpl @Inject constructor(
             var accepted = true
             val wrapped: (String) -> Unit = { accepted = false; onError(it) }
             when {
-                p.recordOnly                    -> {
+                p.recordOnly                     -> {
                     // Record-only (a pen bolus, or a master that can't deliver): persist insulin AND carbs as given,
                     // NOT capped, optionally back-dated. deliver() (not deliverInsulin) so a Treatment record keeps its carbs.
                     val carbsTime = if (p.carbs > 0) dateUtil.now() + T.mins(p.carbTimeMinutes.toLong()).msecs() else null
@@ -472,7 +480,7 @@ class WizardBolusExecutorImpl @Inject constructor(
                     // CORRECTION_BOLUS convention.
                     deliverECarbs(p.carbs, dateUtil.now() + T.mins(p.carbTimeMinutes.toLong()).msecs(), p.carbsDurationHours, p.carbTimeMinutes, notes, source, wrapped)
 
-                else                            -> {
+                else                             -> {
                     // Insulin (± carbs): deliver the parked amounts as-is. carbsTime = now + offset; carbsDuration in hours.
                     val carbsTime = if (p.carbs > 0) dateUtil.now() + T.mins(p.carbTimeMinutes.toLong()).msecs() else null
                     deliver(p.insulin, p.carbs, carbsTime = carbsTime, carbsDuration = p.carbsDurationHours, bolusCalculatorResult = p.bcr, notes = notes, source = source, onError = wrapped, eventType = p.eventType)
@@ -490,6 +498,9 @@ class WizardBolusExecutorImpl @Inject constructor(
             p.insulinActivate?.let { applyInsulinActivate(it, source) }
             // Careportal therapy events (≥0) — dose-independent metadata; the master persists them (sole writer).
             p.therapyEvents.forEach { applyTherapyEvent(it, source) }
+            // Edits of existing therapy events (≥0) — the master updates its own copy in place (sole writer); a
+            // not-found target surfaces via onError → the commit reports Rejected/Failed (not a silent success).
+            p.therapyEventEdits.forEach { applyTherapyEventEdit(it, source, onError) }
             // A profile switch isn't gated on a dose (a PS-only batch funnels through here with a no-op deliver(0,0)).
             p.profileSwitch?.let { applyProfileSwitch(it, source) }
             // A running-mode change is likewise independent of any dose (an RM-only batch no-ops the deliver(0,0)).
@@ -499,6 +510,10 @@ class WizardBolusExecutorImpl @Inject constructor(
             p.extendedBolus?.let { applyExtendedBolus(it, source, onError) }
             if (p.cancelTempBasal) applyCancelTempBasal(source, onError)
             if (p.cancelExtendedBolus) applyCancelExtendedBolus(source, onError)
+            // QuickWizard INSULIN/CARBS: mark the originating entry used HERE on the master (SOT) — the lastUsed write
+            // republishes to clients via the cold-doc sync. The client must NOT do this itself (it would push the synced
+            // QuickWizard pref back over the round-trip and collide with this commit → "Update settings … Busy").
+            p.entry?.markAsUsed()
             return WizardBolusExecutor.ConfirmResult.Delivered
         }
 
@@ -919,6 +934,35 @@ class WizardBolusExecutorImpl @Inject constructor(
             else                   -> Action.CAREPORTAL
         }
         persistenceLayer.insertPumpTherapyEventIfNewByTimestamp(therapyEvent = event, action = uelAction, source = source, note = te.note, listValues = values)
+    }
+
+    /** The therapy-event-edit confirmation line (rarely surfaced — the management screen shows its own local diff). */
+    private fun buildTherapyEventEditLine(@Suppress("UNUSED_PARAMETER") te: BatchAction.TherapyEventEdit): List<ConfirmationLine> =
+        listOf(ConfirmationLine(ConfirmationRole.NORMAL, rh.gs(R.string.site_rotation)))
+
+    /**
+     * Apply an EDIT to an existing therapy event (location/arrow/note): the master locates ITS OWN copy by
+     * timestamp+type (the cross-device treatment identity) and updates it IN PLACE — keeping the `ids` bundle so the
+     * NS sync re-uploads it as a PUT to the SAME record (a reset would POST a duplicate). A missing target is NOT
+     * silently dropped: it [onError]s so the round-trip reports Rejected/Failed to the user (a stale client edit of a
+     * since-deleted event must surface, not vanish). [note] is applied verbatim (incl. null) so clearing a note works.
+     * A relayed edit is logged with the executor-provided [source].
+     */
+    private suspend fun applyTherapyEventEdit(te: BatchAction.TherapyEventEdit, source: Sources, onError: (String) -> Unit) {
+        val existing = persistenceLayer.getTherapyEventDataFromToTime(te.timestamp, te.timestamp).firstOrNull { it.type == te.teType }
+        if (existing == null) {
+            aapsLogger.warn(LTag.DATABASE, "TherapyEvent edit target not found at ${te.timestamp} ${te.teType}")
+            onError(rh.gs(R.string.clientcontrol_fail_site_entry_not_found))
+            return
+        }
+        val updated = existing.copy(location = te.location, arrow = te.arrow, note = te.note) // keep ids → NS PUT-updates the same record (no duplicate)
+        uel.log(
+            action = if (te.teType == TE.Type.CANNULA_CHANGE) Action.SITE_LOCATION else Action.SENSOR_LOCATION,
+            source = source,
+            note = te.note,
+            listValues = listOf(ValueWithUnit.Timestamp(te.timestamp), ValueWithUnit.TELocation(te.location ?: TE.Location.NONE), ValueWithUnit.TEArrow(te.arrow ?: TE.Arrow.NONE))
+        )
+        persistenceLayer.insertOrUpdateTherapyEvent(therapyEvent = updated)
     }
 
     override suspend fun deliverWizardBolus(

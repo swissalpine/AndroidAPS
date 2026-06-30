@@ -25,6 +25,7 @@ import app.aaps.core.ui.compose.icons.IcPluginAutomation
 import app.aaps.core.ui.compose.icons.IcPluginMaintenance
 import app.aaps.core.ui.compose.icons.IcPumpBattery
 import app.aaps.core.ui.compose.icons.IcPumpCartridge
+import app.aaps.core.ui.compose.icons.IcSiteRotation
 import app.aaps.core.ui.compose.icons.Pump
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.core.ui.search.SearchableItem
@@ -302,6 +303,22 @@ class BuiltInSearchables @Inject constructor(
     )
 
     /**
+     * Site rotation settings (accessible from the Site Rotation management screen's cog wheel). The same def
+     * backs the cog-wheel bottom sheet and search, so searching the group — or any single key — scopes here
+     * instead of opening the full preferences.
+     */
+    val siteRotation = PreferenceSubScreenDef(
+        key = "site_rotation_settings",
+        titleResId = app.aaps.core.ui.R.string.site_rotation,
+        items = listOf(
+            IntKey.SiteRotationUserProfile,
+            BooleanKey.SiteRotationManagePump,
+            BooleanKey.SiteRotationManageCgm
+        ),
+        icon = IcSiteRotation
+    )
+
+    /**
      * Automation settings — the standalone Automation feature's preference subscreen (location
      * service provider mode). Automation is no longer a plugin, so it is registered here.
      */
@@ -338,6 +355,7 @@ class BuiltInSearchables @Inject constructor(
         add(SearchableItem.Category(statusLightsPump))
         add(SearchableItem.Category(treatmentButtons))
         add(SearchableItem.Category(wizardSettings))
+        add(SearchableItem.Category(siteRotation))
     }
 }
 

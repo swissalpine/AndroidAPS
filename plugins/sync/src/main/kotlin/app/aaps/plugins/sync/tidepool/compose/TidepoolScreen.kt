@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.ToolbarConfig
 import app.aaps.plugins.sync.R
 import java.time.Instant
@@ -106,7 +107,7 @@ internal fun TidepoolScreen(
 }
 
 @Composable
-private fun TidepoolScreenContent(
+internal fun TidepoolScreenContent(
     uiState: TidepoolUiState,
     dateUtil: DateUtil? = null,
     modifier: Modifier = Modifier
@@ -174,6 +175,7 @@ private fun TidepoolScreenContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TidepoolScreenPreview() {

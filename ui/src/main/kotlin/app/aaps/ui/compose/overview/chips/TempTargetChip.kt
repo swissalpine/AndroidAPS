@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.data.model.TT
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.icons.IcTtActivity
 import app.aaps.core.ui.compose.icons.IcTtEatingSoon
 import app.aaps.core.ui.compose.icons.IcTtHypo
@@ -112,6 +113,7 @@ private fun TT.Reason?.toIcon(): ImageVector = when (this) {
     else                   -> IcTtManual // Custom, Automation, Wear, null
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TempTargetChipActivePreview() {
@@ -126,6 +128,7 @@ private fun TempTargetChipActivePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TempTargetChipNonePreview() {

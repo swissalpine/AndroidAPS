@@ -1231,6 +1231,17 @@ class NSClientV3Plugin @Inject constructor(
                     IntKey.NsClientUrgentAlarmStaleData
                 )
             ),
+            // Remote control: the master's allow/stop switch. The rich control lives on the Authorized clients
+            // screen (with the paired-client list); this category exposes the same key on the settings screen so it
+            // is reachable from search (otherwise the key has no parent screen and search dumps the user in full
+            // preferences). Empty on a client — the key is hidden there (showInNsClientMode = false).
+            PreferenceSubScreenDef(
+                key = "ns_client_remote_control",
+                titleResId = R.string.ns_remote_control_options,
+                items = listOf(
+                    BooleanKey.NsClientAllowClientControl
+                )
+            ),
             PreferenceSubScreenDef(
                 key = "ns_client_connection_options",
                 titleResId = R.string.connection_settings_title,

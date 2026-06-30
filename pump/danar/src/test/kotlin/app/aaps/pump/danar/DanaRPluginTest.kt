@@ -1,11 +1,10 @@
 package app.aaps.pump.danar
 
 import app.aaps.core.data.plugin.PluginType
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.pump.BolusProgressData
+import app.aaps.core.interfaces.pump.PumpRate
 import app.aaps.core.interfaces.pump.PumpSync
 import app.aaps.core.interfaces.queue.CommandQueue
-import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.pump.dana.DanaPump
 import app.aaps.pump.dana.database.DanaHistoryDatabase
 import app.aaps.pump.dana.keys.DanaStringNonKey
@@ -20,7 +19,6 @@ import org.mockito.kotlin.whenever
 
 class DanaRPluginTest : TestBaseWithProfile() {
 
-    @Mock lateinit var constraintChecker: ConstraintsChecker
     @Mock lateinit var commandQueue: CommandQueue
     @Mock lateinit var pumpSync: PumpSync
     @Mock lateinit var danaHistoryDatabase: DanaHistoryDatabase
@@ -39,7 +37,7 @@ class DanaRPluginTest : TestBaseWithProfile() {
         whenever(rh.gs(app.aaps.core.ui.R.string.limitingpercentrate)).thenReturn("Limiting max percent rate to %1\$d%% because of %2\$s")
         danaPump = DanaPump(aapsLogger, preferences, dateUtil, decimalFormatter, profileStoreProvider)
         danaRPlugin = DanaRPlugin(
-            aapsLogger, rh, preferences, config, commandQueue, aapsSchedulers, rxBus, context, constraintChecker, activePlugin, danaPump, dateUtil, fabricPrivacy, pumpSync,
+            aapsLogger, rh, preferences, config, commandQueue, aapsSchedulers, rxBus, context, activePlugin, danaPump, dateUtil, fabricPrivacy, pumpSync,
             notificationManager, danaHistoryDatabase, decimalFormatter, BolusProgressData(ch, rh, CoroutineScope(Dispatchers.Unconfined)), pumpEnactResultProvider
         )
     }
@@ -47,25 +45,10 @@ class DanaRPluginTest : TestBaseWithProfile() {
     @Test @Throws(Exception::class)
     fun basalRateShouldBeLimited() {
         danaRPlugin.setPluginEnabledBlocking(PluginType.PUMP, true)
-        danaRPlugin.setPluginEnabledBlocking(PluginType.PUMP, true)
         danaPump.maxBasal = 0.8
-        val c = ConstraintObject(Double.MAX_VALUE, aapsLogger)
-        danaRPlugin.applyBasalConstraints(c, validProfile)
-        Assertions.assertEquals(0.8, c.value(), 0.01)
-        Assertions.assertEquals("DanaR: Limiting max basal rate to 0.80 U/h because of pump limit", c.getReasons())
-        Assertions.assertEquals("DanaR: Limiting max basal rate to 0.80 U/h because of pump limit", c.getMostLimitedReasons())
-    }
-
-    @Test @Throws(Exception::class)
-    fun percentBasalRateShouldBeLimited() {
-        danaRPlugin.setPluginEnabledBlocking(PluginType.PUMP, true)
-        danaRPlugin.setPluginEnabledBlocking(PluginType.PUMP, true)
-        danaPump.maxBasal = 0.8
-        val c = ConstraintObject(Int.MAX_VALUE, aapsLogger)
-        danaRPlugin.applyBasalPercentConstraints(c, validProfile)
-        Assertions.assertEquals(200, c.value())
-        Assertions.assertEquals("DanaR: Limiting max percent rate to 200% because of pump limit", c.getReasons())
-        Assertions.assertEquals("DanaR: Limiting max percent rate to 200% because of pump limit", c.getMostLimitedReasons())
+        // cU-domain limit (PumpPluginConstraints); reasons are logged, not surfaced.
+        val result = danaRPlugin.applyBasalConstraints(PumpRate(Double.MAX_VALUE))
+        Assertions.assertEquals(0.8, result.cU, 0.01)
     }
 
 }

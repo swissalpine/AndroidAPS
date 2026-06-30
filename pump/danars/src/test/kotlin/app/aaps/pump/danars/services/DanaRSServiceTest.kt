@@ -1,6 +1,5 @@
 package app.aaps.pump.danars.services
 
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.pump.BolusProgressData
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.PumpSync
@@ -33,7 +32,6 @@ class DanaRSServiceTest : TestBaseWithProfile() {
     @Mock lateinit var commandQueue: CommandQueue
     @Mock lateinit var danaRSPlugin: DanaRSPlugin
     @Mock lateinit var danaPump: DanaPump
-    @Mock lateinit var constraintChecker: ConstraintsChecker
     @Mock lateinit var uiInteraction: UiInteraction
     @Mock lateinit var bleComm: BLEComm
     @Mock lateinit var pumpSync: PumpSync
@@ -64,7 +62,6 @@ class DanaRSServiceTest : TestBaseWithProfile() {
         danaRSService.danaRSPlugin = danaRSPlugin
         danaRSService.danaPump = danaPump
         danaRSService.activePlugin = activePlugin
-        danaRSService.constraintChecker = constraintChecker
         danaRSService.uiInteraction = uiInteraction
         danaRSService.bleComm = bleComm
         danaRSService.fabricPrivacy = fabricPrivacy

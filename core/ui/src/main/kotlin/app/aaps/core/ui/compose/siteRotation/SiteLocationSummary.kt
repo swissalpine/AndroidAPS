@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.data.model.TE
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.icons.IcCannulaChange
 import app.aaps.core.ui.compose.icons.IcCgmInsert
 
@@ -91,6 +92,7 @@ fun SiteLocationSummary(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteLocationSummaryNoSelectionPreview() {
@@ -104,6 +106,7 @@ private fun SiteLocationSummaryNoSelectionPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteLocationSummaryWithSelectionPreview() {

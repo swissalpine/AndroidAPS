@@ -7,9 +7,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,10 +48,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalSnackbarHostState
 import app.aaps.core.ui.compose.ToolbarConfig
 import app.aaps.plugins.sync.R
@@ -86,7 +87,7 @@ internal fun WearScreen(
     // Determine current sub-screen
     val subScreen = when {
         uiState.showImportList -> SubScreen.IMPORT_LIST
-        uiState.showInfos     -> SubScreen.INFOS
+        uiState.showInfos      -> SubScreen.INFOS
         else                   -> SubScreen.MAIN
     }
 
@@ -281,7 +282,9 @@ private fun ButtonRow(
     ) {
         OutlinedButton(
             onClick = button1.onClick,
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
         ) {
             Icon(button1.icon, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(6.dp))
@@ -290,7 +293,9 @@ private fun ButtonRow(
         if (button2 != null) {
             OutlinedButton(
                 onClick = button2.onClick,
-                modifier = Modifier.weight(1f).fillMaxHeight()
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
             ) {
                 Icon(button2.icon, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
@@ -391,6 +396,7 @@ private fun CwfInfosContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -413,6 +419,7 @@ private fun WearMainContentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun WearMainContentDisconnectedPreview() {
@@ -432,6 +439,7 @@ private fun WearMainContentDisconnectedPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

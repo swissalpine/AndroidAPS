@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.interfaces.overview.graph.AapsClientLevel
 import app.aaps.core.interfaces.overview.graph.AapsClientStatusItem
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Compact chip showing "Label: Value" with color-coded value.
@@ -49,6 +50,7 @@ fun AapsClientStatusChip(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientStatusChipInfoPreview() {
@@ -65,6 +67,7 @@ private fun AapsClientStatusChipInfoPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientStatusChipWarnPreview() {
@@ -81,6 +84,7 @@ private fun AapsClientStatusChipWarnPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientStatusChipUrgentPreview() {

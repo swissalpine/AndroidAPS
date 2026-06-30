@@ -19,6 +19,7 @@ import app.aaps.core.interfaces.bolus.BatchExecutor
 import app.aaps.core.interfaces.bolus.WizardExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
 import app.aaps.core.interfaces.clientcontrol.FailureReason
+import app.aaps.core.ui.clientcontrol.failTextResId
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.configuration.ExternalOptions
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
@@ -473,8 +474,8 @@ class MainViewModel @Inject constructor(
                 }
             // A master-local compute failure (no modal) or a client offline pre-check surfaces here; a client round-trip failure already showed on the app modal.
             is ActionProgress.Rejected ->
-                if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable)
-                    rxBus.send(EventShowDialog.Ok(title = entry.buttonText(), message = prepared.detail ?: rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                    rxBus.send(EventShowDialog.Ok(title = entry.buttonText(), message = prepared.detail ?: rh.gs(prepared.reason.failTextResId())))
 
             else                       -> Unit // Unconfirmed → app modal
         }
@@ -486,21 +487,25 @@ class MainViewModel @Inject constructor(
      * master's exact lines (the contract), then commits. INSULIN now has the client route it previously lacked.
      */
     private suspend fun executeFixedBatch(entry: QuickWizardEntry, actions: List<BatchAction>, label: String, icon: ImageVector) {
-        when (val prepared = batchExecutor.prepare(actions, Sources.QuickWizard, label)) {
+        // Tag the bolus action with the originating QuickWizard guid so the MASTER marks the entry used on a successful
+        // commit (lastUsed cooldown) and republishes it to clients — the master is SOT. The client must NOT call
+        // markAsUsed itself: that writes the Bidirectional QuickWizard pref, which a paired client would push back over
+        // the signed round-trip and collide with this commit → "Update settings … Another action is already in progress".
+        val tagged = actions.map { if (it is BatchAction.Bolus) it.copy(quickWizardGuid = entry.guid()) else it }
+        when (val prepared = batchExecutor.prepare(tagged, Sources.QuickWizard, label)) {
             is ActionProgress.Prepared ->
                 rxBus.send(
                     EventShowDialog.OkCancel(
                         title = entry.buttonText(), message = "", confirmationLines = prepared.lines, icon = icon,
                         onOk = {
                             appScope.launch { batchExecutor.commit(prepared.id, Sources.QuickWizard, label) }
-                            entry.markAsUsed()
                         }
                     )
                 )
             // A master-local failure (no modal) or a client offline pre-check surfaces here; a client round-trip failure already showed on the app modal.
             is ActionProgress.Rejected ->
-                if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable)
-                    rxBus.send(EventShowDialog.Ok(title = entry.buttonText(), message = prepared.detail ?: rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                    rxBus.send(EventShowDialog.Ok(title = entry.buttonText(), message = prepared.detail ?: rh.gs(prepared.reason.failTextResId())))
 
             else                       -> Unit // Unconfirmed → app modal
         }
@@ -663,8 +668,8 @@ class MainViewModel @Inject constructor(
                     )
 
                 is ActionProgress.Rejected ->
-                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable)
-                        rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.temporary_target), message = prepared.detail ?: rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                        rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.temporary_target), message = prepared.detail ?: rh.gs(prepared.reason.failTextResId())))
 
                 else                       -> Unit
             }
@@ -681,8 +686,8 @@ class MainViewModel @Inject constructor(
                     rxBus.send(EventShowDialog.OkCancel(title = label, message = "", confirmationLines = prepared.lines, icon = IcProfile, onOk = { appScope.launch { batchExecutor.commit(prepared.id, Sources.ProfileSwitchDialog, label) } }))
 
                 is ActionProgress.Rejected ->
-                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable)
-                        rxBus.send(EventShowDialog.Ok(title = label, message = prepared.detail ?: rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                        rxBus.send(EventShowDialog.Ok(title = label, message = prepared.detail ?: rh.gs(prepared.reason.failTextResId())))
 
                 else                       -> Unit
             }
@@ -766,8 +771,8 @@ class MainViewModel @Inject constructor(
                     )
 
                 is ActionProgress.Rejected ->
-                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable)
-                        rxBus.send(EventShowDialog.Ok(title = title, message = prepared.detail ?: rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                        rxBus.send(EventShowDialog.Ok(title = title, message = prepared.detail ?: rh.gs(prepared.reason.failTextResId())))
 
                 else                       -> Unit
             }

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.icons.IcArrowFlat
 import app.aaps.core.ui.compose.icons.IcArrowFortyfiveDown
 import app.aaps.core.ui.compose.icons.IcArrowFortyfiveUp
@@ -114,6 +115,7 @@ private fun selectIsfArrow(fromStr: String, toStr: String): ImageVector {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SensitivityChipAbovePreview() {
@@ -125,6 +127,7 @@ private fun SensitivityChipAbovePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SensitivityChipBelowDisabledPreview() {
@@ -136,6 +139,7 @@ private fun SensitivityChipBelowDisabledPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SensitivityChipIsfDownPreview() {

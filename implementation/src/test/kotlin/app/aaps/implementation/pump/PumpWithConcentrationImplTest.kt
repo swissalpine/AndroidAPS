@@ -3,6 +3,7 @@ package app.aaps.implementation.pump
 import app.aaps.core.data.model.BS
 import app.aaps.core.data.model.ICfg
 import app.aaps.core.data.pump.defs.PumpDescription
+import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.interfaces.constraints.Constraint
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.insulin.Insulin
@@ -14,6 +15,8 @@ import app.aaps.core.interfaces.pump.Pump
 import app.aaps.core.interfaces.pump.PumpEnactResult
 import app.aaps.core.interfaces.pump.PumpProfile
 import app.aaps.core.interfaces.pump.PumpSync
+import app.aaps.core.interfaces.pump.defs.fillFor
+import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.shared.tests.TestBase
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
@@ -43,6 +46,12 @@ class PumpWithConcentrationImplTest : TestBase() {
     @BeforeEach
     fun setup() {
         whenever(activePlugin.activePumpInternal).thenReturn(pump)
+        // The concentration boundary floors the converted cU to the pump's native step, so the driver needs a
+        // pumpDescription. The pumpDescription-scaling tests below re-stub this with their own description.
+        whenever(pump.pumpDescription).thenReturn(PumpDescription().fillFor(PumpType.DANA_RS))
+        // Feature-2 last-resort guard queries the overall max; default to no effective cap.
+        whenever(constraintsChecker.getMaxBolusAllowed()).thenReturn(ConstraintObject(Double.MAX_VALUE, aapsLogger))
+        whenever(constraintsChecker.getMaxExtendedBolusAllowed()).thenReturn(ConstraintObject(Double.MAX_VALUE, aapsLogger))
         sut = PumpWithConcentrationImpl(aapsLogger, activePlugin, profileFunction, constraintsChecker, insulin)
     }
 

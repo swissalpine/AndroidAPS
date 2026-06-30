@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 import app.aaps.ui.compose.scenes.SceneTemplate
@@ -35,6 +36,7 @@ internal fun InfoStep(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepExercisePreview() {
@@ -43,6 +45,7 @@ private fun InfoStepExercisePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepSickDayPreview() {
@@ -51,6 +54,7 @@ private fun InfoStepSickDayPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepSleepPreview() {
@@ -59,6 +63,7 @@ private fun InfoStepSleepPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepPreMealPreview() {
@@ -67,6 +72,7 @@ private fun InfoStepPreMealPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepBathingPreview() {
@@ -75,6 +81,7 @@ private fun InfoStepBathingPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepAlcoholPreview() {
@@ -83,6 +90,7 @@ private fun InfoStepAlcoholPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepDrivingPreview() {
@@ -91,6 +99,7 @@ private fun InfoStepDrivingPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepSickDayVomitingPreview() {
@@ -99,6 +108,7 @@ private fun InfoStepSickDayVomitingPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepLutealPhasePreview() {
@@ -107,6 +117,7 @@ private fun InfoStepLutealPhasePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepHotWeatherPreview() {
@@ -115,6 +126,7 @@ private fun InfoStepHotWeatherPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun InfoStepMedicalProcedurePreview() {

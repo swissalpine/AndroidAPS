@@ -1,6 +1,5 @@
 package app.aaps.core.ui.compose
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -111,6 +110,7 @@ fun AapsTopAppBar(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Light")
 @Composable
 private fun AapsTopAppBarPreview() {
@@ -121,6 +121,7 @@ private fun AapsTopAppBarPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Light - Nav & Actions")
 @Composable
 private fun AapsTopAppBarWithNavAndActionsPreview() {

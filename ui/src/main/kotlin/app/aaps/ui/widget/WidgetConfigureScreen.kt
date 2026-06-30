@@ -34,6 +34,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.ui.R
 
 @Composable
@@ -134,6 +135,7 @@ fun WidgetConfigureScreen(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Light", widthDp = 360, heightDp = 480)
 @Preview(showBackground = true, name = "Dark", widthDp = 360, heightDp = 480, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable

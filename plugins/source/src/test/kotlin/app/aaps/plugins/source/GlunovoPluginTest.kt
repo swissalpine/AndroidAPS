@@ -2,6 +2,7 @@ package app.aaps.plugins.source
 
 import android.content.ContentResolver
 import android.database.Cursor
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.SourceSensor
@@ -80,7 +81,7 @@ class GlunovoPluginTest : TestBaseWithProfile() {
         // THEN
         val expectedGv = GV(
             timestamp = now - 1000,
-            value = 8.0 * 18, // conversion
+            value = 8.0 * Constants.MMOLL_TO_MGDL, // mmol/l → mg/dl conversion
             raw = 0.0,
             noise = null,
             trendArrow = TrendArrow.NONE,

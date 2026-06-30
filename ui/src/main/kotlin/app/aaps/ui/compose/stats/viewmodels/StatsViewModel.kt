@@ -18,6 +18,7 @@ import app.aaps.core.interfaces.stats.DexcomTirCalculator
 import app.aaps.core.interfaces.stats.TddCalculator
 import app.aaps.core.interfaces.stats.TirCalculator
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.keys.BooleanNonKey
 import app.aaps.core.keys.IntNonKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.ui.activityMonitor.ActivityMonitor
@@ -61,8 +62,27 @@ class StatsViewModel @Inject constructor(
 
     init {
         val savedOffset = preferences.get(IntNonKey.TddCycleOffset)
-        _uiState.update { it.copy(tddCycleOffset = savedOffset) }
+        val tddExpanded = preferences.get(BooleanNonKey.StatsTddExpanded)
+        val tirExpanded = preferences.get(BooleanNonKey.StatsTirExpanded)
+        val dexcomTirExpanded = preferences.get(BooleanNonKey.StatsDexcomTirExpanded)
+        val activityExpanded = preferences.get(BooleanNonKey.StatsActivityExpanded)
+        val tddCycleExpanded = preferences.get(BooleanNonKey.StatsTddCycleExpanded)
+        _uiState.update {
+            it.copy(
+                tddCycleOffset = savedOffset,
+                tddExpanded = tddExpanded,
+                tirExpanded = tirExpanded,
+                dexcomTirExpanded = dexcomTirExpanded,
+                activityExpanded = activityExpanded,
+                tddCycleExpanded = tddCycleExpanded
+            )
+        }
         loadAllStats()
+        // Cycle pattern data is loaded lazily; if the section was left expanded, load it now
+        if (tddCycleExpanded) {
+            _uiState.update { it.copy(tddCycleLoading = true, tddCycleProgress = 0f) }
+            loadCyclePatternData()
+        }
     }
 
     fun loadAllStats() {
@@ -136,23 +156,32 @@ class StatsViewModel @Inject constructor(
     }
 
     fun toggleTddExpanded() {
-        _uiState.update { it.copy(tddExpanded = !it.tddExpanded) }
+        val expanded = !uiState.value.tddExpanded
+        preferences.put(BooleanNonKey.StatsTddExpanded, expanded)
+        _uiState.update { it.copy(tddExpanded = expanded) }
     }
 
     fun toggleTirExpanded() {
-        _uiState.update { it.copy(tirExpanded = !it.tirExpanded) }
+        val expanded = !uiState.value.tirExpanded
+        preferences.put(BooleanNonKey.StatsTirExpanded, expanded)
+        _uiState.update { it.copy(tirExpanded = expanded) }
     }
 
     fun toggleDexcomTirExpanded() {
-        _uiState.update { it.copy(dexcomTirExpanded = !it.dexcomTirExpanded) }
+        val expanded = !uiState.value.dexcomTirExpanded
+        preferences.put(BooleanNonKey.StatsDexcomTirExpanded, expanded)
+        _uiState.update { it.copy(dexcomTirExpanded = expanded) }
     }
 
     fun toggleActivityExpanded() {
-        _uiState.update { it.copy(activityExpanded = !it.activityExpanded) }
+        val expanded = !uiState.value.activityExpanded
+        preferences.put(BooleanNonKey.StatsActivityExpanded, expanded)
+        _uiState.update { it.copy(activityExpanded = expanded) }
     }
 
     fun toggleTddCycleExpanded() {
         val wasExpanded = uiState.value.tddCycleExpanded
+        preferences.put(BooleanNonKey.StatsTddCycleExpanded, !wasExpanded)
         if (!wasExpanded && uiState.value.tddCycleEntries.isEmpty()) {
             // Atomic: set expanded + loading in single update so AnimatedVisibility sees loading immediately
             _uiState.update { it.copy(tddCycleExpanded = true, tddCycleLoading = true, tddCycleProgress = 0f) }
@@ -324,9 +353,9 @@ data class StatsUiState(
     val tddCycleLoading: Boolean = true,
     val tddCycleProgress: Float = 0f,
     val tddExpanded: Boolean = true,
-    val tirExpanded: Boolean = false,
-    val dexcomTirExpanded: Boolean = false,
-    val activityExpanded: Boolean = false,
+    val tirExpanded: Boolean = true,
+    val dexcomTirExpanded: Boolean = true,
+    val activityExpanded: Boolean = true,
     val tddCycleExpanded: Boolean = false,
     val tddCycleOffset: Int = 0,
     val showRecalculateDialog: Boolean = false,

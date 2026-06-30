@@ -1,8 +1,6 @@
 package app.aaps.core.ui.compose
 
-import app.aaps.core.ui.R
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.aaps.core.ui.R
 
 /**
  * Rounded search field styled like Google Contacts search bar.
@@ -88,6 +87,7 @@ fun AapsSearchField(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsSearchFieldPreview() {

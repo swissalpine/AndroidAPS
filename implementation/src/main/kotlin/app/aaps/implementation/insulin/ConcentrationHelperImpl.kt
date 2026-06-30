@@ -7,6 +7,7 @@ import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.pump.PumpInsulin
 import app.aaps.core.interfaces.pump.PumpRate
+import app.aaps.core.interfaces.pump.defs.determineCorrectBolusStepSize
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
@@ -31,6 +32,14 @@ class ConcentrationHelperImpl @Inject constructor(
     override fun fromPump(amount: PumpInsulin, isPriming: Boolean): Double = if (isPriming) amount.cU else amount.iU(concentration)
 
     override fun fromPump(rate: PumpRate): Double = rate.iU(concentration, true)
+
+    override fun toPump(amount: Double): PumpInsulin = PumpInsulin(amount / concentration)
+
+    override fun toPumpRate(rate: Double): PumpRate = PumpRate(rate / concentration)
+
+    // Amount-aware (Insight specialBolusSize) + concentration-adapted deliverable IU step.
+    override fun bolusStep(amount: Double): Double =
+        activePlugin.activePump.pumpDescription.pumpType.determineCorrectBolusStepSize(amount / concentration) * concentration
 
     override fun basalRateString(rate: PumpRate, isAbsolute: Boolean, decimals: Int): String {
         if (isAbsolute.not())

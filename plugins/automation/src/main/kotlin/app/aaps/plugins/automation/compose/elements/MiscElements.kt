@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.elements.WeekDay
 
 @Composable
@@ -152,6 +153,7 @@ fun AutomationElementColumn(content: @Composable () -> Unit) {
     ) { content() }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewString() {
@@ -161,6 +163,7 @@ private fun PreviewString() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewWeekdays() {

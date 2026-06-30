@@ -41,6 +41,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.data.ui.ConfirmationLine
 import app.aaps.core.ui.compose.AapsTopAppBar
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.dialogs.ElementConfirmationDialog
@@ -225,6 +226,7 @@ private fun TempBasalDialogContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TempBasalDialogPercentPreview() {
@@ -248,6 +250,7 @@ private fun TempBasalDialogPercentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun TempBasalDialogAbsolutePreview() {

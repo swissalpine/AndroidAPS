@@ -78,17 +78,20 @@ import javax.inject.Singleton
  * Sig-first means a failure log unambiguously means "forgery / wrong secret"
  * rather than being shadowed by a benign replay log on a forged-but-stale message.
  *
- * Behaviour on failure:
- * - Hopeless garbage (no envelope field, malformed JSON, unknown clientId) → DELETE
- *   so NS settings doesn't accumulate junk.
- * - Sig / counter / skew failures → leave the doc in place. The next tick (poll or
- *   WS update) will re-verify. Counter regression in particular often just means
- *   "we already processed this and the delete request didn't reach NS" — leaving
- *   the doc is harmless because the counter check still gates state mutation.
+ * Behaviour on failure — nothing is ever deleted:
+ * - Hopeless garbage (no envelope field, malformed JSON, unknown clientId) → IGNORE and
+ *   leave the doc in place. Deleting would be actively harmful: NS soft-deletes (tombstones)
+ *   the identifier, so a later legitimate PUT to that same per-type slot gets HTTP 410 — and in
+ *   a multi-device setup another master may legitimately own that command. Stray docs simply
+ *   linger until NS auto-prunes them.
+ * - Sig / counter / skew failures → likewise leave the doc in place. The next tick (poll or
+ *   WS update) re-verifies. Counter regression in particular often just means "we already
+ *   processed this" — harmless because the counter check still gates state mutation.
  *
- * On verified envelope: dispatch by [SignedEnvelope.type], then DELETE the doc.
- * Unknown types still advance the counter + delete (the secret-holder sent this
- * intentionally, an older master version just doesn't know what to do with it).
+ * On verified envelope: dispatch by [SignedEnvelope.type]; the doc is not deleted afterwards
+ * either. Unknown types still advance the counter (the secret-holder sent this intentionally,
+ * an older master version just doesn't know what to do with it). Replay is gated solely by the
+ * persistent per-client counter — see the rationale comments in [verifyAndAck].
  */
 @Singleton
 class ClientControlReceiver @Inject constructor(
@@ -223,8 +226,9 @@ class ClientControlReceiver @Inject constructor(
 
     /**
      * Polling fallback. Lists NS settings, filters to client-control identifiers, and
-     * dispatches each through [verifyAndAck]. Safe to call repeatedly — processed docs are
-     * deleted server-side, and counter checks reject anything we already accepted.
+     * dispatches each through [verifyAndAck]. Safe to call repeatedly — the per-client counter
+     * check rejects anything already accepted; docs are not deleted and simply linger until the
+     * next command overwrites the slot or NS auto-prunes them.
      *
      * Using `searchSettings` instead of probing per-identifier means we don't need to know
      * in advance which clients exist or which command types they're using. New variants
@@ -238,8 +242,8 @@ class ClientControlReceiver @Inject constructor(
             val identifier = doc.optString("identifier")
             if (!identifier.startsWith(ClientControlPublisher.IDENTIFIER_PREFIX)) continue
             // Skip our own pairing offers — they share the prefix but are not signed envelopes,
-            // so verifyAndAck would log them as "malformed envelope, deleting" and wipe a still-
-            // valid offer out from under the client mid-pairing.
+            // so verifyAndAck would (harmlessly) log them as "malformed envelope, ignoring". We
+            // skip to avoid that noise and a needless re-parse on every poll tick.
             if (identifier.startsWith(ClientControlPublisher.IDENTIFIER_OFFER_PREFIX)) continue
             // Skip our own command ACKs (master-written, for clients). Same reason as offers.
             if (identifier.startsWith(ClientControlPublisher.IDENTIFIER_ACK_PREFIX)) continue
@@ -265,15 +269,19 @@ class ClientControlReceiver @Inject constructor(
 
     private suspend fun verifyAndAck(identifier: String, doc: JSONObject, now: Long): Unit = commandMutex.withLock {
         val client = nsClientV3Plugin.get().nsAndroidClient ?: return
+        // Unrecognized / unverifiable docs are IGNORED, never deleted. A delete soft-deletes
+        // (tombstones) the identifier on NS, so the next legitimate PUT to that same per-type slot
+        // returns HTTP 410 forever. Worse, in a multi-device setup (several clients, or another
+        // master that doesn't have this client paired) the WS echo makes one instance delete a
+        // command another instance legitimately owns. Replay is already prevented by the per-client
+        // counter; stray/garbage docs simply linger until NS auto-prunes them.
         val envelopeObj = doc.optJSONObject("envelope") ?: run {
-            aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier has no envelope field, deleting")
-            runCatching { client.deleteSettings(identifier) }
+            aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier has no envelope field, ignoring")
             return
         }
         val envelope = runCatching { json.decodeFromString<SignedEnvelope>(envelopeObj.toString()) }.getOrNull()
         if (envelope == null) {
-            aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier malformed envelope, deleting")
-            runCatching { client.deleteSettings(identifier) }
+            aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier malformed envelope, ignoring")
             return
         }
         // Resolve the authorized client by the envelope's clientId — never trust the
@@ -285,10 +293,10 @@ class ClientControlReceiver @Inject constructor(
         val entry = authorizedRepository.current(now).firstOrNull { it.clientId == envelope.clientId }
         if (entry == null) {
             if (raw != null && raw.state == ClientState.Pending && raw.pairExpiresAt <= now)
-                aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier pairing window expired for clientId=${envelope.clientId}, deleting")
+                aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier pairing window expired for clientId=${envelope.clientId}, ignoring")
             else
-                aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier unknown clientId=${envelope.clientId}, deleting")
-            runCatching { client.deleteSettings(identifier) }
+                aapsLogger.error(LTag.NSCLIENT, "ClientControl: $identifier unknown clientId=${envelope.clientId}, ignoring")
+            // See the no-delete rationale above: never tombstone a slot we don't own.
             return
         }
         val lookup = authorizedRepository.secretLookup(entry.clientId) ?: return
@@ -368,11 +376,10 @@ class ClientControlReceiver @Inject constructor(
             ClientControlMessage.StopBolus            -> onVerifiedStopBolus(entry, envelope, now)
         }
         if (envelope.wantsAck) writeAck(client, lookup.secretBytes, envelope.clientId, envelope.counter, AckPhase.Done, outcome.status, outcome.reason, outcome.payload, now)
-        // Don't deleteSettings here. NS soft-deletes (tombstones) the identifier; the next
-        // legitimate same-type command from the same client would PUT to that identifier and
-        // hit HTTP 410. Counter dedup (line above) prevents replay; the doc just lingers in
-        // the slot until the next overwrite or NS auto-prune. Error-path deletes above stay —
-        // those purge unverifiable garbage rather than acknowledged commands.
+        // Don't deleteSettings here (nor on any error path above). NS soft-deletes (tombstones)
+        // the identifier; the next legitimate same-type command from the same client would PUT to
+        // that identifier and hit HTTP 410. Counter dedup (line above) prevents replay; the doc
+        // just lingers in the slot until the next overwrite or NS auto-prune.
     }
 
     private suspend fun onVerifiedHello(entry: AuthorizedClient, envelope: SignedEnvelope, now: Long) {

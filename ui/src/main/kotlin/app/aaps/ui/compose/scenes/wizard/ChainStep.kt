@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.data.model.Scene
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 
@@ -74,6 +75,7 @@ private fun ChainTargetRow(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun ChainStepPreview() {

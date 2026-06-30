@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.banner.ErrorBanner
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
@@ -141,6 +142,7 @@ internal fun ActionStepContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Action - Executing")
 @Composable
 private fun PreviewExecuting() {
@@ -153,6 +155,7 @@ private fun PreviewExecuting() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Action - Success")
 @Composable
 private fun PreviewSuccess() {
@@ -165,6 +168,7 @@ private fun PreviewSuccess() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Action - Error")
 @Composable
 private fun PreviewError() {
@@ -177,6 +181,7 @@ private fun PreviewError() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Action - Error with Deactivate")
 @Composable
 private fun PreviewErrorDeactivate() {

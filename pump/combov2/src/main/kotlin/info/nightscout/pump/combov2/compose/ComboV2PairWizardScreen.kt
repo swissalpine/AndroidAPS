@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.BluetoothPermissionsHost
 import app.aaps.core.ui.compose.pump.KeepScreenOnEffect
 import app.aaps.core.ui.compose.pump.WizardButton
@@ -165,7 +166,9 @@ private fun InProgressSection(
         Text(
             text = stringResource(R.string.combov2_pairing_in_progress),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally)
         )
 
         Text(
@@ -326,12 +329,14 @@ private fun PermissionsDeniedSection(
 // Wrapped in plain MaterialTheme (not AapsTheme) because AapsTheme depends on
 // LocalPreferences, which is not provided in preview contexts.
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun IdleSectionPreview() {
     MaterialTheme { IdleSection(onStartPairing = {}) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun InProgressScanningPreview() {
@@ -351,6 +356,7 @@ private fun InProgressScanningPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun InProgressPinEntryPreview() {
@@ -372,18 +378,21 @@ private fun InProgressPinEntryPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun ConfirmCancelSectionPreview() {
     MaterialTheme { ConfirmCancelSection(onConfirm = {}, onDismiss = {}) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun FinishedSectionPreview() {
     MaterialTheme { FinishedSection(onOk = {}) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun AbortedSectionPreview() {
@@ -395,12 +404,14 @@ private fun AbortedSectionPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun DriverNotInitializedSectionPreview() {
     MaterialTheme { DriverNotInitializedSection(onGoBack = {}) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, heightDp = 640)
 @Composable
 private fun PermissionsDeniedSectionPreview() {

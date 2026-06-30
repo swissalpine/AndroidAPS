@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import app.aaps.core.ui.compose.LocalDateUtil
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.data.model.TE
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
+import app.aaps.core.ui.compose.LocalDateUtil
 import app.aaps.core.ui.compose.icons.IcCannulaChange
 import app.aaps.core.ui.compose.icons.IcCgmInsert
 import kotlinx.coroutines.launch
@@ -180,8 +181,8 @@ fun SiteLocationPicker(
         val filteredEntries = entries.filter { te ->
             when (te.type) {
                 TE.Type.CANNULA_CHANGE -> effectiveShowPumpSites
-                TE.Type.SENSOR_CHANGE -> effectiveShowCgmSites
-                else -> false
+                TE.Type.SENSOR_CHANGE  -> effectiveShowCgmSites
+                else                   -> false
             }
         }
 
@@ -341,6 +342,7 @@ fun SiteLocationPickerWithFilters(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteLocationPickerPreview() {
@@ -357,6 +359,7 @@ private fun SiteLocationPickerPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteLocationPickerWithFiltersPreview() {

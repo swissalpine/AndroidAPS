@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -100,6 +101,7 @@ fun ProfileGateWizardStep(host: ProfileGateStepHost) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "ProfileGate - has profiles")
 @Composable
 private fun ProfileGateHasStorePreview() {
@@ -113,6 +115,7 @@ private fun ProfileGateHasStorePreview() {
     MaterialTheme { ProfileGateWizardStep(host) }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "ProfileGate - no store")
 @Composable
 private fun ProfileGateNoStorePreview() {

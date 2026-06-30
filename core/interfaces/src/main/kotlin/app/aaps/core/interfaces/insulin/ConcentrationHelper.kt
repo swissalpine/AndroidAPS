@@ -27,6 +27,38 @@ interface ConcentrationHelper {
     fun fromPump(rate: PumpRate): Double
 
     /**
+     * Convert an IU bolus amount to pump units (cU) using the current concentration. Inverse of
+     * [fromPump] (U200 -> cU = IU / 2). Used as the single IU->cU conversion point (e.g. by
+     * ConstraintsChecker when folding a pump's cU [PumpPluginConstraints] limit into the IU scan).
+     *
+     * @param amount bolus amount in IU
+     * @return PumpInsulin (cU)
+     */
+    fun toPump(amount: Double): PumpInsulin
+
+    /**
+     * Convert an IU absolute basal rate to pump units (cU/h) using the current concentration.
+     *
+     * @param rate absolute basal rate in IU/h
+     * @return PumpRate (cU/h)
+     */
+    fun toPumpRate(rate: Double): PumpRate
+
+    /**
+     * Deliverable bolus step in IU for a given IU amount, honouring BOTH the pump's amount-dependent
+     * native step (e.g. Accu-Chek Insight: 0.05 / 0.1 / 0.2 / 0.5 by bolus size) AND the current
+     * concentration: = nativeStep(amount / concentration) * concentration.
+     *
+     * Use for IU-domain UI snapping / warnings (bolus & treatment dialogs, wizard) so the value shown
+     * to the user matches what the pump will actually deliver. NOT for the fill/prime dialog (works in
+     * cU) nor SafetyPlugin / the PumpWithConcentration boundary (they floor the raw native cU step).
+     *
+     * @param amount bolus amount in IU
+     * @return deliverable IU step at that amount
+     */
+    fun bolusStep(amount: Double): Double
+
+    /**
      * Convert EffectiveProfile defined in IU to Profile (in CU) sent to pump with current concentration
      * TBC if needed
      */

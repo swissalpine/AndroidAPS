@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.interfaces.maintenance.ExportConfig
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.TonalIcon
 import app.aaps.core.ui.compose.consumeOverscroll
 import app.aaps.core.ui.R as CoreUiR
@@ -476,6 +477,7 @@ private fun DestinationChips(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun MaintenanceBottomSheetContentPreview() {

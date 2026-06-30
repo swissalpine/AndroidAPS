@@ -7,7 +7,6 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.interfaces.configuration.Config
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationManager
@@ -62,7 +61,6 @@ class DanaRPlugin @Inject constructor(
     aapsSchedulers: AapsSchedulers,
     rxBus: RxBus,
     private val context: Context,
-    constraintsChecker: ConstraintsChecker,
     activePlugin: ActivePlugin,
     danaPump: DanaPump,
     dateUtil: DateUtil,
@@ -80,7 +78,6 @@ class DanaRPlugin @Inject constructor(
     preferences,
     config,
     commandQueue,
-    constraintsChecker,
     aapsSchedulers,
     rxBus,
     activePlugin,
@@ -158,7 +155,7 @@ class DanaRPlugin @Inject constructor(
         if (detailedBolusInfo.insulin == 0.0 || detailedBolusInfo.carbs > 0) {
             throw IllegalArgumentException(detailedBolusInfo.toString(), Exception())
         }
-        detailedBolusInfo.insulin = constraintChecker.applyBolusConstraints(ConstraintObject(detailedBolusInfo.insulin, aapsLogger)).value()
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
         var resultOK = false
         if (detailedBolusInfo.insulin > 0) resultOK = executionService?.bolus(detailedBolusInfo) == true
         val result = pumpEnactResultProvider.get()

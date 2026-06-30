@@ -3,9 +3,12 @@ package app.aaps.plugins.constraints
 import app.aaps.core.interfaces.constraints.Constraint
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.constraints.PumpPluginConstraints
+import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.Profile
+import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.objects.constraints.ConstraintObject
 import javax.inject.Inject
@@ -14,7 +17,9 @@ import javax.inject.Singleton
 @Singleton
 class ConstraintsCheckerImpl @Inject constructor(
     private val activePlugin: ActivePlugin,
-    private val aapsLogger: AAPSLogger
+    private val aapsLogger: AAPSLogger,
+    private val ch: ConcentrationHelper,
+    private val rh: ResourceHelper
 ) : ConstraintsChecker {
 
     override fun isLoopInvocationAllowed(): Constraint<Boolean> = isLoopInvocationAllowed(ConstraintObject(true, aapsLogger))
@@ -124,6 +129,13 @@ class ConstraintsCheckerImpl @Inject constructor(
             if (!p.isEnabled()) continue
             constraint.applyBasalConstraints(absoluteRate, profile)
         }
+        // Fold the active pump's own cU rate cap into the IU result. Single cU<->IU conversion point (ch): the pump
+        // reports cU, this scan is IU. Being in the IU scan (not the absolute-delivery boundary) makes the cap apply
+        // to BOTH absolute and percent pumps; a pump without a cap doesn't implement the interface (no-op).
+        (activePlugin.activePumpInternal as? PumpPluginConstraints)?.let { pump ->
+            val capIu = ch.fromPump(pump.applyBasalConstraints(ch.toPumpRate(absoluteRate.value())))
+            absoluteRate.setIfSmaller(capIu, rh.gs(app.aaps.core.ui.R.string.limitingbasalratio, capIu, rh.gs(app.aaps.core.ui.R.string.pumplimit)), pump)
+        }
         return absoluteRate
     }
 
@@ -144,6 +156,11 @@ class ConstraintsCheckerImpl @Inject constructor(
             if (!p.isEnabled()) continue
             constrain.applyBolusConstraints(insulin)
         }
+        // Fold the active pump's own cU bolus cap into the IU result (single cU<->IU conversion point via ch).
+        (activePlugin.activePumpInternal as? PumpPluginConstraints)?.let { pump ->
+            val capIu = ch.fromPump(pump.applyBolusConstraints(ch.toPump(insulin.value())))
+            insulin.setIfSmaller(capIu, rh.gs(app.aaps.core.ui.R.string.limitingbolus, capIu, rh.gs(app.aaps.core.ui.R.string.pumplimit)), pump)
+        }
         return insulin
     }
 
@@ -153,6 +170,11 @@ class ConstraintsCheckerImpl @Inject constructor(
             val constrain = p as PluginConstraints
             if (!p.isEnabled()) continue
             constrain.applyExtendedBolusConstraints(insulin)
+        }
+        // Fold the active pump's own cU extended-bolus cap into the IU result (single conversion point via ch).
+        (activePlugin.activePumpInternal as? PumpPluginConstraints)?.let { pump ->
+            val capIu = ch.fromPump(pump.applyExtendedBolusConstraints(ch.toPump(insulin.value())))
+            insulin.setIfSmaller(capIu, rh.gs(app.aaps.core.ui.R.string.limitingbolus, capIu, rh.gs(app.aaps.core.ui.R.string.pumplimit)), pump)
         }
         return insulin
     }

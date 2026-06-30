@@ -97,7 +97,9 @@ class SafetyPlugin @Inject constructor(
         val pump = activePlugin.activePump
         // check for pump max
         if (pump.pumpDescription.tempBasalStyle == PumpDescription.ABSOLUTE) {
-            val pumpLimit = pump.pumpDescription.pumpType.tbrSettings()?.maxDose ?: 0.0
+            // Concentration-adjusted max (the wrapper scales maxTempAbsolute by concentration); the raw
+            // pumpType.tbrSettings().maxDose is in pump units (cU) and would mis-cap an IU rate under U200/diluted.
+            val pumpLimit = pump.pumpDescription.maxTempAbsolute
             absoluteRate.setIfSmaller(pumpLimit, rh.gs(app.aaps.core.ui.R.string.limitingbasalratio, pumpLimit, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
         }
 
@@ -139,10 +141,13 @@ class SafetyPlugin @Inject constructor(
         val maxBolus = preferences.get(DoubleKey.SafetyMaxBolus)
         insulin.setIfSmaller(maxBolus, rh.gs(app.aaps.core.ui.R.string.limitingbolus, maxBolus, rh.gs(R.string.maxvalueinpreferences)), this)
         insulin.setIfSmaller(hardLimits.maxBolus(), rh.gs(app.aaps.core.ui.R.string.limitingbolus, hardLimits.maxBolus(), rh.gs(R.string.hardlimit)), this)
-        val pump = activePlugin.activePump
-        // Floor to the pump bolus step (not round-to-nearest): a max-constrained bolus must never be
+        // Floor to the pump's NATIVE step (not round-to-nearest): a max-constrained bolus must never be
         // rounded back UP past SafetyMaxBolus / the hard limit, and we must not deliver more than asked.
-        val stepSize = pump.pumpDescription.pumpType.determineCorrectBolusStepSize(insulin.value())
+        // Native (not concentration-adjusted) on purpose: applyBolusConstraints is also called with cU values
+        // (e.g. FillDialog priming, entered in pump units), so it must floor on the pump-unit pulse grid. The
+        // IU-deliverable grid for a normal bolus is handled by the dialog snap + the PumpWithConcentration
+        // boundary, which floors the converted cU to the native pulse step.
+        val stepSize = activePlugin.activePump.pumpDescription.pumpType.determineCorrectBolusStepSize(insulin.value())
         val rounded = Round.floorTo(insulin.value(), stepSize)
         insulin.setIfDifferent(rounded, rh.gs(app.aaps.core.ui.R.string.pumplimit), this)
         return insulin

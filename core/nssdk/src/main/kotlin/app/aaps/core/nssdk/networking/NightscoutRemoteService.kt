@@ -122,7 +122,8 @@ internal interface NightscoutRemoteService {
     @PUT("v3/settings/{identifier}")
     suspend fun updateSetting(@Body settings: JsonObject, @Path("identifier") identifier: String): Response<RemoteCreateUpdateResponse>
 
+    /** [permanent] = `null` → soft delete (tombstone); `true` → NS `?permanent=true` hard delete. */
     @DELETE("v3/settings/{identifier}")
-    suspend fun deleteSetting(@Path("identifier") identifier: String): Response<RemoteCreateUpdateResponse>
+    suspend fun deleteSetting(@Path("identifier") identifier: String, @Query("permanent") permanent: Boolean?): Response<RemoteCreateUpdateResponse>
 
 }

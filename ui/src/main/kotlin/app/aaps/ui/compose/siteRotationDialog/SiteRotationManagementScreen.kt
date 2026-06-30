@@ -20,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
@@ -31,6 +32,7 @@ import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -50,11 +52,14 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.data.model.TE
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTopAppBar
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.clearFocusOnTap
 import app.aaps.core.ui.compose.dialogs.ElementConfirmationDialog
 import app.aaps.core.ui.compose.icons.IcCannulaChange
 import app.aaps.core.ui.compose.icons.IcCgmInsert
 import app.aaps.core.ui.compose.navigation.ElementType
+import app.aaps.core.ui.compose.preference.PreferenceSheetContent
+import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.core.ui.compose.siteRotation.ArrowSelectionDialog
 import app.aaps.core.ui.compose.siteRotation.SiteEntryDisplayData
 import app.aaps.core.ui.compose.siteRotation.SiteEntryList
@@ -71,11 +76,20 @@ import app.aaps.core.ui.R as CoreUiR
 fun SiteRotationManagementScreen(
     viewModel: SiteRotationManagementViewModel,
     onClose: () -> Unit,
-    onPreferenceClick: () -> Unit
+    siteRotationDef: PreferenceSubScreenDef
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val activity = context as? AppCompatActivity
+
+    // Settings open as a bottom sheet (no back-button navigation) — mirrors the Carbs dialog's settings cog.
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+    if (showSettings) {
+        SiteRotationSettingsSheet(
+            settingsDef = siteRotationDef,
+            onDismiss = { showSettings = false }
+        )
+    }
 
     val displayEntries = remember(uiState.filteredEntries) {
         viewModel.formatDisplayEntries(uiState.filteredEntries)
@@ -128,7 +142,7 @@ fun SiteRotationManagementScreen(
         uiState = uiState,
         displayEntries = displayEntries,
         onClose = onClose,
-        onPreferenceClick = onPreferenceClick,
+        onPreferenceClick = { showSettings = true },
         onShowPumpSites = { viewModel.setShowPumpSites(it) },
         onShowCgmSites = { viewModel.setShowCgmSites(it) },
         onZoneClick = { viewModel.onZoneClick(it) },
@@ -141,6 +155,26 @@ fun SiteRotationManagementScreen(
         editedTeDate = uiState.editedTe?.let { viewModel.formatDate(it.timestamp) } ?: "",
         editedTeLocation = uiState.editedTe?.let { viewModel.formatLocation(it.location) } ?: ""
     )
+}
+
+/** Site-rotation settings as a bottom sheet (no back button) — same pattern as the Carbs dialog's settings cog. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SiteRotationSettingsSheet(
+    settingsDef: PreferenceSubScreenDef,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        PreferenceSheetContent(
+            settingsDef = settingsDef,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -387,6 +421,7 @@ private fun InlineEditorContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteRotationManagementPreview() {

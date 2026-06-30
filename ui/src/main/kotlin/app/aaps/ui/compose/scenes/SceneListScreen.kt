@@ -49,6 +49,7 @@ import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
 import app.aaps.core.ui.compose.AapsTheme
 import app.aaps.core.ui.compose.AapsTopAppBar
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.MasterOfflineBanner
 import app.aaps.core.ui.compose.dialogs.OkDialog
 import app.aaps.core.ui.compose.dialogs.ThreeButtonDialog
@@ -286,9 +287,11 @@ internal fun SceneCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                // Surface the edit-lock reason (running scene / master offline) so the user
-                // understands why the edit/delete/checkbox actions are disabled.
-                if (editLockReason != null) {
+                // Surface the edit-lock reason (running scene / master offline) so the user understands why the
+                // edit/delete/checkbox actions are disabled — unless it just repeats the activation reason already
+                // shown above (a global master block sets both gates to the same text → would otherwise double up).
+                val editReasonDuplicated = activationReason != null && !isActive && editLockReason == activationReason
+                if (editLockReason != null && !editReasonDuplicated) {
                     Text(
                         text = editLockReason,
                         style = MaterialTheme.typography.bodySmall,
@@ -412,6 +415,7 @@ private fun SceneDeactivationDialog(
 
 // --- Previews ---
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SceneCardNormalPreview() {
@@ -439,6 +443,7 @@ private fun SceneCardNormalPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SceneCardActivePreview() {
@@ -465,6 +470,7 @@ private fun SceneCardActivePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SceneCardInvalidPreview() {

@@ -8,6 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.data.model.TE
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,6 +67,7 @@ fun SiteLocationWizardStep(host: SiteLocationStepHost) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteLocationWizardStepNoSelectionPreview() {
@@ -84,6 +86,7 @@ private fun SiteLocationWizardStepNoSelectionPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun SiteLocationWizardStepWithSelectionPreview() {

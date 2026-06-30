@@ -10,9 +10,7 @@ import app.aaps.core.data.pump.defs.ManufacturerType
 import app.aaps.core.data.pump.defs.PumpDescription
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.data.time.T
-import app.aaps.core.interfaces.constraints.Constraint
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
-import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.constraints.PumpPluginConstraints
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
@@ -20,7 +18,6 @@ import app.aaps.core.interfaces.notifications.NotificationLevel
 import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.plugin.OwnDatabasePlugin
 import app.aaps.core.interfaces.plugin.PluginDescription
-import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.pump.BlePreCheck
 import app.aaps.core.interfaces.pump.BolusProgressData
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
@@ -49,7 +46,6 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.ui.compose.icons.IcPluginDiaconn
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.pump.diaconn.compose.DiaconnComposeContent
@@ -79,7 +75,6 @@ class DiaconnG8Plugin @Inject constructor(
     commandQueue: CommandQueue,
     private val rxBus: RxBus,
     private val context: Context,
-    private val constraintChecker: ConstraintsChecker,
     private val diaconnG8Pump: DiaconnG8Pump,
     private val pumpSync: PumpSync,
     private val detailedBolusInfoStorage: DetailedBolusInfoStorage,
@@ -111,7 +106,7 @@ class DiaconnG8Plugin @Inject constructor(
         DiaconnStringNonKey::class.java, DiaconnIntNonKey::class.java,
     ),
     aapsLogger, rh, preferences, commandQueue
-), Pump, Diaconn, PluginConstraints, OwnDatabasePlugin {
+), Pump, Diaconn, PumpPluginConstraints, OwnDatabasePlugin {
 
     private val disposable = CompositeDisposable()
     private var diaconnG8Service: DiaconnG8Service? = null
@@ -228,29 +223,15 @@ class DiaconnG8Plugin @Inject constructor(
     }
 
     // Constraints interface
-    override fun applyBasalConstraints(absoluteRate: Constraint<Double>, profile: Profile): Constraint<Double> {
-        absoluteRate.setIfSmaller(diaconnG8Pump.maxBasal, rh.gs(app.aaps.core.ui.R.string.limitingbasalratio, diaconnG8Pump.maxBasal, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        return absoluteRate
-    }
+    // cU-domain pump limit (PumpPluginConstraints): folded into the IU scan by ConstraintsChecker.
+    override fun applyBasalConstraints(absoluteRate: PumpRate): PumpRate =
+        PumpRate(absoluteRate.cU.coerceAtMost(diaconnG8Pump.maxBasal))
 
-    override fun applyBasalPercentConstraints(percentRate: Constraint<Int>, profile: Profile): Constraint<Int> {
-        percentRate.setIfGreater(0, rh.gs(app.aaps.core.ui.R.string.limitingpercentrate, 0, rh.gs(app.aaps.core.ui.R.string.itmustbepositivevalue)), this)
-        percentRate.setIfSmaller(
-            pumpDescription.maxTempPercent,
-            rh.gs(app.aaps.core.ui.R.string.limitingpercentrate, pumpDescription.maxTempPercent, rh.gs(app.aaps.core.ui.R.string.pumplimit)),
-            this
-        )
-        return percentRate
-    }
+    // cU-domain pump limit (PumpPluginConstraints): folded into the IU scan by ConstraintsChecker.
+    override fun applyBolusConstraints(insulin: PumpInsulin): PumpInsulin =
+        PumpInsulin(insulin.cU.coerceAtMost(diaconnG8Pump.maxBolus))
 
-    override fun applyBolusConstraints(insulin: Constraint<Double>): Constraint<Double> {
-        insulin.setIfSmaller(diaconnG8Pump.maxBolus, rh.gs(app.aaps.core.ui.R.string.limitingbolus, diaconnG8Pump.maxBolus, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        return insulin
-    }
-
-    override fun applyExtendedBolusConstraints(insulin: Constraint<Double>): Constraint<Double> {
-        return applyBolusConstraints(insulin)
-    }
+    override fun applyExtendedBolusConstraints(insulin: PumpInsulin): PumpInsulin = applyBolusConstraints(insulin)
 
     // Pump interface
     override fun isConfigured(): Boolean =
@@ -317,7 +298,7 @@ class DiaconnG8Plugin @Inject constructor(
         require(detailedBolusInfo.carbs == 0.0) { detailedBolusInfo.toString() }
         require(detailedBolusInfo.insulin > 0) { detailedBolusInfo.toString() }
 
-        detailedBolusInfo.insulin = constraintChecker.applyBolusConstraints(ConstraintObject(detailedBolusInfo.insulin, aapsLogger)).value()
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
         detailedBolusInfoStorage.add(detailedBolusInfo) // will be picked up on reading history
         var connectionOK = false
         if (detailedBolusInfo.insulin > 0) connectionOK = diaconnG8Service?.bolus(detailedBolusInfo) == true
@@ -412,9 +393,9 @@ class DiaconnG8Plugin @Inject constructor(
         error("Pump doesn't support percent basal rate")
 
     override suspend fun setExtendedBolus(insulin: Double, durationInMinutes: Int): PumpEnactResult {
-        var insulinAfterConstraint = constraintChecker.applyExtendedBolusConstraints(ConstraintObject(insulin, aapsLogger)).value()
-        // needs to be rounded
-        insulinAfterConstraint = Round.roundTo(insulinAfterConstraint, pumpDescription.extendedBolusStep)
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
+        // round to the pump's native extended-bolus step (cU)
+        val insulinAfterConstraint = Round.roundTo(insulin, pumpDescription.extendedBolusStep)
         val result = pumpEnactResultProvider.get()
 
         if (diaconnG8Pump.isExtendedInProgress && abs(diaconnG8Pump.extendedBolusAmount - insulinAfterConstraint) < pumpDescription.extendedBolusStep) {

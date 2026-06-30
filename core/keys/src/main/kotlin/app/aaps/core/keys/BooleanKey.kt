@@ -1,8 +1,8 @@
 package app.aaps.core.keys
 
 import app.aaps.core.keys.interfaces.BooleanPreferenceKey
-import app.aaps.core.keys.interfaces.PreferenceEnabledCondition
 import app.aaps.core.keys.interfaces.ElementVisibility
+import app.aaps.core.keys.interfaces.PreferenceEnabledCondition
 import app.aaps.core.keys.interfaces.SyncChannel
 import app.aaps.core.keys.interfaces.SyncDirection
 import app.aaps.core.keys.interfaces.SyncSpec
@@ -75,7 +75,15 @@ enum class BooleanKey(
     ApsUseDynamicSensitivity("use_dynamic_sensitivity", false, R.string.pref_title_aps_use_dynamic_sensitivity, R.string.pref_summary_aps_use_dynamic_sensitivity, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
     ApsUseAutosens("openapsama_useautosens", true, R.string.pref_title_aps_use_autosens, defaultedBySM = true, negativeDependency = ApsUseDynamicSensitivity, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
     ApsUseSmb("use_smb", true, R.string.pref_title_aps_use_smb, R.string.pref_summary_aps_use_smb, defaultedBySM = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
-    ApsUseSmbWithHighTt("enableSMB_with_high_temptarget", false, R.string.pref_title_aps_use_smb_with_high_tt, R.string.pref_summary_aps_use_smb_with_high_tt, defaultedBySM = true, dependency = ApsUseSmb, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
+    ApsUseSmbWithHighTt(
+        "enableSMB_with_high_temptarget",
+        false,
+        R.string.pref_title_aps_use_smb_with_high_tt,
+        R.string.pref_summary_aps_use_smb_with_high_tt,
+        defaultedBySM = true,
+        dependency = ApsUseSmb,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
     ApsUseSmbAlways(
         "enableSMB_always", true, R.string.pref_title_aps_use_smb_always, R.string.pref_summary_aps_use_smb_always, defaultedBySM = true, dependency = ApsUseSmb,
         visibility = ElementVisibility.ADVANCED_FILTERING,
@@ -119,15 +127,60 @@ enum class BooleanKey(
         },
         sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
     ),
-    ApsAlwaysUseShortDeltas("always_use_shortavg", false, R.string.pref_title_aps_always_use_short_deltas, R.string.pref_summary_aps_always_use_short_deltas, defaultedBySM = true, hideParentScreenIfHidden = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
-    ApsDynIsfAdjustSensitivity("dynisf_adjust_sensitivity", false, R.string.pref_title_aps_dynisf_adjust_sensitivity, R.string.pref_summary_aps_dynisf_adjust_sensitivity, defaultedBySM = true, dependency = ApsUseDynamicSensitivity, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
-    ApsAmaAutosensAdjustTargets("autosens_adjust_targets", true, R.string.pref_title_aps_autosens_adjust_targets, R.string.pref_summary_aps_autosens_adjust_targets, defaultedBySM = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
-    ApsAutoIsfHighTtRaisesSens("high_temptarget_raises_sensitivity", false, R.string.pref_title_aps_high_tt_raises_sensitivity, R.string.pref_summary_aps_high_tt_raises_sensitivity, defaultedBySM = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
-    ApsAutoIsfLowTtLowersSens("low_temptarget_lowers_sensitivity", false, R.string.pref_title_aps_low_tt_lowers_sensitivity, R.string.pref_summary_aps_low_tt_lowers_sensitivity, defaultedBySM = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
+    ApsAlwaysUseShortDeltas(
+        "always_use_shortavg",
+        false,
+        R.string.pref_title_aps_always_use_short_deltas,
+        R.string.pref_summary_aps_always_use_short_deltas,
+        defaultedBySM = true,
+        hideParentScreenIfHidden = true,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
+    ApsDynIsfAdjustSensitivity(
+        "dynisf_adjust_sensitivity",
+        false,
+        R.string.pref_title_aps_dynisf_adjust_sensitivity,
+        R.string.pref_summary_aps_dynisf_adjust_sensitivity,
+        defaultedBySM = true,
+        dependency = ApsUseDynamicSensitivity,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
+    ApsAmaAutosensAdjustTargets(
+        "autosens_adjust_targets",
+        true,
+        R.string.pref_title_aps_autosens_adjust_targets,
+        R.string.pref_summary_aps_autosens_adjust_targets,
+        defaultedBySM = true,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
+    ApsAutoIsfHighTtRaisesSens(
+        "high_temptarget_raises_sensitivity",
+        false,
+        R.string.pref_title_aps_high_tt_raises_sensitivity,
+        R.string.pref_summary_aps_high_tt_raises_sensitivity,
+        defaultedBySM = true,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
+    ApsAutoIsfLowTtLowersSens(
+        "low_temptarget_lowers_sensitivity",
+        false,
+        R.string.pref_title_aps_low_tt_lowers_sensitivity,
+        R.string.pref_summary_aps_low_tt_lowers_sensitivity,
+        defaultedBySM = true,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
     ApsUseAutoIsfWeights("openapsama_enable_autoISF", false, R.string.pref_title_aps_use_autoisf_weights, R.string.pref_summary_aps_use_autoisf_weights, defaultedBySM = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
-    ApsAutoIsfSmbOnEvenTarget("Enable alternative activation of SMB always", false, R.string.pref_title_aps_smb_on_even_target, R.string.pref_summary_aps_smb_on_even_target, defaultedBySM = true, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
+    ApsAutoIsfSmbOnEvenTarget(
+        "Enable alternative activation of SMB always",
+        false,
+        R.string.pref_title_aps_smb_on_even_target,
+        R.string.pref_summary_aps_smb_on_even_target,
+        defaultedBySM = true,
+        sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
+    ),
 
     MaintenanceEnableFabric("enable_fabric2", true, R.string.pref_title_maintenance_enable_fabric, defaultedBySM = true, hideParentScreenIfHidden = true),
+
     // Master-only (not a follower client): unattended settings export backs up the local config, which on a
     // client is derived from the master. showInNsClientMode=false hides it in apsMode + pumpControlMode only;
     // hideParentScreenIfHidden collapses the now-empty "Unattended Settings Export" subscreen on a client.
@@ -168,9 +221,13 @@ enum class BooleanKey(
     NsClientAllowClientControl(
         "ns_allow_client_control", false,
         R.string.pref_title_ns_allow_client_control, R.string.pref_summary_ns_allow_client_control,
-        // No longer on the prefs screen — it's the stop/allow-communication switch on the Authorized clients screen.
-        // Default OFF, but ON in simple mode (resolved in PreferencesImpl.calculatedDefaultValue). Hidden on a client.
+        // The rich stop/allow-communication switch lives on the Authorized clients screen; it is ALSO exposed in a
+        // "Remote control" category on the NSCv3 settings screen (NSClientV3Plugin.getPreferenceScreenContent) so it
+        // is reachable from search. Default OFF, but ON in simple mode (resolved in PreferencesImpl.calculatedDefaultValue). Hidden on a client.
         calculatedDefaultValue = true, showInNsClientMode = false,
+        // Remote control rides the WebSocket — hide the toggle (and its single-item "Remote control" parent category)
+        // when WS is off, and on a client where the key is already hidden (so the category never shows empty).
+        dependency = NsClient3UseWs, hideParentScreenIfHidden = true,
         // Synced master→client (MasterOnly — the client mirrors, never pushes back) so a paired client knows
         // whether the master is accepting commands and can gate its UI. buildSyncedPrefs publishes the EFFECTIVE
         // value for this key (see RunningConfigurationImpl), not the raw default.
@@ -191,8 +248,8 @@ enum class BooleanKey(
     WearNotifyOnSmb(key = "wear_notifySMB", defaultValue = true, titleResId = R.string.pref_title_wear_notify_on_smb, summaryResId = R.string.pref_summary_wear_notify_on_smb),
     WearBroadcastData(key = "wear_broadcast_data", defaultValue = false, titleResId = R.string.pref_title_wear_broadcast_data, summaryResId = R.string.pref_summary_wear_broadcast_data, showInApsMode = false, showInPumpControlMode = false),
 
-    SiteRotationManagePump("site_rotation_manage_pump", defaultValue = false, titleResId = R.string.pref_title_site_rotation_manage_pump),
-    SiteRotationManageCgm("site_rotation_manage_cgm", defaultValue = false, titleResId = R.string.pref_title_site_rotation_manage_cgm),
+    SiteRotationManagePump("site_rotation_manage_pump", defaultValue = false, titleResId = R.string.pref_title_site_rotation_manage_pump, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
+    SiteRotationManageCgm("site_rotation_manage_cgm", defaultValue = false, titleResId = R.string.pref_title_site_rotation_manage_cgm, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
 
     //Ketoacidosis Protection
     ApsKetoacidosisProtection("ketoacidosis_protection", false, titleResId = R.string.pref_ketoacidosis_protection_title, summaryResId = R.string.ketoacidosis_protection_summary),

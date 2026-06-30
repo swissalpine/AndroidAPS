@@ -5,7 +5,6 @@ import android.os.SystemClock
 import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.data.time.T
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
 import app.aaps.core.interfaces.profile.Profile
@@ -48,7 +47,6 @@ import kotlin.math.abs
 
 class DanaRKoreanExecutionService : AbstractDanaRExecutionService() {
 
-    @Inject lateinit var constraintChecker: ConstraintsChecker
     @Inject lateinit var danaRPlugin: DanaRPlugin
     @Inject lateinit var danaRKoreanPlugin: DanaRKoreanPlugin
     @Inject lateinit var commandQueue: CommandQueue

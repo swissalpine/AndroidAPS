@@ -3,6 +3,7 @@ package app.aaps.plugins.source
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.SourceSensor
 import app.aaps.core.data.model.TrendArrow
@@ -75,7 +76,7 @@ class PoctechWorkerTest : TestBaseWithProfile() {
             Assertions.assertEquals(ListenableWorker.Result.success(), result)
             val expectedGv = GV(
                 timestamp = timestamp,
-                value = 180.0,
+                value = 10.0 * Constants.MMOLL_TO_MGDL, // mmol/l → mg/dl conversion
                 raw = null,
                 noise = null,
                 trendArrow = TrendArrow.FORTY_FIVE_DOWN,

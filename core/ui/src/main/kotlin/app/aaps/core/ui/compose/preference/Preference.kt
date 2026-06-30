@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 @Composable
 fun Preference(
@@ -104,6 +105,7 @@ fun Preference(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun PreferencePreview() {
@@ -117,6 +119,7 @@ private fun PreferencePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun PreferenceDisabledPreview() {

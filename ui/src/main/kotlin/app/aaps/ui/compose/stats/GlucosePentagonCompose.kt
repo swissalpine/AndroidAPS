@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.aaps.core.interfaces.stats.DexcomTIR
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalProfileUtil
 import app.aaps.ui.R
 import kotlin.math.PI
@@ -398,6 +399,7 @@ fun LegendItem(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, backgroundColor = 0xFF1C1B1F)
 @Composable
 private fun GlucosePentagonPreview() {

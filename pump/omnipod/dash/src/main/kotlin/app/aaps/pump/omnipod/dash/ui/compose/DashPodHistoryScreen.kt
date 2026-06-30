@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.interfaces.profile.ProfileUtil
@@ -39,9 +40,8 @@ import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.ui.compose.AapsCard
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalDateUtil
-import androidx.compose.ui.tooling.preview.Preview
-import app.aaps.core.utils.DateTimeUtil
 import app.aaps.pump.common.defs.PumpHistoryEntryGroup
 import app.aaps.pump.omnipod.common.definition.OmnipodCommandType
 import app.aaps.pump.omnipod.dash.R
@@ -208,6 +208,7 @@ internal fun HistoryCardContent(
 
 // region Previews
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "History Card - Success with details")
 @Composable
 private fun PreviewSuccessCard() {
@@ -222,6 +223,7 @@ private fun PreviewSuccessCard() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "History Card - Success simple")
 @Composable
 private fun PreviewSuccessSimple() {
@@ -234,6 +236,7 @@ private fun PreviewSuccessSimple() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "History Card - Failure")
 @Composable
 private fun PreviewFailure() {
@@ -247,6 +250,7 @@ private fun PreviewFailure() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "History Card - TBR")
 @Composable
 private fun PreviewTbr() {
@@ -260,6 +264,7 @@ private fun PreviewTbr() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Filter Chips")
 @Composable
 private fun PreviewFilterChips() {
@@ -320,23 +325,23 @@ private fun groupForCommandType(type: OmnipodCommandType): PumpHistoryEntryGroup
     OmnipodCommandType.INITIALIZE_POD,
     OmnipodCommandType.INSERT_CANNULA,
     OmnipodCommandType.DEACTIVATE_POD,
-    OmnipodCommandType.DISCARD_POD            -> PumpHistoryEntryGroup.Prime
+    OmnipodCommandType.DISCARD_POD        -> PumpHistoryEntryGroup.Prime
 
     OmnipodCommandType.CANCEL_TEMPORARY_BASAL,
     OmnipodCommandType.SET_BASAL_PROFILE,
     OmnipodCommandType.SET_TEMPORARY_BASAL,
     OmnipodCommandType.RESUME_DELIVERY,
-    OmnipodCommandType.SUSPEND_DELIVERY       -> PumpHistoryEntryGroup.Basal
+    OmnipodCommandType.SUSPEND_DELIVERY   -> PumpHistoryEntryGroup.Basal
 
     OmnipodCommandType.SET_BOLUS,
-    OmnipodCommandType.CANCEL_BOLUS           -> PumpHistoryEntryGroup.Bolus
+    OmnipodCommandType.CANCEL_BOLUS       -> PumpHistoryEntryGroup.Bolus
 
     OmnipodCommandType.ACKNOWLEDGE_ALERTS,
     OmnipodCommandType.CONFIGURE_ALERTS,
-    OmnipodCommandType.PLAY_TEST_BEEP         -> PumpHistoryEntryGroup.Alarm
+    OmnipodCommandType.PLAY_TEST_BEEP     -> PumpHistoryEntryGroup.Alarm
 
     OmnipodCommandType.GET_POD_STATUS,
-    OmnipodCommandType.SET_TIME               -> PumpHistoryEntryGroup.Configuration
+    OmnipodCommandType.SET_TIME           -> PumpHistoryEntryGroup.Configuration
 
-    OmnipodCommandType.READ_POD_PULSE_LOG     -> PumpHistoryEntryGroup.Unknown
+    OmnipodCommandType.READ_POD_PULSE_LOG -> PumpHistoryEntryGroup.Unknown
 }

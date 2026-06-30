@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.ui.R
 
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.formatMinutesAsDuration
 import java.text.DecimalFormat
 import kotlin.math.roundToInt
@@ -197,6 +198,7 @@ fun ValueInputDialog(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ValueInputDialogPreview() {

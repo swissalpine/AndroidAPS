@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.dialogs.OkDialog
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
@@ -58,6 +59,7 @@ fun ActivateStep(
 
             MedtrumPatchViewModel.SetupStep.INITIAL,
             MedtrumPatchViewModel.SetupStep.PRIMED    -> Unit
+
             else                                      -> unexpectedStateMessage = setupStep.toString()
         }
     }
@@ -141,6 +143,7 @@ internal fun ActivateStepContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Activate - Activating")
 @Composable
 private fun PreviewActivating() {
@@ -149,6 +152,7 @@ private fun PreviewActivating() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Activate - Complete")
 @Composable
 private fun PreviewComplete() {

@@ -85,8 +85,8 @@
     <string name="action_tempt_confirmation">Midlertidig mål forespurt</string>
     <string name="action_quick_wizard_confirmation">Hurtigknapp forespurt</string>
     <string name="action_user_action_confirmation">Brukerhandling forespurt</string>
-    <string name="action_scene_confirmation">Aktivere scene</string>
-    <string name="scene_stop">STOPP</string>
+    <string name="action_scene_confirmation">Scene forespurt</string>
+    <string name="scene_end">Avslutt</string>
     <string name="action_treatment_confirmation">Behandling forespurt</string>
     <string name="action_bolus_confirmation">Bolus forespurt</string>
     <string name="action_wizard_confirmation">Beregning forespurt</string>
@@ -239,6 +239,8 @@
     <string name="title_activity_suspend_loop">Pause loop</string>
     <string name="wizard_carbs_format">%1$d g karbo</string>
     <string name="insulin_unit_short">E</string>
+    <string name="quick_wizard_tile_carbs" comment="QuickWizard tile sub-label, carbs amount. %1$d=grams. Example: 30 g">%1$d g</string>
+    <string name="quick_wizard_tile_insulin" comment="QuickWizard tile sub-label, fixed insulin amount. %1$.2f=units. Example: 1.50 U">%1$.2f E</string>
     <string name="wizard_confirmation_sent">Sendt</string>
     <string name="contacting_master">Kontakter hovedenhet…</string>
     <string name="contacting_master_unknown">Status ukjent — sjekk telefonen</string>
@@ -280,4 +282,20 @@
     <string name="confirm">Bekreft</string>
     <string name="request">Forespørsel</string>
     <string name="constraint_applied">Begrensning brukt!</string>
+    <string name="wizard_total_insulin">Totalt insulin</string>
+    <string name="wizard_calculation">Beregning</string>
+    <string name="wizard_settings_format">IK: %1$s | ISF: %2$s</string>
+    <string name="wizard_result_bg">BS</string>
+    <string name="wizard_result_bg_tt">BS (Midl. mål: %1$s)</string>
+    <string name="wizard_result_trend">15\' trend</string>
+    <string name="wizard_result_iob">IOB</string>
+    <string name="wizard_result_new_iob">Ny IOB: %1$s E</string>
+    <string name="wizard_result_cob">COB (%1$.1f g)</string>
+    <string name="wizard_result_carbs">Karbo (%1$d g)</string>
+    <string name="wizard_result_subtotal">Delsum</string>
+    <string name="wizard_result_total">Total</string>
+    <string name="wizard_insulin_format">%1$s E</string>
+    <string name="wizard_result_correction_percentage">%1$d%%</string>
+    <string name="wizard_carbs_with_time">%1$d g karbo (%2$s min)</string>
+    <string name="wizard_result_ecarbs">eKarbo: %1$d g / %2$dt (+%3$d min)</string>
 </resources>

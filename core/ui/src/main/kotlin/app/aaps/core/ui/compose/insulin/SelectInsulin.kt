@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.data.model.ICfg
 import app.aaps.core.interfaces.insulin.ConcentrationType
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 @Composable
 fun SelectInsulin(
@@ -154,6 +155,7 @@ private val previewInsulins = listOf(
     ICfg("NovoRapid U100", peak = 75, dia = 5.0, concentration = 1.0)
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Select Insulin - Collapsed")
 @Composable
 private fun PreviewCollapsed() {
@@ -167,6 +169,7 @@ private fun PreviewCollapsed() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Select Insulin - Expanded")
 @Composable
 private fun PreviewExpanded() {

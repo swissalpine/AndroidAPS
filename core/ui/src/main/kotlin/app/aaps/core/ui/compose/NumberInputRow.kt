@@ -189,20 +189,23 @@ fun NumberInputRow(
                     textFieldValue = newValue
                     val cleaned = newValue.text.trim().replace(",", ".")
                     when {
-                        cleaned.isEmpty()                  -> {
+                        cleaned.isEmpty()                 -> {
                             // Defer publishing until focus loss — avoids a transient 0 while the
                             // user is mid-deletion and about to retype.
                             isError = false
                         }
-                        cleaned.toDoubleOrNull() == null   -> {
+
+                        cleaned.toDoubleOrNull() == null  -> {
                             isError = true
                             errorMessage = errorInvalidNumber
                         }
-                        cleaned.toDouble() !in valueRange  -> {
+
+                        cleaned.toDouble() !in valueRange -> {
                             isError = true
                             errorMessage = rangeText
                         }
-                        else                               -> {
+
+                        else                              -> {
                             isError = false
                             onValueChange(cleaned.toDouble())
                         }
@@ -293,6 +296,7 @@ fun NumberInputRow(
 
 // --- Previews ---
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun NumberInputRowBasicPreview() {
@@ -301,6 +305,7 @@ private fun NumberInputRowBasicPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun NumberInputRowWithUnitPreview() {
@@ -317,6 +322,7 @@ private fun NumberInputRowWithUnitPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun NumberInputRowMinutesPreview() {
@@ -332,6 +338,7 @@ private fun NumberInputRowMinutesPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun NumberInputRowPercentPreview() {
@@ -347,6 +354,7 @@ private fun NumberInputRowPercentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun NumberInputRowMinutesDirectPreview() {

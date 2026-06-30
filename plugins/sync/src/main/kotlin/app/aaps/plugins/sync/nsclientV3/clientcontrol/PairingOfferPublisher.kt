@@ -78,12 +78,16 @@ class PairingOfferPublisher @Inject constructor(
      * A delete failure is logged (ERROR) but never thrown: a left-over offer is bounded anyway
      * by its own `expiresAt`, so failing the caller would be worse than retrying on the next
      * cleanup pass. Non-throwing is intentional — do not change the signature/return type.
+     *
+     * Uses a *permanent* delete so the wrapped secret is actually removed from NS rather than left
+     * behind in a soft-delete tombstone (which would keep the brute-force window open). Safe here:
+     * the offer identifier embeds a fresh per-pairing clientId, so it is never re-PUT after deletion.
      */
     suspend fun deleteOffer(clientId: String) {
         val client = nsClientV3Plugin.get().nsAndroidClient ?: return
         val identifier = "${ClientControlPublisher.IDENTIFIER_OFFER_PREFIX}$clientId"
         try {
-            client.deleteSettings(identifier)
+            client.deleteSettingsPermanent(identifier)
         } catch (e: IOException) {
             aapsLogger.error(LTag.NSCLIENT, "PairingOffer delete failed for $identifier: ${e.message}")
         }

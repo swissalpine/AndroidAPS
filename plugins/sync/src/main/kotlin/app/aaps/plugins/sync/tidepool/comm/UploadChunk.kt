@@ -7,11 +7,13 @@ import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.interfaces.Preferences
+import app.aaps.core.objects.extensions.convertedToAbsolute
 import app.aaps.plugins.sync.tidepool.elements.BasalElement
 import app.aaps.plugins.sync.tidepool.elements.BaseElement
 import app.aaps.plugins.sync.tidepool.elements.BloodGlucoseElement
@@ -22,12 +24,20 @@ import app.aaps.plugins.sync.tidepool.elements.WizardElement
 import app.aaps.plugins.sync.tidepool.events.EventTidepoolStatus
 import app.aaps.plugins.sync.tidepool.keys.TidepoolLongNonKey
 import app.aaps.plugins.sync.tidepool.utils.GsonInstance
-import kotlinx.coroutines.runBlocking
 import java.util.LinkedList
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Instant
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 
 @Singleton
 class UploadChunk @Inject constructor(
@@ -130,23 +140,92 @@ class UploadChunk @Inject constructor(
         return selection
     }
 
-    private fun fromTemporaryBasals(tbrList: List<TB>, start: Long, end: Long): List<BasalElement> {
-        val results = LinkedList<BasalElement>()
-        for (tbr in tbrList) {
-            if (tbr.timestamp in start..end)
-                runBlocking { profileFunction.getProfile(tbr.timestamp) }?.let {
-                    results.add(BasalElement(tbr, it, dateUtil))
-                }
-        }
-        return results
+    private val basalSegmentFallbackStep = T.mins(1).msecs()
+
+    private fun secondsFromMidnight(timestamp: Long): Int {
+        val localDateTime = Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(TimeZone.currentSystemDefault())
+        return localDateTime.hour * 3600 + localDateTime.minute * 60 + localDateTime.second
     }
 
+    /**
+     * Wall-clock time of the next basal-schedule rate change strictly after [timestamp] (DST aware), or null if none.
+     * Returns null when the computed boundary would not advance past [timestamp] (e.g. an ambiguous DST fall-back hour);
+     * the caller's fallback step then keeps the walk progressing.
+     */
+    private fun nextBasalBlockBoundary(timestamp: Long, profile: Profile): Long? {
+        val seconds = secondsFromMidnight(timestamp)
+        val nextSeconds = profile.getBasalValues().map { it.timeAsSeconds }.filter { it > seconds }.minOrNull() ?: 86_400
+        val zone = TimeZone.currentSystemDefault()
+        val date = Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(zone).date
+        val boundary =
+            if (nextSeconds >= 86_400) date.plus(1, DateTimeUnit.DAY).atStartOfDayIn(zone)
+            else LocalDateTime(date, LocalTime(nextSeconds / 3600, nextSeconds % 3600 / 60, nextSeconds % 60)).toInstant(zone)
+        return boundary.toEpochMilliseconds().takeIf { it > timestamp }
+    }
+
+    private fun isSuspend(tbr: TB): Boolean =
+        tbr.type == TB.Type.PUMP_SUSPEND || tbr.type == TB.Type.EMULATED_PUMP_SUSPEND
+
+    /**
+     * Builds a continuous, non-overlapping basal timeline for [start]..[end]:
+     *  - intervals with an active temporary basal -> `automated` (or `suspend` for pump suspends)
+     *  - intervals without a temporary basal      -> `scheduled` (the profile/baseline basal line)
+     *
+     * Segments are split where the profile (scheduled) rate changes or the active profile switches,
+     * so each record carries a single correct rate. Tidepool renders the basal graph from these
+     * events, so without the `scheduled` segments the profile basal line would not be visible.
+     */
     private suspend fun getBasals(start: Long, end: Long): List<BasalElement> {
-        val temporaryBasals = persistenceLayer.getTemporaryBasalsStartingFromTimeToTime(start, end, true)
-        val selection = fromTemporaryBasals(temporaryBasals, start, end)
-        if (selection.isNotEmpty())
-            rxBus.send(EventTidepoolStatus("${selection.size} TBRs selected for upload"))
-        return selection
+        if (end <= start) return emptyList()
+        // Include TBRs that started before the window but may still be active at start (covers the longest allowed TBR).
+        val tbrList = persistenceLayer
+            .getTemporaryBasalsStartingFromTimeToTime(max(0L, start - T.days(2).msecs()), end, true)
+            .filter { it.timestamp + it.duration > start }
+            .sortedBy { it.timestamp }
+        val profileSwitchStarts = persistenceLayer
+            .getEffectiveProfileSwitchesFromTimeToTime(start, end, true)
+            .map { it.timestamp }
+            .filter { it in (start + 1) until end }
+            .sorted()
+
+        val results = LinkedList<BasalElement>()
+        var cursor = start
+        while (cursor < end) {
+            val profile = profileFunction.getProfile(cursor)
+            // Latest-starting TBR active at cursor wins (a newer TBR supersedes an overlapping older one).
+            val activeTbr = tbrList.lastOrNull { cursor >= it.timestamp && cursor < it.timestamp + it.duration }
+            val nextTbrStart = tbrList.firstOrNull { it.timestamp > cursor }?.timestamp ?: end
+
+            var boundary = if (activeTbr != null) min(activeTbr.timestamp + activeTbr.duration, nextTbrStart) else nextTbrStart
+            profileSwitchStarts.firstOrNull { it > cursor }?.let { boundary = min(boundary, it) }
+            // The rate follows the profile only for scheduled gaps and percentage temp basals.
+            if (profile != null && (activeTbr == null || (!isSuspend(activeTbr) && !activeTbr.isAbsolute)))
+                nextBasalBlockBoundary(cursor, profile)?.let { boundary = min(boundary, it) }
+
+            if (boundary <= cursor) boundary = min(cursor + basalSegmentFallbackStep, end)
+            if (boundary <= cursor) break
+            val duration = boundary - cursor
+
+            when {
+                activeTbr != null && isSuspend(activeTbr)        ->
+                    results.add(BasalElement.pumpSuspend(cursor, duration, activeTbr.timestamp, dateUtil))
+
+                activeTbr != null && profile != null             ->
+                    results.add(BasalElement.automated(cursor, duration, activeTbr.convertedToAbsolute(cursor, profile), activeTbr.timestamp, dateUtil))
+
+                activeTbr != null && activeTbr.isAbsolute        ->
+                    results.add(BasalElement.automated(cursor, duration, activeTbr.rate, activeTbr.timestamp, dateUtil))
+
+                activeTbr == null && profile != null             ->
+                    results.add(BasalElement.scheduled(cursor, duration, profile.getBasalTimeFromMidnight(secondsFromMidnight(cursor)), dateUtil))
+                // no profile (and not an absolute temp) -> nothing reliable to emit for this interval
+            }
+            cursor = boundary
+        }
+
+        if (results.isNotEmpty())
+            rxBus.send(EventTidepoolStatus("${results.size} basal records selected for upload"))
+        return results
     }
 
     private fun newInstanceOrNull(ps: EPS): ProfileElement? = try {

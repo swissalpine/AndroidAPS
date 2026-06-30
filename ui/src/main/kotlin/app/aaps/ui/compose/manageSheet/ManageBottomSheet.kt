@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -44,7 +45,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.pump.actions.CustomAction
+import app.aaps.core.keys.interfaces.ElementVisibility
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
+import app.aaps.core.ui.compose.MasterOfflineBanner
 import app.aaps.core.ui.compose.consumeOverscroll
+import app.aaps.core.ui.compose.masterEditingEnabled
 import app.aaps.core.ui.compose.icons.IcCancelExtendedBolus
 import app.aaps.core.ui.compose.icons.IcTbrCancel
 import app.aaps.core.ui.compose.navigation.ElementType
@@ -145,18 +150,24 @@ internal fun ManageBottomSheetContent(
     onCancelExtendedBolusClick: () -> Unit = {},
     onCustomActionClick: (CustomAction) -> Unit = {}
 ) {
+    // True on a master / reachable client; false on a client whose master is unreachable or has control disabled.
+    // Drives the banner AND the per-button disabled state (relayed buttons grey out, only Pair-with-master stays live).
+    val editingEnabled = masterEditingEnabled()
     Column(
         modifier = Modifier
             .consumeOverscroll()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 24.dp)
     ) {
+        // Explains offline vs. control-disabled; renders nothing when editing is enabled.
+        MasterOfflineBanner(editingEnabled = editingEnabled)
         // Section: Manage
         SectionHeader(stringResource(CoreUiR.string.manage))
 
         GridSection(modifier = Modifier.padding(horizontal = 16.dp)) {
             // Mutating editors ride the signed Client-Control channel — hidden on an unpaired client
-            // (showMutatingActions=false), always shown on a master. SITE_ROTATION (still ungated) below stays.
+            // (showMutatingActions=false), always shown on a master. SITE_ROTATION now rides it too (its record +
+            // edit write path is Client-Control-migrated), so it is gated alongside the others.
             if (showMutatingActions) {
                 add { modifier ->
                     ManageGridItem(
@@ -216,14 +227,14 @@ internal fun ManageBottomSheetContent(
                         modifier = modifier
                     )
                 }
-            }
-            add { modifier ->
-                ManageGridItem(
-                    elementType = ElementType.SITE_ROTATION,
-                    onDismiss = onDismiss,
-                    onNavigate = onNavigate,
-                    modifier = modifier
-                )
+                add { modifier ->
+                    ManageGridItem(
+                        elementType = ElementType.SITE_ROTATION,
+                        onDismiss = onDismiss,
+                        onNavigate = onNavigate,
+                        modifier = modifier
+                    )
+                }
             }
             if (pumpPlugin != null && showPump) {
                 add { modifier ->
@@ -304,6 +315,7 @@ internal fun ManageBottomSheetContent(
                                 color = ElementType.TEMP_BASAL.color(),
                                 onDismiss = onDismiss,
                                 onClick = onCancelTempBasalClick,
+                                enabled = editingEnabled,
                                 modifier = modifier
                             )
                         }
@@ -326,6 +338,7 @@ internal fun ManageBottomSheetContent(
                                 color = ElementType.EXTENDED_BOLUS.color(),
                                 onDismiss = onDismiss,
                                 onClick = onCancelExtendedBolusClick,
+                                enabled = editingEnabled,
                                 modifier = modifier
                             )
                         }
@@ -521,12 +534,18 @@ private fun ManageGridItem(
     onNavigate: (NavigationRequest) -> Unit,
     modifier: Modifier = Modifier,
     text: String? = null,
-    coloredText: Boolean = true
+    coloredText: Boolean = true,
+    enabled: Boolean = true
 ) {
     val color = elementType.color()
     val label = text ?: stringResource(elementType.labelResId())
     val descResId = elementType.descriptionResId()
     val description = if (descResId != 0) stringResource(descResId) else null
+    // A relayed action (visible only to master/paired-client) is also DISABLED when the master is unreachable or
+    // has remote control turned off — not just hidden when unpaired. Non-relayed entries (Pump, Pair-with-master)
+    // use their own visibility lambda, so they stay enabled (the only thing you can still do is re-pair).
+    val effectiveEnabled = enabled &&
+        (masterEditingEnabled() || elementType.visibility != ElementVisibility.MASTER_OR_PAIRED_CLIENT)
     ManageGridItem(
         text = label,
         icon = elementType.icon(),
@@ -535,6 +554,7 @@ private fun ManageGridItem(
         onClick = { onNavigate(NavigationRequest.Element(elementType)) },
         description = description,
         coloredText = coloredText,
+        enabled = effectiveEnabled,
         modifier = modifier
     )
 }
@@ -548,16 +568,18 @@ private fun ManageGridItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     description: String? = null,
-    coloredText: Boolean = true
+    coloredText: Boolean = true,
+    enabled: Boolean = true
 ) {
     ElevatedCard(
         onClick = {
             onDismiss()
             onClick()
         },
+        enabled = enabled,
         modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.alpha(if (enabled) 1f else 0.38f).padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SmallTonalIcon(icon = icon, color = color)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -596,6 +618,7 @@ private fun SmallTonalIcon(icon: ImageVector, color: Color) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ManageBottomSheetContentPreview() {

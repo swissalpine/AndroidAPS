@@ -59,6 +59,7 @@ import app.aaps.core.graph.profile.buildIsfRows
 import app.aaps.core.graph.profile.buildTargetRows
 import app.aaps.core.objects.profile.ProfileSealed
 import app.aaps.core.ui.compose.AapsTopAppBar
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
@@ -563,6 +564,7 @@ fun ProfileSwitchContent(profileSwitches: List<String>, selectedIndex: Int, onPr
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ProfileHelperMotolPreview() {
@@ -606,6 +608,7 @@ private fun ProfileHelperMotolPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ProfileHelperCurrentPreview() {
@@ -639,6 +642,7 @@ private fun ProfileHelperCurrentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun DefaultProfileContentPreview() {
@@ -660,6 +664,7 @@ private fun DefaultProfileContentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AvailableProfileContentPreview() {
@@ -673,6 +678,7 @@ private fun AvailableProfileContentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ProfileSwitchContentPreview() {

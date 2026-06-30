@@ -21,6 +21,7 @@ import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.di.ApplicationScope
+import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.insulin.Insulin
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
@@ -33,7 +34,6 @@ import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.pump.DetailedBolusInfo
-import app.aaps.core.interfaces.pump.defs.determineCorrectBolusStepSize
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.events.EventRefreshOverview
@@ -81,6 +81,7 @@ class BolusWizard @Inject constructor(
     private val processedDeviceStatusData: ProcessedDeviceStatusData,
     private val runningModeGuard: RunningModeGuard,
     private val activeInsulin: Insulin,
+    private val ch: ConcentrationHelper,
     private val wizardBolusExecutor: WizardBolusExecutor,
     @ApplicationScope private val appScope: CoroutineScope
 ) {
@@ -291,7 +292,8 @@ class BolusWizard @Inject constructor(
             calculatedCorrection = 0.0
         }
 
-        val bolusStep = activePlugin.activePump.pumpDescription.bolusStep
+        // Amount-aware (Insight) + concentration-adjusted deliverable step, so the rounded value matches the pump grid.
+        val bolusStep = ch.bolusStep(calculatedTotalInsulin)
         calculatedTotalInsulin = Round.roundTo(calculatedTotalInsulin, bolusStep)
 
         insulinAfterConstraints = constraintChecker.applyBolusConstraints(ConstraintObject(calculatedTotalInsulin, aapsLogger)).value()
@@ -419,7 +421,7 @@ class BolusWizard @Inject constructor(
                     line(ConfirmationRole.COB, rh.gs(app.aaps.core.ui.R.string.slowabsorptiondetected_plain, (absorptionRate * 100).toInt()))
                 }
             }
-            if (abs(insulinAfterConstraints - calculatedTotalInsulin) > activePlugin.activePump.pumpDescription.pumpType.determineCorrectBolusStepSize(insulinAfterConstraints)) {
+            if (abs(insulinAfterConstraints - calculatedTotalInsulin) > ch.bolusStep(insulinAfterConstraints)) {
                 line(ConfirmationRole.WARNING, rh.gs(app.aaps.core.ui.R.string.bolus_constraint_applied_warn, calculatedTotalInsulin, insulinAfterConstraints))
             }
             if ((config.AAPSCLIENT || forcedRecordOnly) && insulinAfterConstraints > 0) {

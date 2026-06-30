@@ -42,6 +42,7 @@ fun QuickAddButtons(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun QuickAddButtonsPreview() {

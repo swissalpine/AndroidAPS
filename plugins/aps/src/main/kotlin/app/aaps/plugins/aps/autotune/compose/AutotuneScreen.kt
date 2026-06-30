@@ -66,6 +66,7 @@ import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.ui.compose.AapsCard
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 import app.aaps.core.ui.compose.dialogs.OkDialog
@@ -478,6 +479,7 @@ private fun AutotuneButton(
 
 // --- Previews ---
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ResultsTablePreview() {
@@ -493,6 +495,7 @@ private fun ResultsTablePreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AutotuneButtonPreview() {
@@ -504,6 +507,7 @@ private fun AutotuneButtonPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun InfoRowPreview() {

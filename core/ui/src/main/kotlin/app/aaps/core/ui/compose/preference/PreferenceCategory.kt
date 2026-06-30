@@ -27,6 +27,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 @Composable
 fun PreferenceCategory(title: @Composable () -> Unit, modifier: Modifier = Modifier) {
@@ -46,6 +47,7 @@ fun PreferenceCategory(title: @Composable () -> Unit, modifier: Modifier = Modif
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun PreferenceCategoryPreview() {

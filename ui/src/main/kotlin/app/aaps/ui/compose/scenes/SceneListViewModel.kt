@@ -9,6 +9,7 @@ import app.aaps.core.data.model.Scene
 import app.aaps.core.data.model.SceneAction
 import app.aaps.core.data.model.SceneEndAction
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
+import app.aaps.core.ui.clientcontrol.failTextResId
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.profile.ProfileRepository
@@ -80,7 +81,10 @@ class SceneListViewModel @Inject constructor(
      * operations are allowed. Today the only global lock is AAPSCLIENT-with-WS-disconnected.
      */
     val masterOfflineBanner: StateFlow<String?> = masterReachable
-        .map { reachable -> if (reachable) null else rh.gs(R.string.scene_lock_banner_master_offline) }
+        .map { reachable ->
+            if (reachable) null
+            else rh.gs(if (!nsClient.masterControlAllowed.value) R.string.scene_lock_banner_control_disabled else R.string.scene_lock_banner_master_offline)
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /**
@@ -90,7 +94,7 @@ class SceneListViewModel @Inject constructor(
      */
     val editLockReasons: StateFlow<Map<String, String?>> =
         combine(scenes, activeSceneState, masterReachable) { sceneList, active, reachable ->
-            val masterReason = if (!reachable) rh.gs(R.string.scene_lock_reason_master_offline) else null
+            val masterReason = if (!reachable) rh.gs(if (!nsClient.masterControlAllowed.value) R.string.scene_lock_reason_control_disabled else R.string.scene_lock_reason_master_offline) else null
             val activeReason = rh.gs(R.string.scene_lock_reason_scene_active)
             sceneList.associate { scene ->
                 scene.id to (masterReason ?: if (scene.id == active?.scene?.id) activeReason else null)
@@ -107,7 +111,7 @@ class SceneListViewModel @Inject constructor(
         combine(scenes, activationTick, masterReachable) { sceneList, _, reachable ->
             sceneList.associate { scene ->
                 scene.id to when {
-                    !reachable -> rh.gs(R.string.scene_lock_reason_master_offline)
+                    !reachable -> rh.gs(if (!nsClient.masterControlAllowed.value) R.string.scene_lock_reason_control_disabled else R.string.scene_lock_reason_master_offline)
                     else       -> sceneActions.validateActivation(scene)
                 }
             }
@@ -216,7 +220,7 @@ class SceneListViewModel @Inject constructor(
                     DialogState.ConfirmActivation(scene, prepared.lines.map { it.text }, conflicts, prepared.id)
 
                 is ActionProgress.Rejected ->
-                    _dialogState.value = DialogState.ValidationError(prepared.detail ?: rh.gs(R.string.clientcontrol_fail_not_reachable))
+                    _dialogState.value = DialogState.ValidationError(prepared.detail ?: rh.gs(prepared.reason.failTextResId()))
 
                 else                       -> Unit // Unconfirmed → the round-trip's app-level modal already showed it
             }

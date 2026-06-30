@@ -20,6 +20,7 @@ import app.aaps.core.data.model.BCR
 import app.aaps.core.interfaces.pump.PumpInsulin
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalProfileUtil
 import java.text.DecimalFormat
 import kotlin.math.abs
@@ -261,6 +262,7 @@ private val previewBcr = BCR(
     note = "Before lunch"
 )
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun WizardInfoDialogContentPreview() {
@@ -275,6 +277,7 @@ private fun WizardInfoDialogContentPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun WizardInfoDialogContentPercentagePreview() {

@@ -13,6 +13,7 @@ import app.aaps.core.graph.profile.buildProfileCompareData
 import app.aaps.core.interfaces.bolus.BatchAction
 import app.aaps.core.interfaces.bolus.BatchExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
+import app.aaps.core.ui.clientcontrol.failTextResId
 import app.aaps.core.interfaces.clientcontrol.FailureReason
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
@@ -487,8 +488,8 @@ class ProfileManagementViewModel @Inject constructor(
                                         withContext(Dispatchers.Main) { onSuccess() }
                                     }
                                     is ActionProgress.Rejected ->
-                                        if (result.reason == FailureReason.NotReachable)
-                                            rxBus.send(EventShowDialog.Ok(title = label, message = rh.gs(R.string.clientcontrol_fail_not_reachable)))
+                                        if (result.reason == FailureReason.NotReachable || result.reason == FailureReason.ControlDisabled)
+                                            rxBus.send(EventShowDialog.Ok(title = label, message = rh.gs(result.reason.failTextResId())))
                                         else result.detail?.let { detail ->
                                             rxBus.send(EventShowDialog.Ok(title = label, message = detail))
                                         }
@@ -503,8 +504,8 @@ class ProfileManagementViewModel @Inject constructor(
 
             // Master-local pre-check failure, or a client offline; a client round-trip failure already showed on the app modal.
             is ActionProgress.Rejected -> {
-                if (prepared.reason == FailureReason.NotReachable)
-                    rxBus.send(EventShowDialog.Ok(title = label, message = rh.gs(R.string.clientcontrol_fail_not_reachable)))
+                if (prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                    rxBus.send(EventShowDialog.Ok(title = label, message = rh.gs(prepared.reason.failTextResId())))
                 else prepared.detail?.let { detail ->
                     rxBus.send(EventShowDialog.Ok(title = label, message = detail))
                 }

@@ -14,6 +14,7 @@ import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
+import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.insulin.InsulinManager
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
@@ -83,6 +84,7 @@ class EquilWizardViewModel @Inject constructor(
     private val persistenceLayer: PersistenceLayer,
     private val equilHistoryRecordDao: EquilHistoryRecordDao,
     private val constraintsChecker: ConstraintsChecker,
+    private val ch: ConcentrationHelper,
     private val profileFunction: ProfileFunction,
     private val profileRepository: ProfileRepository,
     private val rxBus: RxBus,
@@ -528,8 +530,10 @@ class EquilWizardViewModel @Inject constructor(
 
     private suspend fun pumpSettings(address: String, serial: String) {
         val profile = pumpSync.expectedPumpState().profile
-        val maxBasal = if (profile != null) constraintsChecker.getMaxBasalAllowed(profile).value() else hardLimits.maxBasal()
-        val r = commandQueue.customCommand(CmdSettingSet(constraintsChecker.getMaxBolusAllowed().value(), maxBasal, aapsLogger, preferences, equilManager))
+        // The pod stores its thresholds in pump units (cU); convert the IU limits to cU first (no-op at U100).
+        val maxBasal = ch.toPumpRate(if (profile != null) constraintsChecker.getMaxBasalAllowed(profile).value() else hardLimits.maxBasal()).cU
+        val maxBolus = ch.toPump(constraintsChecker.getMaxBolusAllowed().value()).cU
+        val r = commandQueue.customCommand(CmdSettingSet(maxBolus, maxBasal, aapsLogger, preferences, equilManager))
         if (r.success) {
             equilManager.setAddress(address)
             equilManager.setSerialNumber(serial)
@@ -747,8 +751,10 @@ class EquilWizardViewModel @Inject constructor(
 
     private suspend fun setLimits() {
         val profile = pumpSync.expectedPumpState().profile
-        val maxBasal = if (profile != null) constraintsChecker.getMaxBasalAllowed(profile).value() else hardLimits.maxBasal()
-        val r = commandQueue.customCommand(CmdSettingSet(constraintsChecker.getMaxBolusAllowed().value(), maxBasal, aapsLogger, preferences, equilManager))
+        // The pod stores its thresholds in pump units (cU); convert the IU limits to cU first (no-op at U100).
+        val maxBasal = ch.toPumpRate(if (profile != null) constraintsChecker.getMaxBasalAllowed(profile).value() else hardLimits.maxBasal()).cU
+        val maxBolus = ch.toPump(constraintsChecker.getMaxBolusAllowed().value()).cU
+        val r = commandQueue.customCommand(CmdSettingSet(maxBolus, maxBasal, aapsLogger, preferences, equilManager))
         _isLoading.value = false
         if (r.success) {
             equilManager.setRunMode(RunMode.RUN)

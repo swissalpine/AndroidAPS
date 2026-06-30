@@ -35,6 +35,7 @@ import app.aaps.core.interfaces.pump.BolusProgressState
 import app.aaps.core.interfaces.pump.PumpInsulin
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Shared pump activity dialog showing pump status, queue info, and bolus progress.
@@ -206,7 +207,7 @@ private fun BolusProgressSection(
         // Stalled (client/follower only — never set for a local bolus): the progress stream stopped
         // before a terminal frame. Stop can't reach the master either, so offer a manual dismiss that
         // only hides this dialog — it does NOT stop the pump.
-        state.stalled  -> {
+        state.stalled -> {
             Text(
                 text = stringResource(R.string.clientcontrol_bolus_progress_stalled_title),
                 style = MaterialTheme.typography.titleSmall,
@@ -262,6 +263,7 @@ private fun BolusProgressSection(
 
 // --- Previews ---
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewBolusInProgress() {
@@ -286,6 +288,7 @@ private fun PreviewBolusInProgress() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewBolusStopPressed() {
@@ -310,6 +313,7 @@ private fun PreviewBolusStopPressed() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewBolusCompleted() {
@@ -334,6 +338,7 @@ private fun PreviewBolusCompleted() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewBolusIndeterminate() {
@@ -358,6 +363,7 @@ private fun PreviewBolusIndeterminate() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewBolusStalled() {
@@ -383,6 +389,7 @@ private fun PreviewBolusStalled() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 private fun PreviewPumpStatusOnly() {

@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.interfaces.pump.BolusProgressState
 import app.aaps.core.interfaces.pump.PumpInsulin
 import app.aaps.core.ui.compose.AapsSmallFab
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * FAB indicating active pump communication.
@@ -55,6 +56,7 @@ fun PumpActivityFab(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun PreviewPumpFabIcon() {
@@ -67,6 +69,7 @@ private fun PreviewPumpFabIcon() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun PreviewPumpFabSmbPercent() {

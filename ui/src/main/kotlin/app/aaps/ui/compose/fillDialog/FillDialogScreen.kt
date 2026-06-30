@@ -56,6 +56,7 @@ import app.aaps.core.data.model.TE
 import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.DateTimeSection
 import app.aaps.core.ui.compose.EventTimeRow
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
@@ -470,6 +471,7 @@ private fun PreviewFillDialog(uiState: FillDialogUiState, dateString: String = "
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Site Change")
 @Composable
 private fun PreviewSiteChange() {
@@ -485,6 +487,7 @@ private fun PreviewSiteChange() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Cartridge Change + Multiple Insulins")
 @Composable
 private fun PreviewCartridgeChangeMultipleInsulins() {
@@ -505,6 +508,7 @@ private fun PreviewCartridgeChangeMultipleInsulins() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Pump Units Warning (non-U100)")
 @Composable
 private fun PreviewPumpUnitsWarning() {
@@ -525,6 +529,7 @@ private fun PreviewPumpUnitsWarning() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "AAPS Client (No Bolus)")
 @Composable
 private fun PreviewAapsClient() {
@@ -540,6 +545,7 @@ private fun PreviewAapsClient() {
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Insulin Selection Expanded")
 @Composable
 private fun PreviewInsulinSelectionExpanded() {

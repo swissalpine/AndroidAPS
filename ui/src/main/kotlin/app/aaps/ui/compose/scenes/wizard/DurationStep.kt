@@ -7,6 +7,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.formatMinutesAsDuration
 import app.aaps.core.ui.compose.pump.WizardButton
@@ -55,6 +56,7 @@ internal fun DurationStep(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun DurationStepPreview() {

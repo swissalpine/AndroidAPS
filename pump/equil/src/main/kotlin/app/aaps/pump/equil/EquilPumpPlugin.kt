@@ -8,6 +8,7 @@ import app.aaps.core.data.pump.defs.PumpDescription
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.data.pump.defs.TimeChangeType
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
+import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
@@ -83,6 +84,7 @@ class EquilPumpPlugin @Inject constructor(
     private val equilManager: EquilManager,
     private val pumpEnactResultProvider: Provider<PumpEnactResult>,
     private val constraintsChecker: ConstraintsChecker,
+    private val ch: ConcentrationHelper,
     private val notificationManager: NotificationManager,
     private val protectionCheck: ProtectionCheck,
     private val blePreCheck: BlePreCheck
@@ -150,8 +152,12 @@ class EquilPumpPlugin @Inject constructor(
 
     private suspend fun resendPumpSettings() {
         val profile = pumpSync.expectedPumpState().profile ?: return
+        // The pod stores its bolus/basal thresholds in pump units (cU) and enforces them against the cU
+        // basal schedule, so convert the IU limits from ConstraintsChecker to cU first (no-op at U100).
+        val maxBolus = ch.toPump(constraintsChecker.getMaxBolusAllowed().value()).cU
+        val maxBasal = ch.toPumpRate(constraintsChecker.getMaxBasalAllowed(profile).value()).cU
         val r = commandQueue.customCommand(
-            CmdSettingSet(constraintsChecker.getMaxBolusAllowed().value(), constraintsChecker.getMaxBasalAllowed(profile).value(), aapsLogger, preferences, equilManager)
+            CmdSettingSet(maxBolus, maxBasal, aapsLogger, preferences, equilManager)
         )
         if (r.success) rxBus.send(EventShowSnackbar(rh.gs(R.string.equil_pump_updated), EventShowSnackbar.Type.Info))
         else rxBus.send(EventShowSnackbar(rh.gs(R.string.equil_error), EventShowSnackbar.Type.Error))
@@ -214,7 +220,8 @@ class EquilPumpPlugin @Inject constructor(
             // The pod silently rejects a schedule whose rate exceeds the max basal threshold
             // programmed via CmdSettingSet (getMaxBasalAllowed), surfacing only as a connection
             // timeout. Reject it up front with a clear message instead of letting it hang.
-            val maxBasalAllowed = constraintsChecker.getMaxBasalAllowed(profile).value()
+            // basalSchedule rates are in pump units (cU); convert the IU max to cU before comparing (no-op at U100).
+            val maxBasalAllowed = ch.toPumpRate(constraintsChecker.getMaxBasalAllowed(profile).value()).cU
             val peakRate = basalSchedule.getEntries().maxOf { it.rate }
             if (peakRate > maxBasalAllowed + 0.001) {
                 return pumpEnactResultProvider.get().enacted(false).success(false)

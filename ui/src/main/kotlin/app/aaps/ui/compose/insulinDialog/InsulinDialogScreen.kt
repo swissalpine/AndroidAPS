@@ -58,6 +58,7 @@ import app.aaps.core.data.model.ICfg
 import app.aaps.core.data.ui.ConfirmationLine
 import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.DateTimeSection
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
@@ -478,6 +479,7 @@ private fun InsulinDialogContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun InsulinDialogScreenPreview() {

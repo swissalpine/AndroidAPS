@@ -8,7 +8,6 @@ import android.os.SystemClock
 import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.time.T
 import app.aaps.core.interfaces.di.ApplicationScope
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
@@ -20,11 +19,8 @@ import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.PumpEnactResult
 import app.aaps.core.interfaces.pump.PumpInsulin
 import app.aaps.core.interfaces.pump.PumpSync
-import app.aaps.core.interfaces.queue.Callback
 import app.aaps.core.interfaces.queue.Command
 import app.aaps.core.interfaces.queue.CommandQueue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.AapsSchedulers
 import app.aaps.core.interfaces.rx.bus.RxBus
@@ -86,6 +82,8 @@ import app.aaps.pump.danars.comm.DanaRSPacketOptionSetUserOption
 import dagger.android.DaggerService
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.util.concurrent.TimeUnit
@@ -106,7 +104,6 @@ class DanaRSService : DaggerService() {
     @Inject lateinit var danaRSPlugin: DanaRSPlugin
     @Inject lateinit var danaPump: DanaPump
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var constraintChecker: ConstraintsChecker
     @Inject lateinit var uiInteraction: UiInteraction
     @Inject lateinit var notificationManager: NotificationManager
     @Inject lateinit var bleComm: BLEComm

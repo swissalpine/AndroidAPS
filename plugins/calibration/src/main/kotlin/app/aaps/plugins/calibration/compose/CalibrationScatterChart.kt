@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.CAL
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.plugins.calibration.CalibrationFit
@@ -173,7 +174,7 @@ private fun DrawScope.drawAxisLabels(
 
 private fun formatAxisLabel(mgdl: Float, glucoseUnit: GlucoseUnit): String = when (glucoseUnit) {
     GlucoseUnit.MGDL -> mgdl.toInt().toString()
-    GlucoseUnit.MMOL -> "%.1f".format(mgdl * GlucoseUnit.MGDL_TO_MMOLL)
+    GlucoseUnit.MMOL -> "%.1f".format(mgdl * Constants.MGDL_TO_MMOLL)
 }
 
 private fun DrawScope.drawIdentityLine(

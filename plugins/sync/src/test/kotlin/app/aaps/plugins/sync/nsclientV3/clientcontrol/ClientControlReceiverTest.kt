@@ -353,63 +353,66 @@ internal class ClientControlReceiverTest {
     }
 
     @Test
-    fun unknownClientIdDeletesAsHopeless() = runTest {
+    fun unknownClientIdIsIgnoredNotDeleted() = runTest {
         pair()
         val identifier = ClientControlPublisher.IDENTIFIER_HELLO_PREFIX + "stranger-uuid"
         val signed = envelope("stranger-uuid", ByteArray(32) { 0x11 })
-        whenever(nsAndroidClient.deleteSettings(identifier)).thenReturn(deleteOk)
 
         sut.onSettingsDocChanged(identifier, wrap(signed))
 
-        verify(nsAndroidClient).deleteSettings(identifier)
+        // Never delete: tombstoning the slot would 410 the next legit PUT, and in a multi-device
+        // setup this could destroy a command another master's client legitimately owns. Neither a
+        // soft nor a permanent delete is ever issued for an inbound command doc.
+        verify(nsAndroidClient, never()).deleteSettings(any())
+        verify(nsAndroidClient, never()).deleteSettingsPermanent(any())
     }
 
     /**
-     * A hello arriving for a pending entry whose QR window already elapsed should
-     * delete the doc and log distinctly from the "truly unknown clientId" path —
-     * the latter is operational noise (typo / stale identifier), the former is the
-     * scraped-expired-QR replay signature an operator wants to notice.
+     * A hello arriving for a pending entry whose QR window already elapsed is ignored (NOT deleted —
+     * deleting would tombstone the slot and 410 future writes) and logged distinctly from the
+     * "truly unknown clientId" path — the latter is operational noise (typo / stale identifier),
+     * the former is the scraped-expired-QR replay signature an operator wants to notice.
      * State must not flip to Active.
      */
     @Test
-    fun helloForExpiredPendingLogsPairingWindowExpiredAndDeletes() = runTest {
+    fun helloForExpiredPendingLogsPairingWindowExpiredAndIsIgnored() = runTest {
         val (clientId, secret) = pairExpired()
         val identifier = ClientControlPublisher.IDENTIFIER_HELLO_PREFIX + clientId
-        whenever(nsAndroidClient.deleteSettings(identifier)).thenReturn(deleteOk)
 
         sut.onSettingsDocChanged(identifier, wrap(envelope(clientId, secret)))
 
         // Entry pruned by current(now); attacker's hello did not promote it.
         assertThat(authorizedRepository.current(now).none { it.clientId == clientId }).isTrue()
-        verify(nsAndroidClient).deleteSettings(identifier)
+        verify(nsAndroidClient, never()).deleteSettings(any())
+        verify(nsAndroidClient, never()).deleteSettingsPermanent(any())
         verify(aapsLogger).error(eq(LTag.NSCLIENT), argThat<String> { contains("pairing window expired") })
     }
 
     @Test
-    fun missingEnvelopeFieldDeletesAsHopeless() = runTest {
+    fun missingEnvelopeFieldIsIgnoredNotDeleted() = runTest {
         pair()
         val identifier = ClientControlPublisher.IDENTIFIER_HELLO_PREFIX + "anything"
         val noEnvelope = JSONObject().apply {
             put("date", now)
             put("app", "AAPS")
         }
-        whenever(nsAndroidClient.deleteSettings(identifier)).thenReturn(deleteOk)
 
         sut.onSettingsDocChanged(identifier, noEnvelope)
 
-        verify(nsAndroidClient).deleteSettings(identifier)
+        verify(nsAndroidClient, never()).deleteSettings(any())
+        verify(nsAndroidClient, never()).deleteSettingsPermanent(any())
     }
 
     @Test
-    fun malformedEnvelopeJsonDeletesAsHopeless() = runTest {
+    fun malformedEnvelopeJsonIsIgnoredNotDeleted() = runTest {
         pair()
         val identifier = ClientControlPublisher.IDENTIFIER_HELLO_PREFIX + "anything"
         val malformed = JSONObject().apply { put("envelope", JSONObject().apply { put("garbage", true) }) }
-        whenever(nsAndroidClient.deleteSettings(identifier)).thenReturn(deleteOk)
 
         sut.onSettingsDocChanged(identifier, malformed)
 
-        verify(nsAndroidClient).deleteSettings(identifier)
+        verify(nsAndroidClient, never()).deleteSettings(any())
+        verify(nsAndroidClient, never()).deleteSettingsPermanent(any())
     }
 
     @Test
@@ -832,6 +835,28 @@ internal class ClientControlReceiverTest {
         val doc = JSONObject().apply { put("identifier", identifier); put("date", now) }
         sut.onSettingsDocChanged(identifier, doc)
         verify(nsAndroidClient, never()).deleteSettings(any())
+    }
+
+    @Test
+    fun pollingLeavesUnknownClientDocUntouchedAndDoesNotExecute() = runTest {
+        // A known client is paired, but the doc below carries a DIFFERENT clientId the master never
+        // paired. On every poll the master re-lists it and must leave it completely alone — never
+        // delete (soft OR permanent: a tombstone would 410 the rightful owner's next command) and
+        // never execute it. This locks in the fix against re-delivery via the poll fallback.
+        pair()
+        val identifier = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}scene_stop_stranger-uuid"
+        val doc = wrap(envelope("stranger-uuid", ByteArray(32) { 0x11 }, message = ClientControlMessage.SceneStop(false), counter = 5L)).also {
+            it.put("identifier", identifier)
+        }
+        whenever(nsAndroidClient.searchSettings(limit = 100)).thenReturn(
+            NSAndroidClient.ReadResponse(code = 200, lastServerModified = null, values = listOf(doc))
+        )
+
+        sut.processPending()
+
+        verify(nsAndroidClient, never()).deleteSettings(any())
+        verify(nsAndroidClient, never()).deleteSettingsPermanent(any())
+        verify(sceneAutomationApi, never()).stopActiveScene()
     }
 
     // -- two-step ACK -----------------------------------------------------------------------

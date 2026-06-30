@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Google Drive logo (monochrome).
@@ -46,13 +47,16 @@ val IcGoogleDrive: ImageVector by lazy {
     }.build()
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun IcGoogleDrivePreview() {
     Icon(
         imageVector = IcGoogleDrive,
         contentDescription = null,
-        modifier = Modifier.padding(0.dp).size(48.dp),
+        modifier = Modifier
+            .padding(0.dp)
+            .size(48.dp),
         tint = Color.Unspecified
     )
 }

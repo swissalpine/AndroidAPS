@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.dialogs.OkDialog
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
@@ -182,6 +183,7 @@ internal fun PrimeStepContent(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Prime - Ready")
 @Composable
 private fun PreviewReady() {
@@ -190,6 +192,7 @@ private fun PreviewReady() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Prime - Priming")
 @Composable
 private fun PreviewPriming() {
@@ -198,6 +201,7 @@ private fun PreviewPriming() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Prime - Complete")
 @Composable
 private fun PreviewComplete() {

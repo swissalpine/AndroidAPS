@@ -88,9 +88,9 @@ class ProfileSealedTest : TestBase() {
         c[Calendar.MINUTE] = 0
         c[Calendar.SECOND] = 0
         c[Calendar.MILLISECOND] = 0
-        assertThat(p.getIsfMgdlForCarbs(c.timeInMillis, "test", config, processedDeviceStatusData)).isWithin(0.01).of(108.0)
+        assertThat(p.getIsfMgdlForCarbs(c.timeInMillis, "test", config, processedDeviceStatusData)).isWithin(0.01).of(108.0935)
         c[Calendar.HOUR_OF_DAY] = 2
-        assertThat(p.getIsfMgdlForCarbs(c.timeInMillis, "test", config, processedDeviceStatusData)).isWithin(0.01).of(111.6)
+        assertThat(p.getIsfMgdlForCarbs(c.timeInMillis, "test", config, processedDeviceStatusData)).isWithin(0.01).of(111.6967)
 //        assertThat(p.getIsfTimeFromMidnight(2 * 60 * 60)).isWithin(0.01).of(110.0)
         assertThat(p.getIsfList(rh, dateUtil).replace(".", ",")).isEqualTo(
             """
@@ -109,9 +109,9 @@ class ProfileSealedTest : TestBase() {
         assertThat(p.percentageBasalSum()).isWithin(0.01).of(2.4)
         assertThat(p.baseBasalSum()).isWithin(0.01).of(2.4)
 //        assertThat( p.getTargetMgdl(2 * 60 * 60)).isWithin(0.01).of(81.0)
-        assertThat(p.getTargetLowMgdl(c.timeInMillis)).isWithin(0.01).of(90.0)
+        assertThat(p.getTargetLowMgdl(c.timeInMillis)).isWithin(0.01).of(90.078)
 //        assertThat( p.getTargetLowTimeFromMidnight(2 * 60 * 60)).isWithin(0.01).of(4.0)
-        assertThat(p.getTargetHighMgdl(c.timeInMillis)).isWithin(0.01).of(90.0)
+        assertThat(p.getTargetHighMgdl(c.timeInMillis)).isWithin(0.01).of(90.078)
 //        assertThat( p.getTargetHighTimeFromMidnight(2 * 60 * 60)).isWithin(0.01).of(5.0)
         assertThat(p.getTargetList(rh, dateUtil).replace(".", ",")).isEqualTo("00:00    5,0 - 5,0 mmol/L")
         assertThat(p.percentage).isEqualTo(100)
@@ -137,7 +137,7 @@ class ProfileSealedTest : TestBase() {
         assertThat(p.getBasal(c.timeInMillis)).isWithin(0.01).of(0.05)
         assertThat(p.percentageBasalSum()).isWithin(0.01).of(1.2)
         assertThat(p.getIc(c.timeInMillis)).isWithin(0.01).of(60.0)
-        assertThat(p.getIsfMgdlForCarbs(c.timeInMillis, "test", config, processedDeviceStatusData)).isWithin(0.01).of(223.2)
+        assertThat(p.getIsfMgdlForCarbs(c.timeInMillis, "test", config, processedDeviceStatusData)).isWithin(0.01).of(223.3933)
 
         // Test timeshift functionality
         p = ProfileSealed.Pure(pureProfileFromJson(JSONObject(okProfile), dateUtil)!!, activePlugin)

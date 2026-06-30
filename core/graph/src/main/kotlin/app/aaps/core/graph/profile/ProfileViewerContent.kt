@@ -17,16 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.graph.BasalProfileGraphCompose
 import app.aaps.core.graph.IcProfileGraphCompose
 import app.aaps.core.graph.IsfProfileGraphCompose
 import app.aaps.core.graph.TargetBgProfileGraphCompose
-import androidx.compose.ui.tooling.preview.Preview
 import app.aaps.core.interfaces.insulin.ConcentrationType
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Data class representing a single row in a profile comparison table.
@@ -515,6 +516,7 @@ fun ProfileRow(label: String, value: String, showColon: Boolean = true) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun ProfileRowPreview() {

@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalDateUtil
 import kotlinx.coroutines.delay
 
@@ -68,6 +69,7 @@ private fun LargeClockText(
     )
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 220)
 @Composable
 private fun LargeClockPreview() {
@@ -76,6 +78,7 @@ private fun LargeClockPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, widthDp = 220)
 @Composable
 private fun LargeClockNoAgoPreview() {

@@ -105,6 +105,8 @@ enum class NotificationId(
 
     // Pump — Dana
     DANA_PUMP_ALARM(URGENT, PUMP),
+    // "Bolus block" enabled in pump settings - blocks all bolus delivery (wrong configuration for AAPS)
+    DANA_BOLUS_BLOCK(URGENT, PUMP),
 
     // Pump — Dana emulator
     PUMP_EMULATOR_DISPLAY(INFO, PUMP),

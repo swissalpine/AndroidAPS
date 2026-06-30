@@ -18,7 +18,8 @@ internal fun BatchAction.toDto(): BatchActionDto = when (this) {
         insulin = insulin, carbs = carbs, carbsTimeOffsetMinutes = carbsTimeOffsetMinutes,
         carbsDurationHours = carbsDurationHours, recordOnly = recordOnly, notes = notes, timestamp = timestamp,
         iCfgJson = iCfg?.toJsonObject()?.toString(),
-        eCarbsGrams = eCarbsGrams, eCarbsDelayMinutes = eCarbsDelayMinutes, eCarbsDurationHours = eCarbsDurationHours
+        eCarbsGrams = eCarbsGrams, eCarbsDelayMinutes = eCarbsDelayMinutes, eCarbsDurationHours = eCarbsDurationHours,
+        quickWizardGuid = quickWizardGuid
     )
 
     is BatchAction.TempTarget          -> BatchActionDto(
@@ -58,6 +59,11 @@ internal fun BatchAction.toDto(): BatchActionDto = when (this) {
         teType = teType.name, timestamp = timestamp, glucoseMgdl = glucoseMgdl, meterType = glucoseType?.name,
         durationMinutes = durationMinutes, notes = note ?: "", location = location?.name, arrow = arrow?.name, source = source.name
     )
+
+    is BatchAction.TherapyEventEdit    -> BatchActionDto(
+        type = BatchActionDto.TYPE_THERAPY_EVENT_EDIT,
+        teType = teType.name, timestamp = timestamp, notes = note ?: "", location = location?.name, arrow = arrow?.name, source = source.name
+    )
 }
 
 /** Wire [BatchActionDto] → domain [BatchAction] (master receive side); null if the type is unknown. */
@@ -66,7 +72,8 @@ internal fun BatchActionDto.toDomain(): BatchAction? = when (type) {
         insulin = insulin, carbs = carbs, carbsTimeOffsetMinutes = carbsTimeOffsetMinutes,
         carbsDurationHours = carbsDurationHours, recordOnly = recordOnly, notes = notes, timestamp = timestamp,
         iCfg = iCfgJson?.let { j -> runCatching { (Json.parseToJsonElement(j) as? JsonObject)?.let { ICfg.fromJsonObject(it) } }.getOrNull() },
-        eCarbsGrams = eCarbsGrams, eCarbsDelayMinutes = eCarbsDelayMinutes, eCarbsDurationHours = eCarbsDurationHours
+        eCarbsGrams = eCarbsGrams, eCarbsDelayMinutes = eCarbsDelayMinutes, eCarbsDurationHours = eCarbsDurationHours,
+        quickWizardGuid = quickWizardGuid
     )
 
     BatchActionDto.TYPE_TEMP_TARGET           -> reason?.let { BatchAction.TempTarget(it, lowMgdl, highMgdl, durationMinutes, startOffsetMinutes, notes.ifEmpty { null }) }
@@ -89,5 +96,15 @@ internal fun BatchActionDto.toDomain(): BatchAction? = when (type) {
             source = source?.let { runCatching { Sources.valueOf(it) }.getOrNull() } ?: Sources.NSClient
         )
     }
+    // Unknown/unparseable teType drops the action (the master's no-action guard then rejects an empty batch).
+    BatchActionDto.TYPE_THERAPY_EVENT_EDIT    -> teType?.let { runCatching { TE.Type.valueOf(it) }.getOrNull() }?.let { type ->
+        BatchAction.TherapyEventEdit(
+            teType = type, timestamp = timestamp, note = notes.ifEmpty { null },
+            location = location?.let { runCatching { TE.Location.valueOf(it) }.getOrNull() },
+            arrow = arrow?.let { runCatching { TE.Arrow.valueOf(it) }.getOrNull() },
+            source = source?.let { runCatching { Sources.valueOf(it) }.getOrNull() } ?: Sources.NSClient
+        )
+    }
+
     else                                      -> null
 }

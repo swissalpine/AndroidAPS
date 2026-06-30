@@ -11,7 +11,6 @@ import app.aaps.core.data.pump.defs.PumpDescription
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.data.pump.defs.TimeChangeType
 import app.aaps.core.data.time.T
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
@@ -38,13 +37,11 @@ import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.collectResilient
 import app.aaps.core.interfaces.rx.events.EventAppExit
 import app.aaps.core.interfaces.rx.events.EventShowSnackbar
-import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.keys.interfaces.withEntriesProvider
-import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.ui.compose.icons.IcPluginMedtrum
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.pump.medtrum.comm.enums.MedtrumPumpState
@@ -78,14 +75,12 @@ class MedtrumPlugin @Inject constructor(
     rh: ResourceHelper,
     preferences: Preferences,
     commandQueue: CommandQueue,
-    private val constraintChecker: ConstraintsChecker,
     private val aapsSchedulers: AapsSchedulers,
     private val rxBus: RxBus,
     private val context: Context,
     private val fabricPrivacy: FabricPrivacy,
     private val dateUtil: DateUtil,
     private val medtrumPump: MedtrumPump,
-    private val uiInteraction: UiInteraction,
     private val notificationManager: NotificationManager,
     private val temporaryBasalStorage: TemporaryBasalStorage,
     private val pumpEnactResultProvider: Provider<PumpEnactResult>,
@@ -282,7 +277,7 @@ class MedtrumPlugin @Inject constructor(
 
         aapsLogger.debug(LTag.PUMP, "deliverTreatment: " + detailedBolusInfo.insulin + "U")
         if (!isInitialized()) return pumpEnactResultProvider.get().success(false).enacted(false)
-        detailedBolusInfo.insulin = constraintChecker.applyBolusConstraints(ConstraintObject(detailedBolusInfo.insulin, aapsLogger)).value()
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
         aapsLogger.debug(LTag.PUMP, "deliverTreatment: Delivering bolus: " + detailedBolusInfo.insulin + "U")
         val connectionOK = medtrumService?.setBolus(detailedBolusInfo) == true
         val result = pumpEnactResultProvider.get()

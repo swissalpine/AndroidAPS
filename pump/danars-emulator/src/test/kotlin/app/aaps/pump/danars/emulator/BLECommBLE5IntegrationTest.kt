@@ -2,13 +2,9 @@ package app.aaps.pump.danars.emulator
 
 import android.content.Context
 import app.aaps.core.interfaces.configuration.ConfigBuilder
-import app.aaps.core.interfaces.constraints.Constraint
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.profile.ProfileStore
-import app.aaps.core.interfaces.pump.DetailedBolusInfoStorage
 import app.aaps.core.interfaces.pump.PumpSync
-import app.aaps.core.interfaces.pump.TemporaryBasalStorage
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
@@ -56,9 +52,6 @@ class BLECommBLE5IntegrationTest : TestBase() {
     @Mock lateinit var notificationManager: NotificationManager
     @Mock lateinit var decimalFormatter: DecimalFormatter
     @Mock lateinit var profileStoreProvider: javax.inject.Provider<ProfileStore>
-    @Mock lateinit var constraintsChecker: ConstraintsChecker
-    @Mock lateinit var detailedBolusInfoStorage: DetailedBolusInfoStorage
-    @Mock lateinit var temporaryBasalStorage: TemporaryBasalStorage
 
     private lateinit var danaPump: DanaPump
     private lateinit var bleEncryption: BleEncryption
@@ -77,7 +70,6 @@ class BLECommBLE5IntegrationTest : TestBase() {
         whenever(preferences.get(any<StringComposedNonPreferenceKey>(), any())).thenReturn("")
         whenever(preferences.get(DanaStringNonKey.Password)).thenReturn("0000")
         whenever(danaRSPlugin.mDeviceName).thenReturn(deviceName)
-        whenever(constraintsChecker.applyBolusConstraints(any<Constraint<Double>>())).thenAnswer { it.arguments[0] }
 
         // Provide stored BLE5 pairing key
         whenever(preferences.get(DanaStringComposedKey.Ble5PairingKey, deviceName))
@@ -156,7 +148,7 @@ class BLECommBLE5IntegrationTest : TestBase() {
         state.batteryRemaining = 95
         state.currentBasal = 0.75
 
-        val packet = DanaRSPacketGeneralInitialScreenInformation(aapsLogger, danaPump)
+        val packet = DanaRSPacketGeneralInitialScreenInformation(aapsLogger, danaPump, notificationManager)
         bleComm.sendMessage(packet)
 
         assertThat(packet.isReceived).isTrue()
@@ -196,7 +188,7 @@ class BLECommBLE5IntegrationTest : TestBase() {
         assertThat(tempPacket.isReceived).isTrue()
 
         // Command 3: Screen info
-        val screenPacket = DanaRSPacketGeneralInitialScreenInformation(aapsLogger, danaPump)
+        val screenPacket = DanaRSPacketGeneralInitialScreenInformation(aapsLogger, danaPump, notificationManager)
         bleComm.sendMessage(screenPacket)
         assertThat(screenPacket.isReceived).isTrue()
         assertThat(screenPacket.isTempBasalInProgress).isTrue()

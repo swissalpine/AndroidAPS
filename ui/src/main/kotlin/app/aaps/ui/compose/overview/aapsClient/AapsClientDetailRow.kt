@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.interfaces.overview.graph.AapsClientLevel
 import app.aaps.core.interfaces.overview.graph.AapsClientStatusItem
 import app.aaps.core.ui.compose.AapsTheme
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 
 /**
  * Expanded detail row for a single AapsClient status item.
@@ -43,6 +44,7 @@ fun AapsClientDetailRow(
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientDetailRowInfoPreview() {
@@ -59,6 +61,7 @@ private fun AapsClientDetailRowInfoPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true)
 @Composable
 private fun AapsClientDetailRowUrgentPreview() {

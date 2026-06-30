@@ -41,6 +41,7 @@ import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.ui.compose.AapsCard
 import app.aaps.core.ui.compose.AapsSpacing
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalDateUtil
 import app.aaps.pump.common.defs.PumpHistoryEntryGroup
 import app.aaps.pump.common.defs.TempBasalPair
@@ -200,6 +201,7 @@ internal fun ErosHistoryCardContent(
 
 // region Previews
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Eros History - Success")
 @Composable
 private fun PreviewSuccess() {
@@ -213,6 +215,7 @@ private fun PreviewSuccess() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Eros History - TBR")
 @Composable
 private fun PreviewTbr() {
@@ -226,6 +229,7 @@ private fun PreviewTbr() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Eros History - Failure")
 @Composable
 private fun PreviewFailure() {
@@ -239,6 +243,7 @@ private fun PreviewFailure() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Eros History - Simple")
 @Composable
 private fun PreviewSimple() {

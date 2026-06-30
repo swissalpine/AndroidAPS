@@ -10,18 +10,19 @@ import app.aaps.core.data.ui.ConfirmationLine
 import app.aaps.core.interfaces.bolus.WizardBolusExecutor
 import app.aaps.core.interfaces.bolus.WizardExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
+import app.aaps.core.ui.clientcontrol.failTextResId
 import app.aaps.core.interfaces.clientcontrol.FailureReason
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.di.ApplicationScope
+import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileRepository
 import app.aaps.core.interfaces.profile.ProfileUtil
-import app.aaps.core.interfaces.pump.defs.determineCorrectBolusStepSize
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.events.EventShowDialog
@@ -64,6 +65,7 @@ class WizardDialogViewModel @Inject constructor(
     val profileUtil: ProfileUtil,
     private val profileRepository: ProfileRepository,
     private val activePlugin: ActivePlugin,
+    private val ch: ConcentrationHelper,
     private val iobCobCalculator: IobCobCalculator,
     private val persistenceLayer: PersistenceLayer,
     private val preferences: Preferences,
@@ -429,7 +431,7 @@ class WizardDialogViewModel @Inject constructor(
                 carbsEquivalent = w.data.carbsEquivalent,
                 calculatedPercentage = w.data.calculatedPercentage,
                 constraintApplied = abs(w.data.insulinAfterConstraints - w.data.calculatedTotalInsulin) >
-                    activePlugin.activePump.pumpDescription.pumpType.determineCorrectBolusStepSize(w.data.insulinAfterConstraints),
+                    ch.bolusStep(w.data.insulinAfterConstraints),
                 isf = w.data.sens,
                 ic = w.data.ic,
                 currentCOB = cob,
@@ -520,8 +522,8 @@ class WizardDialogViewModel @Inject constructor(
                     }
                 // Master-local compute failure (no modal) or client offline; a client round-trip failure already showed on the app modal.
                 is ActionProgress.Rejected ->
-                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable)
-                        rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.boluswizard), message = prepared.detail ?: rh.gs(app.aaps.core.ui.R.string.clientcontrol_fail_not_reachable)))
+                    if (!config.AAPSCLIENT || prepared.reason == FailureReason.NotReachable || prepared.reason == FailureReason.ControlDisabled)
+                        rxBus.send(EventShowDialog.Ok(title = rh.gs(app.aaps.core.ui.R.string.boluswizard), message = prepared.detail ?: rh.gs(prepared.reason.failTextResId())))
 
                 else                       -> Unit // Unconfirmed → app modal
             }

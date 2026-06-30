@@ -32,6 +32,7 @@ enum class ElementType(
     // CGM
     CGM_XDRIP(category = ElementCategory.CGM, searchable = true),
     CGM_DEX(category = ElementCategory.CGM),
+
     // CALIBRATION is intentionally NOT migrated/gated: it's a CGM-plugin command (activeCalibration.addEntry), not a
     // DB write, and a client has no CGM source to calibrate — so it stays local/master-only (see Track B calibration notes).
     CALIBRATION(category = ElementCategory.CGM, searchable = true),
@@ -53,12 +54,12 @@ enum class ElementType(
     ANNOUNCEMENT(category = ElementCategory.CAREPORTAL, searchable = true, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
 
     // Device maintenance. SENSOR_INSERT + BATTERY_CHANGE route through CareDialog; CANNULA_CHANGE + FILL both open the
-    // FillDialog (site / cartridge) — all Client-Control-migrated → gated. SITE_ROTATION's write path is NOT verified yet — ungated.
+    // FillDialog (site / cartridge); SITE_ROTATION records + edits via the batch channel — all Client-Control-migrated → gated.
     SENSOR_INSERT(category = ElementCategory.DEVICE, searchable = true, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
     BATTERY_CHANGE(category = ElementCategory.DEVICE, searchable = true, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
     CANNULA_CHANGE(category = ElementCategory.DEVICE, protection = ProtectionCheck.Protection.BOLUS, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
     FILL(category = ElementCategory.DEVICE, searchable = true, protection = ProtectionCheck.Protection.BOLUS, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
-    SITE_ROTATION(category = ElementCategory.DEVICE, searchable = true),
+    SITE_ROTATION(category = ElementCategory.DEVICE, searchable = true, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
 
     // Basal — both ride Client-Control → CLIENT_PAIRED.
     TEMP_BASAL(category = ElementCategory.BASAL, searchable = true, protection = ProtectionCheck.Protection.BOLUS, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
@@ -67,6 +68,7 @@ enum class ElementType(
     // System
     AUTOMATION(category = ElementCategory.SYSTEM),
     AUTOMATION_MANAGEMENT(category = ElementCategory.MANAGEMENT, searchable = true, protection = ProtectionCheck.Protection.PREFERENCES, visibility = ElementVisibility.MASTER_OR_PAIRED_CLIENT),
+
     // Pump management — only where the build drives a real pump: full + pumpcontrol (i.e. !isClient).
     // An aapsclient has no real pump (VirtualPump is hidden). NOT gated on pairing (a paired client still
     // has no pump), so this is plain !isClient, distinct from MASTER_OR_PAIRED_CLIENT.
@@ -96,6 +98,7 @@ enum class ElementType(
     // NSCv3 client control — paired devices that can issue signed commands
     // Master only AND NSCv3-WS enabled — keeps search in lock-step with the Manage-sheet button (ManageViewModel).
     AUTHORIZED_CLIENTS(category = ElementCategory.MANAGEMENT, searchable = true, protection = ProtectionCheck.Protection.PREFERENCES, visibility = ElementVisibility { !it.isClient && it.preferences.get(BooleanKey.NsClient3UseWs) }),
+
     // Client only AND NSCv3-WS enabled (the transport client control rides) — in lock-step with its Manage-sheet button.
     PAIR_WITH_MASTER(category = ElementCategory.MANAGEMENT, searchable = true, protection = ProtectionCheck.Protection.PREFERENCES, visibility = ElementVisibility { it.isClient && it.preferences.get(BooleanKey.NsClient3UseWs) }),
 

@@ -14,8 +14,7 @@ import app.aaps.core.data.pump.defs.ManufacturerType
 import app.aaps.core.data.pump.defs.PumpDescription
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.data.time.T
-import app.aaps.core.interfaces.constraints.Constraint
-import app.aaps.core.interfaces.constraints.PluginConstraints
+import app.aaps.core.interfaces.constraints.PumpPluginConstraints
 import app.aaps.core.interfaces.di.ApplicationScope
 import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.logging.AAPSLogger
@@ -183,7 +182,7 @@ class InsightPlugin @Inject constructor(
         InsightLongNonKey::class.java, InsightDoubleNonKey::class.java,
     ),
     aapsLogger, rh, preferences, commandQueue
-), Pump, Insight, PluginConstraints, InsightConnectionService.StateCallback, OwnDatabasePlugin {
+), Pump, Insight, PumpPluginConstraints, InsightConnectionService.StateCallback, OwnDatabasePlugin {
 
     override val pumpDescription: PumpDescription = PumpDescription().also { it.fillFor(PumpType.ACCU_CHEK_INSIGHT) }
     private val _bolusLock: Any = arrayOfNulls<Any>(0)
@@ -1544,30 +1543,15 @@ class InsightPlugin @Inject constructor(
         }
     }
 
-    override fun applyBasalPercentConstraints(percentRate: Constraint<Int>, profile: Profile): Constraint<Int> {
-        percentRate.setIfGreater(0, rh.gs(app.aaps.core.ui.R.string.limitingpercentrate, 0, rh.gs(app.aaps.core.ui.R.string.itmustbepositivevalue)), this)
-        percentRate.setIfSmaller(
-            pumpDescription.maxTempPercent, rh.gs(app.aaps.core.ui.R.string.limitingpercentrate, pumpDescription.maxTempPercent, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this
-        )
-        return percentRate
-    }
-
-    override fun applyBolusConstraints(insulin: Constraint<Double>): Constraint<Double> {
+    // cU-domain pump limit (PumpPluginConstraints): folded into the IU scan by ConstraintsChecker.
+    // Below the pump's minimum deliverable amount the bolus is dropped to 0 (reasons logged, not surfaced).
+    override fun applyBolusConstraints(insulin: PumpInsulin): PumpInsulin {
         if (!limitsFetched) return insulin
-        insulin.setIfSmaller(maximumBolusAmount, rh.gs(app.aaps.core.ui.R.string.limitingbolus, maximumBolusAmount, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        if (insulin.value() < minimumBolusAmount) {
-
-            //TODO: Add function to Constraints or use different approach
-            // This only works if the interface of the InsightPlugin is called last.
-            // If not, another constraint could theoretically set the value between 0 and minimumBolusAmount
-            insulin.set(0.0, rh.gs(app.aaps.core.ui.R.string.limitingbolus, minimumBolusAmount, rh.gs(app.aaps.core.ui.R.string.pumplimit)), this)
-        }
-        return insulin
+        val capped = insulin.cU.coerceAtMost(maximumBolusAmount)
+        return PumpInsulin(if (capped < minimumBolusAmount) 0.0 else capped)
     }
 
-    override fun applyExtendedBolusConstraints(insulin: Constraint<Double>): Constraint<Double> {
-        return applyBolusConstraints(insulin)
-    }
+    override fun applyExtendedBolusConstraints(insulin: PumpInsulin): PumpInsulin = applyBolusConstraints(insulin)
 
     override fun onStateChanged(state: InsightState?) {
         if (state == InsightState.CONNECTED) {

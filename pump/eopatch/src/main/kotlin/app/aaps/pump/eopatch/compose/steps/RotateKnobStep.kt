@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 import app.aaps.pump.eopatch.R
@@ -92,6 +93,7 @@ fun RotateKnobStep(viewModel: EopatchPatchViewModel) {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Rotate Knob")
 @Composable
 private fun RotateKnobStepPreview() {
@@ -106,6 +108,7 @@ private fun RotateKnobStepPreview() {
     }
 }
 
+@ExcludeFromJacocoGeneratedReport
 @Preview(showBackground = true, name = "Rotate Knob - Needle Error")
 @Composable
 private fun RotateKnobNeedleErrorPreview() {

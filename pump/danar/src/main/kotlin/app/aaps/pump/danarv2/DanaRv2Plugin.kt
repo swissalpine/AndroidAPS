@@ -8,7 +8,6 @@ import android.os.IBinder
 import app.aaps.core.data.pump.defs.PumpType
 import app.aaps.core.data.time.T.Companion.mins
 import app.aaps.core.interfaces.configuration.Config
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationManager
@@ -34,7 +33,6 @@ import app.aaps.core.interfaces.utils.Round.floorTo
 import app.aaps.core.interfaces.utils.Round.roundTo
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.keys.interfaces.Preferences
-import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.pump.dana.DanaPump
 import app.aaps.pump.dana.R
@@ -57,7 +55,6 @@ class DanaRv2Plugin @Inject constructor(
     rxBus: RxBus,
     private val context: Context,
     rh: ResourceHelper,
-    constraintChecker: ConstraintsChecker,
     activePlugin: ActivePlugin,
     commandQueue: CommandQueue,
     danaPump: DanaPump,
@@ -80,7 +77,6 @@ class DanaRv2Plugin @Inject constructor(
     preferences,
     config,
     commandQueue,
-    constraintChecker,
     aapsSchedulers,
     rxBus,
     activePlugin,
@@ -148,7 +144,7 @@ class DanaRv2Plugin @Inject constructor(
         if (detailedBolusInfo.insulin == 0.0 || detailedBolusInfo.carbs > 0) {
             throw IllegalArgumentException(detailedBolusInfo.toString(), Exception())
         }
-        detailedBolusInfo.insulin = constraintChecker.applyBolusConstraints(ConstraintObject(detailedBolusInfo.insulin, aapsLogger)).value()
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
         // v2 stores end time for bolus, we need to adjust time
         // default delivery speed is 12 sec/U
         val preferencesSpeed = preferences.get(DanaIntKey.BolusSpeed)
@@ -299,12 +295,11 @@ class DanaRv2Plugin @Inject constructor(
     }
 
     override suspend fun setExtendedBolus(insulin: Double, durationInMinutes: Int): PumpEnactResult {
-        var insulinReq = insulin
         val pump = danaPump
-        insulinReq = constraintChecker.applyExtendedBolusConstraints(ConstraintObject(insulinReq, aapsLogger)).value()
-        // needs to be rounded
+        // Already constrained in IU (queue) and in cU (PumpWithConcentration boundary); no re-apply here.
         val durationInHalfHours = max(durationInMinutes / 30, 1)
-        insulinReq = roundTo(insulinReq, pumpDescription.extendedBolusStep)
+        // round to the pump's native extended-bolus step (cU)
+        var insulinReq = roundTo(insulin, pumpDescription.extendedBolusStep)
         val result = pumpEnactResultProvider.get()
         if (danaPump.isExtendedInProgress && abs(danaPump.extendedBolusAmount - insulinReq) < pumpDescription.extendedBolusStep) {
             result.enacted(false)

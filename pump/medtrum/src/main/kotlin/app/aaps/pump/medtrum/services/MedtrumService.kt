@@ -7,7 +7,6 @@ import android.os.IBinder
 import android.os.SystemClock
 import app.aaps.core.data.model.BS
 import app.aaps.core.data.time.T
-import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
@@ -94,7 +93,6 @@ class MedtrumService : DaggerService(), MedtrumBleCallback {
     @Inject lateinit var medtrumPlugin: MedtrumPlugin
     @Inject lateinit var medtrumPump: MedtrumPump
     @Inject lateinit var activePlugin: ActivePlugin
-    @Inject lateinit var constraintChecker: ConstraintsChecker
     @Inject lateinit var uiInteraction: UiInteraction
     @Inject lateinit var notificationManager: NotificationManager
     @Inject lateinit var bleTransport: MedtrumBleTransport
