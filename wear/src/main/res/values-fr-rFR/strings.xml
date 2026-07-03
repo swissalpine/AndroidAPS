@@ -85,6 +85,8 @@
     <string name="action_tempt_confirmation">Cible Temp demandée</string>
     <string name="action_quick_wizard_confirmation">Assistant rapide demandé</string>
     <string name="action_user_action_confirmation">Action de l\'utilisateur demandée</string>
+    <string name="action_scene_confirmation">Scenario demandé</string>
+    <string name="scene_end">Fin</string>
     <string name="action_treatment_confirmation">Traitement demandé</string>
     <string name="action_bolus_confirmation">Bolus demandé</string>
     <string name="action_wizard_confirmation">Calcul demandé</string>
@@ -237,7 +239,11 @@
     <string name="title_activity_suspend_loop">Suspendre la boucle</string>
     <string name="wizard_carbs_format">%1$d g de glucides</string>
     <string name="insulin_unit_short">U</string>
+    <string name="quick_wizard_tile_carbs" comment="QuickWizard tile sub-label, carbs amount. %1$d=grams. Example: 30 g">%1$d g</string>
+    <string name="quick_wizard_tile_insulin" comment="QuickWizard tile sub-label, fixed insulin amount. %1$.2f=units. Example: 1.50 U">%1$.2f U</string>
     <string name="wizard_confirmation_sent">Envoyé</string>
+    <string name="contacting_master">Connexion au maître…</string>
+    <string name="contacting_master_unknown">État inconnu — vérifier le téléphone</string>
     <string name="tile_settings">Paramètres des tuiles</string>
     <string name="loop_status_error">Impossible de charger l\'état</string>
     <string name="loop_status_tempt_duration">%1$d min (%2$s)</string>
@@ -276,4 +282,20 @@
     <string name="confirm">Confirmer</string>
     <string name="request">Requête</string>
     <string name="constraint_applied">Restriction appliquée !</string>
+    <string name="wizard_total_insulin">Insuline totale</string>
+    <string name="wizard_calculation">Calcul</string>
+    <string name="wizard_settings_format">G/I : %1$s | SI : %2$s</string>
+    <string name="wizard_result_bg">Gly</string>
+    <string name="wizard_result_bg_tt">Gly (CT : %1$s)</string>
+    <string name="wizard_result_trend">Tendance 15\'</string>
+    <string name="wizard_result_iob">IA</string>
+    <string name="wizard_result_new_iob">Nouvelle IA : %1$s U</string>
+    <string name="wizard_result_cob">GA (%1$.1f g)</string>
+    <string name="wizard_result_carbs">Glucides (%1$d g)</string>
+    <string name="wizard_result_subtotal">Sous-total</string>
+    <string name="wizard_result_total">Total</string>
+    <string name="wizard_insulin_format">%1$s U</string>
+    <string name="wizard_result_correction_percentage">%1$d%%</string>
+    <string name="wizard_carbs_with_time">%1$d g glucides (%2$s min)</string>
+    <string name="wizard_result_ecarbs">eGlucides %1$d g / %2$d h (+%3$d min)</string>
 </resources>

@@ -112,7 +112,7 @@ class CobExtendedCarbsTest : HiltInstrumentedTest() {
         objectivesPlugin.objectives[0].startedOn = 1
 
         (profileFunction as ProfileFunctionImpl).cache.clear()
-        nsIncomingDataProcessor.processProfile(JSONObject(profileData), false)
+        nsIncomingDataProcessor.processProfile(JSONObject(profileData), true)
         assertThat(profileRepository.profile.value).isNotNull()
 
         val store = profileRepository.profile.value ?: error("No profile")

@@ -118,7 +118,8 @@ sealed class ClientControlMessage {
     @SerialName("bolus_commit")
     data class BolusCommit(
         val bolusId: Long,
-        val asAdvisor: Boolean = false
+        val asAdvisor: Boolean = false,
+        val correctionU: Double = 0.0,
     ) : ClientControlMessage()
 
     /**

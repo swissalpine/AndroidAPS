@@ -196,7 +196,7 @@ sealed class EventData : Event() {
     /** Wear ✓ on a wizard / quick-wizard bolus → the master's parked, consume-once bolusId ([timeStamp] is the
      *  opaque id field, == the master `wizard.timeStamp`; the wear caller echoes the id `prepareWizard`/`prepareQuickWizard` returned). */
     @Serializable
-    data class ActionWizardConfirmed(val timeStamp: Long) : EventData()
+    data class ActionWizardConfirmed(val timeStamp: Long, val correctionU: Double = 0.0) : EventData()
 
     @Serializable
     data class ActionTempTargetConfirmed(val bolusId: Long) : EventData()
@@ -467,6 +467,7 @@ sealed class EventData : Event() {
     @Serializable
     data class WizardDetail(
         val totalInsulin: Double,
+        val unclampedInsulin: Double = totalInsulin,
         val carbs: Int,
         val insulinFromBG: Double,
         val insulinFromTrend: Double,
@@ -487,6 +488,8 @@ sealed class EventData : Event() {
         val eCarbsDurationHours: Int = 0,
         val carbTimeMinutes: Int = 0,
         val alarm: Boolean = false,
+        val maxBolus: Double = 0.0,
+        val bolusStep: Double = 0.0,
     )
 
     @Serializable // returnCommand is sent back to Mobile after confirmation

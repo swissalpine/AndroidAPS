@@ -187,6 +187,13 @@ class UploadChunk @Inject constructor(
             .map { it.timestamp }
             .filter { it in (start + 1) until end }
             .sorted()
+        // Split at running-mode changes so a single segment never spans an open<->closed loop transition;
+        // the delivery type of a no-TBR (profile-rate) interval depends on whether the loop was closed there.
+        val runningModeStarts = persistenceLayer
+            .getRunningModesFromTimeToTime(start, end, true)
+            .map { it.timestamp }
+            .filter { it in (start + 1) until end }
+            .sorted()
 
         val results = LinkedList<BasalElement>()
         var cursor = start
@@ -198,6 +205,7 @@ class UploadChunk @Inject constructor(
 
             var boundary = if (activeTbr != null) min(activeTbr.timestamp + activeTbr.duration, nextTbrStart) else nextTbrStart
             profileSwitchStarts.firstOrNull { it > cursor }?.let { boundary = min(boundary, it) }
+            runningModeStarts.firstOrNull { it > cursor }?.let { boundary = min(boundary, it) }
             // The rate follows the profile only for scheduled gaps and percentage temp basals.
             if (profile != null && (activeTbr == null || (!isSuspend(activeTbr) && !activeTbr.isAbsolute)))
                 nextBasalBlockBoundary(cursor, profile)?.let { boundary = min(boundary, it) }
@@ -216,8 +224,15 @@ class UploadChunk @Inject constructor(
                 activeTbr != null && activeTbr.isAbsolute        ->
                     results.add(BasalElement.automated(cursor, duration, activeTbr.rate, activeTbr.timestamp, dateUtil))
 
-                activeTbr == null && profile != null             ->
-                    results.add(BasalElement.scheduled(cursor, duration, profile.getBasalTimeFromMidnight(secondsFromMidnight(cursor)), dateUtil))
+                activeTbr == null && profile != null             -> {
+                    val rate = profile.getBasalTimeFromMidnight(secondsFromMidnight(cursor))
+                    // While the loop is closed/LGS the profile-rate gap is still automated delivery; emit it as
+                    // `automated` so the closed-loop session stays one band (avoids per-cycle M/A markers in Tidepool).
+                    if (persistenceLayer.getRunningModeActiveAt(cursor).mode.isClosedLoopOrLgs())
+                        results.add(BasalElement.loopBaseline(cursor, duration, rate, dateUtil))
+                    else
+                        results.add(BasalElement.scheduled(cursor, duration, rate, dateUtil))
+                }
                 // no profile (and not an absolute temp) -> nothing reliable to emit for this interval
             }
             cursor = boundary

@@ -295,7 +295,7 @@
     <string name="action_running_mode_selected">Running mode requested</string>
     <string name="title_activity_disconnect_pump">Disconnect pump</string>
     <string name="title_activity_suspend_loop">Suspend Loop</string>
-    <string name="wizard_carbs_format">%1$d g carbs</string>
+    <string name="wizard_carbs_short" comment="%1$d=grams. Example: 30 g">%1$d g</string>
     <string name="insulin_unit_short">U</string>
     <string name="quick_wizard_tile_carbs" comment="QuickWizard tile sub-label, carbs amount. %1$d=grams. Example: 30 g">%1$d g</string>
     <string name="quick_wizard_tile_insulin" comment="QuickWizard tile sub-label, fixed insulin amount. %1$.2f=units. Example: 1.50 U">%1$.2f U</string>
@@ -351,9 +351,10 @@
     <string name="wizard_result_cob">COB (%1$.1f g)</string>
     <string name="wizard_result_carbs">Carbs (%1$d g)</string>
     <string name="wizard_result_subtotal">Subtotal</string>
+    <string name="wizard_result_correction">Correction</string>
     <string name="wizard_result_total">Total</string>
     <string name="wizard_insulin_format">%1$s U</string>
     <string name="wizard_result_correction_percentage">%1$d%%</string>
-    <string name="wizard_carbs_with_time">%1$d g carbs (%2$s min)</string>
-    <string name="wizard_result_ecarbs">eCarbs: %1$d g / %2$dh (+%3$d min)</string>
+    <string name="wizard_carbs_with_time" comment="%1$d=grams, %2$s=signed minute offset e.g. +20 or -5. Example: 30 g (+20 min)">%1$d g (%2$s min)</string>
+    <string name="wizard_result_ecarbs" comment="%1$d=grams, %2$d=duration hours, %3$d=delay minutes. Example: 16 g / 2 h (+90 min)">%1$d g / %2$d h (+%3$d min)</string>
 </resources>

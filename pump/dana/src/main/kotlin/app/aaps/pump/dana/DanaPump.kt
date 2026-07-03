@@ -296,9 +296,10 @@ class DanaPump @Inject constructor(
     // Bolus settings
     var bolusCalculationOption = 0
     var missedBolusConfig = 0
-    fun getUnits(): String {
-        return if (units == UNITS_MGDL) GlucoseUnit.MGDL.asText else GlucoseUnit.MMOL.asText
-    }
+    // NOTE: named `unitsString` (not `getUnits()`) on purpose — a `fun getUnits(): String` collides at the JVM
+    // level with the `var units: Int` property's generated `getUnits()` accessor, which breaks mocking.
+    val unitsString: String
+        get() = if (units == UNITS_MGDL) GlucoseUnit.MGDL.asText else GlucoseUnit.MMOL.asText
 
     var bolusStartErrorCode: Int = 0 // last start bolus errorCode
     var bolusingDetailedBolusInfo: DetailedBolusInfo? = null // actually delivered treatment

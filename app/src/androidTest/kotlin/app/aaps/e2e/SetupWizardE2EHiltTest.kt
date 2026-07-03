@@ -208,6 +208,9 @@ class SetupWizardE2EHiltTest {
         tapNext("Communication")
 
         // 7. Communication / sync plugins — skip (self-contained, no Nightscout)
+        tapNext("Client control")
+
+        // 7b. Client control (master ↔ client pairing) — skip
         tapNext("Name")
 
         // 8. Patient name — skip

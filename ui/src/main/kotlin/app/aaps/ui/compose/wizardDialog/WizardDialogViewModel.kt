@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ui.ConfirmationLine
+import app.aaps.core.interfaces.automation.Automation
 import app.aaps.core.interfaces.bolus.WizardBolusExecutor
 import app.aaps.core.interfaces.bolus.WizardExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
@@ -75,6 +76,7 @@ class WizardDialogViewModel @Inject constructor(
     val decimalFormatter: DecimalFormatter,
     private val aapsLogger: AAPSLogger,
     private val runningModeGuard: RunningModeGuard,
+    private val automation: Automation,
     private val wizardExecutor: WizardExecutor,
     private val rxBus: RxBus,
     @ApplicationScope private val appScope: CoroutineScope
@@ -518,7 +520,20 @@ class WizardDialogViewModel @Inject constructor(
                     showWizardBolusConfirmation(rxBus, rh, rh.gs(app.aaps.core.ui.R.string.boluswizard), IcCalculator, prepared.advisorApplies, prepared.lines, prepared.advisorLines) { asAdvisor ->
                         // Confirmed → close the wizard (Cancel leaves it open with inputs intact, like the insulin dialog).
                         _sideEffect.tryEmit(SideEffect.NavigateBack)
-                        appScope.launch { wizardExecutor.commit(prepared.id, asAdvisor, Sources.WizardDialog, label) }
+                        appScope.launch {
+                            val result = wizardExecutor.commit(prepared.id, asAdvisor, Sources.WizardDialog, label)
+                            // Device-local reminder cleanup on the ACTING device, mirroring the Carbs/Insulin dialogs:
+                            // these one-shot Automation "remind me to bolus/eat" events live on the phone the user acted
+                            // on, so the client must clear its own — confirm() runs on the master and can't reach them.
+                            // (The "time to eat" alarm itself is still scheduled by confirm() on the master.) Only on a
+                            // confirmed delivery; gated on the master's authoritative computed insulin/carbs.
+                            if (result is ActionProgress.Applied) {
+                                val detail = prepared.wizardDetail
+                                if ((detail?.totalInsulin ?: 0.0) > 0.0) automation.removeAutomationEventBolusReminder()
+                                // Advisor = "correct now, eat later" re-schedules an eat reminder, so don't clear it here.
+                                if (!asAdvisor && (detail?.carbs ?: 0) > 0) automation.removeAutomationEventEatReminder()
+                            }
+                        }
                     }
                 // Master-local compute failure (no modal) or client offline; a client round-trip failure already showed on the app modal.
                 is ActionProgress.Rejected ->

@@ -20,12 +20,6 @@ android {
         }
     }
 
-    sourceSets {
-        named("main") {
-            jniLibs.directories.add("src/main/jniLibs")
-        }
-    }
-
     compileOptions {
         sourceCompatibility = Versions.javaVersion
         targetCompatibility = Versions.javaVersion

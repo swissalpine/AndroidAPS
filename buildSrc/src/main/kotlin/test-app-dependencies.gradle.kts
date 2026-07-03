@@ -28,7 +28,7 @@ tasks.withType<Test> {
         // set options for log level LIFECYCLE
         events = setOf(
             TestLogEvent.FAILED,
-            TestLogEvent.STARTED,
+            //TestLogEvent.STARTED,
             TestLogEvent.SKIPPED,
             TestLogEvent.STANDARD_OUT
         )

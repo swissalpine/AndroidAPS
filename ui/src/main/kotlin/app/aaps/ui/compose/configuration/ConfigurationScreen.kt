@@ -14,13 +14,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +29,9 @@ import androidx.compose.ui.unit.dp
 import app.aaps.core.data.plugin.PluginType
 import app.aaps.core.ui.R
 import app.aaps.core.ui.compose.AapsTopAppBar
+import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 import app.aaps.core.ui.compose.preference.SyncBadge
+import app.aaps.ui.plugin.HardwarePumpConfirmation
 
 @Composable
 fun ConfigurationScreen(
@@ -43,20 +43,11 @@ fun ConfigurationScreen(
     onDismissHardwarePump: () -> Unit,
 ) {
     if (hardwarePumpConfirmation != null) {
-        AlertDialog(
-            onDismissRequest = onDismissHardwarePump,
-            title = { Text(stringResource(R.string.confirmation)) },
-            text = { Text(hardwarePumpConfirmation.message) },
-            confirmButton = {
-                TextButton(onClick = onConfirmHardwarePump) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissHardwarePump) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            }
+        OkCancelDialog(
+            title = stringResource(R.string.confirmation),
+            message = hardwarePumpConfirmation.message,
+            onConfirm = onConfirmHardwarePump,
+            onDismiss = onDismissHardwarePump
         )
     }
 

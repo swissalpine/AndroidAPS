@@ -185,7 +185,7 @@ private fun TreatmentConfirmScreen(insulin: Double, carbs: Int, onConfirm: () ->
         }
         if (carbs != 0) {
             Text(
-                text = stringResource(R.string.wizard_carbs_format, carbs),
+                text = stringResource(R.string.wizard_carbs_short, carbs),
                 color = CarbsOrange,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold

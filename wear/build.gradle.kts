@@ -152,4 +152,9 @@ dependencies {
 
     ksp(libs.com.google.dagger.android.processor)
     ksp(libs.com.google.dagger.compiler)
+
+    // Robolectric lets a few Android-coupled unit tests (Intent/Build) run on the JVM. It is a JUnit4
+    // runner, so the vintage engine bridges those tests onto the JUnit Platform alongside the Jupiter tests.
+    testImplementation(libs.org.robolectric)
+    testRuntimeOnly(libs.org.junit.vintage.engine)
 }

@@ -52,11 +52,13 @@ import app.aaps.core.keys.StringNonKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.nssdk.NSAndroidClientImpl
 import app.aaps.core.nssdk.interfaces.NSAndroidClient
+import app.aaps.core.nssdk.localmodel.clientcontrol.ClientState
 import app.aaps.core.nssdk.remotemodel.LastModified
 import app.aaps.core.objects.extensions.freshness
 import app.aaps.core.ui.compose.icons.IcPluginNsClient
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
 import app.aaps.plugins.sync.R
+import app.aaps.plugins.sync.nsclientV3.clientcontrol.AuthorizedClientsRepository
 import app.aaps.plugins.sync.nsclientV3.clientcontrol.ClientControlReceiver
 import app.aaps.plugins.sync.nsclientV3.clientcontrol.ClientControlRoundTrip
 import app.aaps.plugins.sync.nsclientV3.clientcontrol.OrphanDetector
@@ -144,6 +146,7 @@ class NSClientV3Plugin @Inject constructor(
     private val clientControlReceiver: ClientControlReceiver,
     private val clientControlRoundTrip: ClientControlRoundTrip,
     private val orphanDetector: OrphanDetector,
+    private val authorizedClientsRepository: AuthorizedClientsRepository,
     private val preferencesClientPublisher: PreferencesClientPublisher,
     private val profileRepository: ProfileRepository,
 ) : NsClient, Sync, PluginBaseWithPreferences(
@@ -594,6 +597,15 @@ class NSClientV3Plugin @Inject constructor(
             preferences.observe(BooleanKey.NsClientAllowClientControl)
         ) { paired, control -> !paired || control }
             .stateIn(reachableScope, SharingStarted.WhileSubscribed(5000), true)
+
+    // See [NsClient.pairedClientCountFlow]. Master-side count of ACTIVE paired clients (pending offers
+    // excluded), driven off the same roster the Authorized clients screen shows. Always 0 on a client.
+    // Seeded with the synchronous current count so the SetupWizard status line renders correctly on first frame.
+    override val pairedClientCountFlow: StateFlow<Int> =
+        if (config.AAPSCLIENT) MutableStateFlow(0).asStateFlow()
+        else authorizedClientsRepository.observe()
+            .map { list -> list.count { it.state == ClientState.Active } }
+            .stateIn(reachableScope, SharingStarted.WhileSubscribed(5000), authorizedClientsRepository.current(dateUtil.now()).count { it.state == ClientState.Active })
 
     private fun setClient() {
         if (nsAndroidClient == null)

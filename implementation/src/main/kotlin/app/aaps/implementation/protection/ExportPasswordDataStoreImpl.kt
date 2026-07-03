@@ -13,7 +13,9 @@ import app.aaps.core.interfaces.protection.ExportPasswordDataStore
 import app.aaps.core.interfaces.protection.SecureEncrypt
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
+import app.aaps.core.keys.StringKey
 import app.aaps.core.keys.interfaces.Preferences
+import app.aaps.core.objects.crypto.CryptoUtil
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,6 +46,7 @@ class ExportPasswordDataStoreImpl @Inject constructor(
 
     @Inject lateinit var dateUtil: DateUtil
     @Inject lateinit var secureEncrypt: SecureEncrypt
+    @Inject lateinit var cryptoUtil: CryptoUtil
 
     // Remove for release? (Debug only!)
     @Inject lateinit var fileListProvider: FileListProvider
@@ -152,6 +155,16 @@ class ExportPasswordDataStoreImpl @Inject constructor(
         val passwordData = this.retrievePassword(context)
         with(passwordData) {
             if (password.isNotEmpty()) {  // And not expired
+                // The stored password must stay in sync with the master password. Decrypt the stored secret and
+                // verify it against the current master hash; if it no longer matches (master changed via ANY path
+                // — Settings, Setup Wizard, reset — or a stale/legacy blob) clear it so the user is re-prompted and
+                // re-verified. This is the single point of truth that also protects the unattended-export path.
+                val masterHash = preferences.getIfExists(StringKey.ProtectionMasterPassword)
+                if (masterHash.isNullOrEmpty() || !cryptoUtil.checkPassword(secureEncrypt.decrypt(password), masterHash)) {
+                    aapsLogger.info(LTag.CORE, "$MODULE: stored password no longer matches the master password, clearing")
+                    clearPasswordDataStore(context)
+                    return Triple("", true, true)
+                }
                 aapsLogger.debug(LTag.CORE, "$MODULE: getPasswordFromDataStore")
                 return Triple(password, isExpired, isAboutToExpire)
             }

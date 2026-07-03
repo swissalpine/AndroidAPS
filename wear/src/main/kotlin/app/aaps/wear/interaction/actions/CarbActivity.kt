@@ -151,7 +151,7 @@ private fun CarbConfirmScreen(carbs: Int, onConfirm: () -> Unit) {
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.wizard_carbs_format, carbs),
+            text = stringResource(R.string.wizard_carbs_short, carbs),
             color = CarbsOrange,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold

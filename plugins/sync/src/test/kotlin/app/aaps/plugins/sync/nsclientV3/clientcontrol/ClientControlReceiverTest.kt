@@ -551,7 +551,7 @@ internal class ClientControlReceiverTest {
     fun masterMirrorsProgressToArmedClientThenDisarmsOnTerminal() = runTest {
         val (clientId, secret) = pair()
         authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
-        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
+        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
         val progressId = "${ClientControlPublisher.IDENTIFIER_PROGRESS_PREFIX}$clientId"
         val cmdId = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}bolus_commit_$clientId"
 
@@ -574,7 +574,7 @@ internal class ClientControlReceiverTest {
     fun masterDoesNotMirrorAnAlreadyRunningBolusToTheCommittingClient() = runTest {
         val (clientId, secret) = pair()
         authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
-        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
+        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
         val progressId = "${ClientControlPublisher.IDENTIFIER_PROGRESS_PREFIX}$clientId"
         val cmdId = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}bolus_commit_$clientId"
 
@@ -597,7 +597,7 @@ internal class ClientControlReceiverTest {
         authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
         // confirm() consumed the parked dose (Delivered) but delivery fails via onError before any frame streams
         // (e.g. the master was already bolusing → queue-rejected this one). The arm must be cleared right away.
-        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any())).thenAnswer { inv ->
+        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any(), any())).thenAnswer { inv ->
             @Suppress("UNCHECKED_CAST") val onError = inv.arguments[2] as (String) -> Unit
             onError("executing right now")
             WizardBolusExecutor.ConfirmResult.Delivered
@@ -666,13 +666,13 @@ internal class ClientControlReceiverTest {
     fun bolusCommitDeliversAndAcksOk() = runTest {
         val (clientId, secret) = pair()
         authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
-        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
+        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
         val acks = captureAcks(clientId)
         val identifier = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}bolus_commit_$clientId"
 
         sut.onSettingsDocChanged(identifier, wrap(envelope(clientId, secret, message = ClientControlMessage.BolusCommit(42L, asAdvisor = false), counter = 5L, wantsAck = true)))
 
-        verify(wizardBolusExecutor).confirm(eq(42L), eq(Sources.NSClient), any(), eq(false))
+        verify(wizardBolusExecutor).confirm(eq(42L), eq(Sources.NSClient), any(), eq(false), any())
         assertThat(acks.last().status.name).isEqualTo("Ok")
     }
 
@@ -680,7 +680,7 @@ internal class ClientControlReceiverTest {
     fun bolusCommitNoPendingAcksNoPendingBolus() = runTest {
         val (clientId, secret) = pair()
         authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
-        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.NoPending)
+        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.NoPending)
         val acks = captureAcks(clientId)
         val identifier = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}bolus_commit_$clientId"
 
@@ -706,20 +706,20 @@ internal class ClientControlReceiverTest {
         val done = acks.last()
         assertThat(done.status.name).isEqualTo("Failed")
         assertThat(done.reason).isEqualTo(FailureReason.ControlDisabled.name)
-        verify(wizardBolusExecutor, never()).confirm(any(), any(), any(), any())
+        verify(wizardBolusExecutor, never()).confirm(any(), any(), any(), any(), any())
     }
 
     @Test
     fun bolusCommitAsAdvisorDeliversAdvisorVariant() = runTest {
         val (clientId, secret) = pair()
         authorizedRepository.markActive(clientId, counterReceived = 1L, now = now - 5_000L)
-        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
+        whenever(wizardBolusExecutor.confirm(any(), any(), any(), any(), any())).thenReturn(WizardBolusExecutor.ConfirmResult.Delivered)
         captureAcks(clientId)
         val identifier = "${ClientControlPublisher.IDENTIFIER_CMD_PREFIX}bolus_commit_$clientId"
 
         sut.onSettingsDocChanged(identifier, wrap(envelope(clientId, secret, message = ClientControlMessage.BolusCommit(42L, asAdvisor = true), counter = 5L, wantsAck = true)))
 
-        verify(wizardBolusExecutor).confirm(eq(42L), eq(Sources.NSClient), any(), eq(true))
+        verify(wizardBolusExecutor).confirm(eq(42L), eq(Sources.NSClient), any(), eq(true), any())
     }
 
     @Test

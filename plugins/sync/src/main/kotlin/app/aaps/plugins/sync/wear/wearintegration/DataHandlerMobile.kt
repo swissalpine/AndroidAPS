@@ -301,7 +301,7 @@ class DataHandlerMobile @Inject constructor(
             // NOTE: `it.timeStamp` is NOT a timestamp here — the legacy field name carries the master-assigned
             // consume-once bolusId of the parked prepare. Do not rename the field (wire-compat with older watches).
             contacting() // CLIENT: show the spinner during the commit round-trip too (no-op on master).
-            onCommitResult(wizardExecutor.commit(it.timeStamp, asAdvisor = false, Sources.Wear, rh.gs(app.aaps.core.ui.R.string.boluswizard))) {
+            onCommitResult(wizardExecutor.commit(it.timeStamp, asAdvisor = false, Sources.Wear, rh.gs(app.aaps.core.ui.R.string.boluswizard), correctionU = it.correctionU)) {
                 sendQuickWizardListToWear()
             }
         }

@@ -80,6 +80,16 @@ interface NsClient : Sync {
         get() = MutableStateFlow(true).asStateFlow()
 
     /**
+     * Master-side count of ACTIVE paired clients (roster entries that have completed pairing; pending
+     * offers are excluded). Always `0` on a client. Drives the SetupWizard "Client control" status line
+     * so the user can see how many devices are paired without opening the Authorized clients screen.
+     *
+     * Default exposes a static `0` flow: impls without a client-control roster have nothing to count.
+     */
+    val pairedClientCountFlow: StateFlow<Int>
+        get() = MutableStateFlow(0).asStateFlow()
+
+    /**
      * Actively probe master liveness (and pull any config missed while out of contact). On a client
      * this fires a signed Client-Control ping — whose authenticated ACK ("pong") refreshes
      * [masterReachable] far faster than waiting for the next devicestatus heartbeat — and re-fetches

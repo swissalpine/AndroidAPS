@@ -71,6 +71,8 @@ allprojects {
 // Setup all reports aggregation
 apply(from = "jacoco_aggregation.gradle.kts")
 
-tasks.register<Delete>("clean").configure {
+tasks.register<Delete>("clean") {
+    description = "Cleanup generated code"
+}.configure {
     delete(rootProject.layout.buildDirectory)
 }

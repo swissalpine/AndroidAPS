@@ -207,9 +207,11 @@ fun MaintenanceDialogs(
         }
 
         is ExportState.AskPassword           -> {
+            val askState = exportState as ExportState.AskPassword
             QueryAnyPasswordDialog(
                 title = stringResource(KeysR.string.master_password),
                 passwordExplanation = stringResource(CoreUiR.string.password_preferences_encrypt_prompt),
+                errorMessage = if (askState.wrongPassword) stringResource(CoreUiR.string.wrongpassword) else null,
                 onConfirm = { password -> maintenanceViewModel.onExportPasswordEntered(password) },
                 onCancel = { maintenanceViewModel.cancelExport() }
             )

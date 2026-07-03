@@ -383,7 +383,7 @@ class MaintenanceViewModel @Inject constructor(
             val cloudDisplayName: String? = null
         ) : ExportState
 
-        data object AskPassword : ExportState
+        data class AskPassword(val wrongPassword: Boolean = false) : ExportState
     }
 
     private val _exportState = MutableStateFlow<ExportState>(ExportState.Idle)
@@ -418,10 +418,17 @@ class MaintenanceViewModel @Inject constructor(
     }
 
     fun onExportConfirmed() {
-        _exportState.value = ExportState.AskPassword
+        _exportState.value = ExportState.AskPassword()
     }
 
     fun onExportPasswordEntered(password: String) {
+        // Settings are encrypted with the master password: reject anything that doesn't match it, otherwise
+        // the export (and any cached unattended-export password) would be encrypted with an arbitrary secret.
+        if (!importExportPrefs.isMasterPasswordCorrect(password)) {
+            // Re-show the dialog with an inline "wrong password" error — a snackbar would sit behind the dialog.
+            _exportState.value = ExportState.AskPassword(wrongPassword = true)
+            return
+        }
         _exportState.value = ExportState.Idle
         val cached = importExportPrefs.cacheExportPassword(password)
         doExport(cached)

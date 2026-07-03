@@ -57,6 +57,9 @@ fun SetupWizardScreen(
     onManageInsulin: () -> Unit,
     onManageProfile: () -> Unit,
     onProfileSwitch: () -> Unit,
+    onOpenAuthorizedClients: () -> Unit,
+    onPairWithMaster: () -> Unit,
+    onOpenNsReceiveSettings: () -> Unit,
     onRunObjectives: () -> Unit,
     onRequestDirectoryAccess: () -> Unit,
     onRequestPermission: (app.aaps.core.interfaces.plugin.PermissionGroup) -> Unit,
@@ -73,6 +76,9 @@ fun SetupWizardScreen(
         swDefinition.onManageInsulin = onManageInsulin
         swDefinition.onManageProfile = onManageProfile
         swDefinition.onProfileSwitch = onProfileSwitch
+        swDefinition.onOpenAuthorizedClients = onOpenAuthorizedClients
+        swDefinition.onPairWithMaster = onPairWithMaster
+        swDefinition.onOpenNsReceiveSettings = onOpenNsReceiveSettings
         swDefinition.onRunObjectives = onRunObjectives
         swDefinition.onRequestDirectoryAccess = onRequestDirectoryAccess
         swDefinition.onRequestPermission = onRequestPermission
@@ -86,6 +92,9 @@ fun SetupWizardScreen(
             swDefinition.onManageInsulin = null
             swDefinition.onManageProfile = null
             swDefinition.onProfileSwitch = null
+            swDefinition.onOpenAuthorizedClients = null
+            swDefinition.onPairWithMaster = null
+            swDefinition.onOpenNsReceiveSettings = null
             swDefinition.onRunObjectives = null
             swDefinition.onRequestDirectoryAccess = null
             swDefinition.onRequestPermission = null

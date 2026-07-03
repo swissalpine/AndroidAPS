@@ -69,7 +69,7 @@ class DanaUserOptionsViewModel @Inject constructor(
             alarmMode = (danaPump.beepAndAlarm and 0x03).let { if (it == 0) 1 else it },
             screenTimeout = danaPump.lcdOnTimeSec,
             backlight = danaPump.backlightOnTimeSec,
-            glucoseUnitMmol = danaPump.getUnits() == GlucoseUnit.MMOL.asText,
+            glucoseUnitMmol = danaPump.unitsString == GlucoseUnit.MMOL.asText,
             shutdownHour = danaPump.shutdownHour,
             lowReservoir = danaPump.lowReservoirRate,
             minBacklight = minBl

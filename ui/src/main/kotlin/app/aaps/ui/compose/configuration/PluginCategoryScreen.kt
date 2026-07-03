@@ -9,14 +9,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,34 +26,44 @@ import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.ConfigPluginCard
 import app.aaps.core.ui.compose.MasterOfflineBanner
 import app.aaps.core.ui.compose.SelectionMode
+import app.aaps.core.ui.compose.dialogs.OkCancelDialog
 import app.aaps.core.ui.compose.masterEditingEnabled
 import app.aaps.core.ui.compose.navigation.NavigationRequest
+import app.aaps.ui.plugin.HardwarePumpConfirmation
+import app.aaps.ui.plugin.PluginSwitchConfirmation
 
 @Composable
 fun PluginCategoryScreen(
     category: ConfigCategoryUiModel?,
     hardwarePumpConfirmation: HardwarePumpConfirmation?,
+    pluginSwitchConfirmation: PluginSwitchConfirmation?,
     onNavigateBack: () -> Unit,
     onNavigate: (NavigationRequest) -> Unit,
     onPluginEnableToggle: (pluginId: String, PluginType, Boolean) -> Unit,
     onConfirmHardwarePump: () -> Unit,
     onDismissHardwarePump: () -> Unit,
+    onConfirmPluginSwitch: () -> Unit,
+    onDismissPluginSwitch: () -> Unit,
 ) {
+    if (pluginSwitchConfirmation != null) {
+        OkCancelDialog(
+            title = stringResource(R.string.configbuilder_switch_confirmation_title),
+            message = stringResource(
+                R.string.configbuilder_switch_confirmation,
+                pluginSwitchConfirmation.fromName,
+                pluginSwitchConfirmation.toName
+            ),
+            onConfirm = onConfirmPluginSwitch,
+            onDismiss = onDismissPluginSwitch
+        )
+    }
+
     if (hardwarePumpConfirmation != null) {
-        AlertDialog(
-            onDismissRequest = onDismissHardwarePump,
-            title = { Text(stringResource(R.string.confirmation)) },
-            text = { Text(hardwarePumpConfirmation.message) },
-            confirmButton = {
-                TextButton(onClick = onConfirmHardwarePump) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissHardwarePump) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            }
+        OkCancelDialog(
+            title = stringResource(R.string.confirmation),
+            message = hardwarePumpConfirmation.message,
+            onConfirm = onConfirmHardwarePump,
+            onDismiss = onDismissHardwarePump
         )
     }
 

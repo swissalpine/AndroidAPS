@@ -183,7 +183,7 @@ private fun ECarbConfirmScreen(carbs: Int, startMinutes: Int, durationHours: Int
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.wizard_carbs_format, carbs),
+            text = stringResource(R.string.wizard_carbs_short, carbs),
             color = CarbsOrange,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold

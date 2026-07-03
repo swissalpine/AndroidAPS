@@ -52,9 +52,18 @@ class BasalElement private constructor(
 
         private const val SCHEDULE_NAME = "AAPS"
 
-        /** Profile (scheduled) basal segment - the baseline basal line in Tidepool. */
+        /** Profile (scheduled) basal segment - the baseline basal line in Tidepool (rendered as `Manual`). */
         fun scheduled(timestamp: Long, duration: Long, rate: Double, dateUtil: DateUtil): BasalElement =
             BasalElement(timestamp, duration, "scheduled", rate, SCHEDULE_NAME, "AAPS-basal-scheduled$timestamp", dateUtil)
+
+        /**
+         * Profile-rate delivery while the loop is closed/LGS but no temporary basal overrides it.
+         * Emitted as `automated` (not `scheduled`) so a closed-loop session renders as one continuous
+         * `Automated` band: Tidepool draws a Manual/Automated marker at every transition between the two,
+         * so emitting these as `scheduled` would flood the graph with M/A markers every loop cycle.
+         */
+        fun loopBaseline(timestamp: Long, duration: Long, rate: Double, dateUtil: DateUtil): BasalElement =
+            BasalElement(timestamp, duration, "automated", rate, SCHEDULE_NAME, "AAPS-basal-loopbase$timestamp", dateUtil)
 
         /** Loop-driven (closed-loop) basal delivery during a temporary basal. */
         fun automated(timestamp: Long, duration: Long, rate: Double, tbrTimestamp: Long, dateUtil: DateUtil): BasalElement =

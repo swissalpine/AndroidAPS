@@ -6,6 +6,7 @@ plugins {
     id("kotlin-parcelize")
     id("android-module-dependencies")
     id("test-module-dependencies")
+    id("compose-test-module-dependencies")
     id("jacoco-module-dependencies")
 }
 

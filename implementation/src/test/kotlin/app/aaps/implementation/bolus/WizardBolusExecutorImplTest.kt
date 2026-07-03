@@ -221,6 +221,9 @@ class WizardBolusExecutorImplTest : TestBaseWithProfile() {
         whenever(runningModeGuard.rejectionMessage(any())).thenReturn(null)
         whenever(commandQueue.bolus(anyOrNull())).thenReturn(pumpEnactResultProvider.get().success(true))
         val executor = create()
+        // confirm() now constraint-caps the (insulin + correctionU) dose, so the passthrough must be stubbed
+        // even on the setPending path (which bypasses prepare()'s own constraint stubbing).
+        whenever(constraintsChecker.applyBolusConstraints(any())).thenAnswer { it.getArgument<Constraint<Double>>(0) }
         executor.setPending(insulin = 2.0, carbs = 0, bolusCalculatorResult = null, bolusId = 999L)
 
         val first = executor.confirm(999L, Sources.NSClient, { })
@@ -248,6 +251,9 @@ class WizardBolusExecutorImplTest : TestBaseWithProfile() {
         whenever(runningModeGuard.rejectionMessage(any())).thenReturn(null)
         whenever(commandQueue.bolus(anyOrNull())).thenReturn(pumpEnactResultProvider.get().success(true))
         val executor = create()
+        // confirm() now constraint-caps the (insulin + correctionU) dose, so the passthrough must be stubbed
+        // even on the setPending path (which bypasses prepare()'s own constraint stubbing).
+        whenever(constraintsChecker.applyBolusConstraints(any())).thenAnswer { it.getArgument<Constraint<Double>>(0) }
         // bolusId is a timestamp; use realistic recent ids so evictStalePending's TTL window keeps them parked.
         executor.setPending(insulin = 1.0, carbs = 0, bolusCalculatorResult = null, bolusId = now)
         // A second actor's prepare (different bolusId) must NOT clobber the first — per-id slots, not one shared var.

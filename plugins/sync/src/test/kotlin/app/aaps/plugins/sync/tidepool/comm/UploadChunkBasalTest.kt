@@ -3,6 +3,7 @@ package app.aaps.plugins.sync.tidepool.comm
 import app.aaps.core.data.model.EPS
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.ICfg
+import app.aaps.core.data.model.RM
 import app.aaps.core.data.model.TB
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.logging.AAPSLogger
@@ -111,9 +112,13 @@ class UploadChunkBasalTest {
         iCfg = iCfg
     )
 
+    private fun rm(timestamp: Long, mode: RM.Mode): RM = RM(timestamp = timestamp, mode = mode, duration = 0)
+
     private suspend fun stub(
         tbrs: List<TB> = emptyList(),
         switches: List<EPS> = emptyList(),
+        runningModes: List<RM> = emptyList(),
+        modeAt: (Long) -> RM.Mode = { RM.Mode.OPEN_LOOP },
         profileAt: (Long) -> EffectiveProfile? = { defaultProfile }
     ) {
         whenever(persistenceLayer.getBolusesFromTimeToTime(any(), any(), any())).thenReturn(emptyList())
@@ -122,6 +127,8 @@ class UploadChunkBasalTest {
         whenever(persistenceLayer.getBgReadingsDataFromTimeToTime(any(), any(), any())).thenReturn(emptyList())
         whenever(persistenceLayer.getTemporaryBasalsStartingFromTimeToTime(any(), any(), any())).thenReturn(tbrs)
         whenever(persistenceLayer.getEffectiveProfileSwitchesFromTimeToTime(any(), any(), any())).thenReturn(switches)
+        whenever(persistenceLayer.getRunningModesFromTimeToTime(any(), any(), any())).thenReturn(runningModes)
+        whenever(persistenceLayer.getRunningModeActiveAt(any())).thenAnswer { rm(it.getArgument<Long>(0), modeAt(it.getArgument<Long>(0))) }
         whenever(profileFunction.getProfile(any())).thenAnswer { profileAt(it.getArgument<Long>(0)) }
     }
 
@@ -319,5 +326,45 @@ class UploadChunkBasalTest {
     fun `no basal records are produced when no profile is available`() = runTest {
         stub(profileAt = { null })
         assertThat(basals(sut.get(t0, at(8.0)))).isEmpty()
+    }
+
+    @Test
+    fun `profile-rate gap during a closed loop is emitted as automated`() = runTest {
+        stub(modeAt = { RM.Mode.CLOSED_LOOP })
+        val segments = basals(sut.get(t0, at(4.0)))
+        assertThat(segments).hasSize(1)
+        assertThat(segments[0].deliveryType).isEqualTo("automated")
+        assertThat(segments[0].rate).isEqualTo(0.5)
+        assertThat(segments[0].hasScheduleName).isTrue()
+        assertContiguous(segments, t0, at(4.0))
+    }
+
+    @Test
+    fun `closed-loop profile gaps around a temp basal stay one automated band`() = runTest {
+        // Loop closed for the whole window: the profile-rate gaps before/after the temp basal are
+        // automated too, so the three records share the automated delivery type (no M markers).
+        stub(tbrs = listOf(tb(at(2.0), 3.0, 1.2)), modeAt = { RM.Mode.CLOSED_LOOP_LGS })
+        val segments = basals(sut.get(t0, at(8.0)))
+        assertThat(segments.map { it.deliveryType }).containsExactly("automated", "automated", "automated").inOrder()
+        assertThat(segments[0].rate).isEqualTo(0.5)
+        assertThat(segments[1].rate).isEqualTo(1.2)
+        assertThat(segments[2].rate).isEqualTo(0.5)
+        assertContiguous(segments, t0, at(8.0))
+    }
+
+    @Test
+    fun `profile-rate gap is split at a running-mode change between scheduled and automated`() = runTest {
+        // Open loop until 5h, then closed loop: the gap is scheduled before the change and automated after.
+        stub(
+            runningModes = listOf(rm(at(5.0), RM.Mode.CLOSED_LOOP)),
+            modeAt = { t -> if (t < at(5.0)) RM.Mode.OPEN_LOOP else RM.Mode.CLOSED_LOOP }
+        )
+        val segments = basals(sut.get(t0, at(10.0)))
+        assertThat(segments.map { it.deliveryType }).containsExactly("scheduled", "automated").inOrder()
+        assertThat(segments[0].start).isEqualTo(t0)
+        assertThat(segments[0].duration).isEqualTo(at(5.0) - t0)
+        assertThat(segments[1].start).isEqualTo(at(5.0))
+        assertThat(segments[1].rate).isEqualTo(0.5)
+        assertContiguous(segments, t0, at(10.0))
     }
 }

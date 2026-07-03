@@ -31,7 +31,7 @@ interface WizardExecutor {
      * Client → round-trip; master → local. Returns [ActionProgress.Applied] or a failure
      * ([ActionProgress.Rejected.NoPendingBolus] if already consumed). [source] tags the master-local records.
      */
-    suspend fun commit(bolusId: Long, asAdvisor: Boolean, source: Sources, label: String): ActionProgress
+    suspend fun commit(bolusId: Long, asAdvisor: Boolean, source: Sources, label: String, correctionU: Double = 0.0): ActionProgress
 
     /** What to recompute: a synced QuickWizard entry by guid, or the manual wizard's raw inputs. */
     sealed interface WizardSource {

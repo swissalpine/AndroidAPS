@@ -2,6 +2,10 @@
 <resources>
     <string name="error_field_must_not_be_empty">Toto pole nesmie byť prázdne</string>
     <string name="error_mustbe4hexadidits">Musí byť zo 4 znakov z ABCDEF0123456789</string>
+    <string name="authorized_clients_manage_label">Autorizovaní klienti</string>
+    <string name="authorized_clients_manage_desc">Spravovanie spárovaných klientských zariadení ovládajúce tento hlavný systém.</string>
+    <string name="pair_with_master_manage_label">Spárovanie s hlavným zariadením</string>
+    <string name="pair_with_master_manage_desc">Zadajte párovací PIN hlavného zariadenia, aby tento klient mohol odosielať podpísané príkazy.</string>
     <!--    General-->
     <string name="treatments">Ošetrenia</string>
     <string name="treatments_history">História ošetrení</string>
@@ -16,6 +20,7 @@
     <string name="refresh">Obnoviť</string>
     <string name="no_history_records">Žiadne záznamy sa nenašli</string>
     <string name="error">Chyba</string>
+    <string name="navigation_error_screen_not_found">Obrazovku sa nepodarilo otvoriť (nie je k dispozícii v tejto konfigurácii)</string>
     <string name="profile_set_ok">Bazálny profil v pumpe aktualizovaný</string>
     <string name="invalid_input">Chybné vstupné dáta</string>
     <string name="invalid_number">Neplatné číslo</string>
@@ -31,6 +36,12 @@
     <string name="limiting_iob">IOB obmedzený na %1$.1f U: %2$s</string>
     <string name="loop_disabled_by_user">Uzavretý okruh zakázaný používateľom</string>
     <string name="event_type">Typ udalosti</string>
+    <string name="mgdl">mg/dL</string>
+    <string name="mmol">mmol/L</string>
+    <string name="profile_isf_units_mgdl">mg/dL/U</string>
+    <string name="profile_isf_units_mmol">mmol/L/U</string>
+    <string name="bg_mgdl">%1$d mg/dL</string>
+    <string name="bg_mmol">%1$.1f mmol/l</string>
     <string name="save">Uložiť</string>
     <string name="skip">Preskočiť</string>
     <string name="switch_to_edit">Upraviť</string>
@@ -94,7 +105,11 @@
     <string name="androidaps_start">AAPS spustený</string>
     <string name="formatsignedinsulinunits">%1$+.2f U</string>
     <string name="format_carbs">%1$d g</string>
+    <string name="format_carbs_split" comment="Compact carbs summary when a food type splits the entry into immediate + extended carbs. %1$d=immediate carbs (g), %2$d=extended (eCarbs) carbs (g). Example: 9+2 g">%1$d+%2$d g</string>
     <string name="format_hours">%1$.2f h</string>
+    <string name="format_mins">%1$d min</string>
+    <string name="confirmation_line" comment="Confirmation-summary line, joins a label and an already-formatted value. %1$s = label, %2$s = value with its unit. Example: Bolus: 1.50 U">%1$s: %2$s</string>
+    <string name="value_with_unit" comment="A numeric value followed by its unit, when no dedicated value template exists. %1$s = value, %2$s = unit. Example: 120 mg/dl">%1$s %2$s</string>
     <string name="objectives">Ciele</string>
     <string name="please_wait">Čakajte prosím...</string>
     <string name="stop">Stop</string>
@@ -181,6 +196,8 @@
     <string name="reset">Resetovať</string>
     <string name="profileswitch_ismissing">Prepnutie profilu chýba. Vykonajte prepnutie profilu, alebo ho aktivujte na záložke lokálneho profilu.</string>
     <string name="profile">Profil</string>
+    <string name="percentage_label">Percento</string>
+    <string name="timeshift_label">Posun času</string>
     <string name="confirm_remove_multiple_items">Naozaj chcete odstrániť %1$d položiek</string>
     <string name="overview_treatment_label">Ošetrenie</string>
     <string name="copytolocalprofile">Vytvoriť z tohoto profilu nový profil?</string>
@@ -233,6 +250,7 @@
     <string name="engineering_mode_enabled">Vývojársky mód povolený</string>
     <string name="back">Späť</string>
     <string name="next">Ďalej</string>
+    <string name="pref_syncs_with_main_phone">Synchronizácia sa s hlavným telefónom</string>
     <string name="show_hide_records">Skryť záznamy uzavretého okruhu</string>
     <!--    Protection-->
     <string name="wrongpassword">Nesprávne heslo</string>
@@ -318,6 +336,8 @@
     <string name="temporary_target">Dočasný cieľ</string>
     <string name="temporary_targets">Dočasné ciele</string>
     <string name="running_mode">Režim spustenia</string>
+    <string name="running_mode_change_not_allowed">Zmena bežiaceho módu nie je k dispozícii</string>
+    <string name="pump_reconnect">Znovu pripojiť pumpu</string>
     <string name="scene">Scéna</string>
     <string name="scenes">Scény</string>
     <string name="scene_desc">Predvoľby situácií — aktivujte viac akcií naraz</string>
@@ -325,6 +345,7 @@
     <string name="scene_deactivate">Ukončiť scénu</string>
     <string name="scene_active">Aktívna</string>
     <string name="scene_ended">Scéna ukončená</string>
+    <string name="scene_end_active">Aktívna scéna ukončená</string>
     <string name="scene_confirm_activate">Aktivovať scénu \"%1$s\"?</string>
     <string name="scene_confirm_deactivate">Ukončiť scénu \"%1$s\" a vrátiť zmeny?</string>
     <string name="scene_conflict_active_tt">Aktívny dočasný cieľ bude nahradený</string>
@@ -333,6 +354,7 @@
     <string name="scene_conflict_active_scene">Aktivna scéna \"%1$s\" bude najskôr ukončená</string>
     <string name="scene_action_tt">Dočasný cieľ: %1$s</string>
     <string name="scene_action_profile" comment="%1$s=profile name, %2$d=percentage. Example: Profile: Default 150%">Profil: %1$s %2$d%%</string>
+    <string name="scene_action_profile_pct_only" comment="%1$d=percentage, used when no specific named profile. Example: Profile: 150%">Profil: %1$d%%</string>
     <string name="scene_action_smb_on">Povoliť SMB</string>
     <string name="scene_action_smb_off">Zakázať SMB</string>
     <string name="scene_action_running_mode">Režim uzavretého okruhu: %1$s</string>
@@ -362,8 +384,39 @@
     <string name="scene_no_profile_store">Nie je k dispozícii úložisko profilov</string>
     <string name="scene_no_actions">Scéna nemá žiadne akcie</string>
     <string name="scene_profile_not_found">Profil \"%1$s\" nebol nájdený</string>
+    <string name="scene_lock_banner_master_offline">Hlavné zariadenie je nedostupné. Ovládanie scény sa obnoví po obnovení pripojenia.</string>
+    <string name="master_offline_banner">Hlavné zariadenie je nedostupné. Úpravy sú zakázané, kým sa pripojenie neobnoví.</string>
+    <string name="master_control_disabled_banner">Hlavné zariadenie (Master) má zakázané diaľkové ovládanie. Úprava je zakázaná, dokiaľ nie je diaľkové ovládanie znovu povolené na hlavnom zariadení.</string>
+    <string name="scene_lock_reason_master_offline">Hlavné zariadenie je odpojené</string>
+    <string name="scene_lock_reason_scene_active">Najprv zastavte prebiehajúcu scénu</string>
     <!-- Client-control action labels (shown in the pending/failure modal as "Couldn't {label}") -->
+    <string name="clientcontrol_action_set_temp_target">Nastaviť dočasný cieľ</string>
+    <string name="clientcontrol_action_cancel_temp_target">Zrušiť dočasný cieľ</string>
+    <string name="clientcontrol_action_activate_scene">Aktivovať scénu \"%1$s</string>
+    <string name="clientcontrol_action_deactivate_scene">Ukončiť scénu</string>
+    <string name="clientcontrol_action_update_settings">Aktualizovať nastavenia</string>
+    <string name="clientcontrol_action_deliver_bolus">Podať bolus</string>
     <!-- Client-control failure reasons (mapped from a FailureReason code on the showing device) -->
+    <string name="clientcontrol_fail_not_paired">Toto zariadenie nie je spárované s hlavným zariadením.</string>
+    <string name="clientcontrol_fail_not_reachable">Hlavné zariadenie je offline.</string>
+    <string name="clientcontrol_pump_out_of_sync" comment="Shown when a follower relays a temp basal / extended bolus but its cached pump type no longer matches the master\'s pump">Konfigurácia pumpy nie je synchronizovaná s hlavným zariadením. Skúste to znova.</string>
+    <string name="clientcontrol_fail_no_reply">Žiadna odpoveď od hlavného zariadenia v časovom limite.</string>
+    <string name="clientcontrol_fail_expired">Platnosť príkazu vypršala skôr, ako ho hlavné zariadenie aplikovalo.</string>
+    <string name="clientcontrol_fail_busy">Iná akcia práve prebieha.</string>
+    <string name="clientcontrol_fail_send_failed">Nepodarilo sa spojiť s Nightscout.</string>
+    <string name="clientcontrol_fail_no_active_profile">Hlavné zariadenie nemá aktívny profil, na ktorý by sa to dalo aplikovať.</string>
+    <string name="clientcontrol_fail_scene_not_found">Scéna už neexistuje.</string>
+    <string name="clientcontrol_fail_scene_disabled">Scéna je zakázaná.</string>
+    <string name="clientcontrol_fail_partial">Niektoré akcie sa nepodarilo aplikovať.</string>
+    <string name="clientcontrol_fail_execution">Hlavné zariadenie to nevedelo aplikovať.</string>
+    <string name="clientcontrol_fail_control_disabled">Diaľkové ovládanie je vypnuté na hlavnom zariadení.</string>
+    <string name="clientcontrol_fail_no_pending_bolus">Pripravený bolus exspiroval alebo bol nahradený. ​​Znova kliknite na tlačidlo.</string>
+    <string name="clientcontrol_fail_bolus_compute">Hlavné zariadenie nedokázalo vypočítať bolus (chýba glukóza/profil alebo pumpa nie je pripravená).</string>
+    <string name="clientcontrol_fail_internal">Niečo sa pokazilo.</string>
+    <string name="clientcontrol_fail_unknown">Príkaz zlyhal.</string>
+    <string name="clientcontrol_unconfirmed_wear">Stav neznámy – pred opätovným podaním bolusu skontrolujte telefón/Nightscout.</string>
+    <string name="clientcontrol_bolus_progress_stalled_title">Spojenie prerušené – stav doručenia je neznámy</string>
+    <string name="clientcontrol_bolus_progress_stalled_body">Tento telefón prestal prijímať aktualizácie z hlavného zariadenia. Bolus sa možno stále podáva alebo sa už dokončil. Zatvorením tohto spojenia ho tu iba skryjete – pumpa sa tým nezastaví. Skontrolujte hlavné zariadenie /telefón, aké množstvo bolusu sa skutočne podáva.</string>
     <string name="scene_revert_tt">Zrušiť dočasný cieľ</string>
     <string name="scene_revert_profile">Vrátiť zmenu profilu</string>
     <string name="scene_revert_smb_on">Znovu povoliť SMB</string>
@@ -419,6 +472,7 @@
     <string name="activity">Aktivita</string>
     <string name="wear">Wear</string>
     <string name="automation">Automatizácia</string>
+    <string name="automation_management_desc">Vytvorte pravidlá, ktoré automaticky spúšťajú akcie na základe spúšťačov</string>
     <string name="settingsexport">Export nastavení</string>
     <string name="custom">Voliteľný</string>
     <string name="preset_settings">Predvolené nastavenia</string>
@@ -588,6 +642,7 @@
     <string name="uel_running_mode_updarted">REŽIM UZAVRETÉHO OKRUHU AKTUALIZOVANÝ</string>
     <string name="uel_scene_activated">SCÉNA AKTIVOVANÁ</string>
     <string name="uel_scene_deactivated">SCÉNA DEAKTIVOVANÁ</string>
+    <string name="uel_remote_config_changed">VZDIALENÁ KONFIGURÁCIA ZMENENÁ</string>
     <!-- HardLimits -->
     <string name="profile_low_target">Dolný cieľ profilu</string>
     <string name="profile_high_target">Horný cieľ profilu</string>
@@ -688,6 +743,7 @@
     <string name="wizard_include_cob">Zahŕňa COB</string>
     <string name="wizard_calculation">Výpočet</string>
     <string name="no_action_selected">Žiadna akcia nevybraná, nič sa neudeje</string>
+    <string name="carbs_removal_cob_limit" comment="Shown under the carbs field when removing carbs (a negative value). %1$d = grams of carbs currently on board, the maximum removable. Example: Max removal: 30 g (carbs on board)">Maximálne odstránenie: %1$d g (sacharidy na palube)</string>
     <string name="wizard_no_insulin_required">Nie je požadovaný žiadny inzulín</string>
     <string name="wizard_no_actual_bg">Žiadna aktuálna glykémia k základnému výpočtu!</string>
     <string name="wizard_no_active_profile">Nie je nastavený žiadny aktívny profil!</string>
@@ -695,6 +751,7 @@
     <string name="wizard_trend_detail">15min trend (%1$s %2$s)</string>
     <string name="wizard_constraint_bolus_size">Inzulín mimo povolený rozsah!\nNie je možné podať %1$.2fU</string>
     <string name="wizard_pump_not_available">Pumpa nedostupná!</string>
+    <string name="quick_wizard_not_available">Vybraný rýchly bolus už nie je k dispozícii, obnovte prosím dlaždicu</string>
     <string name="quickwizard_managemnt">Rýchly sprievodca</string>
     <!--    Preferences-->
     <string name="child">Dieťa</string>
@@ -817,6 +874,8 @@
     <string name="reauthorize">Znovu overiť</string>
     <string name="cloud_auth_success">Overenie cloudového úložiska prebehlo úspešne</string>
     <string name="authorization_status">Stav autorizácie</string>
+    <string name="format_hour_minute" comment="%1$d=hours, %2$d=minutes. Example: 1 h 23 min">%1$d h %2$d min</string>
+    <string name="format_hours_only" comment="%1$d=hours, when minutes are zero. Example: 4 h">%1$d h</string>
     <!-- datetime layout -->
     <string name="event_time_label">Čas udalosti</string>
     <!-- BluetoothDevicePreference -->
@@ -863,7 +922,6 @@
     <string name="reorder">Usporiadať</string>
     <string name="status">Stav</string>
     <string name="pump_actions">Akcie pumpy</string>
-    <string name="tempbasal_button">Dočasný bazál</string>
     <string name="extended_bolus_button">Predĺžený bolus</string>
     <string name="device_maintenance">Údržba zariadenia</string>
     <string name="from_label">Od</string>

@@ -372,7 +372,7 @@ class RunningModeReconcilerIntegrationTest : HiltInstrumentedTest() {
             pumpSync.expectedPumpState().profile != null
         ) return
 
-        nsIncomingDataProcessor.processProfile(JSONObject(profileData), false)
+        nsIncomingDataProcessor.processProfile(JSONObject(profileData), true)
         val store = profileRepository.profile.value ?: error("no profile store after NS import")
         val defaultName = store.getDefaultProfileName() ?: error("no default profile name")
         profileFunction.createProfileSwitch(

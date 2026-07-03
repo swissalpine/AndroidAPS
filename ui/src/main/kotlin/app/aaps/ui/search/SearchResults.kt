@@ -23,15 +23,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.ui.R
+import app.aaps.core.ui.compose.masterEditingEnabled
 import app.aaps.core.ui.search.SearchableItem
 
 /**
@@ -41,6 +45,10 @@ import app.aaps.core.ui.search.SearchableItem
  * @param wikiResults List of wiki search result entries
  * @param isSearching Whether local search is in progress
  * @param isSearchingWiki Whether wiki search is in progress
+ * @param revision Monotonic counter bumped on every plugin toggle. It exists purely to break Compose skipping:
+ *   a toggle changes a plugin's isEnabled() (external state) but not the result entries, so the rebuilt results
+ *   list is equals() to the old one and both this composable and its list items would otherwise be skipped,
+ *   leaving switches/greying stale. Feeding it into the item keys forces the rows to reflect the new state.
  * @param onResultClick Called when a result item is clicked (only for enabled items)
  * @param modifier Modifier for the component
  */
@@ -51,7 +59,9 @@ fun SearchResults(
     isSearching: Boolean,
     isSearchingWiki: Boolean,
     wikiOffline: Boolean,
+    revision: Int,
     onResultClick: (SearchIndexEntry) -> Unit,
+    onPluginToggle: (PluginBase) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val allResults = results + wikiResults
@@ -97,13 +107,16 @@ fun SearchResults(
 
                                 items(
                                     items = categoryResults,
+                                    // Stable key (no revision): a toggle re-reads the live enabled state via the `revision`
+                                    // input passed INTO the row, not by re-keying — this keeps the row's composition alive
+                                    // so its Switch animates instead of being torn down and rebuilt.
                                     key = { "${category.name}_${it.item.key}" }
                                 ) { entry ->
-                                    val isEnabled = entry.item.plugin?.isEnabled() ?: true
                                     SearchResultItem(
                                         entry = entry,
-                                        isEnabled = isEnabled,
-                                        onClick = { if (isEnabled) onResultClick(entry) }
+                                        revision = revision,
+                                        onResultClick = onResultClick,
+                                        onPluginToggle = onPluginToggle
                                     )
                                 }
                             }
@@ -160,29 +173,53 @@ private fun CategoryHeader(
  * A single search result item.
  *
  * @param entry The search result entry
- * @param isEnabled Whether the item is from an enabled plugin (or built-in)
- * @param onClick Called when item is clicked (only if enabled)
+ * @param revision Bumped on every plugin toggle (see [SearchResults]). Used as a [remember] key so this row
+ *   re-reads the live, non-Compose `plugin.isEnabled()` after a toggle while keeping a stable LazyColumn key.
+ * @param onResultClick Called when an enabled item is clicked
+ * @param onPluginToggle Called to flip a plugin's enabled state
  */
 @Composable
 private fun SearchResultItem(
     entry: SearchIndexEntry,
-    isEnabled: Boolean,
-    onClick: () -> Unit,
+    revision: Int,
+    onResultClick: (SearchIndexEntry) -> Unit,
+    onPluginToggle: (PluginBase) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val contentAlpha = if (isEnabled) 1f else 0.5f
-    val contentColor = if (isEnabled) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+    // A disabled row is greyed to signal it's off — but only the icon + text are dimmed, never the trailing
+    // switch (a dimmed switch reads as non-interactive, when it's actually the control to enable the plugin).
+    val pluginItem = entry.item as? SearchableItem.Plugin
+    val plugin = pluginItem?.pluginRef
+    // plugin.isEnabled() is external (non-Compose) state; keying the read on `revision` (bumped per toggle)
+    // re-reads it after a switch without changing the LazyColumn item key.
+    val isEnabled = remember(revision, entry) { entry.item.plugin?.isEnabled() ?: true }
+    // Synced single-select selections (APS/Sensitivity/Smoothing/Calibration) drive the master's active plugin,
+    // so on a client with the master offline they must not be changed from here — same gate as the Config Builder
+    // (see PluginCategoryScreen). Non-synced categories (SYNC/GENERAL/pump/…) stay editable offline.
+    val editableWhenSynced = masterEditingEnabled()
+    // Whether this plugin can be flipped from here: alwaysEnabled plugins are locked on, an already-active
+    // single-select plugin can't be turned off (only replaced by enabling another), and a synced selection is
+    // gated while the master is offline.
+    val canToggle = plugin != null && !plugin.pluginDescription.alwaysEnabled &&
+        (!plugin.getType().singleSelect || !isEnabled) &&
+        (!plugin.getType().selectionSyncs || editableWhenSynced)
+    val dimmed = !isEnabled
+    val contentAlpha = if (dimmed) 0.5f else 1f
+    val contentColor = if (dimmed) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+
+    // Whole-row tap: open an enabled plugin/preference; for a disabled but toggleable plugin, enable it — so the
+    // entire row is actionable, not just the small switch.
+    val rowClick: (() -> Unit)? = when {
+        isEnabled                   -> { { onResultClick(entry) } }
+        canToggle && plugin != null -> { { onPluginToggle(plugin) } }
+        else                        -> null
     }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (isEnabled) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .alpha(contentAlpha),
+            .then(if (rowClick != null) Modifier.clickable(onClick = rowClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Icon: wiki items get book icon, others prefer ImageVector over drawable resource
@@ -193,14 +230,18 @@ private fun SearchResultItem(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier
+                    .size(24.dp)
+                    .alpha(contentAlpha)
             )
             Spacer(modifier = Modifier.width(16.dp))
         }
 
-        // Title and summary
+        // Title and summary — dimmed together with the icon when the row is disabled.
         Column(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .alpha(contentAlpha),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
@@ -211,8 +252,9 @@ private fun SearchResultItem(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // Show "Plugin X disabled" for disabled items, otherwise show summary
-            if (!isEnabled) {
+            // Non-plugin item whose owning plugin is disabled → "disabled" hint; a plugin row conveys its state
+            // via the switch, so it shows its normal summary instead.
+            if (dimmed && pluginItem == null) {
                 Spacer(modifier = Modifier.height(2.dp))
                 val pluginName = entry.item.plugin?.name ?: ""
                 Text(
@@ -235,6 +277,17 @@ private fun SearchResultItem(
                     }
                 }
             }
+        }
+
+        // Trailing enable/disable switch. Single-select plugins can only be switched ON (the active one can't be
+        // turned off — it's replaced by enabling another); alwaysEnabled plugins are locked on.
+        if (plugin != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Switch(
+                checked = isEnabled,
+                onCheckedChange = if (canToggle) { { onPluginToggle(plugin) } } else null,
+                enabled = canToggle
+            )
         }
     }
 }

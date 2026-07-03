@@ -4,6 +4,7 @@
     <string name="automation_enabled">Activé</string>
     <string name="automation_read_only">Lecture seule</string>
     <string name="automation_new_rule">Nouvelle règle</string>
+    <string name="automation_empty_desc">Créer une règle pour automatiser les actions basées sur les déclencheurs.</string>
     <string name="automation_edit_rule">Modifier la règle</string>
     <string name="automation_discard_title">Annuler les modifications ?</string>
     <string name="automation_discard_message">La règle est incomplète et ne peut pas être enregistrée. Ignorer vos modifications ?</string>

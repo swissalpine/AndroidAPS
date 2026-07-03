@@ -25,6 +25,12 @@ val LocalCheckPassword = compositionLocalOf<((String, String) -> Boolean)?> { nu
 val LocalHashPassword = compositionLocalOf<((String) -> String)?> { null }
 
 /**
+ * CompositionLocal for clearing the stored unattended-export password.
+ * Invoked when the master password changes so a stale export password can't outlive the change.
+ */
+val LocalClearExportPasswordStore = compositionLocalOf<(() -> Unit)?> { null }
+
+/**
  * CompositionLocal for highlighting a specific preference key.
  * Used when navigating from search to highlight the found preference.
  */

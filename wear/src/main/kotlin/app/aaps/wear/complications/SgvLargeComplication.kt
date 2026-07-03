@@ -10,7 +10,6 @@ import androidx.wear.watchface.complications.data.TimeDifferenceComplicationText
 import androidx.wear.watchface.complications.data.TimeDifferenceStyle
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.rx.weardata.EventData
-import dagger.android.AndroidInjection
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
@@ -23,11 +22,6 @@ import java.util.concurrent.TimeUnit
  * - Time auto-updates every minute (battery efficient)
  */
 class SgvLargeComplication : ModernBaseComplicationProviderService() {
-
-    override fun onCreate() {
-        AndroidInjection.inject(this)
-        super.onCreate()
-    }
 
     override fun buildComplicationData(
         type: ComplicationType,

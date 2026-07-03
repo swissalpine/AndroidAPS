@@ -417,7 +417,16 @@ class ProfileEditorViewModel @Inject constructor(
                 // Flag set BEFORE the replace so the event the replace fires is recognised as ours.
                 savePending = true
                 profileRepository.replace(editingIndex, profile)
-                    .onSuccess { locallyEdited = false }
+                    .onSuccess {
+                        // replace() already emitted on profileRepository.profiles (via snapshot())
+                        // BEFORE returning; on Main.immediate that synchronously ran the savePending
+                        // subscriber's loadState() while locallyEdited was still true, latching
+                        // isEdited=true. Clear the flag and re-run loadState() here so isEdited
+                        // reflects the saved state and the Save/Reset actions disappear on the FIRST
+                        // save — mirrors the isNewDraft branch above.
+                        locallyEdited = false
+                        loadState()
+                    }
                     .onFailure { error ->
                         // Clear the flag so the NEXT external event isn't mis-attributed to this
                         // failed save. Surface the error in the log; the user keeps their unsaved

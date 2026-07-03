@@ -198,7 +198,7 @@ enum class BooleanKey(
     VirtualPumpStatusUpload("virtualpump_uploadstatus", false, R.string.pref_title_virtual_pump_status_upload, showInNsClientMode = false),
     NsClientUploadData("ns_upload", true, R.string.pref_title_ns_upload_data, R.string.pref_summary_ns_upload_data, showInNsClientMode = false, hideParentScreenIfHidden = true),
     NsClientAcceptCgmData("ns_receive_cgm", false, R.string.pref_title_ns_receive_cgm, R.string.pref_summary_ns_receive_cgm, showInNsClientMode = false, hideParentScreenIfHidden = true),
-    NsClientAcceptProfileStore("ns_receive_profile_store", true, R.string.pref_title_ns_receive_profile_store, R.string.pref_summary_ns_receive_profile_store, showInNsClientMode = false, hideParentScreenIfHidden = true),
+    NsClientAcceptProfileStore("ns_receive_profile_store", false, R.string.pref_title_ns_receive_profile_store, R.string.pref_summary_ns_receive_profile_store, showInNsClientMode = false, hideParentScreenIfHidden = true),
     NsClientAcceptTempTarget("ns_receive_temp_target", false, R.string.pref_title_ns_receive_temp_target, R.string.pref_summary_ns_receive_temp_target, showInNsClientMode = false, hideParentScreenIfHidden = true),
     NsClientAcceptProfileSwitch("ns_receive_profile_switch", false, R.string.pref_title_ns_receive_profile_switch, R.string.pref_summary_ns_receive_profile_switch, showInNsClientMode = false, hideParentScreenIfHidden = true),
     NsClientAcceptInsulin("ns_receive_insulin", false, R.string.pref_title_ns_receive_insulin, R.string.pref_summary_ns_receive_insulin, showInNsClientMode = false, hideParentScreenIfHidden = true),

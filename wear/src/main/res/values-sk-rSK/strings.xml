@@ -85,6 +85,8 @@
     <string name="action_tempt_confirmation">Požadovaný dočasný cieľ</string>
     <string name="action_quick_wizard_confirmation">Požadovaný rýchly bolus</string>
     <string name="action_user_action_confirmation">Vyžaduje sa akcia používateľa</string>
+    <string name="action_scene_confirmation">Požadovaná scéna</string>
+    <string name="scene_end">Koniec</string>
     <string name="action_treatment_confirmation">Požadované ošetrenie</string>
     <string name="action_bolus_confirmation">Požadovaný bolus</string>
     <string name="action_wizard_confirmation">Požadovaná kalkulačka</string>
@@ -237,7 +239,11 @@
     <string name="title_activity_suspend_loop">Pozastaviť uzavretý okruh</string>
     <string name="wizard_carbs_format">%1$d g sacharidov</string>
     <string name="insulin_unit_short">U</string>
+    <string name="quick_wizard_tile_carbs" comment="QuickWizard tile sub-label, carbs amount. %1$d=grams. Example: 30 g">%1$d g</string>
+    <string name="quick_wizard_tile_insulin" comment="QuickWizard tile sub-label, fixed insulin amount. %1$.2f=units. Example: 1.50 U">%1$.2f U</string>
     <string name="wizard_confirmation_sent">Odoslané</string>
+    <string name="contacting_master">Kontaktuje sa riadiace zariadenie/telefón…</string>
+    <string name="contacting_master_unknown">Neznámy stav – skontrolujte telefón</string>
     <string name="tile_settings">Nastavenie dlaždice</string>
     <string name="loop_status_error">Nepodarilo sa načítať stav</string>
     <string name="loop_status_tempt_duration">%1$d min (%2$s)</string>
@@ -276,4 +282,20 @@
     <string name="confirm">Potvrdiť</string>
     <string name="request">Požiadavka</string>
     <string name="constraint_applied">Aplikované obmedzenie!</string>
+    <string name="wizard_total_insulin">Celkový inzulín</string>
+    <string name="wizard_calculation">Výpočet</string>
+    <string name="wizard_settings_format">IC: %1$s | ISF: %2$s</string>
+    <string name="wizard_result_bg">GL</string>
+    <string name="wizard_result_bg_tt">GL (DC: %1$s)</string>
+    <string name="wizard_result_trend">15min trend</string>
+    <string name="wizard_result_iob">IOB</string>
+    <string name="wizard_result_new_iob">Nový IOB: %1$sU</string>
+    <string name="wizard_result_cob">COB (%1$.1f g)</string>
+    <string name="wizard_result_carbs">Sacharidy (%1$d g)</string>
+    <string name="wizard_result_subtotal">Medzisúčet</string>
+    <string name="wizard_result_total">Spolu</string>
+    <string name="wizard_insulin_format">%1$s U</string>
+    <string name="wizard_result_correction_percentage">%1$d%%</string>
+    <string name="wizard_carbs_with_time">%1$d g sacharidov (%2$s min)</string>
+    <string name="wizard_result_ecarbs">eSacharidy: %1$d g / %2$d h (+%3$d min)</string>
 </resources>

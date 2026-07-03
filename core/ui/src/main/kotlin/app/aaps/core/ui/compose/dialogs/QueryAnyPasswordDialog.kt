@@ -51,6 +51,7 @@ fun QueryAnyPasswordDialog(
     title: String,
     passwordExplanation: String? = null,
     passwordWarning: String? = null,
+    errorMessage: String? = null,
     onConfirm: (String) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -105,6 +106,8 @@ fun QueryAnyPasswordDialog(
                     value = passwordText,
                     onValueChange = { passwordText = it },
                     label = { Text(stringResource(R.string.protection_password_hint)) },
+                    isError = errorMessage != null,
+                    supportingText = errorMessage?.let { msg -> { Text(msg, color = MaterialTheme.colorScheme.error) } },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,

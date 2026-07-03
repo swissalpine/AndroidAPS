@@ -15,6 +15,7 @@
     <string name="dana_model">%1$s\nModel: %2$02X\nProtokol: %3$02X\nKód: %4$02X</string>
     <string name="processinghistory">Spracúvam udalosť</string>
     <string name="danar_enableextendedbolus">Aktivovať v pumpe predĺžené bolusy</string>
+    <string name="danar_disablebolusblock">Je zapnuté blokovanie bolusu na pumpe. AAPS nemôže podávať inzulín keď je to aktívne. Zrušte blokovanie bolusu v nastaveniach pumpy.</string>
     <string name="overview_bolusprogress_stoped">Zastavené</string>
     <string name="unsupportedfirmware">Nepodporovaný firmware v pumpe</string>
     <string name="pumperror">Chyba pumpy</string>
@@ -37,6 +38,7 @@
     <string name="gettingtempbasalstatus">Načítavam stav dočasných bazálov</string>
     <string name="gettingpumpsettings">Načítavam nastavenia pumpy</string>
     <string name="gettingpumptime">Načítavam čas z pumpy</string>
+    <string name="largetimedifftitle">Veľký rozdiel v čase</string>
     <string name="largetimediff">Veľký rozdiel v čase:\nČas v pumpe sa líši minimálne o 1,5 h.\nProsím upravte čas v pumpe manuálne a vymažte históriu pumpy.\nPokiaľ je to potrebné, prípadne pozastavte uzavretý okruh aspoň na \"DIA\" hodín.</string>
     <string name="pairfirst">Prosím spárujte pumpu s telefónom!</string>
     <string name="approachingdailylimit">Blíži sa denný limit inzulínu</string>

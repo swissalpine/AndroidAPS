@@ -23,6 +23,7 @@ import app.aaps.core.interfaces.rx.events.EventSWSyncStatus
 import app.aaps.core.interfaces.rx.events.EventSWUpdate
 import app.aaps.core.interfaces.sync.NsClient
 import app.aaps.core.interfaces.utils.HardLimits
+import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.BooleanNonKey
 import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.IntKey
@@ -40,6 +41,7 @@ import app.aaps.plugins.configuration.setupwizard.elements.SWEditNumberWithUnits
 import app.aaps.plugins.configuration.setupwizard.elements.SWEditString
 import app.aaps.plugins.configuration.setupwizard.elements.SWHtmlLink
 import app.aaps.plugins.configuration.setupwizard.elements.SWInfoText
+import app.aaps.plugins.configuration.setupwizard.elements.SWPairingStatus
 import app.aaps.plugins.configuration.setupwizard.elements.SWPermissions
 import app.aaps.plugins.configuration.setupwizard.elements.SWPlugin
 import app.aaps.plugins.configuration.setupwizard.elements.SWRadioButton
@@ -79,6 +81,7 @@ class SWDefinition @Inject constructor(
     private val swEditStringProvider: Provider<SWEditString>,
     private val swHtmlLinkProvider: Provider<SWHtmlLink>,
     private val swInfoTextProvider: Provider<SWInfoText>,
+    private val swPairingStatusProvider: Provider<SWPairingStatus>,
     private val swPermissionsProvider: Provider<SWPermissions>,
     private val swPluginProvider: Provider<SWPlugin>,
     private val swRadioButtonProvider: Provider<SWRadioButton>
@@ -91,6 +94,9 @@ class SWDefinition @Inject constructor(
     var onManageInsulin: (() -> Unit)? = null
     var onManageProfile: (() -> Unit)? = null
     var onProfileSwitch: (() -> Unit)? = null
+    var onOpenAuthorizedClients: (() -> Unit)? = null
+    var onPairWithMaster: (() -> Unit)? = null
+    var onOpenNsReceiveSettings: (() -> Unit)? = null
     var onRunObjectives: (() -> Unit)? = null
     var onRequestDirectoryAccess: (() -> Unit)? = null
     var onRequestPermission: ((PermissionGroup) -> Unit)? = null
@@ -199,6 +205,45 @@ class SWDefinition @Inject constructor(
             .add(swBreakProvider.get())
             .add(swEventListenerProvider.get().with(EventSWSyncStatus::class.java).label(R.string.status_label).initialStatus(nsClient.status))
             .validator { nsClient.connected && nsClient.hasWritePermission }
+
+    // Master side: explain the paired client-control channel, open the pairing (Authorized clients) screen,
+    // and offer the old "accept data from NS" settings (now off by default).
+    private val screenClientControl
+        get() = swScreenProvider.get().with(R.string.setupwizard_client_control_title)
+            .skippable(true)
+            .add(swInfoTextProvider.get().label(R.string.setupwizard_client_control_info))
+            .add(swPairingStatusProvider.get())
+            .add(swBreakProvider.get())
+            .add(
+                swButtonProvider.get()
+                    .text(app.aaps.core.ui.R.string.authorized_clients_manage_label)
+                    .visibility { preferences.get(BooleanKey.NsClient3UseWs) }
+                    .action { onOpenAuthorizedClients?.invoke() }
+            )
+            .add(swInfoTextProvider.get().label(R.string.setupwizard_pairing_ws_warning).visibility { !preferences.get(BooleanKey.NsClient3UseWs) })
+            .add(swBreakProvider.get())
+            .add(swInfoTextProvider.get().label(R.string.setupwizard_ns_receive_info))
+            .add(
+                swButtonProvider.get()
+                    .text(R.string.setupwizard_open_ns_receive_settings)
+                    .action { onOpenNsReceiveSettings?.invoke() }
+            )
+
+    // Client side: explain pairing with a master and open the "Pair with master" (PIN entry) screen.
+    private val screenPairWithMaster
+        get() = swScreenProvider.get().with(app.aaps.core.ui.R.string.pair_with_master_manage_label)
+            .skippable(true)
+            .add(swInfoTextProvider.get().label(R.string.setupwizard_pair_with_master_info))
+            .add(swBreakProvider.get())
+            .add(
+                swButtonProvider.get()
+                    .text(app.aaps.core.ui.R.string.pair_with_master_manage_label)
+                    .visibility { preferences.get(BooleanKey.NsClient3UseWs) }
+                    .action { onPairWithMaster?.invoke() }
+            )
+            .add(swBreakProvider.get())
+            .add(swPairingStatusProvider.get())
+            .add(swInfoTextProvider.get().label(R.string.setupwizard_pairing_ws_warning).visibility { !preferences.get(BooleanKey.NsClient3UseWs) })
 
     private val screenPatientName
         get() = swScreenProvider.get().with(app.aaps.core.keys.R.string.pref_title_patient_name)
@@ -354,6 +399,7 @@ class SWDefinition @Inject constructor(
             .add(displaySettings)
 
             .add(screenNsClient)
+            .add(screenClientControl)
             .add(screenPatientName)
             .add(screenAge)
             .add(screenInsulin)
@@ -396,6 +442,7 @@ class SWDefinition @Inject constructor(
             .add(displaySettings)
 
             .add(screenNsClient)
+            .add(screenPairWithMaster)
             //.add(screenBgSource)
             .add(screenPatientName)
 }

@@ -86,7 +86,7 @@ interface ClientControlActionDispatcher {
          * [pumpDirect] = the commit drives a slow pump command on the master (a TBR/extended-bolus set or cancel) whose
          * ACK can't return within the default round-trip window → the client waits the longer pump TTL instead.
          */
-        data class BolusCommit(val bolusId: Long, val asAdvisor: Boolean = false, val pumpDirect: Boolean = false) : Command
+        data class BolusCommit(val bolusId: Long, val asAdvisor: Boolean = false, val pumpDirect: Boolean = false, val correctionU: Double = 0.0) : Command
 
         /** Prepare a MANUAL bolus-wizard bolus on the master from raw [inputs] (master recomputes + returns the preview). */
         data class WizardPrepare(val inputs: WizardBolusExecutor.WizardInputs) : Command

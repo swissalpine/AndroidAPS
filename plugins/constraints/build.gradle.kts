@@ -5,6 +5,7 @@ plugins {
     id("android-module-dependencies")
     id("all-open-dependencies")
     id("test-module-dependencies")
+    id("compose-test-module-dependencies")
     id("jacoco-module-dependencies")
 }
 

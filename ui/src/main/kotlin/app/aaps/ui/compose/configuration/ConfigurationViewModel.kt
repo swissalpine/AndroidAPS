@@ -16,31 +16,24 @@ import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.ui.compose.ConfigPluginUiModel
 import app.aaps.core.ui.compose.pluginCategoryTitleRes
+import app.aaps.ui.plugin.HardwarePumpConfirmation
+import app.aaps.ui.plugin.PluginSwitchConfirmation
+import app.aaps.ui.plugin.PluginSwitchDialogs
+import app.aaps.ui.plugin.PluginSwitchHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @Immutable
 data class ConfigurationUiState(
     val categories: List<ConfigCategoryUiModel> = emptyList(),
     val isSimpleMode: Boolean = true,
-    val hardwarePumpConfirmation: HardwarePumpConfirmation? = null
-)
-
-@Immutable
-data class HardwarePumpConfirmation(
-    val message: String,
-    val pluginId: String,
-    val type: PluginType,
-    val enabled: Boolean
+    val hardwarePumpConfirmation: HardwarePumpConfirmation? = null,
+    val pluginSwitchConfirmation: PluginSwitchConfirmation? = null
 )
 
 @HiltViewModel
@@ -58,9 +51,9 @@ class ConfigurationViewModel @Inject constructor(
     // Keep plugin references for toggle callbacks (UI only sees IDs)
     private var pluginLookup: Map<String, PluginBase> = emptyMap()
 
-    // Serializes plugin enable/disable so concurrent toggles (double-tap, or two plugins in the
-    // same single-select category) can't race the shared plugin-state mutation in performPluginSwitch.
-    private val switchMutex = Mutex()
+    // Shared enable/disable orchestration (swap confirmation + hardware-pump gate + serialized off-main switch).
+    // onSwitched rebuilds the categories once a switch commits, same as before.
+    private val switchHandler = PluginSwitchHandler(viewModelScope, activePlugin, configBuilder, onSwitched = ::refreshCategories)
 
     init {
         loadCategories()
@@ -68,6 +61,11 @@ class ConfigurationViewModel @Inject constructor(
         // screen is open (fires on putRemote too), not just the user's own toggles.
         viewModelScope.launch {
             configBuilder.activeSelectionChanges.collect { refreshCategories() }
+        }
+        // Mirror the handler's confirmation dialogs into this screen's UI state (covers async updates such as
+        // the hardware-pump gate appearing after the switch call returns).
+        viewModelScope.launch {
+            switchHandler.dialogs.collect { syncSwitchDialogs(it) }
         }
     }
 
@@ -79,49 +77,37 @@ class ConfigurationViewModel @Inject constructor(
 
     fun togglePluginEnabled(pluginId: String, type: PluginType, enabled: Boolean) {
         val plugin = pluginLookup[pluginId] ?: return
-        // requestPluginSwitch persists settings and runs blocking pump-sync DB work (runBlocking in
-        // connectNewPump), so run it off the main thread to avoid stalling the UI on toggle.
-        viewModelScope.launch {
-            val confirmationMessage = switchMutex.withLock {
-                withContext(Dispatchers.IO) {
-                    configBuilder.requestPluginSwitch(plugin, enabled, type)
-                }
-            }
-            if (confirmationMessage != null) {
-                _uiState.update { state ->
-                    state.copy(
-                        hardwarePumpConfirmation = HardwarePumpConfirmation(
-                            message = confirmationMessage,
-                            pluginId = pluginId,
-                            type = type,
-                            enabled = enabled
-                        )
-                    )
-                }
-            } else {
-                refreshCategories()
-            }
-        }
+        switchHandler.toggle(plugin, type, enabled)
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    fun confirmPluginSwitch() {
+        switchHandler.confirmSwitch()
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    fun dismissPluginSwitchDialog() {
+        switchHandler.dismissSwitch()
+        syncSwitchDialogs(switchHandler.dialogs.value)
     }
 
     fun confirmHardwarePumpSwitch() {
-        val confirmation = uiState.value.hardwarePumpConfirmation ?: return
-        val plugin = pluginLookup[confirmation.pluginId] ?: return
-        // confirmPumpPluginSwitch also reaches the blocking connectNewPump path — keep it off main.
-        viewModelScope.launch {
-            switchMutex.withLock {
-                withContext(Dispatchers.IO) {
-                    configBuilder.confirmPumpPluginSwitch(plugin, confirmation.enabled, confirmation.type)
-                }
-            }
-            _uiState.update { it.copy(hardwarePumpConfirmation = null) }
-            refreshCategories()
-        }
+        switchHandler.confirmHardwarePump()
+        syncSwitchDialogs(switchHandler.dialogs.value)
     }
 
     fun dismissHardwarePumpDialog() {
-        _uiState.update { it.copy(hardwarePumpConfirmation = null) }
-        refreshCategories()
+        switchHandler.dismissHardwarePump()
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    private fun syncSwitchDialogs(dialogs: PluginSwitchDialogs) {
+        _uiState.update {
+            it.copy(
+                hardwarePumpConfirmation = dialogs.hardwarePumpConfirmation,
+                pluginSwitchConfirmation = dialogs.pluginSwitchConfirmation
+            )
+        }
     }
 
     private fun refreshCategories() {

@@ -34,6 +34,7 @@ fun AdaptiveMasterPasswordPreferenceItem(
     showTitle: Boolean = true
 ) {
     val preferences = LocalPreferences.current
+    val clearExportPasswordStore = LocalClearExportPasswordStore.current
     val stringKey = StringKey.ProtectionMasterPassword
 
     val visibility = calculatePreferenceVisibility(
@@ -115,6 +116,9 @@ fun AdaptiveMasterPasswordPreferenceItem(
 
                     password1.isNotEmpty() -> {
                         preferences.put(stringKey, hashPassword(password1))
+                        // Master password changed: drop the stored unattended-export password so exports
+                        // can't keep using the old secret until it expires.
+                        clearExportPasswordStore?.invoke()
                         passwordState = preferences.get(stringKey)
                         onShowMessage(passwordSetMsg)
                         showSetDialog = false
@@ -122,6 +126,7 @@ fun AdaptiveMasterPasswordPreferenceItem(
 
                     preferences.getIfExists(stringKey) != null -> {
                         preferences.remove(stringKey)
+                        clearExportPasswordStore?.invoke()
                         passwordState = ""
                         onShowMessage(passwordClearedMsg)
                         showSetDialog = false

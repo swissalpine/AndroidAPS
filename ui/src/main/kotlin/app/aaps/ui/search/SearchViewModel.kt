@@ -3,8 +3,17 @@ package app.aaps.ui.search
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.configuration.ConfigBuilder
+import app.aaps.core.interfaces.plugin.ActivePlugin
+import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.sync.NsClient
+import app.aaps.ui.plugin.HardwarePumpConfirmation
+import app.aaps.ui.plugin.PluginSwitchConfirmation
+import app.aaps.ui.plugin.PluginSwitchDialogs
+import app.aaps.ui.plugin.PluginSwitchHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +23,8 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -26,13 +37,20 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val searchIndexBuilder: SearchIndexBuilder,
     private val wikiSearchRepository: WikiSearchRepository,
-    private val nsClient: NsClient
+    private val nsClient: NsClient,
+    private val activePlugin: ActivePlugin,
+    private val configBuilder: ConfigBuilder,
+    private val config: Config
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState
 
     private val _searchQuery = MutableStateFlow("")
+
+    // Shared enable/disable orchestration — same swap-confirmation + hardware-pump flow as the Config Builder.
+    // onSwitched rebuilds the index and re-runs the current query so a toggled plugin reflects its new state.
+    private val switchHandler = PluginSwitchHandler(viewModelScope, activePlugin, configBuilder, onSwitched = ::onPluginSwitched)
 
     init {
         observeSearchQuery()
@@ -42,6 +60,67 @@ class SearchViewModel @Inject constructor(
             .drop(1)
             .onEach { searchIndexBuilder.invalidateIndex() }
             .launchIn(viewModelScope)
+        // Mirror the shared switch handler's confirmation dialogs into the search UI state.
+        switchHandler.dialogs
+            .onEach { syncSwitchDialogs(it) }
+            .launchIn(viewModelScope)
+        // Refresh the visible switches/greying when a synced selection changes elsewhere (e.g. a master→client
+        // push adopted while the search overlay is open), not just for this screen's own toggles — mirrors
+        // ConfigurationViewModel so the two screens stay consistent.
+        configBuilder.activeSelectionChanges
+            .onEach { onPluginSwitched() }
+            .launchIn(viewModelScope)
+    }
+
+    /** Toggle a plugin found in the search results. Single-select enabling raises the swap confirmation. */
+    fun togglePlugin(plugin: PluginBase) {
+        // Defense-in-depth for the SearchResults UI gate: a client must not change a synced single-select
+        // selection (APS/Sensitivity/Smoothing/Calibration) while the master is offline.
+        if (config.AAPSCLIENT && plugin.getType().selectionSyncs && !nsClient.masterReachable.value) return
+        switchHandler.toggle(plugin, plugin.getType(), !plugin.isEnabled())
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    fun confirmPluginSwitch() {
+        switchHandler.confirmSwitch()
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    fun dismissPluginSwitch() {
+        switchHandler.dismissSwitch()
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    fun confirmHardwarePump() {
+        switchHandler.confirmHardwarePump()
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    fun dismissHardwarePump() {
+        switchHandler.dismissHardwarePump()
+        syncSwitchDialogs(switchHandler.dialogs.value)
+    }
+
+    private fun syncSwitchDialogs(dialogs: PluginSwitchDialogs) {
+        _uiState.update {
+            it.copy(
+                hardwarePumpConfirmation = dialogs.hardwarePumpConfirmation,
+                pluginSwitchConfirmation = dialogs.pluginSwitchConfirmation
+            )
+        }
+    }
+
+    // After a plugin's enabled state changes, rebuild the index and re-run the current query so the toggled
+    // plugin (and any preferences it owns) reflect the new state in the visible results.
+    private fun onPluginSwitched() {
+        searchIndexBuilder.invalidateIndex()
+        val query = _uiState.value.query
+        if (query.isNotBlank()) {
+            viewModelScope.launch {
+                val results = withContext(Dispatchers.Default) { searchIndexBuilder.search(query) }
+                _uiState.update { it.copy(results = results, revision = it.revision + 1) }
+            }
+        }
     }
 
     @OptIn(FlowPreview::class)
@@ -139,5 +218,12 @@ data class SearchUiState(
     val wikiResults: List<SearchIndexEntry> = emptyList(),
     val isSearching: Boolean = false,
     val isSearchingWiki: Boolean = false,
-    val wikiOffline: Boolean = false
+    val wikiOffline: Boolean = false,
+    val hardwarePumpConfirmation: HardwarePumpConfirmation? = null,
+    val pluginSwitchConfirmation: PluginSwitchConfirmation? = null,
+    // Bumped whenever a plugin is toggled. A toggle changes plugin.isEnabled() (external, non-Compose state) but
+    // NOT the result entries themselves, so the rebuilt results list is equals() to the previous one and the
+    // StateFlow would conflate the update away — leaving switches/greying visually stale. This counter makes each
+    // post-toggle state distinct so the emission (and the recomposition it drives) actually happens.
+    val revision: Int = 0
 )

@@ -125,7 +125,7 @@ class LoopTest : HiltInstrumentedTest() {
         assertThat((loopStatusEvent.second as EventLoopSetLastRunGui).text).contains("NO PROFILE SET")
 
         // Set Profile in ProfilePlugin
-        nsIncomingDataProcessor.processProfile(JSONObject(profileData), false)
+        nsIncomingDataProcessor.processProfile(JSONObject(profileData), true)
         assertThat(profileRepository.profile.value).isNotNull()
 
         // Create a profile switch

@@ -15,6 +15,7 @@
     <string name="dana_model">%1$s\nModèle : %2$02X\nProtocole : %3$02X\nCode : %4$02X</string>
     <string name="processinghistory">Traitement d\'événement</string>
     <string name="danar_enableextendedbolus">Activer les bolus étendus dans la pompe</string>
+    <string name="danar_disablebolusblock">Le blocage du bolus est activé sur la pompe. AAPS ne peut pas délivrer d\'insuline tant qu\'il est actif. Désactiver le blocage du bolus dans les paramètres de la pompe.</string>
     <string name="overview_bolusprogress_stoped">Arrêté</string>
     <string name="unsupportedfirmware">Firmware pompe incompatible </string>
     <string name="pumperror">Erreur Pompe</string>
@@ -37,6 +38,7 @@
     <string name="gettingtempbasalstatus">Obtenir l\'état du basal temporaire</string>
     <string name="gettingpumpsettings">Obtenir les paramètres pompe</string>
     <string name="gettingpumptime">Obtenir l\'heure de la pompe</string>
+    <string name="largetimedifftitle">Différence horaire importante</string>
     <string name="largetimediff">Différence horaire importante:\nL\'heure de la pompe est en écart de plus d\'une heure et demi.\nVeuillez ajuster manuellement l\'heure de la pompe et assurez-vous que la lecture de l\'historique de la pompe ne cause pas de dysfonctionnements.\nSi possible, effacez l\'historique de la pompe avant de modifier l\'heure ou désactivez la Boucle Fermée pour une DAI après la dernière entrée erronée de l\'historique et au minimum une DAI à partir de maintenant.</string>
     <string name="pairfirst">Veuillez appairer votre pompe avec votre téléphone !</string>
     <string name="approachingdailylimit">Limite quotidienne d\'insuline proche</string>

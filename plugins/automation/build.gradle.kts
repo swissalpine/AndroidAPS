@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.ksp)
     id("android-module-dependencies")
     id("test-module-dependencies")
+    id("compose-test-module-dependencies")
     id("jacoco-module-dependencies")
     alias(libs.plugins.compose.compiler)
 }

@@ -96,7 +96,7 @@ internal class NSClientV3PluginTest : TestBaseWithProfile() {
                 aapsLogger, rh, preferences, rxBus, context,
                 receiverDelegate, config, dateUtil, dataSyncSelectorV3, persistenceLayer,
                 nsClientSource, storeDataForDb, decimalFormatter, l, nsClientRepository, uel,
-                mock(), mock(), mock(), mock(), mock(), profileRepository
+                mock(), mock(), mock(), mock(), mock(), mock(), profileRepository
             )
         sut.nsAndroidClient = nsAndroidClient
         sut.nsClientV3Service = nsClientV3Service
@@ -137,7 +137,7 @@ internal class NSClientV3PluginTest : TestBaseWithProfile() {
             aapsLogger, rh, preferences, rxBus, context,
             receiverDelegate, config, dateUtil, dataSyncSelectorV3, persistenceLayer,
             nsClientSource, storeDataForDb, decimalFormatter, l, nsClientRepository, uel,
-            mock(), mock(), mock(), orphanDetector, mock(), profileRepository
+            mock(), mock(), mock(), orphanDetector, mock(), mock(), profileRepository
         )
 
     /** Poll the (WhileSubscribed) flow's value until it settles to [expected]; a live collector keeps it computing. */
