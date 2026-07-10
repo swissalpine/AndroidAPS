@@ -11,6 +11,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -32,6 +33,10 @@ class SceneSourceTest {
     private val endText = "End scene"
     private val confirmationText = "Run this scene?"
 
+    // In-memory backing store for tile_scene_N slot prefs, so getString/putString/contains behave
+    // like real prefs (mirrors the pattern in ActionSourceTest).
+    private val store: MutableMap<String, String> = mutableMapOf()
+
     private lateinit var sceneSource: SceneSource
 
     private fun sceneListRaw(vararg entries: EventData.SceneList.SceneEntry): String =
@@ -50,11 +55,26 @@ class SceneSourceTest {
         whenever(sp.getString(eq(R.string.key_scene_data), any())).thenReturn(raw)
     }
 
+    /** Pins tile slot [index] (1-4) to [value] — a scene id, SLOT_NONE, or SLOT_AUTO. */
+    private fun stubSlot(index: Int, value: String) {
+        store["tile_scene_$index"] = value
+    }
+
     @BeforeEach
     fun setup() {
         whenever(context.resources).thenReturn(resources)
         whenever(resources.getString(R.string.scene_end)).thenReturn(endText)
         whenever(resources.getString(R.string.action_scene_confirmation)).thenReturn(confirmationText)
+
+        // sp backed by the in-memory map for String-keyed slot prefs — an unset key falls through
+        // to the caller-supplied default (SLOT_AUTO), matching real SharedPreferences behavior.
+        // Individual tests override via stubSlot().
+        doAnswer { invocation ->
+            val key = invocation.getArgument<String>(0)
+            val default = invocation.getArgument<String>(1)
+            store[key] ?: default
+        }.whenever(sp).getString(any<String>(), any<String>())
+
         // Default: no active scene, empty scene list. Individual tests override as needed.
         stubActiveSceneState("")
         stubSceneData(sceneListRaw())
@@ -147,6 +167,54 @@ class SceneSourceTest {
 
         assertThat(actions).hasSize(4)
         assertThat(actions.map { it.buttonText }).containsExactly("One", "Two", "Three", "Four").inOrder()
+    }
+
+    @Test
+    fun explicitSlotPinsSpecificScene() {
+        stubActiveSceneState("")
+        stubSceneData(sceneListRaw(entry("1", "One"), entry("2", "Two"), entry("3", "Three")))
+        stubSlot(1, "3") // pin slot 1 to "Three" instead of auto order
+
+        val actions = sceneSource.getSelectedActions()
+
+        // Slot 1 = pinned "Three"; slots 2-4 = auto, filling with the remaining unclaimed scenes in order.
+        assertThat(actions.map { it.buttonText }).containsExactly("Three", "One", "Two").inOrder()
+    }
+
+    @Test
+    fun noneSlotStaysEmptyEvenWithScenesAvailable() {
+        stubActiveSceneState("")
+        stubSceneData(sceneListRaw(entry("1", "One"), entry("2", "Two")))
+        stubSlot(1, SceneSource.SLOT_NONE)
+
+        val actions = sceneSource.getSelectedActions()
+
+        // Slot 1 deliberately empty; slots 2-4 auto-fill from the remaining scenes.
+        assertThat(actions.map { it.buttonText }).containsExactly("One", "Two").inOrder()
+    }
+
+    @Test
+    fun stalePinnedIdIsDroppedGracefully() {
+        stubActiveSceneState("")
+        stubSceneData(sceneListRaw(entry("1", "One")))
+        stubSlot(1, "deleted-scene-id") // previously pinned scene no longer exists
+
+        val actions = sceneSource.getSelectedActions()
+
+        // Slot 1's stale id resolves to nothing (dropped, not crashed); slot 2 auto-fills with "One".
+        assertThat(actions.map { it.buttonText }).containsExactly("One")
+    }
+
+    @Test
+    fun autoSlotsNeverDuplicateAnExplicitlyPinnedScene() {
+        stubActiveSceneState("")
+        stubSceneData(sceneListRaw(entry("1", "One"), entry("2", "Two")))
+        stubSlot(3, "1") // pin slot 3 to "One"
+
+        val actions = sceneSource.getSelectedActions()
+
+        // Slots 1-2 auto-fill; "One" is already claimed by slot 3, so only "Two" is left for auto.
+        assertThat(actions.map { it.buttonText }).containsExactly("Two", "One").inOrder()
     }
 
     @Test

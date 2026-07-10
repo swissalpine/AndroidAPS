@@ -3,7 +3,10 @@ package app.aaps.di
 import android.content.Context
 import android.content.SharedPreferences
 import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.di.APS
+import app.aaps.core.interfaces.di.AllConfigs
 import app.aaps.core.interfaces.di.ApplicationScope
+import app.aaps.core.interfaces.di.NotNSClient
 import app.aaps.core.interfaces.di.PumpDriver
 import app.aaps.core.interfaces.plugin.PluginBase
 import app.aaps.core.interfaces.ui.UiInteraction
@@ -44,10 +47,10 @@ abstract class AppModule {
         @Provides
         fun providesPlugins(
             config: Config,
-            @PluginsListModule.AllConfigs allConfigs: Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>,
+            @AllConfigs allConfigs: Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>,
             @PumpDriver pumpDrivers: Lazy<Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>>,
-            @PluginsListModule.NotNSClient notNsClient: Lazy<Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>>,
-            @PluginsListModule.APS aps: Lazy<Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>>,
+            @NotNSClient notNsClient: Lazy<Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>>,
+            @APS aps: Lazy<Map<@JvmSuppressWildcards Int, @JvmSuppressWildcards PluginBase>>,
             //@PluginsListModule.Unfinished unfinished: Lazy<Map<@JvmSuppressWildcards Int,  @JvmSuppressWildcards PluginBase>>
         )
             : List<@JvmSuppressWildcards PluginBase> {

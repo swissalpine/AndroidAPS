@@ -39,6 +39,7 @@ import app.aaps.core.keys.DoubleKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.ui.compose.icons.IcPluginEquil
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
+import app.aaps.pump.equil.EquilConst
 import app.aaps.pump.equil.compose.EquilComposeContent
 import app.aaps.pump.equil.data.BolusProfile
 import app.aaps.pump.equil.data.RunMode
@@ -59,6 +60,7 @@ import app.aaps.pump.equil.manager.command.CmdDevicesGet
 import app.aaps.pump.equil.manager.command.CmdSettingSet
 import app.aaps.pump.equil.manager.command.CmdTimeSet
 import app.aaps.pump.equil.manager.customCommands.CmdModeAndHistoryGet
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -142,9 +144,9 @@ class EquilPumpPlugin @Inject constructor(
             if (r.success) rxBus.send(EventShowSnackbar(rh.gs(R.string.equil_pump_updated), EventShowSnackbar.Type.Info))
             else rxBus.send(EventShowSnackbar(rh.gs(R.string.equil_error), EventShowSnackbar.Type.Error))
         }
-        // Re-program the pod thresholds whenever either the max bolus or the max basal changes.
-        // The pod enforces the basal threshold (see CmdSettingSet) as a hard limit, so it must stay
-        // in sync with getMaxBasalAllowed — otherwise a raised max basal won't take effect until the
+        // Re-program the pod thresholds whenever the max bolus or the max basal changes (and on profile
+        // set — see setNewBasalProfile). The pod enforces the basal threshold (see CmdSettingSet) as a
+        // hard limit, so it must stay in sync — otherwise a raised max basal won't take effect until the
         // next pod activation.
         preferences.observe(DoubleKey.SafetyMaxBolus).drop(1).collectResilient(newScope, aapsLogger, LTag.PUMP) { resendPumpSettings() }
         preferences.observe(DoubleKey.ApsMaxBasal).drop(1).collectResilient(newScope, aapsLogger, LTag.PUMP) { resendPumpSettings() }
@@ -153,9 +155,12 @@ class EquilPumpPlugin @Inject constructor(
     private suspend fun resendPumpSettings() {
         val profile = pumpSync.expectedPumpState().profile ?: return
         // The pod stores its bolus/basal thresholds in pump units (cU) and enforces them against the cU
-        // basal schedule, so convert the IU limits from ConstraintsChecker to cU first (no-op at U100).
+        // basal schedule, so convert the IU limits to cU first (no-op at U100). Use the STABLE
+        // max(ApsMaxBasal, maxDailyBasal) for basal — the same ceiling OpenAPS caps temp basals to — not
+        // the time-of-day-dependent getMaxBasalAllowed (4x current basal), which can dip below the
+        // profile's own peak and starve the threshold.
         val maxBolus = ch.toPump(constraintsChecker.getMaxBolusAllowed().value()).cU
-        val maxBasal = ch.toPumpRate(constraintsChecker.getMaxBasalAllowed(profile).value()).cU
+        val maxBasal = ch.toPumpRate(max(preferences.get(DoubleKey.ApsMaxBasal), profile.getMaxDailyBasal())).cU
         val r = commandQueue.customCommand(
             CmdSettingSet(maxBolus, maxBasal, aapsLogger, preferences, equilManager)
         )
@@ -217,16 +222,18 @@ class EquilPumpPlugin @Inject constructor(
         val mode = equilManager.equilState?.runMode
         if (mode === RunMode.RUN || mode === RunMode.SUSPEND) {
             val basalSchedule = BasalSchedule.mapProfileToBasalSchedule(profile)
-            // The pod silently rejects a schedule whose rate exceeds the max basal threshold
-            // programmed via CmdSettingSet (getMaxBasalAllowed), surfacing only as a connection
-            // timeout. Reject it up front with a clear message instead of letting it hang.
-            // basalSchedule rates are in pump units (cU); convert the IU max to cU before comparing (no-op at U100).
-            val maxBasalAllowed = ch.toPumpRate(constraintsChecker.getMaxBasalAllowed(profile).value()).cU
-            val peakRate = basalSchedule.getEntries().maxOf { it.rate }
-            if (peakRate > maxBasalAllowed + 0.001) {
-                return pumpEnactResultProvider.get().enacted(false).success(false)
-                    .comment(rh.gs(R.string.equil_basal_exceeds_max, peakRate, maxBasalAllowed))
-            }
+            // Raise the pod's max-basal threshold BEFORE programming the schedule, so the pod accepts both
+            // the base schedule and later temp basals. Use the STABLE max(ApsMaxBasal, maxDailyBasal) — the
+            // same ceiling OpenAPS caps temp basals to — NOT getMaxBasalAllowed, which is time-of-day
+            // dependent (4x current basal) and can dip below the profile's own peak, wrongly starving the
+            // threshold. Convert IU limits to pump units (cU) (no-op at U100). Sent directly (we're already
+            // inside a queued command — don't re-queue), gated on success (don't program the schedule on a
+            // stale threshold), and paced by EQUIL_BLE_NEXT_CMD like every other chained-command site.
+            val maxBolus = ch.toPump(constraintsChecker.getMaxBolusAllowed().value()).cU
+            val maxBasal = ch.toPumpRate(max(preferences.get(DoubleKey.ApsMaxBasal), profile.getMaxDailyBasal())).cU
+            val settingResult = equilManager.executeCmd(CmdSettingSet(maxBolus, maxBasal, aapsLogger, preferences, equilManager))
+            if (!settingResult.success) return settingResult
+            SystemClock.sleep(EquilConst.EQUIL_BLE_NEXT_CMD)
             val pumpEnactResult = equilManager.executeCmd(CmdBasalSet(basalSchedule, profile, aapsLogger, preferences, equilManager))
             if (pumpEnactResult.success) equilManager.equilState?.basalSchedule = basalSchedule
             return pumpEnactResult

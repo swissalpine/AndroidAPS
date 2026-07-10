@@ -88,9 +88,12 @@ class MaintenanceViewModel @Inject constructor(
     }
 
     fun refreshExportConfig() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _exportConfig.value = importExportPrefs.getExportConfig()
-            _isDirectoryAccessGranted.value = fileListProvider.isDirectoryAccessGranted()
+        viewModelScope.launch {
+            val (config, accessGranted) = withContext(Dispatchers.IO) {
+                importExportPrefs.getExportConfig() to fileListProvider.isDirectoryAccessGranted()
+            }
+            _exportConfig.value = config
+            _isDirectoryAccessGranted.value = accessGranted
         }
     }
 

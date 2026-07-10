@@ -20,5 +20,9 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
+        <receiver
+            android:name=".TimerReminderReceiver"
+            android:exported="false" />
+
     </application>
 </manifest>

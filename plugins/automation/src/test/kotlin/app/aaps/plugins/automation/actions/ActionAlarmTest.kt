@@ -36,7 +36,10 @@ class ActionAlarmTest : TestBaseWithProfile() {
     fun setup() {
         whenever(rh.gs(app.aaps.core.ui.R.string.alarm)).thenReturn("Alarm")
         whenever(rh.gs(ArgumentMatchers.eq(R.string.alarm_message), any())).thenReturn("Alarm: %s")
-        timerUtil = TimerUtil(context, rh, rxBus)
+        // TimerUtil.scheduleReminder can't reach AlarmManager in a plain JVM test (PendingIntent.getBroadcast is a
+        // static framework call), so it falls into its catch → this snackbar string must be stubbed (non-null).
+        whenever(rh.gs(R.string.error_setting_reminder)).thenReturn("error")
+        timerUtil = TimerUtil(context, rh, rxBus, dateUtil)
         sut = ActionAlarm(injector)
     }
 

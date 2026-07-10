@@ -5,6 +5,7 @@ import app.aaps.wear.interaction.ConfigurationActivity
 import app.aaps.wear.interaction.WatchfaceConfigurationActivity
 import app.aaps.wear.tile.ActionsTileSettingsActivity
 import app.aaps.wear.tile.BgGraphTileSettingsActivity
+import app.aaps.wear.tile.SceneTileSettingsActivity
 import app.aaps.wear.tile.TempTargetTileSettingsActivity
 import app.aaps.wear.interaction.actions.AcceptActivity
 import app.aaps.wear.interaction.actions.BackgroundActionActivity
@@ -35,6 +36,7 @@ abstract class WearActivitiesModule {
     @ContributesAndroidInjector abstract fun contributesActionsTileSettingsActivity(): ActionsTileSettingsActivity
     @ContributesAndroidInjector abstract fun contributesTempTargetTileSettingsActivity(): TempTargetTileSettingsActivity
     @ContributesAndroidInjector abstract fun contributesBgGraphTileSettingsActivity(): BgGraphTileSettingsActivity
+    @ContributesAndroidInjector abstract fun contributesSceneTileSettingsActivity(): SceneTileSettingsActivity
     @ContributesAndroidInjector abstract fun contributesConfigurationActivity(): ConfigurationActivity
     @ContributesAndroidInjector abstract fun contributesWatchfaceConfigurationActivity(): WatchfaceConfigurationActivity
     @ContributesAndroidInjector abstract fun contributesComplicationTapActivity(): ComplicationTapActivity

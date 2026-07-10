@@ -35,6 +35,7 @@ import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
 import app.aaps.core.interfaces.utils.TrendCalculator
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
+import app.aaps.core.objects.extensions.apsAdjustedTargetMgdl
 import app.aaps.core.objects.extensions.generateCOBString
 import app.aaps.core.objects.extensions.round
 import app.aaps.core.objects.extensions.toStringShort
@@ -47,7 +48,6 @@ import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.abs
 
 @Suppress("PrivatePropertyName", "DEPRECATION")
 @Singleton
@@ -211,13 +211,9 @@ class PersistentNotificationPlugin @Inject constructor(
                     " " + dateUtil.untilString(tempTarget.end, rh)
             } else {
                 profileFunction.getProfile()?.let { profile ->
-                    val targetUsed = when {
-                        config.APS -> loop.lastRun?.constraintsProcessed?.targetBG ?: 0.0
-                        config.AAPSCLIENT -> processedDeviceStatusData.getAPSResult()?.targetBG ?: 0.0
-                        else -> 0.0
-                    }
-                    aaTarget = if (targetUsed != 0.0 && abs(profile.getTargetMgdl() - targetUsed) > 0.01) {
-                        profileUtil.toTargetRangeString(targetUsed, targetUsed, GlucoseUnit.MGDL, units)
+                    val adjustedTarget = profile.apsAdjustedTargetMgdl(loop, config, processedDeviceStatusData)
+                    aaTarget = if (adjustedTarget != null) {
+                        profileUtil.toTargetRangeString(adjustedTarget, adjustedTarget, GlucoseUnit.MGDL, units)
                     } else {
                         profileUtil.toTargetRangeString(profile.getTargetLowMgdl(), profile.getTargetHighMgdl(), GlucoseUnit.MGDL, units)
                     }

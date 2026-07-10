@@ -177,9 +177,14 @@ class TidepoolUploader @Inject constructor(
         session?.let { session ->
             if (session.authReply?.userid != null) {
                 // See if we already have an open data set to write to
+                // Must match the client.name the dataset is CREATED with (OpenDatasetRequestMessage -> ClientInfo(config.APPLICATION_ID)).
+                // A hardcoded "AAPS" here never matched config.APPLICATION_ID ("info.nightscout.androidaps"), so the existing open
+                // dataset was never found and a new dataset (new uploadId) was opened on every session. Because the Tidepool
+                // dataset.delete.origin deduplicator is scoped to a single uploadId, prior syncs' data could never be replaced,
+                // so every full sync duplicated all data. Reusing one dataset lets the per-uploadId origin dedup collapse re-uploads.
                 val datasetCall = session.service?.getOpenDataSets(
                     session.token!!,
-                    session.authReply!!.userid!!, "AAPS", 1
+                    session.authReply!!.userid!!, config.APPLICATION_ID, 1
                 )
                 datasetCall?.enqueue(
                     TidepoolCallback<List<DatasetReplyMessage>>(

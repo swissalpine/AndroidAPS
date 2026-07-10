@@ -9,6 +9,8 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
 import app.aaps.wear.data.ComplicationData
+import app.aaps.wear.interaction.actions.CarbsOrange
+import app.aaps.wear.interaction.actions.InsulinBlue
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -18,9 +20,6 @@ import kotlin.math.abs
 internal val BgInRangeColor = Color(0xFF00FF00)
 internal val BgHighColor    = Color(0xFFFFFF00)
 internal val BgLowColor     = Color(0xFFFF0000)
-internal val IobColor       = Color(0xFF1E88E5)
-internal val CarbsColor     = Color(0xFFFF6D00)
-internal val BasalColor     = Color(0xFF90CAF9)
 internal val SecondaryText  = Color(0xFFAAAAAA)
 internal val TempTargetColor     = Color(0xFFFDD835)
 internal val AutosensTargetColor = Color(0xFF77DD77)
@@ -207,7 +206,7 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
                 lineTo(x + triSize, bottom)
                 close()
             },
-            CarbsColor
+            CarbsOrange
         )
     }
 
@@ -228,7 +227,7 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
                         lineTo(x + smbTriSize, tipY - smbTriSize * 1.8f)
                         close()
                     },
-                    IobColor.copy(alpha = 0.85f)
+                    InsulinBlue.copy(alpha = 0.85f)
                 )
             }
         } else {
@@ -239,7 +238,7 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
                     lineTo(x + triSize, bottom - triHeight)
                     close()
                 },
-                IobColor
+                InsulinBlue
             )
         }
     }

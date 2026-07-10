@@ -609,6 +609,9 @@
             </intent-filter>
 
             <meta-data
+                android:name="com.google.android.clockwork.tiles.PROVIDER_CONFIG_ACTION"
+                android:value="tile_settings_scene" />
+            <meta-data
                 android:name="androidx.wear.tiles.PREVIEW"
                 android:resource="@drawable/scene_tile" />
         </service>
@@ -802,6 +805,18 @@
             android:theme="@style/WearAppCompatDark">
             <intent-filter>
                 <action android:name="tile_settings_bg_graph" />
+
+                <category android:name="com.google.android.clockwork.tiles.category.PROVIDER_CONFIG" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".tile.SceneTileSettingsActivity"
+            android:exported="true"
+            android:theme="@style/WearAppCompatDark">
+            <intent-filter>
+                <action android:name="tile_settings_scene" />
 
                 <category android:name="com.google.android.clockwork.tiles.category.PROVIDER_CONFIG" />
                 <category android:name="android.intent.category.DEFAULT" />

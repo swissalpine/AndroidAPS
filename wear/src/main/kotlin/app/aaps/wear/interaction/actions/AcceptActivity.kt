@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,6 +59,7 @@ import app.aaps.wear.comm.IntentWearToMobile
 import dagger.android.support.DaggerAppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -430,6 +434,19 @@ private fun WizardDetailPage(detail: EventData.WizardDetail, correctionSteps: In
                 // detail is stable across correctionSteps recompositions — remember to avoid recalculating on every tap.
                 val maxDownSteps = remember(detail) { if (detail.bolusStep > 0.0) ((detail.unclampedInsulin / detail.bolusStep) + 0.01).toInt().coerceAtLeast(0) else 0 }
                 val maxUpSteps   = remember(detail) { if (detail.bolusStep > 0.0 && detail.maxBolus > 0.0) (((detail.maxBolus - detail.unclampedInsulin) / detail.bolusStep) + 0.01).toInt() else Int.MAX_VALUE }
+                // Mutable ref mirroring the hoisted correctionSteps so a held repeat loop (a single
+                // long-running coroutine) always steps from the latest value instead of a stale
+                // closure capture — same technique as PlusMinusInputScreen's step().
+                val currentSteps = remember { mutableStateOf(correctionSteps) }
+                SideEffect { currentSteps.value = correctionSteps }
+                fun stepCorrection(delta: Int) {
+                    val newValue = (currentSteps.value + delta).coerceIn(-maxDownSteps, maxUpSteps)
+                    if (newValue != currentSteps.value) {
+                        currentSteps.value = newValue
+                        onCorrectionStepsChange(newValue)
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
@@ -438,23 +455,13 @@ private fun WizardDetailPage(detail: EventData.WizardDetail, correctionSteps: In
                     val canDecrease  = detail.bolusStep > 0.0 && correctionSteps > -maxDownSteps
                     val canIncrease  = detail.bolusStep > 0.0 && correctionSteps < maxUpSteps
                     if (detail.bolusStep > 0.0) {
-                        Box(
-                            modifier = Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(when {
-                                    correctionSteps < 0 -> WearInsulinNegative
-                                    canDecrease         -> WearCalcCardBg
-                                    else                -> Color(0xFF303030)
-                                })
-                                .clickable(enabled = canDecrease) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onCorrectionStepsChange(correctionSteps - 1)
-                                },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("−", color = if (canDecrease) Color.White else Color(0xFF606060), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
+                        CorrectionStepButton(
+                            isIncrement = false,
+                            active = correctionSteps < 0,
+                            enabled = canDecrease,
+                            activeColor = WearInsulinNegative,
+                            onStep = { stepCorrection(-1) },
+                        )
                         Spacer(Modifier.width(6.dp))
                     }
                     Box(
@@ -479,23 +486,13 @@ private fun WizardDetailPage(detail: EventData.WizardDetail, correctionSteps: In
                     }
                     if (detail.bolusStep > 0.0) {
                         Spacer(Modifier.width(6.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(26.dp)
-                                .clip(CircleShape)
-                                .background(when {
-                                    correctionSteps > 0 -> WearInsulinPositive
-                                    canIncrease         -> WearCalcCardBg
-                                    else                -> Color(0xFF303030)
-                                })
-                                .clickable(enabled = canIncrease) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onCorrectionStepsChange(correctionSteps + 1)
-                                },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("+", color = if (canIncrease) Color.White else Color(0xFF606060), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        }
+                        CorrectionStepButton(
+                            isIncrement = true,
+                            active = correctionSteps > 0,
+                            enabled = canIncrease,
+                            activeColor = WearInsulinPositive,
+                            onStep = { stepCorrection(1) },
+                        )
                     }
                 }
                 val carbsFontSize = if (detail.eCarbsGrams > 0 || (correctionSteps != 0 && detail.carbTimeMinutes != 0)) 11.sp else 14.sp
@@ -594,7 +591,7 @@ private fun WizardDetailPage(detail: EventData.WizardDetail, correctionSteps: In
                     if (newIob != null) {
                         Text(
                             text = stringResource(R.string.wizard_result_new_iob, fmt2.format(newIob)),
-                            color = Color(0xFF90A4AE),
+                            color = WearSecondaryText,
                             fontSize = 11.sp,
                         )
                     }
@@ -681,4 +678,61 @@ private fun WizardDetailDivider() {
             .height(1.dp)
             .background(WearDivider),
     )
+}
+
+/**
+ * Small ± correction button — press-and-hold repeats with acceleration, same timing as
+ * [StepButton] in PlusMinusInputScreen.kt (100ms grace period so the pager can still claim a
+ * swipe, then repeat every 300ms decaying down to a 40ms floor).
+ */
+@Composable
+private fun CorrectionStepButton(
+    isIncrement: Boolean,
+    active: Boolean,
+    enabled: Boolean,
+    activeColor: Color,
+    onStep: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(26.dp)
+            .clip(CircleShape)
+            .background(when {
+                active  -> activeColor
+                enabled -> InsulinBlue.copy(alpha = 0.25f)
+                else    -> Color(0xFF303030)
+            })
+            .pointerInput(enabled) {
+                if (!enabled) return@pointerInput
+                detectTapGestures(
+                    onPress = {
+                        var stepped = false
+                        coroutineScope {
+                            val job = launch {
+                                delay(100)          // allow pager to claim swipe gestures first
+                                stepped = true
+                                onStep()
+                                var repeatDelay = 300L
+                                while (true) {
+                                    delay(repeatDelay)
+                                    onStep()
+                                    repeatDelay = maxOf(40L, (repeatDelay * 0.75).toLong())
+                                }
+                            }
+                            val released = tryAwaitRelease()  // false if pager cancelled the gesture
+                            job.cancel()
+                            if (!stepped && released) onStep()  // quick tap under 100ms threshold
+                        }
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = if (isIncrement) "+" else "−",
+            color = if (enabled) Color.White else Color(0xFF606060),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
 }

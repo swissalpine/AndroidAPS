@@ -6,6 +6,7 @@ import app.aaps.wear.R
 import app.aaps.wear.interaction.utils.MenuListActivity
 import app.aaps.wear.tile.ActionsTileSettingsActivity
 import app.aaps.wear.tile.BgGraphTileSettingsActivity
+import app.aaps.wear.tile.SceneTileSettingsActivity
 import app.aaps.wear.tile.TempTargetTileSettingsActivity
 
 class TileMenuActivity : MenuListActivity() {
@@ -20,6 +21,7 @@ class TileMenuActivity : MenuListActivity() {
             MenuItem(R.drawable.action_tile_preview, getString(R.string.label_actions_tile)),
             MenuItem(R.drawable.temp_target_tile_preview, getString(R.string.label_temp_target_tile)),
             MenuItem(R.drawable.bg_graph_tile, getString(R.string.label_bg_graph_tile)),
+            MenuItem(R.drawable.scene_tile, getString(R.string.label_scene_tile)),
         )
 
     override fun doAction(position: String) {
@@ -27,6 +29,7 @@ class TileMenuActivity : MenuListActivity() {
             getString(R.string.label_actions_tile)     -> startActivity(Intent(this, ActionsTileSettingsActivity::class.java))
             getString(R.string.label_temp_target_tile) -> startActivity(Intent(this, TempTargetTileSettingsActivity::class.java))
             getString(R.string.label_bg_graph_tile)    -> startActivity(Intent(this, BgGraphTileSettingsActivity::class.java))
+            getString(R.string.label_scene_tile)       -> startActivity(Intent(this, SceneTileSettingsActivity::class.java))
         }
     }
 }

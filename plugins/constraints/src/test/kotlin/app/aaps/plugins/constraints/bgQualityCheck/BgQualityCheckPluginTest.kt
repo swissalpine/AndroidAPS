@@ -550,4 +550,16 @@ class BgQualityCheckPluginTest : TestBase() {
         assertThat(plugin.applyMaxIOBConstraints(ConstraintObject(10.0, aapsLogger)).value()).isWithin(0.001).of(0.0)
     }
 
+    @Test
+    fun isLgsForcedTest() {
+        plugin.state = BgQualityCheck.State.UNKNOWN
+        assertThat(plugin.isLgsForced(ConstraintObject(false, aapsLogger)).value()).isFalse()
+        plugin.state = BgQualityCheck.State.FIVE_MIN_DATA
+        assertThat(plugin.isLgsForced(ConstraintObject(false, aapsLogger)).value()).isFalse()
+        plugin.state = BgQualityCheck.State.RECALCULATED
+        assertThat(plugin.isLgsForced(ConstraintObject(false, aapsLogger)).value()).isFalse()
+        plugin.state = BgQualityCheck.State.DOUBLED
+        assertThat(plugin.isLgsForced(ConstraintObject(false, aapsLogger)).value()).isTrue()
+    }
+
 }

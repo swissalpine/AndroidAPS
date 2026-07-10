@@ -166,8 +166,6 @@ allprojects {
 }
 
 dependencies {
-    // in order to use internet"s versions you"d need to enable Jetifier again
-    // https://github.com/nightscout/iconify.git
     implementation(project(":shared:impl"))
     implementation(project(":core:data"))
     implementation(project(":core:objects"))
@@ -177,47 +175,30 @@ dependencies {
     implementation(project(":core:utils"))
     implementation(project(":core:ui"))
     implementation(project(":ui"))
-    implementation(project(":plugins:aps"))
-    implementation(project(":plugins:automation"))
-    implementation(project(":plugins:calibration"))
-    implementation(project(":plugins:configuration"))
-    implementation(project(":plugins:constraints"))
-    implementation(project(":plugins:main"))
-    implementation(project(":plugins:sensitivity"))
-    implementation(project(":plugins:smoothing"))
-    implementation(project(":plugins:source"))
-    implementation(project(":plugins:sync"))
+    // Feature plugins self-register into the Hilt plugin map (see e.g. :plugins:smoothing SmoothingModule).
+    // Adding/removing a plugin is therefore just an include in settings.gradle — no edit needed here.
+    rootProject.subprojects
+        .filter { it.path.startsWith(":plugins:") && it.buildFile.exists() }
+        .forEach { implementation(project(it.path)) }
     implementation(project(":implementation"))
     implementation(project(":database:impl"))
     implementation(project(":database:persistence"))
     implementation(project(":pump:virtual"))
     implementation(project(":workflow"))
 
-    // Pump drivers — only for full + pumpcontrol flavors
-    val pumpDependencies = listOf(
-        ":pump:combov2",
-        ":pump:dana",
-        ":pump:danars",
-        ":pump:danars-emulator",
-        ":pump:danar",
-        ":pump:danar-emulator",
-        ":pump:diaconn",
-        ":pump:eopatch",
-        ":pump:medtrum",
-        ":pump:equil",
-        ":pump:equil-emulator",
-        ":pump:insight",
-        ":pump:medtronic",
-        ":pump:common",
-        ":pump:omnipod:common",
-        ":pump:omnipod:eros",
-        ":pump:omnipod:dash",
-        ":pump:rileylink"
-    )
-    pumpDependencies.forEach {
-        "fullImplementation"(project(it))
-        "pumpcontrolImplementation"(project(it))
-    }
+    // Pump drivers — only for full + pumpcontrol flavors. Derived from the :pump:* modules included
+    // in settings.gradle (single source of truth) minus two exceptions:
+    //  - :pump:virtual is @AllConfigs (all flavors) and is wired above as a plain implementation
+    //  - :pump:combov2:comboctl is a support lib pulled in transitively by :pump:combov2
+    // buildFile.exists() skips the phantom :pump:omnipod container Gradle auto-creates from the
+    // nested :pump:omnipod:* includes (it has no build script / no consumable variant).
+    val pumpExclusions = setOf(":pump:virtual", ":pump:combov2:comboctl")
+    rootProject.subprojects
+        .filter { it.path.startsWith(":pump:") && it.path !in pumpExclusions && it.buildFile.exists() }
+        .forEach {
+            "fullImplementation"(project(it.path))
+            "pumpcontrolImplementation"(project(it.path))
+        }
 
     implementation(libs.androidx.lifecycle.process)
 
@@ -242,7 +223,6 @@ dependencies {
      * support for Activity and fragment injection so we need to include
      * the following dependencies */
     ksp(libs.com.google.dagger.android.processor)
-    kspAndroidTest(libs.com.google.dagger.android.processor)
     ksp(libs.com.google.dagger.compiler)
     implementation(libs.com.google.dagger.hilt.android)
     ksp(libs.com.google.dagger.hilt.compiler)
@@ -253,7 +233,6 @@ dependencies {
     // Hilt instrumentation testing: lets androidTest reuse the production @InstallIn graph
     // (single source of truth) with @TestInstallIn overrides instead of a hand-maintained component.
     androidTestImplementation(libs.com.google.dagger.hilt.android.testing)
-    kspAndroidTest(libs.com.google.dagger.hilt.compiler)
 
     // MainApp
     implementation(libs.com.uber.rxdogtag2.rxdogtag)

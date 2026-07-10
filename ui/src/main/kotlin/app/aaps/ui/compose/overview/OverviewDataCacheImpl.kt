@@ -82,6 +82,7 @@ import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.StringKey
 import app.aaps.core.keys.UnitDoubleKey
 import app.aaps.core.keys.interfaces.Preferences
+import app.aaps.core.objects.extensions.apsAdjustedTargetMgdl
 import app.aaps.core.objects.extensions.fromGv
 import app.aaps.core.objects.extensions.target
 import app.aaps.core.objects.profile.ProfileSealed
@@ -568,15 +569,10 @@ class OverviewDataCacheImpl @AssistedInject constructor(
             val profile = profileFunction.getProfile()
             if (profile != null) {
                 // Check if APS/AAPSCLIENT has adjusted target
-                val targetUsed = when {
-                    config.APS        -> loop.lastRun?.constraintsProcessed?.targetBG ?: 0.0
-                    config.AAPSCLIENT -> processedDeviceStatusData.getAPSResult()?.targetBG ?: 0.0
-                    else              -> 0.0
-                }
-
-                if (targetUsed != 0.0 && abs(profile.getTargetMgdl() - targetUsed) > 0.01) {
+                val adjustedTarget = profile.apsAdjustedTargetMgdl(loop, config, processedDeviceStatusData)
+                if (adjustedTarget != null) {
                     // APS adjusted target
-                    val apsTarget = profileUtil.toTargetRangeString(targetUsed, targetUsed, GlucoseUnit.MGDL, units)
+                    val apsTarget = profileUtil.toTargetRangeString(adjustedTarget, adjustedTarget, GlucoseUnit.MGDL, units)
                     TempTargetDisplayData(apsTarget, TempTargetState.ADJUSTED, 0L, 0L)
                 } else {
                     // Default profile target

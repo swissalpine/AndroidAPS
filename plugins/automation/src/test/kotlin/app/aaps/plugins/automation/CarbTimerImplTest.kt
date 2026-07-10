@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -65,7 +66,7 @@ class CarbTimerImplTest : TestBase() {
         whenever(rh.gs(anyInt())).thenReturn("")
         whenever(profileFunction.getUnits()).thenReturn(GlucoseUnit.MGDL)
         dateUtil = DateUtilImpl(context)
-        timerUtil = TimerUtil(context, rh, rxBus)
+        timerUtil = TimerUtil(context, rh, rxBus, dateUtil)
         automationRuntime = AutomationRuntime(
             injector, aapsLogger, rh, preferences, context, fabricPrivacy, loop, rxBus, constraintChecker, aapsSchedulers, config, locationServiceHelper, dateUtil, activePlugin, timerUtil, receiverStatusStore, uel, profileRepository, sceneApi
         )
@@ -79,6 +80,8 @@ class CarbTimerImplTest : TestBase() {
         assertThat(automationRuntime.size()).isEqualTo(0)
 
         automationRuntime.scheduleTimeToEatReminder(1)
-        verify(context, times(1)).startActivity(any())
+        // Reminder now goes via AlarmManager (background-safe), NOT the Clock app's startActivity (background-blocked).
+        verify(context, never()).startActivity(any())
+        verify(context, times(1)).getSystemService(Context.ALARM_SERVICE)
     }
 }

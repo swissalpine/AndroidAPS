@@ -56,6 +56,19 @@ import app.aaps.core.interfaces.rx.weardata.TargetRange
 import app.aaps.core.interfaces.rx.weardata.TempTargetInfo
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.wear.R
+import app.aaps.wear.interaction.actions.InsulinBlue
+import app.aaps.wear.interaction.actions.LoopClosedColor
+import app.aaps.wear.interaction.actions.LoopDisabledColor
+import app.aaps.wear.interaction.actions.LoopDisconnectedColor
+import app.aaps.wear.interaction.actions.LoopLgsColor
+import app.aaps.wear.interaction.actions.LoopOpenColor
+import app.aaps.wear.interaction.actions.LoopSuperbolusColor
+import app.aaps.wear.interaction.actions.LoopSuspendedColor
+import app.aaps.wear.interaction.actions.LoopUnknownColor
+import app.aaps.wear.interaction.actions.TempTargetYellow
+import app.aaps.wear.interaction.actions.WearDivider
+import app.aaps.wear.interaction.actions.WearSecondaryText
+import app.aaps.wear.interaction.actions.WearSummaryCardBg
 import dagger.android.AndroidInjection
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.kotlin.plusAssign
@@ -63,23 +76,13 @@ import java.util.Date
 import javax.inject.Inject
 import kotlin.math.abs
 
-// Colors sourced from wear/res/values/colors.xml
-private val LoopClosedColor       = Color(0xFF00C03E)
-private val LoopOpenColor         = Color(0xFF4983D7)
-private val LoopLgsColor          = Color(0xFF800080)
-private val LoopSuspendedColor    = Color(0xFFFFFF13)
-private val LoopDisabledColor     = Color(0xFFFF1313)
-private val LoopDisconnectedColor = Color(0xFF939393)
-private val LoopUnknownColor      = Color(0xFF9E9E9E)
-private val LoopSuperbolusColor   = Color(0xFFFFAE01)
-private val TempBasalColor        = Color(0xFFFF9800)
-private val BolusColor            = Color(0xFF1EA3E5)
-private val TempTargetActiveColor  = Color(0xFFF4D700)
+// Loop mode / insulin / secondary-text colors shared with the wizard result screen live in
+// app.aaps.wear.interaction.actions.PlusMinusInputScreen.kt — imported above so the two screens
+// can't drift apart. Only colors unique to this screen are declared here.
+private val TempBasalColor         = Color(0xFFFF9800)
+private val TargetsAccentColor     = Color(0xFF1E88E5)
 private val TempTargetBg           = Color(0x1AF4D700)
 private val AutosensTargetBg       = Color(0x1A77DD77)
-private val White70               = Color(0xB3FFFFFF)
-private val White20               = Color(0x33FFFFFF)
-private val CardBg                = Color(0xFF1A1A1A)
 
 private fun LoopStatusData.LoopMode.toColor(): Color = when (this) {
     LoopStatusData.LoopMode.CLOSED       -> LoopClosedColor
@@ -268,7 +271,7 @@ private fun StatusCard(content: @Composable () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(CardBg)
+            .background(WearSummaryCardBg)
             .padding(10.dp)
     ) {
         Column { content() }
@@ -297,7 +300,7 @@ private fun CardTitle(title: String, accentColor: Color) {
 @Composable
 private fun InfoRow(label: String, value: String, valueColor: Color = Color.White) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = label, color = White70, fontSize = 11.sp, modifier = Modifier.weight(1f))
+        Text(text = label, color = WearSecondaryText, fontSize = 11.sp, modifier = Modifier.weight(1f))
         Text(text = value, color = valueColor, fontSize = 12.sp)
     }
 }
@@ -308,7 +311,7 @@ private fun RowDivider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(White20)
+            .background(WearDivider)
     )
 }
 
@@ -339,7 +342,7 @@ private fun HeaderCard(mode: LoopStatusData.LoopMode, apsName: String?) {
         if (apsName != null) {
             Text(
                 text = apsName,
-                color = White70,
+                color = WearSecondaryText,
                 fontSize = 11.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -442,7 +445,7 @@ private fun OapsResultSection(
         InfoRow(
             label = stringResource(R.string.loop_status_smb_text),
             value = stringResource(R.string.loop_status_smb, smb),
-            valueColor = BolusColor
+            valueColor = InsulinBlue
         )
         Spacer(Modifier.height(2.dp))
     }
@@ -513,14 +516,14 @@ private fun OapsResultSection(
         ) {
             Text(
                 text = stringResource(R.string.loop_status_oaps_reason),
-                color = White70,
+                color = WearSecondaryText,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = if (isReasonExpanded) "▲" else "▼",
-                color = White70,
+                color = WearSecondaryText,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
@@ -551,7 +554,7 @@ private fun TargetsCard(
     val context = LocalContext.current
 
     StatusCard {
-        CardTitle(stringResource(R.string.loop_status_targets), IobColor)
+        CardTitle(stringResource(R.string.loop_status_targets), TargetsAccentColor)
         Spacer(Modifier.height(8.dp))
 
         if (tempTarget != null) {
@@ -572,21 +575,21 @@ private fun TargetsCard(
                     ) {
                         Text(
                             text = stringResource(R.string.loop_status_temp_target),
-                            color = TempTargetActiveColor,
+                            color = TempTargetYellow,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = "${tempTarget.targetDisplay} ${tempTarget.units}",
-                            color = TempTargetActiveColor,
+                            color = TempTargetYellow,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     Text(
                         text = stringResource(R.string.loop_status_tempt_duration, tempTarget.durationMinutes, endTimeStr),
-                        color = White70,
+                        color = WearSecondaryText,
                         fontSize = 11.sp,
                         modifier = Modifier.padding(top = 3.dp)
                     )

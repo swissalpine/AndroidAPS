@@ -83,6 +83,7 @@ import app.aaps.core.keys.StringNonKey
 import app.aaps.core.keys.UnitDoubleKey
 import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.objects.constraints.ConstraintObject
+import app.aaps.core.objects.extensions.apsAdjustedTargetMgdl
 import app.aaps.core.objects.extensions.convertedToAbsolute
 import app.aaps.core.objects.extensions.generateCOBString
 import app.aaps.core.objects.extensions.round
@@ -436,14 +437,9 @@ class DataHandlerMobile @Inject constructor(
 
         // Build autosens-adjusted target (only when no TT active)
         val autosensTarget = if (tempTarget == null && profile != null) {
-            val targetUsed =
-                if (config.APS) loop.lastRun?.constraintsProcessed?.targetBG ?: 0.0
-                else if (config.AAPSCLIENT) processedDeviceStatusData.getAPSResult()?.targetBG ?: 0.0
-                else 0.0
-            if (targetUsed != 0.0 && abs(profile.getTargetMgdl() - targetUsed) > 0.01) {
-                val units = if (profileUtil.units == GlucoseUnit.MGDL) "mg/dL" else "mmol/L"
-                "${profileUtil.fromMgdlToStringInUnits(targetUsed)} $units"
-            } else null
+            val adjustedTarget = profile.apsAdjustedTargetMgdl(loop, config, processedDeviceStatusData)
+            if (adjustedTarget != null) profileUtil.fromMgdlToStringWithUnits(adjustedTarget)
+            else null
         } else null
 
         // Build default range
@@ -1342,14 +1338,10 @@ class DataHandlerMobile @Inject constructor(
             profileUtil.toTargetRangeString(tempTarget.lowTarget, tempTarget.highTarget, GlucoseUnit.MGDL, units)
         } ?: profileFunction.getProfile()?.let { profile ->
             // If the target is not the same as set in the profile then oref has overridden it
-            val targetUsed =
-                if (config.APS) loop.lastRun?.constraintsProcessed?.targetBG ?: 0.0
-                else if (config.AAPSCLIENT) processedDeviceStatusData.getAPSResult()?.targetBG ?: 0.0
-                else 0.0
-
-            if (targetUsed != 0.0 && abs(profile.getTargetMgdl() - targetUsed) > 0.01) {
+            val adjustedTarget = profile.apsAdjustedTargetMgdl(loop, config, processedDeviceStatusData)
+            if (adjustedTarget != null) {
                 tempTargetLevel = 1     // Green
-                profileUtil.toTargetRangeString(targetUsed, targetUsed, GlucoseUnit.MGDL, units)
+                profileUtil.toTargetRangeString(adjustedTarget, adjustedTarget, GlucoseUnit.MGDL, units)
             } else {
                 profileUtil.toTargetRangeString(profile.getTargetLowMgdl(), profile.getTargetHighMgdl(), GlucoseUnit.MGDL, units)
             }

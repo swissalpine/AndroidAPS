@@ -91,6 +91,18 @@ interface Profile {
     fun getTargetHighMgdl(timestamp: Long): Double
 
     /**
+     * Average target in MGDL with the low/high targets each rounded to 0.1 mg/dL first — exactly how
+     * the APS builds its target_bg (min_bg/max_bg = Round.roundTo(getTargetLow/HighMgdl(), 0.1), then
+     * target_bg = (min_bg + max_bg) / 2).
+     *
+     * Use this — not [getTargetMgdl] — when comparing the profile target against the APS result target
+     * to decide whether the loop has adjusted it. [getTargetMgdl] is unrounded, so with a non-integer
+     * mmol→mg/dL factor (e.g. 5.0 mmol = 90.078 mg/dL) it never equals the APS value (90.1) and would
+     * falsely flag every loop run as "adjusted".
+     */
+    fun getRoundedTargetMgdl(): Double = (Round.roundTo(getTargetLowMgdl(), 0.1) + Round.roundTo(getTargetHighMgdl(), 0.1)) / 2.0
+
+    /**
      * Basal value according to elapsed seconds from midnight
      */
     fun getBasalTimeFromMidnight(timeAsSeconds: Int): Double

@@ -248,9 +248,9 @@ class BgGraphTileService : TileService() {
             else                -> android.graphics.Color.rgb(255, 0, 0)
         }
         val secondaryArgb = android.graphics.Color.rgb(170, 170, 170)
-        val iobArgb   = android.graphics.Color.rgb(30, 136, 229)
-        val cobArgb   = android.graphics.Color.rgb(255, 109, 0)
-        val basalArgb = android.graphics.Color.rgb(144, 202, 249)
+        val iobArgb   = android.graphics.Color.rgb(103, 223, 232)
+        val cobArgb   = android.graphics.Color.rgb(251, 140, 0)
+        val basalArgb = secondaryArgb
         val targetArgb = when (statusData.tempTargetLevel) {
             1    -> android.graphics.Color.rgb(119, 221, 119)
             2    -> android.graphics.Color.rgb(253, 216, 53)

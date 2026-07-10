@@ -78,6 +78,15 @@ class BgQualityCheckPlugin @Inject constructor(
         else
             maxIob
 
+    // Surface the doubled-BG maxIOB=0 fallback as LGS mode in the UI.
+    // The maxIOB clamp above still applies (e.g. in open loop); this additionally flips the
+    // running mode to CLOSED_LOOP_LGS via LoopPlugin.runningModePreCheck() when in closed loop.
+    override fun isLgsForced(value: Constraint<Boolean>): Constraint<Boolean> =
+        if (state == BgQualityCheck.State.DOUBLED)
+            value.set(true, rh.gs(R.string.bg_doubled_lgs), this)
+        else
+            value
+
     fun processBgData() {
         val readings = iobCobCalculator.ads.getBgReadingsDataTableCopy()
         val lastBg = iobCobCalculator.ads.lastBg()
