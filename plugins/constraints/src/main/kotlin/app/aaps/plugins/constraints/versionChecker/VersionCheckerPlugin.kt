@@ -36,11 +36,13 @@ class VersionCheckerPlugin @Inject constructor(
 ), PluginConstraints {
 
     override suspend fun applyMaxIOBConstraints(maxIob: Constraint<Double>): Constraint<Double> {
-        versionCheckerUtils.triggerCheckVersion()
-        val endDate = preferences.get(LongComposedKey.AppExpiration, config.VERSION_NAME)
-        return if (endDate != 0L && dateUtil.now() > endDate)
-            maxIob.set(0.0, rh.gs(R.string.application_expired), this)
-        else
-            maxIob
+        // Mod disable version checker logic
+        //versionCheckerUtils.triggerCheckVersion()
+        //val endDate = preferences.get(LongComposedKey.AppExpiration, config.VERSION_NAME)
+        //return if (endDate != 0L && dateUtil.now() > endDate)
+        //    maxIob.set(0.0, rh.gs(R.string.application_expired), this)
+        //else
+        //    maxIob
+        return maxIob
     }
 }
