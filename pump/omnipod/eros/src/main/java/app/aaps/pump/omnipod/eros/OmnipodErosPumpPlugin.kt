@@ -455,8 +455,11 @@ class OmnipodErosPumpPlugin @Inject constructor(
         return false
     }
 
-    // TODO is this correct?
-    override fun isBusy(): Boolean = busy || rileyLinkOmnipodService == null || !podStateManager.isPodRunning
+    override fun isBusy(): Boolean {
+        val progress = podStateManager.getActivationProgress()
+        return busy || rileyLinkOmnipodService == null ||
+            (progress != ActivationProgress.NONE && !progress.isCompleted())
+    }
 
     override fun setBusy(busy: Boolean) {
         this.busy = busy
@@ -512,8 +515,10 @@ class OmnipodErosPumpPlugin @Inject constructor(
     }
 
     override suspend fun setNewBasalProfile(profile: PumpProfile): PumpEnactResult {
-        if (!podStateManager.hasPodState()) return pumpEnactResultProvider.get().enacted(false).success(false).comment("Null pod state")
-        val result: PumpEnactResult = executeCommand(OmnipodCommandType.SET_BASAL_PROFILE) { aapsOmnipodErosManager.setBasalProfile(profile, true) }!!
+        // No pod yet — deferred, not a genuine error; the profile is applied when a pod is activated (see
+        // isThisProfileSet). success=true keeps it out of the central failure alarm; enacted=false => no OK.
+        if (!podStateManager.hasPodState()) return pumpEnactResultProvider.get().enacted(false).success(true).comment("Null pod state")
+        val result: PumpEnactResult = executeCommand(OmnipodCommandType.SET_BASAL_PROFILE) { aapsOmnipodErosManager.setBasalProfile(profile) }!!
 
         aapsLogger.info(LTag.PUMP, "Basal Profile was set: " + result.success)
 
@@ -629,7 +634,7 @@ class OmnipodErosPumpPlugin @Inject constructor(
             return executeCommand<PumpEnactResult?>(OmnipodCommandType.SUSPEND_DELIVERY) { aapsOmnipodErosManager.suspendDelivery() }
         }
         if (customCommand is CommandResumeDelivery) {
-            return executeCommand<PumpEnactResult?>(OmnipodCommandType.RESUME_DELIVERY) { aapsOmnipodErosManager.setBasalProfile(runBlocking { pumpSync.expectedPumpState() }.profile, false) }
+            return executeCommand<PumpEnactResult?>(OmnipodCommandType.RESUME_DELIVERY) { aapsOmnipodErosManager.setBasalProfile(runBlocking { pumpSync.expectedPumpState() }.profile) }
         }
         if (customCommand is CommandDeactivatePod) {
             return executeCommand<PumpEnactResult?>(OmnipodCommandType.DEACTIVATE_POD) { aapsOmnipodErosManager.deactivatePod() }
