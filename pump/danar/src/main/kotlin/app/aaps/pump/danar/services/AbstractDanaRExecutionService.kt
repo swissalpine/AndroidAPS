@@ -82,11 +82,13 @@ abstract class AbstractDanaRExecutionService : DaggerService() {
     @Inject @ApplicationScope lateinit var appScope: CoroutineScope
 
     private val disposable = CompositeDisposable()
-    protected var mRfcommSocket: RfcommSocket? = null
-    var isConnecting = false
+    // These are read/written across the connect() worker thread, the reader thread, the BT/app-exit
+    // observers (io scheduler), disconnect(), and the command methods - @Volatile for visibility.
+    @Volatile protected var mRfcommSocket: RfcommSocket? = null
+    @Volatile var isConnecting = false
         protected set
-    protected var mHandshakeInProgress = false
-    protected var mSerialIOThread: SerialIOThread? = null
+    @Volatile protected var mHandshakeInProgress = false
+    @Volatile protected var mSerialIOThread: SerialIOThread? = null
     protected var mBinder: IBinder? = null
     abstract fun messageHashTable(): MessageHashTableBase
 
@@ -201,9 +203,16 @@ abstract class AbstractDanaRExecutionService : DaggerService() {
         danaPump.bolusStopForced = true
         if (isConnected) {
             mSerialIOThread?.sendMessage(stop)
-            while (!danaPump.bolusStopped) {
+            // Bound the retries: re-check the connection each iteration and cap at 10s so a lost stop
+            // ack or a link drop mid-stop can't spin this thread forever.
+            val giveUpAt = System.currentTimeMillis() + 10 * 1000L
+            while (!danaPump.bolusStopped && isConnected && System.currentTimeMillis() < giveUpAt) {
                 mSerialIOThread?.sendMessage(stop)
                 SystemClock.sleep(200)
+            }
+            if (!danaPump.bolusStopped) {
+                aapsLogger.warn(LTag.PUMP, "bolusStop: no stop confirmation (connected=$isConnected) — forcing stopped after timeout")
+                danaPump.bolusStopped = true
             }
         } else {
             danaPump.bolusStopped = true

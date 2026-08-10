@@ -16,10 +16,13 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.min
 
 internal val BgInRangeColor = Color(0xFF00FF00)
 internal val BgHighColor    = Color(0xFFFFFF00)
 internal val BgLowColor     = Color(0xFFFF0000)
+// Magenta: the only hue on the graph not taken by BG (green/yellow/red), carbs (orange) or insulin (cyan)
+internal val CarbsRemovalMagenta = Color(0xFFE040FB)
 internal val SecondaryText  = Color(0xFFAAAAAA)
 internal val TempTargetColor     = Color(0xFFFDD835)
 internal val AutosensTargetColor = Color(0xFF77DD77)
@@ -52,10 +55,11 @@ internal fun ageColor(ageMs: Long): Color {
     }
 }
 
-internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) {
+internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int, showNowLabel: Boolean = true) {
     val now = System.currentTimeMillis()
     val historyMs = historyHours * 60 * 60 * 1000L
-    val predictionMs = 90 * 60 * 1000L
+    // Cap predictions at the history span so short ranges (1h) aren't dominated by the prediction area
+    val predictionMs = min(90 * 60 * 1000L, historyMs)
     val startTime = now - historyMs
     val endTime = now + predictionMs
     val timeSpan = (endTime - startTime).toFloat()
@@ -116,17 +120,10 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
         strokeWidth = 1.dp.toPx()
     )
 
-    val nowLabel = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(now))
     val hourFormat = SimpleDateFormat("HH", Locale.getDefault())
     drawIntoCanvas { canvas ->
         val hourPaint = Paint().apply {
             color = android.graphics.Color.argb(140, 170, 170, 170)
-            textSize = 8.dp.toPx()
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-        }
-        val nowPaint = Paint().apply {
-            color = android.graphics.Color.argb(178, 255, 255, 255)
             textSize = 8.dp.toPx()
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
@@ -139,7 +136,16 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
                 hourPaint
             )
         }
-        canvas.nativeCanvas.drawText(nowLabel, nowX, pad + nowPaint.textSize + 2f, nowPaint)
+        if (showNowLabel) {
+            val nowPaint = Paint().apply {
+                color = android.graphics.Color.argb(178, 255, 255, 255)
+                textSize = 8.dp.toPx()
+                textAlign = Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            val nowLabel = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(now))
+            canvas.nativeCanvas.drawText(nowLabel, nowX, pad + nowPaint.textSize + 2f, nowPaint)
+        }
     }
 
     val high = bgData.high.toFloat()
@@ -197,7 +203,8 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
 
     for (treatment in boluses) {
         if (!treatment.isValid || treatment.isSMB) continue
-        if (treatment.carbs <= 0 || treatment.date !in startTime..endTime) continue
+        // carbs != 0: negative entries (COB removal) are drawn too, like on the phone graph — in magenta to tell them apart
+        if (treatment.carbs == 0.0 || treatment.date !in startTime..endTime) continue
         val x = timeToX(treatment.date)
         drawPath(
             Path().apply {
@@ -206,7 +213,7 @@ internal fun DrawScope.renderBgGraph(data: ComplicationData, historyHours: Int) 
                 lineTo(x + triSize, bottom)
                 close()
             },
-            CarbsOrange
+            if (treatment.carbs < 0) CarbsRemovalMagenta else CarbsOrange
         )
     }
 

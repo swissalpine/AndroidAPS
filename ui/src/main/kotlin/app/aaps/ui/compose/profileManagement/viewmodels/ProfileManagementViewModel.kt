@@ -5,6 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.aaps.core.data.model.EPS
+import app.aaps.core.data.model.ICfg
 import app.aaps.core.data.model.TT
 import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Sources
@@ -13,12 +14,12 @@ import app.aaps.core.graph.profile.buildProfileCompareData
 import app.aaps.core.interfaces.bolus.BatchAction
 import app.aaps.core.interfaces.bolus.BatchExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
-import app.aaps.core.ui.clientcontrol.failTextResId
 import app.aaps.core.interfaces.clientcontrol.FailureReason
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.db.compensateForClockSkew
 import app.aaps.core.interfaces.di.ApplicationScope
+import app.aaps.core.interfaces.insulin.InsulinManager
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.plugin.ActivePlugin
@@ -32,6 +33,7 @@ import app.aaps.core.interfaces.profile.SingleProfile
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.events.EventShowDialog
+import app.aaps.core.interfaces.sync.NsClient
 import app.aaps.core.interfaces.tempTargets.ttTargetMgdl
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.DecimalFormatter
@@ -40,6 +42,7 @@ import app.aaps.core.keys.interfaces.Preferences
 import app.aaps.core.objects.extensions.toPureProfile
 import app.aaps.core.objects.profile.ProfileSealed
 import app.aaps.core.ui.R
+import app.aaps.core.ui.clientcontrol.failTextResId
 import app.aaps.core.ui.compose.ScreenMode
 import app.aaps.core.ui.compose.icons.IcProfile
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,8 +55,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -61,6 +66,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 /**
@@ -86,8 +92,10 @@ class ProfileManagementViewModel @Inject constructor(
     val profileUtil: ProfileUtil,
     val decimalFormatter: DecimalFormatter,
     private val persistenceLayer: PersistenceLayer,
+    private val insulinManager: InsulinManager,
     private val preferences: Preferences,
     private val config: Config,
+    private val nsClient: NsClient,
     private val batchExecutor: BatchExecutor,
     private val rxBus: RxBus,
     @ApplicationScope private val appScope: CoroutineScope
@@ -104,6 +112,25 @@ class ProfileManagementViewModel @Inject constructor(
     // the user retries the same failing action twice in a row.
     private val _snackbarEvent = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val snackbarEvent: SharedFlow<String> = _snackbarEvent.asSharedFlow()
+
+    /**
+     * Whether this device can actually deliver a profile edit: it is the master, or it is a client that
+     * is paired AND whose master is reachable and accepting commands. Anything else means the screen is
+     * read-only rather than hidden — the profiles received from Nightscout are still worth showing.
+     *
+     * Both terms matter and they are different axes: pairing is the stable one (an unpaired client can
+     * never send), reachability the transient one (master offline, or its remote control / websocket
+     * off). The Manage sheet already gates its editors this way; this screen follows the same rule.
+     *
+     * Fail closed until the flows settle, and read it where the state is built rather than where the
+     * mode is requested, so a change while the screen is open takes effect at once.
+     */
+    private val editingAllowed: Boolean get() = editingAllowedFlow.value
+
+    private val editingAllowedFlow: StateFlow<Boolean> =
+        combine(nsClient.masterOrPairedClientFlow, nsClient.masterReachable) { paired, reachable ->
+            !config.AAPSCLIENT || (paired && reachable)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), !config.AAPSCLIENT)
 
     fun setScreenMode(mode: ScreenMode) {
         _screenMode.value = mode
@@ -162,13 +189,20 @@ class ProfileManagementViewModel @Inject constructor(
         profileRepository.profiles,
         _selectedIndex,
         persistenceLayer.observeChanges(EPS::class.java).compensateForClockSkew(config, dateUtil).onStart { emit(emptyList()) },
-        _screenMode
-    ) { profiles, requestedIdx, _, screenMode ->
+        _screenMode,
+        // An input, not a snapshot: pairing/unpairing or the master going away while this screen is
+        // open has to move it between editable and read-only right away.
+        editingAllowedFlow
+    ) { profiles, requestedIdx, _, screenMode, _ ->
         UiInputs(profiles, requestedIdx, screenMode)
     }.mapLatest { inputs ->
         runCatching { buildUiState(inputs) }.getOrElse { e ->
             aapsLogger.error(LTag.UI, "Failed to compute uiState", e)
-            ProfileManagementUiState(isLoading = false, screenMode = inputs.screenMode)
+            ProfileManagementUiState(
+                isLoading = false,
+                screenMode = if (editingAllowed) inputs.screenMode else ScreenMode.PLAY,
+                commandsAllowed = editingAllowed
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileManagementUiState())
 
@@ -238,7 +272,9 @@ class ProfileManagementViewModel @Inject constructor(
             pumpWarnings = pumpWarnings,
             selectedProfile = selectedProfile,
             compareData = compareData,
-            screenMode = screenMode,
+            // An unpaired client cannot leave PLAY, whatever mode was requested.
+            screenMode = if (editingAllowed) screenMode else ScreenMode.PLAY,
+            commandsAllowed = editingAllowed,
             isLoading = false
         )
     }
@@ -383,6 +419,112 @@ class ProfileManagementViewModel @Inject constructor(
         }
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Reorder ("sort") mode
+    // ---------------------------------------------------------------------------------------------
+
+    /**
+     * Working order while reorder mode is on, as `value[position] == originalIndex`; null when the
+     * mode is off — which is also the flag the screen uses to decide it is sorting.
+     *
+     * Deliberately its own flow rather than part of [uiState]: a reorder step must not re-run
+     * profile validation, and must not be read as the user selecting a different profile.
+     */
+    private val _reorderOrder = MutableStateFlow<List<Int>?>(null)
+    val reorderOrder: StateFlow<List<Int>?> = _reorderOrder.asStateFlow()
+
+    /**
+     * Original index of the profile the carousel re-centres on when the mode is left: the last one
+     * moved, or the selected profile if nothing was moved. Tracked as an *original* index so it
+     * survives the permutation.
+     */
+    private var reorderAnchor: Int = 0
+
+    /**
+     * Profile names as they were when reorder mode was entered. The working order is a list of
+     * indices, so it only means anything against the list it was derived from — a same-length
+     * replacement (an NS push of a different profile set) would otherwise pass the repository's
+     * permutation check and apply the user's intent to profiles they never saw.
+     */
+    private var reorderNames: List<String> = emptyList()
+
+    fun enterReorderMode() {
+        val profiles = profileRepository.profiles.value
+        if (profiles.isEmpty()) return
+        reorderAnchor = _selectedIndex.value.coerceIn(0, profiles.size - 1)
+        reorderNames = profiles.map { it.name }
+        _reorderOrder.value = List(profiles.size) { it }
+    }
+
+    fun cancelReorder() {
+        _reorderOrder.value = null
+    }
+
+    /**
+     * Apply one move as remove-then-insert, not a swap, so a non-adjacent move shifts the items in
+     * between rather than scrambling them. The buttons only ever step by one, but
+     * `CarouselReorderConfig.onMove` is declared for arbitrary index pairs.
+     *
+     * @return true if the order changed. The carousel follows the moved card only on true, so a
+     *         rejected move must not look like it succeeded.
+     */
+    fun moveReorderItem(from: Int, to: Int): Boolean {
+        val current = _reorderOrder.value ?: return false
+        if (from == to || from !in current.indices || to !in current.indices) return false
+        reorderAnchor = current[from]
+        _reorderOrder.value = current.toMutableList().apply { add(to, removeAt(from)) }
+        return true
+    }
+
+    /**
+     * Persist the working order and leave reorder mode.
+     *
+     * Commits once, here — not per move — because each persist bumps the profile-store timestamp
+     * and provokes a full Nightscout upload.
+     *
+     * @return the carousel position to settle on, or null if the commit failed (the profile list
+     *         was replaced underneath us, e.g. by an NS push mid-sort).
+     */
+    suspend fun commitReorder(): Int? {
+        val order = _reorderOrder.value ?: return null
+        // Selection is positional, so it must follow the profile through the permutation — otherwise
+        // the screen silently ends up showing a different profile. Resolved for both branches, so an
+        // undone move lands on the same card a committed one would.
+        val anchorPosition = order.indexOf(reorderAnchor).takeIf { it >= 0 } ?: _selectedIndex.value
+        // Nothing moved — skip the repository entirely so leaving the mode is free.
+        if (order.withIndex().all { (position, original) -> position == original }) {
+            _selectedIndex.value = anchorPosition
+            _reorderOrder.value = null
+            return anchorPosition
+        }
+        if (profileRepository.profiles.value.map { it.name } != reorderNames) {
+            // The list changed under us; the indices in `order` no longer mean what they meant.
+            return failReorder()
+        }
+        val expectedNames = order.map { reorderNames[it] }
+        return profileRepository.reorder(order).fold(
+            onSuccess = {
+                _selectedIndex.value = anchorPosition
+                // Hold the working order until the recomputed state actually carries the new list.
+                // uiState re-validates every profile and hits the DB, so clearing immediately would
+                // leave the cards rendering the pre-sort order at post-sort positions for a frame —
+                // the moved profile visibly snapping back before jumping again.
+                withTimeoutOrNull(UI_STATE_SETTLE_TIMEOUT_MS) {
+                    uiState.first { it.profileNames == expectedNames }
+                }
+                _reorderOrder.value = null
+                anchorPosition
+            },
+            onFailure = { failReorder() }
+        )
+    }
+
+    private fun failReorder(): Int? {
+        _snackbarEvent.tryEmit(rh.gs(app.aaps.ui.R.string.profile_no_longer_exists))
+        _reorderOrder.value = null
+        return null
+    }
+
     // Profile viewer formatting helpers
     fun getIcList(profile: Profile): String = profile.getIcList(rh, dateUtil)
     fun getIsfList(profile: Profile): String = profile.getIsfList(rh, dateUtil)
@@ -427,12 +569,34 @@ class ProfileManagementViewModel @Inject constructor(
     }
 
     /**
+     * What the activation screen should offer for insulin.
+     *
+     * [choices] is empty in the normal case — something is running or pending, so the master resolves the
+     * in-force insulin itself and the screen shows no picker. It is non-empty only when nothing is in force
+     * (typically the first-ever switch): the switch still has to record an insulin, and a catalogue entry is
+     * never substituted silently, so the user picks one and activation stays disabled until they do.
+     */
+    data class InsulinChoice(val choices: List<ICfg>, val preselected: ICfg?)
+
+    suspend fun insulinChoice(): InsulinChoice {
+        if (profileFunction.getRunningOrRequestedICfg() != null) return InsulinChoice(emptyList(), null)
+        val catalogue = insulinManager.insulins.toList()
+        // Suggest whatever the user last switched with. Matched by label, because the switch stores a value
+        // snapshot of the config rather than a reference to the catalogue entry.
+        val lastLabel = persistenceLayer.getProfileSwitches().maxByOrNull { it.timestamp }?.iCfg?.insulinLabel
+        return InsulinChoice(catalogue, catalogue.firstOrNull { it.insulinLabel == lastLabel })
+    }
+
+    /**
      * Activate a named profile. Routes through the role-transparent [BatchExecutor] so a client relays the switch
      * to the master (which resolves the name in its own store); on the master it applies locally. The master-authored
      * confirmation lines are shown as the single confirm dialog, and an optional activity temp-target rides the same
      * atomic batch. Returns true when the switch was prepared (the confirm dialog is shown), false on a pre-check reject.
      * [onSuccess] is invoked on the main thread ONLY after the user confirms and the switch is actually committed
      * (ActionProgress.Applied) — so a caller can close the screen on real activation, not merely when the dialog appears.
+     *
+     * [iCfg] is the insulin the user picked when nothing was in force (see [insulinChoice]); null lets the master
+     * resolve the in-force one, or refuse when there is none.
      *
      * Note: back-dating ([timestamp]/[timeChanged]) isn't carried through the batch path — the master stamps now().
      */
@@ -446,6 +610,7 @@ class ProfileManagementViewModel @Inject constructor(
         notes: String,
         timestamp: Long = dateUtil.now(),
         timeChanged: Boolean = false,
+        iCfg: ICfg? = null,
         onSuccess: () -> Unit = {}
     ): Boolean {
         val profileNames = uiState.value.profileNames
@@ -467,7 +632,7 @@ class ProfileManagementViewModel @Inject constructor(
         }
 
         val actions = buildList {
-            add(BatchAction.ProfileSwitch(percentage, timeshiftHours, durationMinutes, profileName = profileName, notes = notes.ifBlank { null }))
+            add(BatchAction.ProfileSwitch(percentage, timeshiftHours, durationMinutes, profileName = profileName, notes = notes.ifBlank { null }, iCfg = iCfg))
             // An activity temp-target rides the same batch (raising → applied first, atomically with the switch).
             if (withTT && durationMinutes > 0 && percentage < 100) {
                 val targetMgdl = preferences.ttTargetMgdl(TT.Reason.ACTIVITY)
@@ -483,17 +648,19 @@ class ProfileManagementViewModel @Inject constructor(
                         onOk = {
                             appScope.launch {
                                 when (val result = batchExecutor.commit(prepared.id, Sources.ProfileSwitchDialog, label)) {
-                                    is ActionProgress.Applied -> {
+                                    is ActionProgress.Applied  -> {
                                         if (percentage == 90 && durationMinutes == 10) preferences.put(BooleanNonKey.ObjectivesProfileSwitchUsed, true)
                                         withContext(Dispatchers.Main) { onSuccess() }
                                     }
+
                                     is ActionProgress.Rejected ->
                                         if (result.reason == FailureReason.NotReachable || result.reason == FailureReason.ControlDisabled)
                                             rxBus.send(EventShowDialog.Ok(title = label, message = rh.gs(result.reason.failTextResId())))
                                         else result.detail?.let { detail ->
                                             rxBus.send(EventShowDialog.Ok(title = label, message = detail))
                                         }
-                                    else                      -> Unit // Unconfirmed → app-level modal
+
+                                    else                       -> Unit // Unconfirmed → app-level modal
                                 }
                             }
                         }
@@ -515,6 +682,16 @@ class ProfileManagementViewModel @Inject constructor(
             else                       -> false // Unconfirmed → handled by the app-level pending modal
         }
     }
+
+    companion object {
+
+        /**
+         * How long [commitReorder] waits for [uiState] to carry the committed order before giving up
+         * and leaving reorder mode anyway. A safety net only — the recomputation normally lands in a
+         * frame or two, and this exists so the mode cannot get stuck if nothing is collecting.
+         */
+        private const val UI_STATE_SETTLE_TIMEOUT_MS = 1_000L
+    }
 }
 
 /**
@@ -535,5 +712,11 @@ data class ProfileManagementUiState(
     val selectedProfile: Profile? = null,
     val compareData: ProfileCompareData? = null,
     val screenMode: ScreenMode = ScreenMode.EDIT,
+    /**
+     * False on an unpaired client: editing and activating are both commands for the master, and there
+     * is no master to send them to. The profile list itself stays visible — only the affordances go
+     * away. Same axis as `commandsAllowed` on the overview chips.
+     */
+    val commandsAllowed: Boolean = true,
     val isLoading: Boolean = true
 )

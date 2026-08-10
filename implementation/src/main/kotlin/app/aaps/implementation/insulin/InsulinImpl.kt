@@ -1,16 +1,12 @@
 package app.aaps.implementation.insulin
 
-import app.aaps.core.data.model.EPS
 import app.aaps.core.data.model.ICfg
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
 import app.aaps.core.interfaces.configuration.Config
-import app.aaps.core.interfaces.db.PersistenceLayer
-import app.aaps.core.interfaces.db.observeChanges
 import app.aaps.core.interfaces.di.ApplicationScope
 import app.aaps.core.interfaces.insulin.ConcentrationType
-import app.aaps.core.interfaces.insulin.Insulin
 import app.aaps.core.interfaces.insulin.InsulinManager
 import app.aaps.core.interfaces.insulin.InsulinType
 import app.aaps.core.interfaces.logging.AAPSLogger
@@ -18,7 +14,6 @@ import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.logging.UserEntryLogger
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.resources.ResourceHelper
-import app.aaps.core.interfaces.rx.collectResilient
 import app.aaps.core.interfaces.utils.HardLimits
 import app.aaps.core.keys.LongComposedKey
 import app.aaps.core.keys.StringNonKey
@@ -29,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -47,38 +41,27 @@ class InsulinImpl @Inject constructor(
     private val preferences: Preferences,
     val rh: ResourceHelper,
     val profileFunction: ProfileFunction,
-    val persistenceLayer: PersistenceLayer,
     val aapsLogger: AAPSLogger,
     val config: Config,
     val hardLimits: HardLimits,
     val uel: UserEntryLogger,
     @ApplicationScope private val appScope: CoroutineScope
-) : Insulin, InsulinManager {
+) : InsulinManager {
 
     // True while the one-time init normalization rebuilds the list via [applyConfiguration]; suppresses
     // the per-insulin [storeSettings] so the normalize persists at most once (via putRemote) at the end.
     @Volatile private var applying = false
 
-    override val friendlyName get() = iCfg.insulinNickname  // No more used to delete or a way to provide Nickname ?
-
-    @Volatile private var cachedICfg: ICfg? = null
-
-    // Non-blocking: this getter is read during Compose composition (e.g. BolusCarbsScreen,
-    // StatusViewModel), so it must never load the profile synchronously. The cache is populated
-    // off-main in init and kept fresh by the EPS observer; until then fall back to the locally
-    // stored running config (insulins[0], which holds the current insulin in first position).
-    override val iCfg: ICfg
-        get() = cachedICfg ?: insulins[0]
-
     override var insulins: ArrayList<ICfg> = ArrayList()
-    override var currentInsulinIndex = 0
+
+    // Serialized config of the most recent LOCAL store. Stamped BEFORE preferences.put() at the single
+    // store choke point so a UI observing InsulinConfiguration can recognize its own echo regardless of
+    // dispatch timing (Main.immediate can deliver the change re-entrantly inside put()). @Volatile: written
+    // under the @Synchronized store lock, read from the UI (main) thread without it.
+    @Volatile override var lastStoredConfiguration: String = ""
 
     init {
         bootstrap()
-        // Populate the iCfg cache off the main thread so the synchronous getter never has to block.
-        appScope.launch { updateCachedICfg() }
-        persistenceLayer.observeChanges<EPS>()
-            .collectResilient(appScope, aapsLogger, LTag.CORE) { updateCachedICfg() }
         // Pick up master pushes: the cold-key bidirectional sync writes InsulinConfiguration via
         // putRemote. Client only — the master owns the canonical config and edits its own list directly.
         // Verbatim load → no re-store → no echo.
@@ -86,9 +69,6 @@ class InsulinImpl @Inject constructor(
             preferences.observe(StringNonKey.InsulinConfiguration).drop(1).onEach { loadSettings() }.launchIn(appScope)
     }
 
-    private suspend fun updateCachedICfg() {
-        cachedICfg = profileFunction.getProfile()?.iCfg
-    }
 
     override fun insulinTemplateList(): List<InsulinType> = listOf(
         InsulinType.OREF_RAPID_ACTING,
@@ -119,7 +99,6 @@ class InsulinImpl @Inject constructor(
         newICfg.insulinNickname = nickname
         val newInsulin = deepClone(newICfg)
         insulins.add(newInsulin)
-        currentInsulinIndex = insulins.size - 1
         if (ue) {
             uel.log(Action.NEW_INSULIN, Sources.Insulin, value = ValueWithUnit.SimpleString(fullName))
         }
@@ -129,12 +108,11 @@ class InsulinImpl @Inject constructor(
     }
 
     @Synchronized
-    override fun removeCurrentInsulin() {
-        if (insulins.size <= 1) return // invariant: the list keeps at least one insulin (iCfg falls back to insulins[0])
-        val insulinRemoved = currentInsulin().insulinLabel
-        insulins.removeAt(currentInsulinIndex)
+    override fun removeInsulin(index: Int) {
+        if (insulins.size <= 1) return // the catalogue is never emptied — the pickers must always have something to offer
+        val insulinRemoved = insulins.getOrNull(index)?.insulinLabel ?: return
+        insulins.removeAt(index)
         uel.log(Action.INSULIN_REMOVED, Sources.Insulin, value = ValueWithUnit.SimpleString(insulinRemoved))
-        currentInsulinIndex = 0     // Current running iCfg put in first position
         storeSettings()
     }
 
@@ -196,12 +174,11 @@ class InsulinImpl @Inject constructor(
         insulinArray?.forEach { element ->
             runCatching { (element as? JsonObject)?.let { insulins.add(ICfg.fromJsonObject(it)) } }
         }
-        currentInsulinIndex = currentInsulinIndex.coerceIn(0, (insulins.size - 1).coerceAtLeast(0))
     }
 
     // One-time at init.
-    // CLIENT: mirror the master's config verbatim, seeding a normalized default ONLY when empty (so
-    // iCfg's insulins[0] fallback is safe). The master owns the canonical form, so client never
+    // CLIENT: mirror the master's config verbatim, seeding a normalized default ONLY when empty (so the
+    // pickers always have something to offer). The master owns the canonical form, so client never
     // re-canonicalizes non-empty data — avoids cosmetically diverging from a master that serializes
     // slightly differently (mixed app versions).
     // MASTER: normalize legacy data (fill nicknames, dedup, regenerate labels, seed default) and persist
@@ -234,18 +211,26 @@ class InsulinImpl @Inject constructor(
     }
 
     /** Persist the bootstrapped config via putRemote — no echo, stamp floored to the current value. */
-    private fun persistBootstrap() =
+    private fun persistBootstrap() {
+        val cfg = configuration().toString()
+        lastStoredConfiguration = cfg
         preferences.putRemote(
-            StringNonKey.InsulinConfiguration, configuration().toString(),
+            StringNonKey.InsulinConfiguration, cfg,
             preferences.get(LongComposedKey.SyncedPrefModified, StringNonKey.InsulinConfiguration.key)
         )
+    }
 
     @Synchronized
     override fun storeSettings() {
         if (applying) return // the one-time init normalize persists once at the end via putRemote
         // Genuine edit → local put. The generic sync layer stamps SyncedPrefModified and signals the
         // client→master publisher on this write; no manual version bump needed.
-        preferences.put(StringNonKey.InsulinConfiguration, configuration().toString())
+        // Stamp lastStoredConfiguration BEFORE the put so an observer that receives the change
+        // synchronously (Main.immediate re-entrancy inside put()) already sees the new value and can
+        // suppress this self-echo.
+        val cfg = configuration().toString()
+        lastStoredConfiguration = cfg
+        preferences.put(StringNonKey.InsulinConfiguration, cfg)
     }
 
     @Synchronized
@@ -289,8 +274,6 @@ class InsulinImpl @Inject constructor(
             }
         }
     }
-
-    fun currentInsulin(): ICfg = insulins[currentInsulinIndex]
 
     fun deepClone(iCfg: ICfg, withoutName: Boolean = false): ICfg = iCfg.deepClone().also {
         if (withoutName)

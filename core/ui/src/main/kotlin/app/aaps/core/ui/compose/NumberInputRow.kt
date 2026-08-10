@@ -31,12 +31,10 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.ui.R
-import java.text.DecimalFormat
 import kotlin.math.roundToInt
-import app.aaps.core.keys.R as KeysR
 
 /**
  * Composable that displays a numeric input as a TextField with +/- icon buttons.
@@ -58,10 +56,16 @@ import app.aaps.core.keys.R as KeysR
  * @param unitLabel Resolved unit label string (used when unitLabelResId is 0)
  * @param valueFormatResId Resource ID for formatting value with unit (e.g., "%1$.1f U")
  * @param formatAsInt If true, value is formatted as Int for stringResource (use with %d format strings)
- * @param valueFormat Custom DecimalFormat (overrides auto-created from decimalPlaces)
+ * @param valueFormat Custom NumberFormat (overrides auto-created from decimalPlaces)
  * @param decimalPlaces Number of decimal places for value display (0 = integer, default). Ignored if valueFormat is set.
  * @param enabled Whether the input is interactive
  * @param modifier Modifier for the root Column container
+ *
+ * @see NumberInputRowBasicPreview
+ * @see NumberInputRowWithUnitPreview
+ * @see NumberInputRowMinutesPreview
+ * @see NumberInputRowPercentPreview
+ * @see NumberInputRowMinutesDirectPreview
  */
 @Composable
 fun NumberInputRow(
@@ -75,15 +79,14 @@ fun NumberInputRow(
     unitLabel: String = "",
     valueFormatResId: Int? = null,
     formatAsInt: Boolean = false,
-    valueFormat: DecimalFormat? = null,
+    valueFormat: NumberFormat? = null,
     decimalPlaces: Int = 0,
     enabled: Boolean = true,
     compact: Boolean = false,
     displayValue: String? = null,
 ) {
     val effectiveValueFormat = valueFormat ?: remember(decimalPlaces) {
-        if (decimalPlaces == 0) DecimalFormat("0")
-        else DecimalFormat("0.${"0".repeat(decimalPlaces)}")
+        NumberFormat.withDecimals(decimalPlaces)
     }
     val focusManager = LocalFocusManager.current
     val label = if (labelResId != 0) stringResource(labelResId) else ""
@@ -295,77 +298,3 @@ fun NumberInputRow(
 }
 
 // --- Previews ---
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun NumberInputRowBasicPreview() {
-    MaterialTheme {
-        NumberInputRow(labelResId = R.string.carbs, value = 20.0, onValueChange = {}, valueRange = 0.0..100.0, step = 1.0)
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun NumberInputRowWithUnitPreview() {
-    MaterialTheme {
-        NumberInputRow(
-            labelResId = R.string.insulin_label,
-            value = 3.5,
-            onValueChange = {},
-            valueRange = 0.0..10.0,
-            step = 0.1,
-            decimalPlaces = 1,
-            unitLabel = "U"
-        )
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun NumberInputRowMinutesPreview() {
-    MaterialTheme {
-        NumberInputRow(
-            labelResId = R.string.duration,
-            value = 130.0,
-            onValueChange = {},
-            valueRange = 0.0..300.0,
-            step = 10.0,
-            unitLabelResId = KeysR.string.units_min
-        )
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun NumberInputRowPercentPreview() {
-    MaterialTheme {
-        NumberInputRow(
-            labelResId = R.string.duration,
-            value = 100.0,
-            onValueChange = {},
-            valueRange = 10.0..200.0,
-            step = 5.0,
-            unitLabelResId = KeysR.string.units_percent
-        )
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun NumberInputRowMinutesDirectPreview() {
-    MaterialTheme {
-        NumberInputRow(
-            labelResId = R.string.duration,
-            value = 130.0,
-            onValueChange = {},
-            valueRange = 0.0..300.0,
-            step = 10.0,
-            unitLabelResId = KeysR.string.units_min
-        )
-    }
-}

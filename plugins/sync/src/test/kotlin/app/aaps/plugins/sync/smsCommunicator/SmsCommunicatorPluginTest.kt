@@ -56,6 +56,8 @@ import org.mockito.Mock
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verifyBlocking
 import org.mockito.kotlin.whenever
 
 @Suppress("SpellCheckingInspection")
@@ -102,7 +104,6 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
                 persistenceLayer.insertAndCancelCurrentTemporaryTarget(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
             ).thenReturn(PersistenceLayer.TransactionResult<TT>())
         }
-        whenever(insulin.iCfg).thenReturn(iCfg)
         // Use a real RunningModeGuard so the gate decisions actually fire from the mocked loop
         // (a mock guard returns null for everything → all gate-protected paths silently allow).
         runningModeGuard = RunningModeGuard(loop, rh, rxBus)
@@ -110,7 +111,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         // Without this, the gate sees null mode and PumpCommandGate.check throws NPE.
         runBlocking { whenever(loop.runningMode()).thenReturn(RM.Mode.CLOSED_LOOP) }
         smsCommunicatorPlugin = SmsCommunicatorPlugin(
-            aapsLogger, rh, smsManager, preferences, constraintChecker, profileFunction, profileUtil, activePlugin, insulin, profileRepository,
+            aapsLogger, rh, smsManager, preferences, constraintChecker, profileFunction, profileUtil, activePlugin, profileRepository,
             commandQueue, loop, iobCobCalculator, xDripBroadcast, otp, config, dateUtilMocked, uel,
             smbGlucoseStatusProvider, persistenceLayer, decimalFormatter, configBuilder, pumpStatusProvider, notificationManager,
             runningModeGuard, bolusProgressData, testScope, repository
@@ -136,6 +137,8 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         runBlocking { whenever(iobCobCalculator.calculateIobFromTempBasalsIncludingConvertedExtended()).thenReturn(IobTotal(0)) }
 
         runBlocking { whenever(profileFunction.getProfile()).thenReturn(effectiveProfile) }
+        // A remote profile switch records the insulin in force; without one the SMS action refuses by design.
+        runBlocking { whenever(profileFunction.getRunningOrRequestedICfg()).thenReturn(someICfg) }
         runBlocking { whenever(pumpStatusProvider.shortStatus(anyBoolean())).thenReturn(testPumpPlugin.pumpSpecificShortStatus(true)) }
         whenever(otp.name()).thenReturn("User")
         whenever(otp.checkOTP(anyString())).thenReturn(OneTimePasswordValidationResult.OK)
@@ -752,6 +755,26 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         assertThat(smsCommunicatorPlugin.messages[3].text).isEqualTo("Profile switch created")
     }
 
+    // A remote switch has to record an insulin and must not invent one: the requester is not at the phone, so with
+    // nothing in force the reply carries the reason and no switch is written.
+    @Test fun processProfileWithNoInsulinInForceTest() = runBlocking {
+        whenever(preferences.get(BooleanKey.SmsAllowRemoteCommands)).thenReturn(true)
+        whenever(profileRepository.profile).thenReturn(MutableStateFlow(getValidProfileStore()))
+        whenever(profileFunction.getProfileName()).thenReturn(TESTPROFILENAME)
+        whenever(profileFunction.getRunningOrRequestedICfg()).thenReturn(null)
+        whenever(rh.gs(app.aaps.core.ui.R.string.profile_switch_no_insulin)).thenReturn("No insulin in use")
+
+        smsCommunicatorPlugin.messages = ArrayList()
+        smsCommunicatorPlugin.processSms(Sms("1234", "PROFILE 1 90"))
+        val passCode: String = smsCommunicatorPlugin.messageToConfirm?.confirmCode!!
+        smsCommunicatorPlugin.processSms(Sms("1234", passCode))
+
+        assertThat(smsCommunicatorPlugin.messages[3].text).isEqualTo("No insulin in use")
+        verifyBlocking(profileFunction, never()) {
+            createProfileSwitch(anyOrNull(), anyString(), anyInt(), anyInt(), anyInt(), anyLong(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
+        }
+    }
+
     @Test fun processBasalTest() = runBlocking {
 
         //BASAL
@@ -933,7 +956,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         assertThat(smsCommunicatorPlugin.messages[0].text).isEqualTo("BOLUS 1")
         assertThat(smsCommunicatorPlugin.messages[1].text).isEqualTo("Remote bolus not available. Try again later.")
         whenever(constraintChecker.applyBolusConstraints(anyOrNull())).thenReturn(ConstraintObject(0.0, aapsLogger))
-        whenever(dateUtilMocked.now()).thenReturn(Constants.remoteBolusMinDistance + 1002L)
+        whenever(dateUtilMocked.now()).thenReturn(Constants.REMOTE_BOLUS_MIN_DISTANCE + 1002L)
 
         //BOLUS 0
         whenever(loop.runningMode()).thenReturn(RM.Mode.CLOSED_LOOP)
@@ -1011,7 +1034,7 @@ class SmsCommunicatorPluginTest : TestBaseWithProfile() {
         whenever(constraintChecker.applyBolusConstraints(anyOrNull())).thenReturn(ConstraintObject(1.0, aapsLogger))
         whenever(constraintChecker.applyExtendedBolusConstraints(anyOrNull())).thenReturn(ConstraintObject(1.0, aapsLogger))
         whenever(preferences.get(IntKey.SmsRemoteBolusDistance)).thenReturn(15)
-        whenever(dateUtilMocked.now()).thenReturn(Constants.remoteBolusMinDistance + 1002L)
+        whenever(dateUtilMocked.now()).thenReturn(Constants.REMOTE_BOLUS_MIN_DISTANCE + 1002L)
         whenever(loop.runningMode()).thenReturn(RM.Mode.CLOSED_LOOP)
         whenever(rh.gs(app.aaps.core.ui.R.string.stop_pressed)).thenReturn("STOP PRESSED")
         whenever(bolusProgressData.isStopPressed).thenReturn(true)

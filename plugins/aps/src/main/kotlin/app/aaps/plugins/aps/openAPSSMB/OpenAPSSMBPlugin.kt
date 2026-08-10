@@ -20,7 +20,6 @@ import app.aaps.core.interfaces.constraints.PluginConstraints
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.db.ProcessedTbrEbData
 import app.aaps.core.interfaces.insulin.ConcentrationHelper
-import app.aaps.core.interfaces.insulin.Insulin
 import app.aaps.core.interfaces.iob.GlucoseStatusProvider
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
@@ -31,6 +30,7 @@ import app.aaps.core.interfaces.notifications.NotificationManager
 import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.plugin.PluginBaseWithPreferences
 import app.aaps.core.interfaces.plugin.PluginDescription
+import app.aaps.core.interfaces.profile.EffectiveProfile
 import app.aaps.core.interfaces.profile.Profile
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileUtil
@@ -82,7 +82,6 @@ open class OpenAPSSMBPlugin @Inject constructor(
     private val profileUtil: ProfileUtil,
     private val config: Config,
     private val activePlugin: ActivePlugin,
-    private val insulin: Insulin,
     private val iobCobCalculator: IobCobCalculator,
     private val hardLimits: HardLimits,
     preferences: Preferences,
@@ -140,12 +139,14 @@ open class OpenAPSSMBPlugin @Inject constructor(
     override var lastAPSRun: Long = 0
     override val algorithm = APSResult.Algorithm.SMB
     override var lastAPSResult: APSResult? = null
-    override fun supportsDynamicIsf(): Boolean = preferences.get(BooleanKey.ApsUseDynamicSensitivity)
+    override fun usingDynamicIsf(): Boolean = preferences.get(BooleanKey.ApsUseDynamicSensitivity)
+    override fun offersDynamicSensitivity(): Boolean = true
 
     override fun getIsfMgdl(profile: Profile, caller: String): Double? {
         val start = dateUtil.now()
-        val multiplier = (profile as ProfileSealed.EPS).value.originalPercentage / 100.0
-        val sensitivity = runBlocking { calculateVariableIsf(start, multiplier) }
+        val epsProfile = profile as ProfileSealed.EPS
+        val multiplier = epsProfile.value.originalPercentage / 100.0
+        val sensitivity = runBlocking { calculateVariableIsf(epsProfile, start, multiplier) }
         if (sensitivity.second == null)
             notificationManager.post(
                 NotificationId.DYN_ISF_FALLBACK,
@@ -194,7 +195,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
 
     private val dynIsfCache = LongSparseArray<Double>()
 
-    private suspend fun calculateVariableIsf(timestamp: Long, multiplier: Double): Pair<String, Double?> {
+    private suspend fun calculateVariableIsf(profile: EffectiveProfile, timestamp: Long, multiplier: Double): Pair<String, Double?> {
         if (!preferences.get(BooleanKey.ApsUseDynamicSensitivity)) return Pair("OFF", null)
 
         val result = persistenceLayer.getApsResultCloseTo(timestamp)
@@ -213,7 +214,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             return Pair("HIT", cached)
         }
 
-        val dynIsfResult = calculateRawDynIsf(multiplier)
+        val dynIsfResult = calculateRawDynIsf(profile, multiplier)
         if (!dynIsfResult.tddPartsCalculated()) return Pair("TDD miss", null)
         // no cached result found, let's calculate the value
         //aapsLogger.debug("calculateVariableIsf $caller CAL ${dateUtil.dateAndTimeAndSecondsString(timestamp)} $sensitivity")
@@ -245,7 +246,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
             "DynIsfResult: tdd1D=$tdd1D tdd7D=$tdd7D tddLast24H=$tddLast24H tddLast4H=$tddLast4H tddLast8to4H=$tddLast8to4H tdd=$tdd variableSensitivity=$variableSensitivity insulinDivisor=$insulinDivisor tdd7DDataCarbs=$tdd7DDataCarbs tdd7DAllDaysHaveCarbs=$tdd7DAllDaysHaveCarbs"
     }
 
-    private suspend fun calculateRawDynIsf(multiplier: Double): DynIsfResult {
+    private suspend fun calculateRawDynIsf(profile: EffectiveProfile, multiplier: Double): DynIsfResult {
         val dynIsfResult = DynIsfResult()
         // DynamicISF specific
         // without these values DynISF doesn't work properly
@@ -264,10 +265,14 @@ open class OpenAPSSMBPlugin @Inject constructor(
         dynIsfResult.tddLast4H = tddCalculator.calculateDaily(-4, 0)?.totalAmount
         dynIsfResult.tddLast8to4H = tddCalculator.calculateDaily(-8, -4)?.totalAmount
 
+        // Peak comes from the profile this calculation is about, which owns the authoritative (non-null)
+        // iCfg. The result is cached per timestamp for ISF replay, so a global "currently active
+        // insulin" would be the wrong source even when one is available.
+        val peak = profile.iCfg.peak
         dynIsfResult.insulinDivisor = when {
-            insulin.iCfg.peak > 65 -> 55 // rapid peak: 75
-            insulin.iCfg.peak > 50 -> 65 // ultra rapid peak: 55
-            else                   -> 75 // lyumjev peak: 45
+            peak > 65 -> 55 // rapid peak: 75
+            peak > 50 -> 65 // ultra rapid peak: 55
+            else      -> 75 // lyumjev peak: 45
         }
 
 
@@ -305,15 +310,14 @@ open class OpenAPSSMBPlugin @Inject constructor(
 
         val inputConstraints = ConstraintObject(0.0, aapsLogger) // fake. only for collecting all results
 
-        if (!hardLimits.checkHardLimits(profile.iCfg.dia, app.aaps.core.ui.R.string.profile_dia, hardLimits.minDia(), hardLimits.maxDia())) return@withContext
+        if (!hardLimits.checkHardLimits(profile.iCfg.dia, app.aaps.core.ui.R.string.profile_dia, hardLimits.diaRange())) return@withContext
         if (!hardLimits.checkHardLimits(
                 profile.getIcTimeFromMidnight(MidnightUtils.secondsFromMidnight()),
                 app.aaps.core.ui.R.string.profile_carbs_ratio_value,
-                hardLimits.minIC(),
-                hardLimits.maxIC()
+                hardLimits.icRange()
             )
         ) return@withContext
-        if (!hardLimits.checkHardLimits(profile.getIsfMgdl("OpenAPSSMBPlugin"), app.aaps.core.ui.R.string.profile_sensitivity_value, HardLimits.MIN_ISF, HardLimits.MAX_ISF)) return@withContext
+        if (!hardLimits.checkHardLimits(profile.getIsfMgdl("OpenAPSSMBPlugin"), app.aaps.core.ui.R.string.profile_sensitivity_value, HardLimits.LIMIT_ISF)) return@withContext
         if (!hardLimits.checkHardLimits(profile.getMaxDailyBasal(), app.aaps.core.ui.R.string.profile_max_daily_basal_value, 0.02, hardLimits.maxBasal())) return@withContext
         if (!hardLimits.checkHardLimits(ch.fromPump(pump.baseBasalRate), app.aaps.core.ui.R.string.current_basal_value, 0.01, hardLimits.maxBasal())) return@withContext
 
@@ -336,22 +340,23 @@ open class OpenAPSSMBPlugin @Inject constructor(
             rate = tb?.convertedToAbsolute(now, profile) ?: 0.0,
             minutesrunning = tb?.getPassedDurationToTimeInMinutes(now)
         )
-        var minBg = hardLimits.verifyHardLimits(Round.roundTo(profile.getTargetLowMgdl(), 0.1), app.aaps.core.ui.R.string.profile_low_target, HardLimits.LIMIT_MIN_BG[0], HardLimits.LIMIT_MIN_BG[1])
-        var maxBg = hardLimits.verifyHardLimits(Round.roundTo(profile.getTargetHighMgdl(), 0.1), app.aaps.core.ui.R.string.profile_high_target, HardLimits.LIMIT_MAX_BG[0], HardLimits.LIMIT_MAX_BG[1])
-        var targetBg = hardLimits.verifyHardLimits(profile.getTargetMgdl(), app.aaps.core.ui.R.string.temp_target_value, HardLimits.LIMIT_TARGET_BG[0], HardLimits.LIMIT_TARGET_BG[1])
+        var minBg = hardLimits.verifyHardLimits(Round.roundTo(profile.getTargetLowMgdl(), 0.1), app.aaps.core.ui.R.string.profile_low_target, HardLimits.LIMIT_MIN_BG)
+        var maxBg = hardLimits.verifyHardLimits(Round.roundTo(profile.getTargetHighMgdl(), 0.1), app.aaps.core.ui.R.string.profile_high_target, HardLimits.LIMIT_MAX_BG)
+        var targetBg = hardLimits.verifyHardLimits(profile.getTargetMgdl(), app.aaps.core.ui.R.string.temp_target_value, HardLimits.LIMIT_TARGET_BG)
         var isTempTarget = false
         persistenceLayer.getTemporaryTargetActiveAt(dateUtil.now())?.let { tempTarget ->
             isTempTarget = true
-            minBg = hardLimits.verifyHardLimits(tempTarget.lowTarget, app.aaps.core.ui.R.string.temp_target_low_target, HardLimits.LIMIT_TEMP_MIN_BG[0], HardLimits.LIMIT_TEMP_MIN_BG[1])
-            maxBg = hardLimits.verifyHardLimits(tempTarget.highTarget, app.aaps.core.ui.R.string.temp_target_high_target, HardLimits.LIMIT_TEMP_MAX_BG[0], HardLimits.LIMIT_TEMP_MAX_BG[1])
-            targetBg = hardLimits.verifyHardLimits(tempTarget.target(), app.aaps.core.ui.R.string.temp_target_value, HardLimits.LIMIT_TEMP_TARGET_BG[0], HardLimits.LIMIT_TEMP_TARGET_BG[1])
+            minBg = hardLimits.verifyHardLimits(tempTarget.lowTarget, app.aaps.core.ui.R.string.temp_target_low_target, HardLimits.LIMIT_TEMP_MIN_BG)
+            maxBg = hardLimits.verifyHardLimits(tempTarget.highTarget, app.aaps.core.ui.R.string.temp_target_high_target, HardLimits.LIMIT_TEMP_MAX_BG)
+            targetBg = hardLimits.verifyHardLimits(tempTarget.target(), app.aaps.core.ui.R.string.temp_target_value, HardLimits.LIMIT_TEMP_TARGET_BG)
         }
 
         var autosensResult = AutosensResult()
         // var variableSensitivity = 0.0
         // var tdd = 0.0
         // var insulinDivisor = 0
-        val dynIsfResult = calculateRawDynIsf((profile as ProfileSealed.EPS).value.originalPercentage / 100.0)
+        val epsProfile = profile as ProfileSealed.EPS
+        val dynIsfResult = calculateRawDynIsf(epsProfile, epsProfile.value.originalPercentage / 100.0)
         if (dynIsfMode && !dynIsfResult.tddPartsCalculated()) {
             notificationManager.post(
                 NotificationId.SMB_FALLBACK,
@@ -465,7 +470,11 @@ open class OpenAPSSMBPlugin @Inject constructor(
         val effectiveDynIsfMode = dynIsfMode && dynIsfResult.tddPartsCalculated()
 
         // Refuse to run the algorithm with degenerate ISF inputs — division by these would produce NaN/Infinity in the result.
+        // carb_ratio feeds csf (sens/carb_ratio) and autosensResult.ratio becomes the non-dynISF sensitivityRatio
+        // (sens = profile.sens/sensitivityRatio); a non-finite/≤0 value of either cascades to a NaN carbsReq (round() crash).
         val invalidInputs = !oapsProfile.sens.isFinite() || oapsProfile.sens <= 0.0 ||
+            !oapsProfile.carb_ratio.isFinite() || oapsProfile.carb_ratio <= 0.0 ||
+            !autosensResult.ratio.isFinite() || autosensResult.ratio <= 0.0 ||
             (effectiveDynIsfMode && (
                 !oapsProfile.variable_sens.isFinite() || oapsProfile.variable_sens <= 0.0 ||
                     !oapsProfile.TDD.isFinite() || oapsProfile.TDD <= 0.0 ||
@@ -474,6 +483,7 @@ open class OpenAPSSMBPlugin @Inject constructor(
         if (invalidInputs) {
             val msg = "OpenAPS SMB aborting: invalid ISF inputs " +
                 "dynIsfMode=$effectiveDynIsfMode sens=${oapsProfile.sens} " +
+                "carb_ratio=${oapsProfile.carb_ratio} autosensRatio=${autosensResult.ratio} " +
                 "variable_sens=${oapsProfile.variable_sens} TDD=${oapsProfile.TDD} " +
                 "insulinDivisor=${oapsProfile.insulinDivisor}"
             aapsLogger.error(LTag.APS, msg)

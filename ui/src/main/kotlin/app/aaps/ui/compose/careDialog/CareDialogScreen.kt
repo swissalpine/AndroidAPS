@@ -41,27 +41,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.data.configuration.Constants
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.TE
+import app.aaps.core.interfaces.navigation.ElementType
 import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.DateTimeSection
 import app.aaps.core.ui.compose.EventTimeRow
-import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
 import app.aaps.core.ui.compose.dialogs.ElementConfirmationDialog
-import app.aaps.core.interfaces.navigation.ElementType
 import app.aaps.core.ui.compose.siteRotation.SiteLocationSummary
 import app.aaps.ui.R
 import app.aaps.ui.compose.EventDatePicker
 import app.aaps.ui.compose.EventTimePicker
-import java.text.DecimalFormat
 import app.aaps.core.keys.R as KeysR
 import app.aaps.core.ui.R as CoreUiR
 
@@ -149,8 +147,11 @@ fun CareDialogScreen(
     )
 }
 
+/**
+ * @see CareDialogScreenPreview
+ */
 @Composable
-private fun CareDialogContent(
+internal fun CareDialogContent(
     uiState: CareDialogUiState,
     eventType: CareportalEventType,
     dateString: String,
@@ -338,8 +339,8 @@ private fun BgSection(
         }
 
         val (minBg, maxBg, step, format) = when (glucoseUnits) {
-            GlucoseUnit.MMOL -> BgParams(2.0, 30.0, 0.1, DecimalFormat("0.0"))
-            GlucoseUnit.MGDL -> BgParams(36.0, 500.0, 1.0, DecimalFormat("0"))
+            GlucoseUnit.MMOL -> BgParams(2.0, 30.0, 0.1, NumberFormat.DECIMAL_1)
+            GlucoseUnit.MGDL -> BgParams(36.0, 500.0, 1.0, NumberFormat.INTEGER)
         }
 
         NumberInputRow(
@@ -358,7 +359,7 @@ private data class BgParams(
     val min: Double,
     val max: Double,
     val step: Double,
-    val format: DecimalFormat
+    val format: NumberFormat
 )
 
 @Composable
@@ -371,7 +372,7 @@ private fun DurationSection(
         labelResId = CoreUiR.string.duration_label,
         value = duration,
         onValueChange = onDurationChange,
-        valueRange = 0.0..Constants.MAX_PROFILE_SWITCH_DURATION,
+        valueRange = Constants.ACTION_DURATION,
         step = 10.0,
         unitLabelResId = KeysR.string.units_min,
         modifier = modifier
@@ -398,31 +399,4 @@ fun CareportalEventType.toElementType(): ElementType = when (this) {
     CareportalEventType.EXERCISE       -> ElementType.EXERCISE
     CareportalEventType.QUESTION       -> ElementType.QUESTION
     CareportalEventType.ANNOUNCEMENT   -> ElementType.ANNOUNCEMENT
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun CareDialogScreenPreview() {
-    MaterialTheme {
-        CareDialogContent(
-            uiState = CareDialogUiState(
-                eventType = CareportalEventType.BGCHECK,
-                bgValue = 120.0,
-                glucoseUnits = GlucoseUnit.MGDL,
-                showNotesFromPreferences = true
-            ),
-            eventType = CareportalEventType.BGCHECK,
-            dateString = "25/02/2026",
-            timeString = "14:30",
-            onMeterTypeChange = {},
-            onBgValueChange = {},
-            onDurationChange = {},
-            onNotesChange = {},
-            onNavigateBack = {},
-            onConfirmClick = {},
-            onDateClick = {},
-            onTimeClick = {}
-        )
-    }
 }

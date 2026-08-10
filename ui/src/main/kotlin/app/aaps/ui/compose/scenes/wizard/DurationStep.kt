@@ -5,14 +5,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.ui.R
-import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.formatMinutesAsDuration
 import app.aaps.core.ui.compose.pump.WizardButton
 import app.aaps.core.ui.compose.pump.WizardStepLayout
 
+/**
+ * @see DurationStepPreview
+ */
 @Composable
 internal fun DurationStep(
     state: SceneWizardViewModel.WizardState,
@@ -44,7 +46,7 @@ internal fun DurationStep(
             labelResId = R.string.duration,
             value = state.durationMinutes.toDouble(),
             onValueChange = { onSetDuration(it.toInt()) },
-            valueRange = 0.0..4320.0,
+            valueRange = Constants.SCENE_DURATION,
             step = 5.0,
             valueFormatResId = R.string.mins,
             formatAsInt = true,
@@ -52,19 +54,6 @@ internal fun DurationStep(
                 state.durationMinutes == 0 -> stringResource(R.string.scene_duration_indefinite)
                 else                       -> formatMinutesAsDuration(state.durationMinutes)
             }
-        )
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun DurationStepPreview() {
-    MaterialTheme {
-        DurationStep(
-            state = previewState,
-            onSetDuration = {},
-            onBack = {}, onNext = {}
         )
     }
 }

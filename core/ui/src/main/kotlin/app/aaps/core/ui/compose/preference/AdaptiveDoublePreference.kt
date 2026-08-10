@@ -5,17 +5,13 @@
 package app.aaps.core.ui.compose.preference
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import app.aaps.core.keys.DoubleKey
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.keys.decimalPlaces
 import app.aaps.core.keys.interfaces.DoublePreferenceKey
 import app.aaps.core.keys.interfaces.VisibilityContext
@@ -24,15 +20,15 @@ import app.aaps.core.keys.step
 import app.aaps.core.keys.unitLabelResId
 import app.aaps.core.keys.valueResId
 import app.aaps.core.ui.R
-import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.LocalPreferences
-import java.text.DecimalFormat
 
 /**
  * Composable double preference for use inside card sections.
  *
  * @param titleResId Optional title resource ID. If 0 or not provided, uses doubleKey.titleResId
  * @param visibilityContext Optional context for evaluating runtime visibility/enabled conditions
+ *
+ * @see AdaptiveDoublePreferencePreview
  */
 @Composable
 fun AdaptiveDoublePreferenceItem(
@@ -68,7 +64,7 @@ fun AdaptiveDoublePreferenceItem(
     val unitLabelResId = unitType.unitLabelResId()
     val unitLabel = unitLabelResId?.let { stringResource(it) } ?: unit
 
-    val valueFormat = if (decimalPlaces == 0) DecimalFormat("0") else DecimalFormat("0.${"0".repeat(decimalPlaces)}")
+    val valueFormat = NumberFormat.withDecimals(decimalPlaces)
 
     // Get summary if available
     val summaryResId = doubleKey.summaryResId
@@ -84,16 +80,14 @@ fun AdaptiveDoublePreferenceItem(
                 .fillMaxWidth()
                 .padding(theme.padding)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(effectiveTitleResId),
-                    style = theme.titleTextStyle,
-                    // Mirror Preference's disabled styling (the switch row greys the same way) since this
-                    // slider branch builds its own row instead of going through Preference.
-                    color = theme.titleColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
-                )
-                SyncBadge(doubleKey, Modifier.padding(start = 6.dp))
-            }
+            TextWithSyncBadge(
+                text = stringResource(effectiveTitleResId),
+                key = doubleKey,
+                style = theme.titleTextStyle,
+                // Mirror Preference's disabled styling (the switch row greys the same way) since this
+                // slider branch builds its own row instead of going through Preference.
+                color = theme.titleColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
+            )
             if (summary != null) {
                 Text(
                     text = summary,
@@ -135,17 +129,6 @@ fun AdaptiveDoublePreferenceItem(
             },
             enabled = visibility.enabled,
             summary = { Text(summaryText) }
-        )
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun AdaptiveDoublePreferencePreview() {
-    PreviewTheme {
-        AdaptiveDoublePreferenceItem(
-            doubleKey = DoubleKey.OverviewInsulinButtonIncrement1
         )
     }
 }

@@ -59,6 +59,17 @@ data class ICfg(
         get() = (insulinPeakTime / 60000).toInt()
 
     /**
+     * False for the `insulinEndTime = -1` sentinel the DB v33 migration writes into rows that predate ICfg
+     * (and for anything else non-positive). Such a record is not an insulin: [dia] rounds to `0.0`, which is
+     * outside the hard limits, so an APS run that accepts it aborts every cycle instead of dosing.
+     *
+     * Treat it as "no insulin" — the same as absent — so callers fall through to their normal
+     * ask-or-refuse path rather than propagating a degenerate curve.
+     */
+    val isUsable: Boolean
+        get() = insulinEndTime > 0 && insulinPeakTime > 0
+
+    /**
      * Set insulinEndTime aka DIA
      * @param hours duration in hours
      */
@@ -96,7 +107,7 @@ data class ICfg(
             // config) would otherwise divide by zero, produce a negative tau, or — when td <= 0 — make
             // the `t < td` gate never fire and silently contribute ZERO IOB, all of which mislead the
             // loop into overdelivery. These bounds are MATH-validity floors only, NOT the medical limits
-            // (which are enforced upstream): legitimate peaks below HardLimits.MIN_PEAK (e.g. 30 min) and
+            // (which are enforced upstream): legitimate peaks below HardLimits.LIMIT_PEAK (e.g. 30 min) and
             // any dia >= MIN_DIA are preserved unchanged; only degenerate values are sanitized.
             val td = (dia * 60).coerceAtLeast(MIN_DIA_MINUTES)
             val tp = peak.toDouble().coerceIn(MIN_PEAK_MINUTES, td / 2.0 - 1.0)

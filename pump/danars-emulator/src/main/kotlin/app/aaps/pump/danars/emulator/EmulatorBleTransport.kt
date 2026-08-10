@@ -79,6 +79,8 @@ class EmulatorBleTransport(
 
     private var listener: BleTransportListener? = null
     private var connected = false
+    // Set by findCharacteristics(); gates enableNotifications() so a pre-discovery registration is a no-op, as on hardware.
+    private var characteristicsFound = false
 
     // Read buffer for reassembling chunked packets
     private val readBuffer = ByteArray(1024)
@@ -191,26 +193,46 @@ class EmulatorBleTransport(
             bufferLength = 0
             connectionGeneration++
             v3PairingRequested = false
+            characteristicsFound = false
             connected = true
             listener?.onConnectionStateChanged(true)
             return true
         }
 
+        // Both end the current connection generation, so anything still queued for it is dropped
+        // rather than delivered into a BLEComm that has already torn down (see sendResponse).
         override fun disconnect() {
             connected = false
+            characteristicsFound = false
+            connectionGeneration++
         }
 
         override fun close() {
             connected = false
+            characteristicsFound = false
+            connectionGeneration++
         }
 
         override fun discoverServices() {
             listener?.onServicesDiscovered(true)
         }
 
-        override fun findCharacteristics(): Boolean = true
+        override fun findCharacteristics(): Boolean {
+            characteristicsFound = true
+            return true
+        }
 
+        /**
+         * Only registers once the characteristics exist — mirroring the real transport.
+         *
+         * `BLEComm.connect` enables notifications eagerly, before service discovery. On hardware `uartRead` is still
+         * null then, so `BleTransportImpl` fabricates a bare characteristic whose `getDescriptor(CCCD)` returns null,
+         * no `writeDescriptor` is issued and NO callback arrives; only the post-discovery registration completes.
+         * Firing unconditionally here made the emulator deliver two `onDescriptorWritten` per connection where a pump
+         * delivers one — which drove the pair wizard back off its PIN step and hung RSv3 pairing.
+         */
         override fun enableNotifications() {
+            if (!characteristicsFound) return
             listener?.onDescriptorWritten()
         }
 
@@ -390,6 +412,7 @@ class EmulatorBleTransport(
                 pumpDisplay.showPairingConfirmation()
                 // After confirming, the pump spontaneously sends PASSKEY_RETURN with the pairing key.
                 // This must be deferred so the OK response is delivered first.
+                val generation = connectionGeneration
                 launchAsync {
                     @Suppress("SleepInsteadOfDelay")
                     if (pairingDelayMs > 0) Thread.sleep(pairingDelayMs)
@@ -397,7 +420,9 @@ class EmulatorBleTransport(
                         BleEncryption.DANAR_PACKET__OPCODE_ENCRYPTION__PASSKEY_RETURN,
                         pumpState.pairingKey
                     )
-                    sendResponse(returnPacket)
+                    // Captured above, not read here: by now the app may have disconnected, and this
+                    // key belongs to the connection that asked for it.
+                    sendResponse(returnPacket, generation)
                 }
                 buildEncryptionResponse(BleEncryption.DANAR_PACKET__OPCODE_ENCRYPTION__PASSKEY_REQUEST, byteArrayOf(0x00))
             }
@@ -582,7 +607,25 @@ class EmulatorBleTransport(
         )
     }
 
-    private fun sendResponse(responseBytes: ByteArray) {
+    /**
+     * Deliver a pump-to-app packet, unless the connection it belongs to is gone.
+     *
+     * [generation] is the connection the response is *for*. It defaults to the current one, which is
+     * right for a synchronous reply, but a deferred sender must capture it when it is scheduled —
+     * see the v1 pairing return. A real pump cannot answer after the link drops; the emulator did,
+     * and `BLEComm` then parsed the packet against a torn-down connection and threw "Null
+     * decryptedInputBuffer" from a thread nobody owns, failing whichever test happened to be running
+     * (CI build 40261: v1's pairing key arrived during the *next* test).
+     *
+     * The mirror of the stale-write guard in `EmulatorGatt.writeCharacteristic`. Deliberately keyed
+     * on the generation rather than on `connected`, so a test that drives `writeCharacteristic`
+     * directly without connecting still gets its responses.
+     */
+    private fun sendResponse(responseBytes: ByteArray, generation: Int = connectionGeneration) {
+        if (generation != connectionGeneration) {
+            aapsLogger?.debug(LTag.PUMPEMULATOR, "ignoring stale response (gen=$generation, current=$connectionGeneration)")
+            return
+        }
         listener?.onCharacteristicChanged(responseBytes)
     }
 }

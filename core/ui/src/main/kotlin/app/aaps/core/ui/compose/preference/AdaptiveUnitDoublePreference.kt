@@ -5,22 +5,19 @@
 package app.aaps.core.ui.compose.preference
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.keys.interfaces.VisibilityContext
 import app.aaps.core.keys.interfaces.UnitDoublePreferenceKey
 import app.aaps.core.ui.compose.LocalPreferences
 import app.aaps.core.ui.compose.LocalProfileUtil
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.DecimalFormat
 import kotlin.math.abs
 import app.aaps.core.ui.R as UiR
 
@@ -64,7 +61,7 @@ fun AdaptiveUnitDoublePreferenceItem(
     // Adaptive step: 1.0 for mg/dL, 0.1 for mmol/L
     val step = if (isMgdl) 1.0 else 0.1
     val decimalPlaces = if (isMgdl) 0 else 1
-    val valueFormat = if (isMgdl) DecimalFormat("0") else DecimalFormat("0.0")
+    val valueFormat = if (isMgdl) NumberFormat.INTEGER else NumberFormat.DECIMAL_1
 
     // Get unit label from resources - short form for slider
     val unitLabel = stringResource(if (isMgdl) UiR.string.mgdl else UiR.string.mmol)
@@ -81,16 +78,14 @@ fun AdaptiveUnitDoublePreferenceItem(
             .fillMaxWidth()
             .padding(theme.padding)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(effectiveTitleResId),
-                style = theme.titleTextStyle,
-                // Mirror Preference's disabled styling (the switch row greys the same way) since this
-                // slider branch builds its own row instead of going through Preference.
-                color = theme.titleColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
-            )
-            SyncBadge(unitKey, Modifier.padding(start = 6.dp))
-        }
+        TextWithSyncBadge(
+            text = stringResource(effectiveTitleResId),
+            key = unitKey,
+            style = theme.titleTextStyle,
+            // Mirror Preference's disabled styling (the switch row greys the same way) since this
+            // slider branch builds its own row instead of going through Preference.
+            color = theme.titleColor.let { if (visibility.enabled) it else it.copy(alpha = theme.disabledOpacity) }
+        )
         if (summary != null) {
             Text(
                 text = summary,

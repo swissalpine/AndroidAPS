@@ -3,6 +3,7 @@ package app.aaps.plugins.aps.autotune.compose
 import android.view.View
 import androidx.compose.runtime.Immutable
 import app.aaps.core.data.configuration.Constants
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.RM
 import app.aaps.core.data.ue.Action
@@ -10,7 +11,6 @@ import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
 import app.aaps.core.graph.profile.ProfileViewerData
 import app.aaps.core.interfaces.aps.Loop
-import app.aaps.core.interfaces.insulin.Insulin
 import app.aaps.core.interfaces.logging.UserEntryLogger
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.profile.ProfileRepository
@@ -18,6 +18,7 @@ import app.aaps.core.interfaces.profile.ProfileStore
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventShowDialog
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.MidnightTime
 import app.aaps.core.interfaces.utils.Round
@@ -43,7 +44,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.text.DecimalFormat
 import java.util.Locale
 import javax.inject.Provider
 
@@ -161,7 +161,6 @@ class AutotuneViewModel(
     private val rxBus: RxBus,
     private val uel: UserEntryLogger,
     private val loop: Loop,
-    private val insulin: Insulin,
     private val profileStoreProvider: Provider<ProfileStore>,
     private val atProfileProvider: Provider<ATProfile>,
     private val scope: CoroutineScope
@@ -316,8 +315,18 @@ class AutotuneViewModel(
             tunedP.profileStore(circadian)?.let { profileStore ->
                 uel.log(action = Action.STORE_PROFILE, source = Sources.Autotune, value = ValueWithUnit.SimpleString(tunedP.profileName))
                 val now = dateUtil.now()
-                val iCfg = insulin.iCfg
                 scope.launch {
+                    // Autotune tunes basal/IC/ISF, never the insulin, so the switch keeps whatever is in force.
+                    // With nothing in force there is nothing to keep — tell the user instead of substituting.
+                    val iCfg = profileFunction.getRunningOrRequestedICfg() ?: run {
+                        rxBus.send(
+                            EventShowDialog.Ok(
+                                title = rh.gs(app.aaps.core.ui.R.string.autotune),
+                                message = rh.gs(app.aaps.core.ui.R.string.profile_switch_no_insulin)
+                            )
+                        )
+                        return@launch
+                    }
                     profileFunction.createProfileSwitch(
                         profileStore = profileStore,
                         profileName = tunedP.profileName,
@@ -388,11 +397,12 @@ class AutotuneViewModel(
 
     private suspend fun resolveProfile() {
         val profileStore = profileRepository.profile.value ?: profileStoreProvider.get().with(JSONObject())
-        val iCfg = profileFunction.getProfile()?.iCfg ?: insulin.iCfg
         profileFunction.getProfile()?.let { currentProfile ->
             profile = atProfileProvider.get().with(
                 profileStore.getSpecificProfile(profileName)?.let { ProfileSealed.Pure(value = it, activePlugin = null) } ?: currentProfile,
-                iCfg
+                // The running profile owns the authoritative, non-null iCfg. Nothing here is reachable
+                // without it — the previous fallback was computed outside this let and then discarded.
+                currentProfile.iCfg
             )
         }
     }
@@ -450,7 +460,7 @@ class AutotuneViewModel(
         params += formatRow(rh.gs(app.aaps.core.ui.R.string.ic_short), Round.roundTo(pumpProfile.ic, 0.001), Round.roundTo(tunedProfile.ic, 0.001), "%.2f")
 
         val basals = mutableListOf<ResultRow>()
-        val df = DecimalFormat("00")
+        val df = NumberFormat.INTEGER_2_DIGITS
         var totalPump = 0.0
         var totalTuned = 0.0
         for (h in 0 until tunedProfile.basal.size) {

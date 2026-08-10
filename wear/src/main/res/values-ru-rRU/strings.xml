@@ -204,15 +204,11 @@
     <string name="complication_iob_icon">Иконка актИнс</string>
     <string name="complication_iob_detailed">АктИнс подробно</string>
     <string name="complication_uploader_phone_battery">Батарея загрузчика/телефона</string>
-    <string name="wizard_carbs_format">%1$d г углеводов</string>
     <string name="insulin_unit_short">ед</string>
     <string name="wizard_confirmation_sent">Отправлено</string>
     <string name="tile_settings">Настройки плиток</string>
     <string name="loop_status_error">Не удалось загрузить статус</string>
-    <string name="loop_status_tempt_duration">%1$d мин (%2$s)</string>
-    <string name="loop_status_tbr_duration">%1$d мин</string>
     <string name="loop_status_tbr_rate">%1$.2f ед/ч (%2$d%%)</string>
-    <string name="loop_status_tbr_duration_remaining">%1$d мин осталось</string>
     <string name="loop_status_tbr_continues">Временный базал продолжается</string>
     <string name="loop_status_tbr_cancel">Установка обычного базала</string>
     <string name="loop_status_smb">%1$.2f ед</string>

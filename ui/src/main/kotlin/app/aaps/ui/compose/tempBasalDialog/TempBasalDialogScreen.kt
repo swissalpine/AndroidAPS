@@ -35,19 +35,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.data.ui.ConfirmationLine
+import app.aaps.core.interfaces.navigation.ElementType
 import app.aaps.core.ui.compose.AapsTopAppBar
-import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.dialogs.ElementConfirmationDialog
-import app.aaps.core.interfaces.navigation.ElementType
 import app.aaps.core.ui.compose.navigation.labelResId
-import java.text.DecimalFormat
 import app.aaps.core.keys.R as KeysR
 import app.aaps.core.ui.R as CoreUiR
 
@@ -108,8 +106,12 @@ fun TempBasalDialogScreen(
     )
 }
 
+/**
+ * @see TempBasalDialogPercentPreview
+ * @see TempBasalDialogAbsolutePreview
+ */
 @Composable
-private fun TempBasalDialogContent(
+internal fun TempBasalDialogContent(
     uiState: TempBasalDialogUiState,
     onBasalPercentChange: (Double) -> Unit,
     onBasalAbsoluteChange: (Double) -> Unit,
@@ -153,9 +155,9 @@ private fun TempBasalDialogContent(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 if (uiState.isPercentPump && uiState.basalPercent != 100.0) {
-                    Text("${DecimalFormat("0").format(uiState.basalPercent)}%")
+                    Text("${NumberFormat.INTEGER.format(uiState.basalPercent)}%")
                 } else if (!uiState.isPercentPump && uiState.basalAbsolute > 0.0) {
-                    Text("${DecimalFormat("0.00").format(uiState.basalAbsolute)} ${stringResource(CoreUiR.string.profile_ins_units_per_hour)}")
+                    Text("${NumberFormat.DECIMAL_2.format(uiState.basalAbsolute)} ${stringResource(CoreUiR.string.profile_ins_units_per_hour)}")
                 } else {
                     Text(stringResource(CoreUiR.string.ok))
                 }
@@ -190,7 +192,7 @@ private fun TempBasalDialogContent(
                             onValueChange = onBasalPercentChange,
                             valueRange = 0.0..uiState.maxTempPercent,
                             step = uiState.tempPercentStep,
-                            valueFormat = DecimalFormat("0"),
+                            valueFormat = NumberFormat.INTEGER,
                             unitLabel = "%",
                             modifier = itemModifier
                         )
@@ -201,7 +203,7 @@ private fun TempBasalDialogContent(
                             onValueChange = onBasalAbsoluteChange,
                             valueRange = 0.0..uiState.maxTempAbsolute,
                             step = uiState.tempAbsoluteStep,
-                            valueFormat = DecimalFormat("0.00"),
+                            valueFormat = NumberFormat.DECIMAL_2,
                             unitLabel = stringResource(CoreUiR.string.profile_ins_units_per_hour),
                             modifier = itemModifier
                         )
@@ -214,7 +216,7 @@ private fun TempBasalDialogContent(
                         onValueChange = onDurationChange,
                         valueRange = uiState.tempDurationStep..uiState.tempMaxDuration,
                         step = uiState.tempDurationStep,
-                        valueFormat = DecimalFormat("0"),
+                        valueFormat = NumberFormat.INTEGER,
                         unitLabelResId = KeysR.string.units_min,
                         modifier = itemModifier
                     )
@@ -223,53 +225,5 @@ private fun TempBasalDialogContent(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun TempBasalDialogPercentPreview() {
-    MaterialTheme {
-        TempBasalDialogContent(
-            uiState = TempBasalDialogUiState(
-                basalPercent = 100.0,
-                durationMinutes = 60.0,
-                isPercentPump = true,
-                maxTempPercent = 200.0,
-                tempPercentStep = 10.0,
-                tempDurationStep = 60.0,
-                tempMaxDuration = 720.0,
-            ),
-            onBasalPercentChange = {},
-            onBasalAbsoluteChange = {},
-            onDurationChange = {},
-            onNavigateBack = {},
-            onConfirmClick = {}
-        )
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun TempBasalDialogAbsolutePreview() {
-    MaterialTheme {
-        TempBasalDialogContent(
-            uiState = TempBasalDialogUiState(
-                basalAbsolute = 0.85,
-                durationMinutes = 60.0,
-                isPercentPump = false,
-                maxTempAbsolute = 10.0,
-                tempAbsoluteStep = 0.05,
-                tempDurationStep = 60.0,
-                tempMaxDuration = 720.0,
-            ),
-            onBasalPercentChange = {},
-            onBasalAbsoluteChange = {},
-            onDurationChange = {},
-            onNavigateBack = {},
-            onConfirmClick = {}
-        )
     }
 }

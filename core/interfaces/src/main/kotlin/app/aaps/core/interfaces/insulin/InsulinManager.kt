@@ -9,16 +9,8 @@ import app.aaps.core.data.model.ICfg
  */
 interface InsulinManager {
 
-    /**
-     * Provide default Insulin
-     */
-    val iCfg: ICfg
-
     /** All configured insulins */
     val insulins: ArrayList<ICfg>
-
-    /** Index of the insulin currently selected in the management UI */
-    var currentInsulinIndex: Int
 
     /** Reload insulin list from persisted settings */
     fun loadSettings()
@@ -26,11 +18,25 @@ interface InsulinManager {
     /** Persist current insulin list */
     fun storeSettings()
 
-    /** Add a new insulin to the list. Returns the stored copy. */
+    /**
+     * The exact serialized configuration string of the most recent LOCAL [storeSettings] write.
+     * Lets a UI observing `InsulinConfiguration` recognize its own echoes (which equal this) and
+     * tell them apart from a genuine external (client→master) push — which arrives via putRemote and
+     * never updates this — independent of write-ordering / coroutine-dispatch timing.
+     */
+    val lastStoredConfiguration: String
+
+    /** Add a new insulin to the end of the list. Returns the stored copy. */
     fun addNewInsulin(newICfg: ICfg, ue: Boolean = true, keepName: Boolean = false): ICfg
 
-    /** Remove the insulin at [currentInsulinIndex] */
-    fun removeCurrentInsulin()
+    /**
+     * Remove the insulin at [index]. No-op for an out-of-range [index], and on a single-element list —
+     * the list is never emptied.
+     *
+     * Which insulin is "selected" is the caller's business: this is a catalogue, and the insulin actually
+     * in use is derived from the running profile, never from a position in this list.
+     */
+    fun removeInsulin(index: Int)
 
     /** Available insulin type presets (templates) */
     fun insulinTemplateList(): List<InsulinType>

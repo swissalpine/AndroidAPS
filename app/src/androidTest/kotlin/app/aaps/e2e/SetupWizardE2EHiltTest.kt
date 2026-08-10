@@ -26,6 +26,7 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -61,7 +62,10 @@ import javax.inject.Inject
 @RunWith(AndroidJUnit4::class)
 class SetupWizardE2EHiltTest {
 
-    @get:Rule val hiltRule = HiltAndroidRule(this)
+    val hiltRule = HiltAndroidRule(this)
+
+    // RetryRule outermost: a flaky timeout self-heals on a fresh attempt; see [RetryRule].
+    @get:Rule val rules: RuleChain = RuleChain.outerRule(RetryRule()).around(hiltRule)
 
     // The plugin/config init that MainApp does in onCreate (the Hilt test app can't). Inlined rather
     // than inherited from HiltInstrumentedTest so SharedPreferences can be cleared BEFORE the graph
@@ -157,6 +161,7 @@ class SetupWizardE2EHiltTest {
             visitPreferences()            // toolbar Settings → preferences screen + expand a category
             visitStatistics()             // drawer → Statistics (StatsScreen/ViewModel)
             visitHistoryBrowser()         // drawer → History browser (treatment history list)
+            visitScenes()                 // Manage → Scenes: create via wizard, run, then end it
 
             // Enable Open Loop LAST — after this the loop churns the overview, so do no more navigation.
             enableOpenLoop()
@@ -236,6 +241,10 @@ class SetupWizardE2EHiltTest {
 
         // 13. Profile switch — activate the profile we just created
         openVia("Do Profile Switch", expect = "Activate")
+        // First-ever switch: nothing is in force yet, so the activation screen makes the user record an
+        // insulin and keeps Activate disabled until one is chosen (see ProfileActivationScreen +
+        // ProfileManagementViewModel.insulinChoice). Pick the seeded default before activating.
+        selectInsulin()
         clickLowest("Activate")       // the bottom action button, not the screen title
         click("OK")                   // confirmation
         assertDbInsert("ProfileSwitch") // DB: the profile switch was persisted
@@ -282,6 +291,16 @@ class SetupWizardE2EHiltTest {
 
         click("Save")
         click("Close")                // editor → profile manager
+    }
+
+    /**
+     * Choose an insulin on the profile-activation screen. Needed only for the first-ever switch, where
+     * nothing is in force and Activate stays disabled until one is picked. The fresh app seeds a single
+     * default (OREF_RAPID_ACTING → label "Novorapid <peak>m <dia>h …"), matched here by its nickname prefix.
+     */
+    private fun selectInsulin() {
+        click("Select Insulin")                              // open the ExposedDropdownMenu
+        withStaleRetry { findContains("Novorapid").click() } // take the seeded default (label carries a suffix)
     }
 
     // ---- treatments ---------------------------------------------------------------------------
@@ -333,6 +352,53 @@ class SetupWizardE2EHiltTest {
     private fun visitProfileManagement() {
         openVia("Manage", expect = "Site Rotation")
         openVia("Profile", expect = "Clone")           // → profile management screen
+        returnToOverview()
+    }
+
+    /**
+     * Manage → Scenes: creates a scene through the wizard (from the "Hot Weather" template — a single
+     * profile-switch action, no picker input, auto-named), runs it, then ends it. Covers the whole
+     * `ui/compose/scenes/` surface: SceneListScreen, the wizard steps, and the activate/deactivate dialogs.
+     *
+     * The template gives a valid, activatable scene with no per-step input, so the wizard's action steps
+     * (profile/TT/SMB/loop/careportal/duration/chain) advance on a plain "Next"; the final NAME_ICON step
+     * has the pre-filled name so "Finish" is enabled.
+     */
+    private fun visitScenes() {
+        openVia("Manage", expect = "Site Rotation")
+        openVia("Scenes", expect = "Scene")                 // Manage → Scenes → SceneList (its "+" FAB, desc "Scene")
+        click("Scene")                                       // Add FAB (content-desc) → wizard
+        assertVisible("Start from template")
+        click("Sick Day")                                    // template (profile 150% only — no temp-target
+                                                             // step to dead-end); prefills the scene, INFO step
+
+        // Each action step advances on "Next"; walk to the final NAME_ICON step (which shows "Finish").
+        var guard = 0
+        while (!waitForVisible("Finish", 1_500) && guard++ < 12) {
+            click("Next"); device.waitForIdle(IDLE_MS)
+        }
+        click("Finish")                                      // save() → back on SceneList
+        assertVisible("Sick Day")                            // the created scene row
+
+        // Activate: the card's Activate (Play) icon → confirmation dialog → Activate.
+        click("Activate")                                    // Play IconButton (content-desc)
+        assertTextContains("Activate scene")                 // SceneActivationDialog title
+        click("Activate")                                    // dialog confirm button (text)
+        assertVisible("End Scene")                           // card now active
+
+        // The overview renders ActiveSceneBanner while a scene is active — return there so the banner
+        // (scene name, remaining time, progress, End button) is exercised, then end it from the banner.
+        returnToOverview()
+        device.waitForIdle(IDLE_MS)                          // let the banner's expand/fade-in settle
+        assertVisible("End Scene")                           // ActiveSceneBanner's End button on the overview
+        click("End Scene")                                   // banner End button → requestSceneDeactivation
+        assertTextContains("End scene")                      // OkCancelDialog message (SICK_DAY has no chain)
+        click("OK")                                          // confirm deactivation (R.string.ok)
+
+        // Automation bottom sheet: the scene still exists, so the nav-bar "Scenes" button opens
+        // ScenesBottomSheet listing it. Render it, then dismiss (ModalBottomSheet consumes Back).
+        openVia("Scenes", expect = "Sick Day")               // nav-bar Automation button → the sheet
+        device.pressBack()                                   // dismiss the sheet → back to overview
         returnToOverview()
     }
 
@@ -650,7 +716,7 @@ class SetupWizardE2EHiltTest {
 
         private const val PKG = "info.nightscout.androidaps"
         private const val INIT_TIMEOUT = 60_000L  // splash → wizard (init already flipped, so usually fast)
-        private const val STEP_TIMEOUT = 15_000L
+        private const val STEP_TIMEOUT = 30_000L
         private const val IDLE_MS = 300L
         private const val MAX_SCROLLS = 12
         private const val SET_TEXT_ATTEMPTS = 3

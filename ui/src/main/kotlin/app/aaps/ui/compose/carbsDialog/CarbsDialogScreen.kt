@@ -48,21 +48,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.data.ui.ConfirmationLine
+import app.aaps.core.interfaces.navigation.ElementType
 import app.aaps.core.ui.compose.AapsTopAppBar
 import app.aaps.core.ui.compose.CarbTimeRow
-import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.QuickAddButtons
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
 import app.aaps.core.ui.compose.consumeOverscroll
 import app.aaps.core.ui.compose.dialogs.ElementConfirmationDialog
-import app.aaps.core.interfaces.navigation.ElementType
 import app.aaps.core.ui.compose.navigation.labelResId
 import app.aaps.core.ui.compose.preference.PreferenceSheetContent
 import app.aaps.core.ui.compose.preference.PreferenceSubScreenDef
@@ -73,7 +72,6 @@ import app.aaps.ui.compose.overview.chips.CobUiState
 import app.aaps.ui.compose.overview.chips.IobUiState
 import app.aaps.ui.compose.overview.graphs.BgInfoUiState
 import kotlinx.coroutines.flow.StateFlow
-import java.text.DecimalFormat
 import app.aaps.core.interfaces.R as InterfacesR
 import app.aaps.core.ui.R as CoreUiR
 
@@ -199,8 +197,11 @@ fun CarbsDialogScreen(
     )
 }
 
+/**
+ * @see CarbsDialogScreenPreview
+ */
 @Composable
-private fun CarbsDialogContent(
+internal fun CarbsDialogContent(
     uiState: CarbsDialogUiState,
     bgInfo: BgInfoUiState,
     iob: IobUiState,
@@ -327,7 +328,7 @@ private fun CarbsDialogContent(
                             // Lower bound = -COB (can't remove more than is on board); at COB 0 the minimum is 0.
                             valueRange = (-uiState.cobLimit).toDouble()..uiState.maxCarbs.toDouble(),
                             step = 1.0,
-                            valueFormat = DecimalFormat("0"),
+                            valueFormat = NumberFormat.INTEGER,
                             unitLabel = stringResource(CoreUiR.string.shortgramm)
                         )
                         // Removing carbs (negative): show the COB-bounded limit so the user understands why it can't go lower.
@@ -353,7 +354,7 @@ private fun CarbsDialogContent(
                         onValueChange = onDurationChange,
                         valueRange = 0.0..uiState.maxCarbsDurationHours.toDouble(),
                         step = 1.0,
-                        valueFormat = DecimalFormat("0"),
+                        valueFormat = NumberFormat.INTEGER,
                         unitLabel = stringResource(InterfacesR.string.shorthour),
                         modifier = itemModifier
                     )
@@ -415,45 +416,6 @@ private fun CarbsDialogContent(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
-    }
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun CarbsDialogScreenPreview() {
-    MaterialTheme {
-        CarbsDialogContent(
-            uiState = CarbsDialogUiState(
-                carbs = 15,
-                maxCarbs = 100,
-                carbsButtonIncrement1 = 5,
-                carbsButtonIncrement2 = 10,
-                carbsButtonIncrement3 = 20,
-                showNotesFromPreferences = true,
-                showBolusReminder = true
-            ),
-            bgInfo = BgInfoUiState(bgInfo = null, timeAgoText = ""),
-            iob = IobUiState(),
-            cob = CobUiState(),
-            dateString = "25/02/2026",
-            timeString = "14:30",
-            onHypoChange = {},
-            onEatingSoonChange = {},
-            onActivityChange = {},
-            onCarbsChange = {},
-            onAddCarbs = {},
-            onTimeOffsetChange = {},
-            onAlarmChange = {},
-            onDurationChange = {},
-            onBolusReminderChange = {},
-            onNotesChange = {},
-            onDateClick = {},
-            onTimeClick = {},
-            onSettingsClick = {},
-            onNavigateBack = {},
-            onConfirmClick = {}
-        )
     }
 }
 

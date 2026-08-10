@@ -24,13 +24,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.aaps.core.ui.R
 
-import app.aaps.core.ui.compose.ExcludeFromJacocoGeneratedReport
+import app.aaps.core.data.format.NumberFormat
 import app.aaps.core.ui.compose.formatMinutesAsDuration
-import java.text.DecimalFormat
 import kotlin.math.roundToInt
 import app.aaps.core.keys.R as KeysR
 
@@ -47,6 +45,8 @@ import app.aaps.core.keys.R as KeysR
  * @param valueFormat Format for displaying/parsing the value
  * @param onValueConfirm Called when user confirms with a valid value
  * @param onDismiss Called when dialog is dismissed
+ *
+ * @see ValueInputDialogPreview
  */
 @Composable
 fun ValueInputDialog(
@@ -57,7 +57,7 @@ fun ValueInputDialog(
     summary: String? = null,
     unitLabel: String = "",
     unitLabelResId: Int = 0,
-    valueFormat: DecimalFormat = DecimalFormat("0.0"),
+    valueFormat: NumberFormat = NumberFormat.DECIMAL_1,
     onValueConfirm: (Double) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -196,21 +196,4 @@ fun ValueInputDialog(
             }
         }
     )
-}
-
-@ExcludeFromJacocoGeneratedReport
-@Preview(showBackground = true)
-@Composable
-private fun ValueInputDialogPreview() {
-    MaterialTheme {
-        ValueInputDialog(
-            currentValue = 5.0,
-            valueRange = 0.0..10.0,
-            step = 0.5,
-            label = "Insulin",
-            unitLabel = "U",
-            onValueConfirm = {},
-            onDismiss = {}
-        )
-    }
 }
