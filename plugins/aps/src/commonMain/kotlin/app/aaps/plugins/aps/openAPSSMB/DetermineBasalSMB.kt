@@ -303,7 +303,7 @@ class DetermineBasalSMB(
             consoleError.add("Activity tracker disabled: tempTarget")
         } else {
             consoleError.add("Steps: 5=${profile.steps5}, 10=${profile.steps10}, 15=${profile.steps15}, 30=${profile.steps30}, 60=${profile.steps60}")
-            val hour = Instant.ofEpochMilli(currentTime).atZone(ZoneId.systemDefault()).hour
+            val hour = Instant.fromEpochMilliseconds(currentTime).toLocalDateTime(TimeZone.currentSystemDefault()).hour
             if ( (hour < 8 || hour >= 22) && profile.steps60 <= 200 ) {
                 consoleError.add("Activity tracker disabled inactivity detection: sleeping hours")
             } else if ( profile.steps5 > 300 || profile.steps10 > 550  || profile.steps15 > 800  || profile.steps30 > 1500 || profile.steps60 > 2500 ) {
