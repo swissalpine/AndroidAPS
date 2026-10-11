@@ -47,5 +47,8 @@ data class OapsProfile(
     //DynISF only
     var variable_sens: Double,
     var insulinDivisor: Int,
-    var TDD: Double
+    var TDD: Double,
+    // Ketoacidosis Protection
+    var ketoacidosisProtectionBasal: Int = 20,
+    var ketoacidosisProtection: Boolean = false
 )
