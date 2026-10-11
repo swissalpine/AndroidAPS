@@ -32,7 +32,8 @@ enum class UnitDoubleKey(
         defaultedBySM = true,
         dependency = BooleanKey.ApsUseDynamicSensitivity,
         sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
-    )
+    ),
+    ApsSmbThreshold(key = "smbThreshold", defaultValue = 100.0, minMgdl = 72, maxMgdl = 180, title = KeysStrings.pref_smb_threshold_title, summary = KeysStrings.smb_threshold_summary, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
     ;
 
 }
