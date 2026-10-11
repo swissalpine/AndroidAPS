@@ -281,7 +281,7 @@ internal fun ManageBottomSheetContent(
 
         // Section: Device maintenance & basal — every item (sensor insert, fill, battery change, TBR/EB) now rides
         // Client-Control, so the whole section is gated MASTER_OR_PAIRED_CLIENT (hidden on an unpaired client).
-        if (showMutatingActions && (showTempBasal || showCancelTempBasal || showExtendedBolus || showCancelExtendedBolus)) {
+        if (showMutatingActions && (showTempBasal || showCancelTempBasal || showExtendedBolus || showCancelExtendedBolus || showFill)) {
             HorizontalDivider(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp))
             Spacer(modifier = Modifier.height(8.dp))
 

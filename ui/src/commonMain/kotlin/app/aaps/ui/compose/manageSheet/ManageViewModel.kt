@@ -190,7 +190,7 @@ class ManageViewModel(
                     showCancelExtendedBolus = showCancelExtendedBolus,
                     showHistoryBrowser = profile != null,
                     showBatteryChange = pumpDescription.isBatteryReplaceable || pump.isBatteryChangeLoggingEnabled(),
-                    showFill = pumpDescription.isRefillingCapable && isInitialized,
+                    showFill = pumpDescription.isRefillingCapable && (isInitialized || isDisconnected || isSuspended),
                     showAuthorizedClients = preferences.get(BooleanKey.NsClient3UseWs) && !config.AAPSCLIENT,
                     showPairWithMaster = config.AAPSCLIENT && preferences.get(BooleanKey.NsClient3UseWs),
                     showMutatingActions = !config.AAPSCLIENT || nsClient.masterOrPairedClientFlow.value,
