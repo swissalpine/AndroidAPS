@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import app.aaps.ComposeMainActivity
-import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Exported launcher activity that lets 10BE CarbCam prefill the AAPS Bolus Wizard.
@@ -21,7 +20,6 @@ import dagger.hilt.android.AndroidEntryPoint
  *
  * No insulin is ever delivered without the standard wizard confirmation flow.
  */
-@AndroidEntryPoint
 class WizardLaunchActivity : ComponentActivity() {
 
     companion object {

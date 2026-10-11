@@ -8,6 +8,7 @@ import app.aaps.core.data.model.SC
 import app.aaps.core.data.model.RM
 import app.aaps.core.data.model.TE
 import app.aaps.core.data.model.TT
+import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.data.ue.ValueWithUnit
@@ -203,7 +204,7 @@ class LoopHubImpl(
                 persistenceLayer.insertAndCancelCurrentTemporaryTarget(
                     temporaryTarget = TT(
                         timestamp = dateUtil.now(),
-                        duration = TimeUnit.MINUTES.toMillis(duration.toLong()),
+                        duration = T.mins(duration.toLong()).msecs(),
                         reason = TT.Reason.WEAR,
                         lowTarget = profileUtil.convertToMgdl(target, profileUtil.units),
                         highTarget = profileUtil.convertToMgdl(target, profileUtil.units)
