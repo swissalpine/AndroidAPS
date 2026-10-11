@@ -58,10 +58,10 @@ object PumpCommandGate {
 
             RM.Mode.DISCONNECTED_PUMP -> when (kind) {
                 CommandKind.CANCEL_TEMP_BASAL,
+                CommandKind.BOLUS,
                 CommandKind.TEMP_BASAL_ZERO -> Decision.Allow
 
                 CommandKind.TEMP_BASAL_NONZERO,
-                CommandKind.BOLUS,
                 CommandKind.EXTENDED_BOLUS  -> Decision.Reject(Reason.PUMP_DISCONNECTED)
             }
 
