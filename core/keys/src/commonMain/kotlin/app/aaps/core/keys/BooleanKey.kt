@@ -279,6 +279,8 @@ enum class BooleanKey(
 
     // Ketoacidosis Protection
     ApsKetoacidosisProtection(key = "ketoacidosis_protection", defaultValue = false, title = KeysStrings.pref_ketoacidosis_protection_title, summary = KeysStrings.ketoacidosis_protection_summary),
+    // Activity Tracker
+    ApsActivityTracker(key = "activity_tracker", defaultValue = false, title = KeysStrings.pref_activity_tracker_title, summary = KeysStrings.pref_activity_tracker_summary),
 
     ;
 
