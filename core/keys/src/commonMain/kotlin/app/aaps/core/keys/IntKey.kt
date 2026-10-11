@@ -446,6 +446,9 @@ enum class IntKey(
         ),
         sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)
     ),
+    // Ketoacidosis Protection
+    ApsKetoacidosisProtectionBasal(key = "ketoacidosis_protection_basal", defaultValue = 20, min = 10, max = 40, title = KeysStrings.pref_ketoacidosis_protection_basal_title, summary = KeysStrings.ketoacidosis_protection_basal_summary, dependency = BooleanKey.ApsKetoacidosisProtection),
+
     ;
 
     override val entries: Map<Int, TextRef> = entriesRefs

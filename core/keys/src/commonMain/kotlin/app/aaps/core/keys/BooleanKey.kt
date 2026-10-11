@@ -277,6 +277,9 @@ enum class BooleanKey(
     SiteRotationManagePump("site_rotation_manage_pump", defaultValue = false, title = KeysStrings.pref_title_site_rotation_manage_pump, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
     SiteRotationManageCgm("site_rotation_manage_cgm", defaultValue = false, title = KeysStrings.pref_title_site_rotation_manage_cgm, sync = SyncSpec(SyncChannel.Cold, SyncDirection.Bidirectional)),
 
+    // Ketoacidosis Protection
+    ApsKetoacidosisProtection(key = "ketoacidosis_protection", defaultValue = false, title = KeysStrings.pref_ketoacidosis_protection_title, summary = KeysStrings.ketoacidosis_protection_summary),
+
     ;
 
 }

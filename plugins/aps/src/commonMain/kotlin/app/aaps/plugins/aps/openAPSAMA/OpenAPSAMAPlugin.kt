@@ -220,7 +220,9 @@ class OpenAPSAMAPlugin(
             out_units = if (profileFunction.getUnits() == GlucoseUnit.MMOL) "mmol/L" else "mg/dl",
             variable_sens = 0.0, // not used
             insulinDivisor = 0, // not used
-            TDD = 0.0 // not used
+            TDD = 0.0, // not used
+            ketoacidosisProtection = preferences.get(BooleanKey.ApsKetoacidosisProtection),
+            ketoacidosisProtectionBasal = preferences.get(IntKey.ApsKetoacidosisProtectionBasal)
         )
 
         // Refuse to run the algorithm with degenerate ISF inputs - dividing by these produces NaN or

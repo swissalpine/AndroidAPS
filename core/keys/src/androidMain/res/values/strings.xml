@@ -428,4 +428,13 @@
 
     <!--    Appearance preferences-->
 
+
+    <!--  Ketoacidosis Protection -->
+    <string name="pref_ketoacidosis_protection_title">Ketoacidosis Protection</string>
+    <string name="ketoacidosis_protection_summary">Enables a small safety TBR instead of low temp to reduce the ketoacidosis risk.</string>
+    <string name="pref_ketoacidosis_protection_basal_title">Quantity of the safety TBR [%]</string>
+    <string name="ketoacidosis_protection_basal_summary">Default: 20</string>
+
+
+
 </resources>
