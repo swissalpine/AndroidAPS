@@ -78,6 +78,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="app.aaps.activities.WizardLaunchActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="info.nightscout.androidaps.action.OPEN_BOLUS_WIZARD" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- Powers the screen on for a background alarm without USE_FULL_SCREEN_INTENT.
              Fired by AlarmManager.setAlarmClock() from AlarmNotificationManager. -->
         <receiver
