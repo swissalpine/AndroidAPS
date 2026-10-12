@@ -358,7 +358,7 @@ class DetermineBasalSMB(
             // Mod Activity Tracker
             sensitivityRatio = autosens_data.ratio * activityRatio
             if (sensitivityRatio != 1.0)
-                consoleError.add("Sensitivity ratio = = $sensitivityRatio <- Autosens ratio (${autosens_data.ratio}) * Activity ratio ($activityRatio)")
+                consoleError.add("Sensitivity ratio = $sensitivityRatio <- Autosens ratio (${autosens_data.ratio}) * Activity ratio ($activityRatio)")
         }
         basal = profile.current_basal * sensitivityRatio
         basal = round_basal(basal)
