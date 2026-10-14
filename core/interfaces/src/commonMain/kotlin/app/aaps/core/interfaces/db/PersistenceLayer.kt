@@ -49,6 +49,19 @@ data class DatabaseMaintenanceInfo(
     val report: String
 )
 
+/** How a [PersistenceLayer.vacuumDatabase] ended. Any other failure is thrown. */
+enum class VacuumResult {
+
+    /** The database was compacted. */
+    DONE,
+
+    /** It did not fit in memory at first, so old APS results and device statuses were deleted, and then it was compacted. */
+    DONE_AFTER_TRIM,
+
+    /** It did not fit in memory even after that. Trying again soon would only fail the same way. */
+    OUT_OF_MEMORY
+}
+
 interface PersistenceLayer {
 
     /**
@@ -73,8 +86,11 @@ interface PersistenceLayer {
      * Full VACUUM of the database: defragments the file and returns free pages to the OS.
      * Heavy and memory intensive — only call when nothing else is using the DB (e.g. on startup
      * before plugins/loop/sync start). May throw if the DB is busy/locked.
+     *
+     * When the database does not fit in memory, APS results and device statuses older than a few days
+     * are deleted and it is tried once more - see [VacuumResult].
      */
-    suspend fun vacuumDatabase()
+    suspend fun vacuumDatabase(): VacuumResult
 
     /**
      * Collect DB size, free space and per-table row counts (total, older-than-retention, tracked
@@ -1061,6 +1077,15 @@ interface PersistenceLayer {
      * @return List of inserted records
      */
     suspend fun insertTemporaryBasalWithTempId(temporaryBasal: TB): TransactionResult<TB>
+
+    /**
+     * Keeps the temp basals and boluses with only a temporary id (set by AAPS, not found in the pump history yet)
+     * as they were set: each is stored again with its temporary id as pump id, so it is uploaded to Nightscout, and
+     * the old entry is invalidated. For a pump change, after which no pump confirms them any more.
+     *
+     * @return how many records were kept
+     */
+    suspend fun confirmTemporaryIds(): Int
 
     // EB
     /**

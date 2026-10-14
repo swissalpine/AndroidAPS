@@ -30,11 +30,13 @@ import app.aaps.core.interfaces.concurrent.aapsIoDispatcher
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.DatabaseMaintenanceInfo
 import app.aaps.core.interfaces.db.PersistenceLayer
+import app.aaps.core.interfaces.db.VacuumResult
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.database.AppRepository
+import app.aaps.database.VacuumOutcome
 import app.aaps.database.entities.Bolus
 import app.aaps.database.entities.BolusCalculatorResult
 import app.aaps.database.entities.CalibrationEntry
@@ -60,6 +62,7 @@ import app.aaps.database.transactions.CancelProfileSwitchTransaction
 import app.aaps.database.transactions.CancelRunningModeTransaction
 import app.aaps.database.transactions.CancelTherapyEventTransaction
 import app.aaps.database.transactions.CgmSourceTransaction
+import app.aaps.database.transactions.ConfirmTemporaryIdsTransaction
 import app.aaps.database.transactions.CutCarbsTransaction
 import app.aaps.database.transactions.InsertAndCancelCurrentTemporaryTargetTransaction
 import app.aaps.database.transactions.InsertBolusWithTempIdTransaction
@@ -170,8 +173,12 @@ class PersistenceLayerImpl(
         repository.cleanupDatabase(olderThan, deleteTrackedChanges)
     }
 
-    override suspend fun vacuumDatabase() = withContext(aapsIoDispatcher) {
-        repository.vacuumDatabase()
+    override suspend fun vacuumDatabase(): VacuumResult = withContext(aapsIoDispatcher) {
+        when (repository.vacuumDatabase()) {
+            VacuumOutcome.DONE            -> VacuumResult.DONE
+            VacuumOutcome.DONE_AFTER_TRIM -> VacuumResult.DONE_AFTER_TRIM
+            VacuumOutcome.OUT_OF_MEMORY   -> VacuumResult.OUT_OF_MEMORY
+        }
     }
 
     override suspend fun databaseMaintenanceInfo(retentionDays: Long): DatabaseMaintenanceInfo = withContext(aapsIoDispatcher) {
@@ -1763,6 +1770,18 @@ class PersistenceLayerImpl(
             transactionResult
         } catch (e: Exception) {
             aapsLogger.error(LTag.DATABASE, "Error while saving TemporaryBasal", e)
+            throw e
+        }
+    }
+
+    override suspend fun confirmTemporaryIds(): Int = withContext(aapsIoDispatcher) {
+        try {
+            val result = repository.runTransactionForResultSuspend(ConfirmTemporaryIdsTransaction())
+            result.temporaryBasals.forEach { aapsLogger.debug(LTag.DATABASE, "Kept TemporaryBasal with its temporary id as pump id $it") }
+            result.boluses.forEach { aapsLogger.debug(LTag.DATABASE, "Kept Bolus with its temporary id as pump id $it") }
+            result.temporaryBasals.size + result.boluses.size
+        } catch (e: Exception) {
+            aapsLogger.error(LTag.DATABASE, "Error while keeping records with a temporary id", e)
             throw e
         }
     }
