@@ -21,6 +21,7 @@ import app.aaps.core.interfaces.bolus.WizardExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
 import app.aaps.core.interfaces.clientcontrol.isNotDeliveryError
 import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.configuration.appInitializedFlow
 import app.aaps.core.interfaces.configuration.ExternalOptions
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
@@ -40,7 +41,6 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.protection.ProtectionCheck
 import app.aaps.core.interfaces.protection.ProtectionResult
 import app.aaps.core.interfaces.pump.Pump
-import app.aaps.core.interfaces.pump.defs.determineCorrectBolusStepSize
 import app.aaps.core.interfaces.resources.TextResolver
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.events.EventShowDialog
@@ -52,6 +52,7 @@ import app.aaps.core.interfaces.scenes.SceneStore
 import app.aaps.core.interfaces.sync.NsClient
 import app.aaps.core.interfaces.ui.UrlOpener
 import app.aaps.core.interfaces.utils.DateUtil
+import app.aaps.core.interfaces.utils.Round
 import app.aaps.core.interfaces.utils.fabric.FabricPrivacy
 import app.aaps.core.keys.BooleanKey
 import app.aaps.core.keys.StringNonKey
@@ -104,7 +105,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 // Registers itself: @ViewModelKey infers the key from the class. No graph entry, and deliberately
 // unscoped so each screen gets its own.
@@ -222,7 +222,9 @@ class MainViewModel(
         overviewDataCache.tbrFlow,
         // Re-emit the latest tick whenever QuickWizard entries change (local edit or synced from the
         // main phone) so the carousel rebuilds. changes is a StateFlow (initial 0) → never blocks.
-        combine(progressTicker, quickWizard.changes) { now, _ -> now }
+        // Also when app init completes: the QuickWizard items are built only after that, and must not
+        // wait for the next tick to appear.
+        combine(progressTicker, quickWizard.changes, config.appInitializedFlow) { now, _, _ -> now }
     ) { ttData, profileData, rmData, tbrData, now ->
         buildChipState(ttData, profileData, rmData, tbrData, now)
     }
@@ -378,6 +380,11 @@ class MainViewModel(
     private suspend fun computeQuickWizardItems(runningMode: RM.Mode?): List<QuickWizardItem> {
         val activeEntries = quickWizard.list().filter { it.isActive() }
         if (activeEntries.isEmpty()) return emptyList()
+        // Read and calculate nothing before app init completes; chipStateFlow rebuilds as soon as it has.
+        // Until then activePlugin.activeAPS is null, and a profile read now keeps that null: ProfileSealed
+        // takes the APS when it is built. Checking just before doCalc() was not enough, because the profile
+        // was read before that check, and it reached ProfileSealed's "APS not defined" guard (crash at start).
+        if (!config.appInitialized) return emptyList()
 
         val lastBG = iobCobCalculator.ads.lastBg()
         val profile = profileFunction.getProfile()
@@ -408,8 +415,7 @@ class MainViewModel(
             return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, detail = detail, disabledReason = disabledReason)
 
         val insulinAfterConstraints = constraintChecker.applyBolusConstraints(ConstraintObject(entry.insulin(), aapsLogger)).value()
-        val minStep = pump.pumpDescription.pumpType.determineCorrectBolusStepSize(insulinAfterConstraints)
-        if (abs(insulinAfterConstraints - entry.insulin()) >= minStep)
+        if (Round.isMoreThanRounding(entry.insulin(), insulinAfterConstraints, pump.bolusStepSize(insulinAfterConstraints)))
             return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, detail = detail, disabledReason = rh.gs(UiStrings.insulin_constraint_violation))
 
         return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, detail = detail, isEnabled = true)
@@ -443,10 +449,7 @@ class MainViewModel(
         val guid = entry.guid()
 
         val globalReason = when {
-            // Before app init completes, activePlugin.activeAPS is still null, so the profile's `aps` is
-            // null and doCalc() would hit ProfileSealed's "APS not defined" guard (early-boot crash).
-            // Mirror the appInitialized gate the bolus path already has (WizardBolusExecutorImpl).
-            !config.appInitialized                   -> rh.gs(CoreUiStrings.initializing)
+            // App init is checked in computeQuickWizardItems, before the profile is read.
             lastBG == null                           -> rh.gs(CoreUiStrings.wizard_no_actual_bg)
             profile == null                          -> rh.gs(CoreUiStrings.noprofile)
             !pump.isInitialized()                    -> rh.gs(CoreUiStrings.pump_not_initialized_profile_not_set)
@@ -471,8 +474,7 @@ class MainViewModel(
         val eCarbs = entry.eCarbsGrams()
         if (constraintChecker.applyCarbsConstraints(ConstraintObject(eCarbs, aapsLogger)).value() != eCarbs)
             return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, detail = detail, disabledReason = rh.gs(UiStrings.carbs_constraint_violation))
-        val minStep = pump.pumpDescription.pumpType.determineCorrectBolusStepSize(wizard.insulinAfterConstraints)
-        if (abs(wizard.insulinAfterConstraints - wizard.calculatedTotalInsulin) >= minStep)
+        if (Round.isMoreThanRounding(wizard.calculatedTotalInsulin, wizard.insulinAfterConstraints, pump.bolusStepSize(wizard.insulinAfterConstraints)))
             return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, detail = detail, disabledReason = rh.gs(UiStrings.insulin_constraint_violation))
 
         return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, detail = detail, isEnabled = true)
@@ -740,7 +742,7 @@ class MainViewModel(
                             message = "",
                             confirmationLines = prepared.lines,
                             icon = icon,
-                            onOk = { appScope.launch { batchExecutor.commit(prepared.id, Sources.TTDialog, label) } })
+                            onOk = { commitAndReport(prepared.id, Sources.TTDialog, label, title = rh.gs(CoreUiStrings.temporary_target)) })
                     )
 
                 is ActionProgress.Rejected ->
@@ -759,13 +761,35 @@ class MainViewModel(
         viewModelScope.launch {
             when (val prepared = batchExecutor.prepare(actions, Sources.ProfileSwitchDialog, label)) {
                 is ActionProgress.Prepared ->
-                    rxBus.send(EventShowDialog.OkCancel(title = label, message = "", confirmationLines = prepared.lines, icon = IcProfile, onOk = { appScope.launch { batchExecutor.commit(prepared.id, Sources.ProfileSwitchDialog, label) } }))
+                    rxBus.send(
+                        EventShowDialog.OkCancel(
+                            title = label, message = "", confirmationLines = prepared.lines, icon = IcProfile,
+                            onOk = { commitAndReport(prepared.id, Sources.ProfileSwitchDialog, label, title = label) })
+                    )
 
                 is ActionProgress.Rejected ->
                     if (!config.AAPSCLIENT || prepared.reason.isNotDeliveryError())
                         rxBus.send(EventShowDialog.Ok(title = label, message = prepared.detail ?: rh.gs(prepared.reason.failText())))
 
                 else                       -> Unit
+            }
+        }
+    }
+
+    /**
+     * Commits a prepared action, and says why when it was refused: a switch the pump cannot take passed the
+     * prepare, but the commit refused it, and the dialog had closed as if it was done. The same as
+     * `ProfileManagementViewModel.activateProfile`. Unconfirmed is shown by the app-level modal.
+     */
+    private fun commitAndReport(id: Long, source: Sources, label: String, title: String) {
+        appScope.launch {
+            val result = batchExecutor.commit(id, source, label)
+            if (result is ActionProgress.Rejected) {
+                if (result.reason.isNotDeliveryError())
+                    rxBus.send(EventShowDialog.Ok(title = title, message = rh.gs(result.reason.failText())))
+                else result.detail?.let { detail ->
+                    rxBus.send(EventShowDialog.Ok(title = title, message = detail))
+                }
             }
         }
     }
