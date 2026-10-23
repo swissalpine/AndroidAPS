@@ -63,7 +63,6 @@ class LoopHubImpl(
     private val processedTbrEbData: ProcessedTbrEbData,
     private val masterActionExecutor: MasterActionExecutor,
     private val dateUtil: DateUtil,
-    private val wizardBolusExecutor: WizardBolusExecutor,
     @ApplicationScope private val appScope: CoroutineScope
 ) : LoopHub {
 
