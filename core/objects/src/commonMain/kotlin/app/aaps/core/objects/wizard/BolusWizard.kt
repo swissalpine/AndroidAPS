@@ -14,6 +14,7 @@ import app.aaps.core.data.ui.ConfirmationLine
 import app.aaps.core.data.ui.ConfirmationRole
 import app.aaps.core.data.ui.confirmationLines
 import app.aaps.core.interfaces.InterfacesStrings
+import app.aaps.core.interfaces.alerts.EatReminder
 import app.aaps.core.interfaces.aps.GlucoseStatus
 import app.aaps.core.interfaces.aps.Loop
 import app.aaps.core.interfaces.automation.Automation
@@ -65,6 +66,7 @@ class BolusWizard(
     private val config: Config,
     private val uel: UserEntryLogger,
     private val automation: Automation,
+    private val eatReminder: EatReminder,
     private val glucoseStatusProvider: GlucoseStatusProvider,
     private val persistenceLayer: PersistenceLayer,
     private val processedDeviceStatusData: ProcessedDeviceStatusData,
@@ -376,29 +378,26 @@ class BolusWizard(
     ): List<ConfirmationLine> =
         confirmationLines {
             if (insulinAfterConstraints > 0) {
-                val pct = if (percentageCorrection != 100) " ($percentageCorrection%)" else ""
+                val insulin = rh.gs(InterfacesStrings.format_insulin_units, insulinAfterConstraints)
                 line(
                     ConfirmationRole.BOLUS,
                     rh.gs(
                         InterfacesStrings.confirmation_line,
                         rh.gs(InterfacesStrings.bolus),
-                        rh.gs(InterfacesStrings.format_insulin_units, insulinAfterConstraints) + pct
+                        if (percentageCorrection != 100) rh.gs(InterfacesStrings.insulin_with_percentage, insulin, percentageCorrection) else insulin
                     )
                 )
             }
             if (carbs > 0 && !advisor) {
-                val timeShift = when {
-                    carbTime > 0 -> " (+" + rh.gs(InterfacesStrings.mins, carbTime) + ")"
-                    carbTime < 0 -> " (" + rh.gs(InterfacesStrings.mins, carbTime) + ")"
-                    else         -> ""
+                val carbsText = rh.gs(InterfacesStrings.format_carbs, carbs)
+                val carbsWithTime = when {
+                    carbTime > 0 -> rh.gs(InterfacesStrings.carbs_with_time_later, carbsText, rh.gs(InterfacesStrings.mins, carbTime))
+                    carbTime < 0 -> rh.gs(InterfacesStrings.value_with_detail, carbsText, rh.gs(InterfacesStrings.mins, carbTime))
+                    else         -> carbsText
                 }
                 line(
                     ConfirmationRole.CARBS,
-                    rh.gs(
-                        InterfacesStrings.confirmation_line,
-                        rh.gs(InterfacesStrings.carbs),
-                        rh.gs(InterfacesStrings.format_carbs, carbs) + timeShift
-                    )
+                    rh.gs(InterfacesStrings.confirmation_line, rh.gs(InterfacesStrings.carbs), carbsWithTime)
                 )
             }
             if (insulinFromCOB > 0) {
@@ -438,8 +437,7 @@ class BolusWizard(
                     val duration = quickWizardEntry.duration()
                     val carbs2 = quickWizardEntry.carbs2()
                     if (carbs2 > 0) {
-                        val ecarbsMessage = rh.gs(InterfacesStrings.format_carbs, carbs2) + "/" + duration + "h (+" + timeOffset + "min)"
-                        line(ConfirmationRole.INFO, rh.gs(InterfacesStrings.confirmation_line, rh.gs(InterfacesStrings.uel_extended_carbs), ecarbsMessage))
+                        line(ConfirmationRole.INFO, rh.gs(InterfacesStrings.wizard_ecarbs, carbs2, duration, timeOffset))
                     }
                 }
             }
@@ -552,10 +550,11 @@ class BolusWizard(
                 else                           -> Action.TREATMENT
             }
             val bolusCalculatorResult = createBolusCalculatorResult()
-            // Schedule carb timer before bolus delivery. Scheduling in the bolus completion callback
-            // fails when the screen is off because Android blocks startActivity() from the background.
-            if (useAlarm && carbs > 0 && carbTime > 0) {
-                automation.scheduleTimeToEatReminder(T.mins(carbTime.toLong()).secs().toInt())
+            // A record-only entry has no pump delivery to wait for, so its "time to eat" timer starts now.
+            // A delivered wizard bolus does not come here: it goes through WizardExecutor to the master's
+            // confirm(), which starts the timer once the pump finished the bolus.
+            if (forcedRecordOnly && useAlarm && carbs > 0 && carbTime > 0) {
+                eatReminder.start(T.mins(carbTime.toLong()).msecs())
             }
             if (forcedRecordOnly) {
                 uel.log(
@@ -584,7 +583,7 @@ class BolusWizard(
                         bolus = detailedBolusInfo.createBolus(recordIcfg),
                         action = action,
                         source = source,
-                        note = rh.gs(InterfacesStrings.record) + if (notes.isNotEmpty()) ": $notes" else ""
+                        note = if (notes.isNotEmpty()) rh.gs(InterfacesStrings.confirmation_line, rh.gs(InterfacesStrings.record), notes) else rh.gs(InterfacesStrings.record)
                     )
                 }
                 if (carbs > 0) {

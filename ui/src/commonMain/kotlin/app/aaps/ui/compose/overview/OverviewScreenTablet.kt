@@ -44,9 +44,8 @@ import app.aaps.ui.compose.scenes.ActiveSceneBanner
 /**
  * Tablet variant of the overview screen.
  *
- * Differs from [OverviewScreenSplit] (phone landscape) by hoisting [LargeClock]
- * to a full-width top row above the BG/chips row, so it can grow much larger
- * without competing with chip width.
+ * Differs from [OverviewScreenSplit] (phone landscape) by a larger [LargeClock] that carries the age
+ * of the BG reading, so the BG circle leaves its own age line out. Both put the clock above the chips.
  */
 @Composable
 fun OverviewScreenTablet(
@@ -84,6 +83,8 @@ fun OverviewScreenTablet(
     endSceneEnabled: Boolean = true,
     commandsAllowed: Boolean = true,
     formatDuration: (Long) -> String = { ms -> "${(ms / 60000L).toInt()}m" },
+    /** The "time to eat" bar, under the scene bar. */
+    eatReminderBanner: @Composable () -> Unit = {},
     /** Height of the bars drawn over the content in preview mode; both columns need it as extra space at their end. */
     overlaidBarsHeight: Dp = 0.dp,
     modifier: Modifier = Modifier
@@ -111,6 +112,7 @@ fun OverviewScreenTablet(
             endEnabled = endSceneEnabled,
             formatDuration = formatDuration
         )
+        eatReminderBanner()
 
         Row(
             modifier = Modifier

@@ -76,6 +76,8 @@ fun OverviewScreenSplit(
     endSceneEnabled: Boolean = true,
     commandsAllowed: Boolean = true,
     formatDuration: (Long) -> String = { ms -> "${(ms / 60000L).toInt()}m" },
+    /** The "time to eat" bar, under the scene bar. */
+    eatReminderBanner: @Composable () -> Unit = {},
     /** Height of the bars drawn over the content in preview mode; both columns need it as extra space at their end. */
     overlaidBarsHeight: Dp = 0.dp,
     modifier: Modifier = Modifier
@@ -103,6 +105,7 @@ fun OverviewScreenSplit(
             endEnabled = endSceneEnabled,
             formatDuration = formatDuration
         )
+        eatReminderBanner()
 
         Row(
             modifier = Modifier
@@ -131,40 +134,45 @@ fun OverviewScreenSplit(
                         )
                     }
 
-                    OverviewChipsColumn(
-                        runningMode = runningMode,
-                        runningModeText = runningModeText,
-                        runningModeRemaining = runningModeRemaining,
-                        runningModeProgress = runningModeProgress,
-                        runningModeSceneManaged = runningModeSceneManaged,
-                        smbEnabled = smbEnabled,
-                        profileName = profileName,
-                        isProfileModified = isProfileModified,
-                        profileProgress = profileProgress,
-                        profileSceneManaged = profileSceneManaged,
-                        tempTargetText = tempTargetText,
-                        tempTargetState = tempTargetState,
-                        tempTargetProgress = tempTargetProgress,
-                        tempTargetReason = tempTargetReason,
-                        tempTargetSceneManaged = tempTargetSceneManaged,
-                        tbrState = tbrState,
-                        iobUiState = iobUiState,
-                        cobUiState = cobUiState,
-                        sensitivityUiState = sensitivityUiState,
-                        onNavigate = onNavigate,
-                        onTbrChipClick = onTbrChipClick,
-                        onIobChipClick = onIobChipClick,
-                        commandsAllowed = commandsAllowed,
+                    Column(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(start = 8.dp),
-                        trailingContent = {
-                            LargeClock(
-                                bgTimestamp = bgInfoState.bgInfo?.timestamp,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                    )
+                            .padding(start = 8.dp)
+                    ) {
+                        // Above the chips, as in the tablet layout. Beside them it had only the width the
+                        // chips left over and was cut off on a narrow screen ("23:36("). No BG age: the
+                        // BG circle here already shows it.
+                        LargeClock(
+                            bgTimestamp = bgInfoState.bgInfo?.timestamp,
+                            showBgAge = false,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OverviewChipsColumn(
+                            runningMode = runningMode,
+                            runningModeText = runningModeText,
+                            runningModeRemaining = runningModeRemaining,
+                            runningModeProgress = runningModeProgress,
+                            runningModeSceneManaged = runningModeSceneManaged,
+                            smbEnabled = smbEnabled,
+                            profileName = profileName,
+                            isProfileModified = isProfileModified,
+                            profileProgress = profileProgress,
+                            profileSceneManaged = profileSceneManaged,
+                            tempTargetText = tempTargetText,
+                            tempTargetState = tempTargetState,
+                            tempTargetProgress = tempTargetProgress,
+                            tempTargetReason = tempTargetReason,
+                            tempTargetSceneManaged = tempTargetSceneManaged,
+                            tbrState = tbrState,
+                            iobUiState = iobUiState,
+                            cobUiState = cobUiState,
+                            sensitivityUiState = sensitivityUiState,
+                            onNavigate = onNavigate,
+                            onTbrChipClick = onTbrChipClick,
+                            onIobChipClick = onIobChipClick,
+                            commandsAllowed = commandsAllowed
+                        )
+                    }
                 }
 
                 OverviewStatusSection(

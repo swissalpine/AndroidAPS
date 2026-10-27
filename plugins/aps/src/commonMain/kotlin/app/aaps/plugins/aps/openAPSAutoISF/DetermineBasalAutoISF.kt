@@ -11,6 +11,7 @@ import app.aaps.core.interfaces.aps.MealData
 import app.aaps.core.interfaces.aps.OapsProfileAutoIsf
 import app.aaps.core.interfaces.aps.Predictions
 import app.aaps.core.interfaces.aps.RT
+import app.aaps.core.interfaces.aps.SmbIntervalGate
 import app.aaps.core.interfaces.profile.ProfileUtil
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
@@ -84,7 +85,7 @@ class DetermineBasalAutoISF(
         if (!microBolusAllowed) {
             consoleError.add("SMB disabled (!microBolusAllowed)")
             return false
-        } else if (!profile.allowSMB_with_high_temptarget && profile.temptargetSet && target_bg > 100) {
+        } else if (!profile.allowSMB_with_high_temptarget && profile.temptargetSet && Constants.isAboveNormalTarget(target_bg)) {
             consoleError.add("SMB disabled due to high temptarget of $target_bg")
             return false
         }
@@ -284,8 +285,8 @@ class DetermineBasalAutoISF(
         // when temptarget is 160 mg/dL, run 50% basal (120 = 75%; 140 = 60%),  80 mg/dL with low_temptarget_lowers_sensitivity would give 1.5x basal, but is limited to autosens_max (1.2x by default)
         val halfBasalTarget = profile.half_basal_exercise_target
 
-        if (high_temptarget_raises_sensitivity && profile.temptargetSet && target_bg > normalTarget
-            || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && target_bg < normalTarget
+        if (high_temptarget_raises_sensitivity && profile.temptargetSet && Constants.isAboveNormalTarget(target_bg)
+            || profile.low_temptarget_lowers_sensitivity && profile.temptargetSet && Constants.isBelowNormalTarget(target_bg)
         ) {
             // w/ target 100, temp target 110 = .89, 120 = 0.8, 140 = 0.67, 160 = .57, and 200 = .44
             // e.g.: Sensitivity ratio set to 0.8 based on temp target of 120; Adjusting basal from 1.65 to 1.35; ISF from 58.9 to 73.6
@@ -1188,10 +1189,11 @@ class DetermineBasalAutoISF(
                 val lastBolusAge = (systemTime - iob_data.lastBolusTime) / 1000.0
                 //console.error(lastBolusAge);
                 // allow SMBIntervals between 1 and 10 minutes
-                val SMBInterval = min(10, max(1, profile.SMBInterval)) * 60.0   // in seconds
+                val smbIntervalMinutes = min(10, max(1, profile.SMBInterval))
+                val SMBInterval = smbIntervalMinutes * 60.0   // in seconds
                 //console.error(naive_eventualBG, insulinReq, worstCaseInsulinReq, durationReq);
                 consoleError.add("naive_eventualBG $naive_eventualBG,${durationReq}m ${smbLowTempReq}U/h temp needed; last bolus ${round(lastBolusAge / 60.0, 1)}m ago; maxBolus: $maxBolus")
-                if (lastBolusAge > SMBInterval - 6.0) {   // 6s tolerance
+                if (!SmbIntervalGate.tooSoon(iob_data.lastBolusTime, smbIntervalMinutes, systemTime)) {
                     if (microBolus > 0) {
                         rT.units = microBolus
                         rT.reason.append("Microbolusing ${microBolus}U. ")

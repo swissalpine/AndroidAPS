@@ -128,17 +128,14 @@ fun OverviewStatusSection(
                         modifier = Modifier.clickable { onExpandedChange(false) }
                     )
                 } else {
-                    FlowRow(
+                    // The ages are short, so all of them fit on one line on most screens. The line
+                    // wraps where they do not.
+                    CompactStatusItems(
+                        items = compactItems,
                         modifier = Modifier
                             .weight(1f)
-                            .clickable { onExpandedChange(true) },
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        compactItems.forEach { item ->
-                            CompactStatusItem(item = item)
-                        }
-                    }
+                            .clickable { onExpandedChange(true) }
+                    )
                     Icon(
                         imageVector = Icons.Filled.ExpandMore,
                         contentDescription = stringResource(CoreUiStrings.expand),
@@ -225,6 +222,19 @@ internal fun StatusLightsSettingsContent(settingsDef: PreferenceSubScreenDef) {
 }
 
 @Composable
+private fun CompactStatusItems(items: List<StatusItem>, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        items.forEach { item ->
+            CompactStatusItem(item = item)
+        }
+    }
+}
+
+@Composable
 private fun CompactStatusItem(item: StatusItem) {
     val showAge = item.compactAge
     val showLevel = item.compactLevel && item.level != null
@@ -252,7 +262,7 @@ private fun CompactStatusItem(item: StatusItem) {
         verticalAlignment = Alignment.CenterVertically,
         // Merged so the icon's name, the values and the severity are one item. The description adds
         // only the severity, because on a merging node it sits before the children rather than
-        // replacing them: "Critical, Cannula, 3d 50%".
+        // replacing them: "Critical, Cannula, 3d5h 50%".
         modifier = if (severity != null) {
             Modifier.semantics(mergeDescendants = true) { contentDescription = severity }
         } else {

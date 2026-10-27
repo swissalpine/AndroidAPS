@@ -112,10 +112,10 @@ class ResourceHelperImpl(
     private fun buildLocalizedContext(): Context =
         // The plain context is right for "default" only, and it is also the better answer there: it
         // follows a later change of the phone language, while a copied Configuration would not.
-        if (LocaleHelper.isSystemDefault(context)) context
+        if (LocaleHelper.isSystemDefault()) context
         else context.createConfigurationContext(
             Configuration(context.resources.configuration)
-                .apply { setLocale(LocaleHelper.currentLocale(context)) }
+                .apply { setLocale(LocaleHelper.currentLocale()) }
         )
 
     override fun gs(@StringRes id: Int): String =
@@ -151,8 +151,4 @@ class ResourceHelperImpl(
             setLocale(Locale.ENGLISH)
             context.createConfigurationContext(this).getString(id, *args)
         }
-
-    // Reads the bool resource directly. It used to go through gb(), which was dropped from the
-    // interface because this was its only caller.
-    override fun shortTextMode(): Boolean = !context.resources.getBoolean(app.aaps.core.ui.R.bool.isTablet)
 }

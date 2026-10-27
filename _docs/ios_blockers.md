@@ -233,6 +233,29 @@ posting and routed back by instance key. `IosLoopNotifier` already does exactly 
 for N minutes" buttons and is the worked example. Android cannot be copied here - it suppresses such
 notifications from the tray instead, because its actions are `PendingIntent`s.
 
+## Ready for iOS: the encrypted settings store (2026-10, not yet run on Apple)
+
+Written by the Windows session. `IosSp` and `NSUserDefaults` are gone as the settings store. iOS now
+uses the same `EncryptedKeyValueStore` (`shared/impl`) as the desktop: one file, AES-256-GCM, written
+through DataStore's okio storage, which is the only file storage DataStore has on iOS.
+
+- `ios/shell/.../prefs/IosStorage.kt` opens it once, before any graph. The file is
+  `Application Support/aaps/preferences.store`, and that folder is excluded from iCloud and computer
+  backups: the key is `ThisDeviceOnly`, so the file could not be read on another phone anyway.
+- The key is in the Keychain, service `app.aaps.settingsstore`, account `preferences`
+  (`KeychainStoreCipher` in `implementation/src/iosMain`). `Keychain.loadStrict` tells "no key" apart
+  from "the Keychain did not answer", so a locked Keychain never leads to a new key.
+- The first start moves every text, true/false and number value of the app's own defaults domain into
+  the store (`UserDefaultsMigration`), then removes those keys from `NSUserDefaults`.
+- A file that does not open with the key shows `StartupFailedScreen` (`appshell`, shared with the
+  desktop) with "Start fresh"; a Keychain that does not answer shows "Try again".
+- Graph tests call `TestStorage.install()` first: a test binary has no Keychain.
+
+Only cross compiled so far. To check on the Mac: `iosSimulatorArm64Test` (new: `EncryptedStoreFileTest`
+in `shared/impl` commonTest on a real file, `KeychainStoreCipherTest`, `UserDefaultsMigrationTest`), the
+framework link, and in the app: an existing install keeps its settings after the update, and a second
+start is clean.
+
 ## Ready for iOS: the Nightscout client
 
 Written by the Windows session, for the macOS one - the other direction from the rest of this file.
@@ -331,7 +354,7 @@ wrong. What is actually left:
 | `Autotune` | ours, stubbed | Still worth porting: it is portable Kotlin computation, not platform code. **The no-op this row warned about now exists** - `IosAutotune` is bound and does nothing. It is not reachable from the iOS UI today (autotune is not in the shared nav graph), so nothing silently lies yet, but it would the moment it is. Checked 2026-09-21. |
 | ~~`ExportPasswordDataStore`~~ | done | Shared `ExportPasswordDataStoreImpl` is in commonMain and the iOS half is `IosExportPasswordPlatform`. This section already says so further down ("`ExportPasswordDataStore` - iOS side done"); the table simply was not updated. Checked 2026-09-21. |
 | ~~`ImportExportPrefs`~~ | done | `LocalImportExportPrefs` in commonMain serves iOS and desktop; settings export and import were run end to end on the simulator, including Google Drive. A document picker is still missing, but that is a directory-chooser gap, not a missing binding. Checked 2026-09-21. |
-| ~~`IobCobCalculator`~~ | done | `IobCobCalculatorPlugin` is in `plugins/main/src/commonMain` now, and iOS builds it through `IosHistoryWindowGraph`. The "needs a home outside :app" problem is solved. Checked 2026-09-21. |
+| ~~`IobCobCalculator`~~ | done | `IobCobCalculatorPlugin` is in `plugins/main/src/commonMain` now, and iOS builds it through `ClientHistoryWindowGraph` (shared with desktop). The "needs a home outside :app" problem is solved. Checked 2026-09-21. |
 | `UiInteraction` | ours, nearly done | `IosUiInteraction` exists and is bound. **One method left**: `runAlarm` still only logs. Note this is a different path from `setAudibleAlarm`, which does sound - see the corrected alarm entry below. Checked 2026-09-21. |
 | `NsSocketFactory` | ours, by design | Correct as written, and not a missing class: there is deliberately no `IosNsSocketFactory`. The implementation is Swift and enters as a factory parameter at start up. Checked 2026-09-21. |
 
@@ -1204,9 +1227,14 @@ behaviour at error teaches a reader to ignore the level that matters.
 
 `IosHistoryScope` used to throw on every property - the right placeholder, because handing back the
 app's calculation objects would have satisfied the types and let browsing history rewrite the state
-the loop calculates on. It is real now: `IosHistoryWindowGraph` is a `@GraphExtension` with its own
+the loop calculates on. It is real now: `ClientHistoryWindowGraph` is a `@GraphExtension` with its own
 scope, the counterpart of `HistoryWindowGraph`, so each window owns its calculator, cache, signals
 and overview data while sharing the database and preferences with the app.
+
+It started as `IosHistoryWindowGraph` and `IosHistoryScope` in `:ios:shell`. Both moved to
+`:shared:clientbindings` as `ClientHistoryWindowGraph` and `ClientHistoryScope` when desktop needed
+the same thing, so there is one copy for the two shells. Each shell still states its own
+`historyWindowFactory` accessor.
 
 Verified on the simulator - the History Browser opens, with the date picker, day navigation and the
 BG, IOB/BAS and COB graphs. `IosHistoryWindowScopingTest` pins the isolation by identity rather than

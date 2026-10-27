@@ -1,12 +1,18 @@
 package app.aaps.ui.compose.carbsDialog
 
+import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.iob.CobInfo
 import app.aaps.core.data.iob.InMemoryGlucoseValue
 import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.data.model.TT
+import app.aaps.core.interfaces.InterfacesStrings
 import app.aaps.core.interfaces.aps.AutosensDataStore
 import app.aaps.core.interfaces.aps.GlucoseStatus
 import app.aaps.core.interfaces.automation.Automation
+import app.aaps.core.interfaces.bolus.BatchAction
 import app.aaps.core.interfaces.bolus.BatchExecutor
+import app.aaps.core.interfaces.clientcontrol.ActionProgress
+import app.aaps.core.interfaces.clientcontrol.FailureReason
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.constraints.Constraint
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
@@ -16,6 +22,7 @@ import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.profile.ProfileUtil
 import app.aaps.core.interfaces.resources.ResourceHelper
 import app.aaps.core.interfaces.rx.bus.RxBus
+import app.aaps.core.interfaces.rx.events.EventShowDialog
 import app.aaps.core.interfaces.sync.NsClient
 import app.aaps.core.interfaces.utils.DateUtil
 import app.aaps.core.keys.BooleanKey
@@ -27,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -38,8 +46,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -79,9 +90,16 @@ internal class CarbsDialogViewModelTest {
         CoroutineScope(UnconfinedTestDispatcher()), nsClient
     )
 
-    /** Opens the dialog with [role] at a BG of 60 mg/dL and no target running: the case where the hypo target is ticked for the user. */
-    private fun openedWhileLow(role: ClientRole): CarbsDialogUiState {
+    /**
+     * Opens the dialog with [role] at a BG of 60 mg/dL: the case where the hypo target is ticked for the user.
+     * [runningTarget] is the temp target that runs at that time, none by default.
+     */
+    private fun openedWhileLow(role: ClientRole, runningTarget: TT? = null): CarbsDialogUiState =
+        openWhileLow(role, runningTarget).uiState.value
+
+    private fun openWhileLow(role: ClientRole, runningTarget: TT? = null): CarbsDialogViewModel {
         this.role.value = role
+        runBlocking { whenever(persistenceLayer.getTemporaryTargetActiveAt(any())).thenReturn(runningTarget) }
         val maxCarbs = mock<Constraint<Int>> { on { value() } doReturn 50 }
         whenever(constraintChecker.getMaxCarbsAllowed()).thenReturn(maxCarbs)
         whenever(profileUtil.units).thenReturn(GlucoseUnit.MGDL)
@@ -92,7 +110,25 @@ internal class CarbsDialogViewModelTest {
         whenever(preferences.get(StringNonKey.TempTargetPresets)).thenReturn("[]")
         val opened = create()
         main.scheduler.advanceUntilIdle()
-        return opened.uiState.value
+        return opened
+    }
+
+    // Nothing was sent to the pump, so the bolus-error alarm would be wrong: a plain message with the master's text.
+    @Test
+    fun `the master reports its own refusal as a message, not as the bolus-error alarm`() {
+        whenever(config.AAPSCLIENT).thenReturn(false)
+        whenever(rh.gs(InterfacesStrings.carbs)).thenReturn("Carbs")
+        runBlocking { whenever(batchExecutor.prepare(any(), any(), anyOrNull())).thenReturn(ActionProgress.Rejected(FailureReason.ExecutionFailed, REFUSAL)) }
+        val dialog = openWhileLow(ClientRole.Admin)
+        dialog.updateCarbs(20)
+        val shown = mutableListOf<CarbsDialogViewModel.SideEffect>()
+        val collecting = CoroutineScope(UnconfinedTestDispatcher()).launch { dialog.sideEffect.collect { shown += it } }
+
+        dialog.prepareAndConfirm()
+
+        collecting.cancel()
+        verify(rxBus).send(EventShowDialog.Ok(title = "Carbs", message = REFUSAL))
+        assertThat(shown).isEmpty()
     }
 
     @Test
@@ -109,6 +145,26 @@ internal class CarbsDialogViewModelTest {
         val state = openedWhileLow(ClientRole.MealAssistant)
 
         assertThat(state.canSetTempTarget).isFalse()
+        assertThat(state.hypoTtChecked).isFalse()
+    }
+
+    /** A temp target that runs for three hours, longer than the hypo target. */
+    private fun longTarget(targetMgdl: Double) =
+        TT(timestamp = 0L, reason = TT.Reason.CUSTOM, highTarget = targetMgdl, lowTarget = targetMgdl, duration = 3 * 60 * 60 * 1000L)
+
+    // A long high target is not replaced by the hypo target. 5.5 mmol/L is 99.09 mg/dL with the 18.01559 factor,
+    // and it is the normal target, not a high one, so the hypo target is still ticked.
+    @Test
+    fun `a long 5_5 mmol target still lets the hypo target be ticked`() {
+        val state = openedWhileLow(ClientRole.Caregiver, runningTarget = longTarget(5.5 * Constants.MMOLL_TO_MGDL))
+
+        assertThat(state.hypoTtChecked).isTrue()
+    }
+
+    @Test
+    fun `a long 5_6 mmol target is not replaced by the hypo target`() {
+        val state = openedWhileLow(ClientRole.Caregiver, runningTarget = longTarget(5.6 * Constants.MMOLL_TO_MGDL))
+
         assertThat(state.hypoTtChecked).isFalse()
     }
 
@@ -160,6 +216,47 @@ internal class CarbsDialogViewModelTest {
         assertThat(state.bolusReminderChecked).isTrue()
     }
 
+    // #5327: carbs later turn the "time to eat" alarm on, as in the wizard. A manual untick is kept while the time changes.
+    @Test
+    fun `carbs later tick the alarm, and an untick stays while the time changes`() {
+        sut.updateTimeOffset(30)
+        assertThat(sut.uiState.value.alarmChecked).isTrue()
+
+        sut.updateAlarm(false)
+        sut.updateTimeOffset(45)
+        assertThat(sut.uiState.value.alarmChecked).isFalse()
+
+        sut.updateTimeOffset(-10)
+        sut.updateTimeOffset(15)
+        assertThat(sut.uiState.value.alarmChecked).isTrue()
+    }
+
+    @Test
+    fun `carbs in the past do not tick the alarm`() {
+        sut.updateTimeOffset(-30)
+
+        assertThat(sut.uiState.value.alarmChecked).isFalse()
+    }
+
+    /** The master starts the timer, so the flag travels in the batch; the client no longer sets one itself. */
+    @Test
+    fun `the alarm travels to the master with the carbs`() {
+        whenever(config.AAPSCLIENT).thenReturn(false)
+        whenever(rh.gs(InterfacesStrings.carbs)).thenReturn("Carbs")
+        runBlocking { whenever(batchExecutor.prepare(any(), any(), anyOrNull())).thenReturn(ActionProgress.Rejected(FailureReason.ExecutionFailed, REFUSAL)) }
+        val dialog = openWhileLow(ClientRole.MealAssistant)
+        dialog.updateCarbs(20)
+        dialog.updateTimeOffset(30)
+
+        dialog.prepareAndConfirm()
+
+        val actions = argumentCaptor<List<BatchAction>>()
+        runBlocking { verify(batchExecutor).prepare(actions.capture(), any(), anyOrNull()) }
+        val bolus = actions.firstValue.filterIsInstance<BatchAction.Bolus>().single()
+        assertThat(bolus.alarm).isTrue()
+        assertThat(bolus.carbsTimeOffsetMinutes).isEqualTo(30)
+    }
+
     /** `glucose + 3 * delta < 70` is the "heading low" test the reminder row is gated on. */
     private fun glucoseHeadingLow(headingLow: Boolean) {
         // Built before the whenever(), because Mockito cannot have one stubbing started inside another.
@@ -204,5 +301,10 @@ internal class CarbsDialogViewModelTest {
         val state = sut.uiState.value
         assertThat(state.showBolusReminder).isFalse()
         assertThat(state.bolusReminderChecked).isFalse()
+    }
+
+    private companion object {
+
+        const val REFUSAL = "The master refused it"
     }
 }

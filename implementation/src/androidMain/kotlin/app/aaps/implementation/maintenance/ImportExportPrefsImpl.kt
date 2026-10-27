@@ -13,6 +13,7 @@ import app.aaps.core.data.model.UE
 import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
+import app.aaps.core.interfaces.InterfacesStrings
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.interfaces.di.ApplicationScope
@@ -37,7 +38,7 @@ import app.aaps.core.interfaces.rx.events.EventDiaconnG8PumpLogReset
 import app.aaps.core.interfaces.rx.events.EventShowSnackbar
 import app.aaps.core.interfaces.rx.weardata.CwfData
 import app.aaps.core.interfaces.rx.weardata.CwfMetadataKey
-import app.aaps.core.interfaces.sharedPreferences.SP
+import app.aaps.core.interfaces.sharedPreferences.KeyValueStore
 import app.aaps.core.interfaces.storage.Storage
 import app.aaps.core.interfaces.ui.UiInteraction
 import app.aaps.core.interfaces.userEntry.UserEntryPresentationHelper
@@ -95,7 +96,7 @@ private fun filenameTimestamp(): String =
 class ImportExportPrefsImpl(
     private var aapsLogger: AAPSLogger,
     private val rh: ResourceHelper,
-    private val sp: SP,
+    private val sp: KeyValueStore,
     private val preferences: Preferences,
     private val config: Config,
     private val persistenceLayer: PersistenceLayer,
@@ -781,7 +782,7 @@ class ImportExportPrefsImpl(
                 saveCsv(newFile, userEntries)
                 rxBus.send(EventShowSnackbar(rh.gs(R.string.ue_exported), EventShowSnackbar.Type.Success))
             } catch (e: FileNotFoundException) {
-                rxBus.send(EventShowSnackbar(rh.gs(R.string.filenotfound) + " " + newFile, EventShowSnackbar.Type.Error))
+                rxBus.send(EventShowSnackbar(rh.gs(InterfacesStrings.confirmation_line, rh.gs(R.string.filenotfound), newFile), EventShowSnackbar.Type.Error))
                 aapsLogger.error(LTag.CORE, "Unhandled exception", e)
                 ret = Result.failure(workDataOf("Error" to "Error FileNotFoundException"))
             } catch (e: IOException) {

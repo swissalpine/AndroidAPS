@@ -1,6 +1,7 @@
 package app.aaps.plugins.aps.loop
 
 import app.aaps.core.data.configuration.Constants
+import app.aaps.core.data.model.BS
 import app.aaps.core.data.model.DS
 import app.aaps.core.data.model.RM
 import app.aaps.core.data.plugin.PluginType
@@ -19,13 +20,16 @@ import app.aaps.core.interfaces.logging.UserEntryLogger
 import app.aaps.core.interfaces.nsclient.ProcessedDeviceStatusData
 import app.aaps.core.interfaces.plugin.EnforcedState
 import app.aaps.core.interfaces.profile.EffectiveProfile
+import app.aaps.core.interfaces.pump.DetailedBolusInfo
 import app.aaps.core.interfaces.pump.PumpEnactResult
 import app.aaps.core.interfaces.pump.PumpRate
 import app.aaps.core.interfaces.pump.PumpStatusProvider
 import app.aaps.core.interfaces.pump.PumpWithConcentration
 import app.aaps.core.interfaces.queue.CommandQueue
+import app.aaps.core.interfaces.queue.SmbPause
 import app.aaps.core.interfaces.receivers.ReceiverStatusStore
 import app.aaps.core.interfaces.utils.HardLimits
+import app.aaps.core.keys.IntKey
 import app.aaps.core.keys.interfaces.TextRef
 import app.aaps.core.objects.constraints.ConstraintObject
 import app.aaps.core.objects.profile.ProfileSealed
@@ -59,6 +63,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -75,6 +80,7 @@ class LoopPluginTest : TestBaseWithProfile() {
     @Mock lateinit var pumpStatusProvider: PumpStatusProvider
     @Mock lateinit var loopNotifier: LoopNotifier
     @Mock lateinit var runningModeReconciler: RunningModeReconciler
+    @Mock lateinit var smbPause: SmbPause
 
     private lateinit var loopPlugin: LoopPlugin
     private val testScope = CoroutineScope(Dispatchers.Unconfined)
@@ -99,7 +105,7 @@ class LoopPluginTest : TestBaseWithProfile() {
         // The shared test base still hands out a javax Provider, which other tests rely on;
         // LoopPlugin takes Metro's now, so it is adapted here rather than flipping the base.
         persistenceLayer, notificationManager, { pumpEnactResultProvider() },
-        processedDeviceStatusData, pumpStatusProvider, decimalFormatter, ch, loopNotifier, runningModeReconciler, testScope
+        processedDeviceStatusData, pumpStatusProvider, ch, loopNotifier, runningModeReconciler, smbPause, testScope
     )
 
     /**
@@ -171,6 +177,57 @@ class LoopPluginTest : TestBaseWithProfile() {
         assertThat(d.value()).isWithin(0.01).of(HardLimits.MAX_IOB_LGS)
         assertThat(d.getReasons()).isEqualTo("Loop: Limiting IOB to 0.0 U because of Low Glucose Suspend")
         assertThat(d.getMostLimitedReasons()).isEqualTo("Loop: Limiting IOB to 0.0 U because of Low Glucose Suspend")
+    }
+
+    // #5381: the user is confirming a bolus calculated without this SMB. Refused before the user entry is
+    // written, so the log does not show an SMB that was never given; success = false lets the loop fall back
+    // to a temp basal.
+    @Test
+    fun `no SMB and no SMB log entry while a bolus is waiting for confirmation`() = runTest {
+        whenever(smbPause.isActive()).thenReturn(true)
+        whenever(virtualPumpPlugin.isInitialized()).thenReturn(true)
+        whenever(persistenceLayer.getRunningModeActiveAt(anyLong())).thenReturn(RM(timestamp = 0, mode = RM.Mode.CLOSED_LOOP, duration = 0))
+
+        val result = loopPlugin.applySMBRequest(mock<APSResult>())
+
+        assertThat(result.success).isFalse()
+        assertThat(result.enacted).isFalse()
+        verifyNoInteractions(uel)
+        verify(commandQueue, never()).bolus(any())
+    }
+
+    // #5362: the APS allows an SMB 6 s before the full interval, and this check runs later. It must allow the same.
+    @Test
+    fun `SMB is queued when the last bolus is 5 s short of the interval`() = runTest {
+        whenever(preferences.get(IntKey.ApsMaxSmbFrequency)).thenReturn(3)
+        val lastBolusTime = dateUtil.now() - T.mins(3).msecs() + T.secs(5).msecs()
+        whenever(persistenceLayer.getNewestBolus()).thenReturn(BS(timestamp = lastBolusTime, type = BS.Type.SMB, amount = 0.3, iCfg = someICfg))
+        whenever(virtualPumpPlugin.isInitialized()).thenReturn(true)
+        whenever(persistenceLayer.getRunningModeActiveAt(anyLong())).thenReturn(RM(timestamp = 0, mode = RM.Mode.CLOSED_LOOP, duration = 0))
+        val queued = pumpEnactResultProvider().success(true).enacted(true)
+        commandQueue.stub { onBlocking { bolus(any()) } doReturn queued }
+
+        val result = loopPlugin.applySMBRequest(mock<APSResult> { on { smb } doReturn 0.5 })
+
+        assertThat(result).isSameInstanceAs(queued)
+        val captor = argumentCaptor<DetailedBolusInfo>()
+        verify(commandQueue).bolus(captor.capture())
+        // The queue refuses the SMB if a bolus newer than this one comes in before it is queued.
+        assertThat(captor.firstValue.lastKnownBolusTime).isEqualTo(lastBolusTime)
+    }
+
+    @Test
+    fun `no SMB and no SMB log entry when the last bolus is 7 s short of the interval`() = runTest {
+        whenever(preferences.get(IntKey.ApsMaxSmbFrequency)).thenReturn(3)
+        val lastBolusTime = dateUtil.now() - T.mins(3).msecs() + T.secs(7).msecs()
+        whenever(persistenceLayer.getNewestBolus()).thenReturn(BS(timestamp = lastBolusTime, type = BS.Type.SMB, amount = 0.3, iCfg = someICfg))
+
+        val result = loopPlugin.applySMBRequest(mock<APSResult> { on { smb } doReturn 0.5 })
+
+        assertThat(result.success).isFalse()
+        assertThat(result.enacted).isFalse()
+        verifyNoInteractions(uel)
+        verify(commandQueue, never()).bolus(any())
     }
 
     @Test

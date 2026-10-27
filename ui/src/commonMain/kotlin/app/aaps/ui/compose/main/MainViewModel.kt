@@ -13,12 +13,16 @@ import app.aaps.core.data.time.T
 import app.aaps.core.data.ue.Action
 import app.aaps.core.data.ue.Sources
 import app.aaps.core.interfaces.InterfacesStrings
+import app.aaps.core.interfaces.alerts.EatReminder
+import app.aaps.core.interfaces.alerts.EatReminderAction
+import app.aaps.core.interfaces.alerts.EatReminderState
 import app.aaps.core.interfaces.aps.Loop
 import app.aaps.core.interfaces.automation.Automation
 import app.aaps.core.interfaces.bolus.BatchAction
 import app.aaps.core.interfaces.bolus.BatchExecutor
 import app.aaps.core.interfaces.bolus.WizardExecutor
 import app.aaps.core.interfaces.clientcontrol.ActionProgress
+import app.aaps.core.interfaces.clientcontrol.ClientControlActionDispatcher
 import app.aaps.core.interfaces.clientcontrol.isNotDeliveryError
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.configuration.appInitializedFlow
@@ -41,6 +45,7 @@ import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.protection.ProtectionCheck
 import app.aaps.core.interfaces.protection.ProtectionResult
 import app.aaps.core.interfaces.pump.Pump
+import app.aaps.core.interfaces.queue.SmbPause
 import app.aaps.core.interfaces.resources.TextResolver
 import app.aaps.core.interfaces.rx.bus.RxBus
 import app.aaps.core.interfaces.rx.events.EventShowDialog
@@ -105,6 +110,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.TimeSource
 
 // Registers itself: @ViewModelKey infers the key from the class. No graph entry, and deliberately
 // unscoped so each screen gets its own.
@@ -143,7 +149,9 @@ class MainViewModel(
     private val visibilityContext: VisibilityContext,
     // Unqualified: @ApplicationScope is a javax qualifier and cannot appear in commonMain. The graph
     // binds the same instance under both names.
-    private val appScope: CoroutineScope
+    private val appScope: CoroutineScope,
+    private val eatReminder: EatReminder,
+    private val clientControlDispatcher: ClientControlActionDispatcher
 ) : ViewModel() {
 
     // Event-driven state (drawer, dialogs, simple-mode preference). Imperative .update{} calls
@@ -314,7 +322,7 @@ class MainViewModel(
 
         val ttText = if (ttData != null && !ttExpired) {
             if (ttIsFinite) {
-                "${ttData.targetRangeText} ${dateUtil.untilString(ttData.timestamp + ttData.duration, rh)}"
+                rh.gs(InterfacesStrings.value_with_detail, ttData.targetRangeText, dateUtil.untilString(ttData.timestamp + ttData.duration, rh, withParentheses = false))
             } else {
                 ttData.targetRangeText
             }
@@ -328,7 +336,7 @@ class MainViewModel(
 
         val profileText = if (profileData != null && profileData.profileName.isNotEmpty()) {
             if (profileData.duration > 0 && !profileExpired) {
-                "${profileData.profileName} ${dateUtil.untilString(profileData.timestamp + profileData.duration, rh)}"
+                rh.gs(InterfacesStrings.value_with_detail, profileData.profileName, dateUtil.untilString(profileData.timestamp + profileData.duration, rh, withParentheses = false))
             } else {
                 profileData.profileName
             }
@@ -350,7 +358,7 @@ class MainViewModel(
             val modeName = getModeNameString(rmData.mode)
             // Full text kept for the icon's content description (accessibility).
             if (rmIsTemporaryFinite) {
-                "$modeName ${dateUtil.untilString(rmData.timestamp + rmData.duration, rh)}"
+                rh.gs(InterfacesStrings.value_with_detail, modeName, rmRemaining)
             } else {
                 modeName
             }
@@ -465,8 +473,11 @@ class MainViewModel(
         if (wizard.calculatedTotalInsulin <= 0.0)
             return QuickWizardItem(guid = guid, buttonText = buttonText, mode = entry.mode().value, disabledReason = rh.gs(UiStrings.wizard_no_insulin_required))
 
-        val detail = rh.gs(InterfacesStrings.format_carbs, entry.carbs()) +
-            " " + rh.gs(InterfacesStrings.format_insulin_units, wizard.calculatedTotalInsulin)
+        val detail = rh.gs(
+            CoreUiStrings.value_with_unit,
+            rh.gs(InterfacesStrings.format_carbs, entry.carbs()),
+            rh.gs(InterfacesStrings.format_insulin_units, wizard.calculatedTotalInsulin)
+        )
 
         val carbsAfterConstraints = constraintChecker.applyCarbsConstraints(ConstraintObject(entry.carbs(), aapsLogger)).value()
         if (carbsAfterConstraints != entry.carbs())
@@ -505,9 +516,15 @@ class MainViewModel(
      */
     private suspend fun executeWizardQuickWizard(entry: QuickWizardEntry, guid: String) {
         val label = rh.gs(CoreUiStrings.clientcontrol_action_deliver_bolus)
+        // Counted from before the prepare, so on a client the confirmation closes before the master's SMB pause ends.
+        val closeAt = TimeSource.Monotonic.markNow() + SmbPause.MAX_DURATION
         when (val prepared = wizardExecutor.prepare(WizardExecutor.WizardSource.QuickWizard(guid), label)) {
             is ActionProgress.Prepared ->
-                showWizardBolusConfirmation(rxBus, rh, entry.buttonText(), IcQuickwizard, prepared.advisorApplies, prepared.lines, prepared.advisorLines) { asAdvisor ->
+                showWizardBolusConfirmation(
+                    rxBus, rh, entry.buttonText(), IcQuickwizard, prepared.advisorApplies, prepared.lines, prepared.advisorLines,
+                    closeAt = closeAt,
+                    onCancel = { wizardExecutor.discard(prepared.id) }
+                ) { asAdvisor ->
                     // The async delivery failure is alarmed once, centrally, from the executor — no local alarm here (it would double).
                     appScope.launch { wizardExecutor.commit(prepared.id, asAdvisor, Sources.QuickWizard, label) }
                 }
@@ -531,6 +548,8 @@ class MainViewModel(
         // markAsUsed itself: that writes the Bidirectional QuickWizard pref, which a paired client would push back over
         // the signed round-trip and collide with this commit → "Update settings … Another action is already in progress".
         val tagged = actions.map { if (it is BatchAction.Bolus) it.copy(quickWizardGuid = entry.guid()) else it }
+        // Counted from before the prepare, so on a client the confirmation closes before the master's SMB pause ends.
+        val closeAt = TimeSource.Monotonic.markNow() + SmbPause.MAX_DURATION
         when (val prepared = batchExecutor.prepare(tagged, Sources.QuickWizard, label)) {
             is ActionProgress.Prepared ->
                 rxBus.send(
@@ -538,7 +557,9 @@ class MainViewModel(
                         title = entry.buttonText(), message = "", confirmationLines = prepared.lines, icon = icon,
                         onOk = {
                             appScope.launch { batchExecutor.commit(prepared.id, Sources.QuickWizard, label) }
-                        }
+                        },
+                        onCancel = { batchExecutor.discard(prepared.id) },
+                        closeAt = closeAt
                     )
                 )
             // A master-local failure (no modal) or a client offline pre-check surfaces here; a client round-trip failure already showed on the app modal.
@@ -670,7 +691,7 @@ class MainViewModel(
         // predates the property, such as a test double, which then omits the line rather than
         // claiming a platform.
         if (config.PLATFORM.isNotEmpty()) message += "Platform: ${config.PLATFORM}\n"
-        message += "${rh.gs(CoreUiStrings.configbuilder_nightscoutversion_label)} ${nsClient.detectedNsVersion() ?: rh.gs(CoreUiStrings.not_available_full)}"
+        message += rh.gs(CoreUiStrings.value_with_unit, rh.gs(CoreUiStrings.configbuilder_nightscoutversion_label), nsClient.detectedNsVersion() ?: rh.gs(CoreUiStrings.not_available_full))
         if (!fabricPrivacy.fabricEnabled()) message += "\n${rh.gs(CoreUiStrings.fabric_upload_disabled)}"
         val enabledOptions = ExternalOptions.entries.filter { config.isEnabled(it) }
         message += rh.gs(CoreUiStrings.about_link_urls)
@@ -788,7 +809,8 @@ class MainViewModel(
             if (result is ActionProgress.Rejected) {
                 if (result.reason.isNotDeliveryError())
                     rxBus.send(EventShowDialog.Ok(title = title, message = rh.gs(result.reason.failText())))
-                else result.detail?.let { detail ->
+                // A client's app-level modal has shown the master's own text already.
+                else if (!config.AAPSCLIENT) result.detail?.let { detail ->
                     rxBus.send(EventShowDialog.Ok(title = title, message = detail))
                 }
             }
@@ -869,6 +891,28 @@ class MainViewModel(
 
     /** Format milliseconds to a localized "time remaining" string (e.g., "1h 30m remaining"). */
     fun formatDuration(ms: Long): String = dateUtil.timeRemainingString(ms, rh)
+
+    /** The running "time to eat" timer, for its bar. On a client, the master's timer. */
+    val eatReminderState: StateFlow<EatReminderState?> = eatReminder.state
+
+    /** Stop of the timer bar (Dismiss once it rang). */
+    fun stopEatReminder() = controlEatReminder(EatReminderAction.STOP) { eatReminder.stop() }
+
+    /** +5 min of the timer bar. */
+    fun extendEatReminder() = controlEatReminder(EatReminderAction.EXTEND) { eatReminder.extend() }
+
+    // On the master the timer changes here; a client asks the master, and its bar follows with the next sync.
+    private fun controlEatReminder(action: EatReminderAction, onMaster: () -> Unit) {
+        viewModelScope.launch {
+            clientControlDispatcher.execute(
+                ClientControlActionDispatcher.Command.EatReminderControl(action),
+                rh.gs(CoreUiStrings.clientcontrol_action_eat_reminder)
+            ) {
+                onMaster()
+                ActionProgress.Applied
+            }
+        }
+    }
 
     /** QuickLaunch scene → ask the MASTER to PREPARE it, render the master's authored confirmation lines, commit on OK (role-transparent). */
     /** The icon the user picked for the scene, or the generic scene icon when the scene is not known. */
