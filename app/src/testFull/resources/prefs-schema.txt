@@ -74,6 +74,7 @@ active_pump_change_timestamp|LongNonKey|false
 active_pump_serial_number|StringNonKey|false
 active_pump_type|StringNonKey|false
 active_scene|StringNonKey|false
+activity_tracker|BooleanKey|true
 actual_basal_profile|MedtrumStringNonKey|true
 age|StringKey|true
 alarm_setting|MedtrumStringKey|true
@@ -237,6 +238,8 @@ insulin_concentration_enabled|BooleanKey|true
 insulin_configuration|StringNonKey|true
 iob_threshold_percent|IntKey|true
 keep_screen_on|BooleanKey|true
+ketoacidosis_protection_basal|IntKey|true
+ketoacidosis_protection|BooleanKey|true
 key_autotune_last_run|AutotuneStringKey|true
 key_bolus_storage|StringNonKey|false
 key_equil_alarm_battery_10|EquilBooleanKey|true
@@ -443,6 +446,7 @@ simple_mode|BooleanKey|true
 site_rotation_manage_cgm|BooleanKey|true
 site_rotation_manage_pump|BooleanKey|true
 site_rotation_user_profile|IntKey|true
+smbThreshold|UnitDoubleKey|true
 smbinterval|IntKey|true
 smbmaxminutes|IntKey|true
 smscommunicator_allowednumbers|StringKey|true
