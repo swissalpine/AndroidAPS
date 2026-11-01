@@ -21,6 +21,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 internal val BgInRangeColor = Color(0xFF00FF00)
@@ -30,6 +31,9 @@ internal val BgLowColor     = Color(0xFFFF0000)
 internal val CarbsRemovalMagenta = Color(0xFFE040FB)
 internal val SecondaryText  = Color(0xFFAAAAAA)
 internal val TempTargetColor     = Color(0xFFFDD835)
+
+/** The target line, the phone's temp target green at less than half strength, so it stays at the back. */
+internal val TargetLineColor     = Color(0x7377DD77)
 internal val AutosensTargetColor = Color(0xFF77DD77)
 
 internal val historyHoursCycle = listOf(3, 6, 1)
@@ -153,6 +157,26 @@ internal fun markerAnchorTime(time: Long, partners: List<Long>): Long {
     return if (partner != null && partner < time) partner else time
 }
 
+/** How far a prediction may lift the top of the BG axis above the real data, in mg/dl. The phone uses 54 (3 mmol/L). */
+internal const val PREDICTION_AXIS_HEADROOM_MGDL = 50f
+
+/** Room between the highest value on the axis and the top edge, in mg/dl. */
+private const val AXIS_TOP_MARGIN_MGDL = 30f
+
+/**
+ * The top of the BG axis, in mg/dl. The highest reading in the window ([actualMax]) and the high
+ * mark ([high]) widen the axis freely. A prediction ([predMax]) counts only up to
+ * [PREDICTION_AXIS_HEADROOM_MGDL] above the higher of those two: a COB curve running off towards
+ * 20 mmol/L used to press the real readings together at the bottom. A prediction above the top is
+ * not drawn, so the curve is cut at the edge like on the phone. Same rule as `bgAxisTop` in the
+ * phone's GraphUtils.
+ */
+internal fun bgAxisTop(actualMax: Float, predMax: Float, high: Float): Float {
+    val realTop = maxOf(actualMax, high)
+    val predictionTop = predMax.coerceAtMost(realTop + PREDICTION_AXIS_HEADROOM_MGDL)
+    return maxOf(realTop, predictionTop) + AXIS_TOP_MARGIN_MGDL
+}
+
 /**
  * [now] is the moment the graph is drawn for; a screen that ticks passes its own clock, so the drawing
  * follows it. [minutesText] writes the minutes left of the "time to eat" timer at its end line; null
@@ -190,9 +214,8 @@ internal fun DrawScope.renderBgGraph(
     val predMax = predictions
         .filter { it.timeStamp in (now + 1)..endTime && it.sgv > 0 }
         .maxOfOrNull { it.sgv.toFloat() } ?: 0f
-    val dataMax = predMax.coerceAtMost(actualMax + 50f).coerceAtLeast(actualMax)
     val yMin = 40f
-    val yMax = maxOf(dataMax, bgData.high.toFloat()) + 30f
+    val yMax = bgAxisTop(actualMax, predMax, bgData.high.toFloat())
     val ySpan = yMax - yMin
 
     fun timeToX(t: Long) = pad + drawW * ((t - startTime).toFloat() / timeSpan)
@@ -305,6 +328,23 @@ internal fun DrawScope.renderBgGraph(
         )
     }
 
+    // The target as on the phone: the temporary target's middle while one runs, else the profile's, a faint
+    // step line out to the end of the window, over the high and low lines (it often runs along one of them)
+    // and under the readings. The step is what tells a temporary target is set.
+    val targets = data.treatmentData.targets
+    for (i in 0 until targets.size - 1) {
+        val from = targets[i]
+        val to = targets[i + 1]
+        val x1 = timeToX(max(from.timeStamp, startTime))
+        val x2 = timeToX(min(to.timeStamp, endTime))
+        if (x2 <= x1) continue
+        val y = sgvToY(from.mgdl.toFloat())
+        drawLine(color = TargetLineColor, start = Offset(x1, y), end = Offset(x2, y), strokeWidth = 1.dp.toPx())
+        // The riser to the next value, when that change is inside the window. The last point has no next value.
+        if (i < targets.size - 2 && to.timeStamp in startTime..endTime)
+            drawLine(color = TargetLineColor, start = Offset(x2, y), end = Offset(x2, sgvToY(to.mgdl.toFloat())), strokeWidth = 1.dp.toPx())
+    }
+
     val dotRadius = w * 0.013f
 
     for (entry in entries) {
@@ -319,6 +359,9 @@ internal fun DrawScope.renderBgGraph(
     val predRadius = dotRadius * 0.6f
     for (pred in predictions) {
         if (pred.timeStamp !in (now + 1)..endTime) continue
+        // Above the axis the point is left out, not pressed onto the top edge: a row of dots along
+        // the edge would look like a real flat prediction. See bgAxisTop.
+        if (pred.sgv > yMax) continue
         val color = if (pred.color != 0) {
             Color(pred.color).copy(alpha = 0.7f)
         } else {

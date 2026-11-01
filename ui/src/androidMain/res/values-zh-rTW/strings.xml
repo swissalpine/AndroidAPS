@@ -8,6 +8,7 @@
     <string name="time_offset">時間偏移</string>
     <string name="values_with_plus" comment="Two items with a plus between them. Example: Bolus + Carbs, or 20 g + eCarbs 10 g / 3 h (+60 min)">%1$s + %2$s</string>
     <string name="status_age_short" comment="Age of a sensor, cannula or battery, short. d=days, h=hours. %1$d=days, %2$d=hours. Example: 2d5h">%1$d天%2$d小時</string>
+    <string name="status_age_short_hours" comment="Age of a sensor, cannula or battery, short, used on the first day when there are no full days yet. h=hours. %1$d=hours. Example: 5h">%1$d 小時</string>
     <!--    Widget-->
     <string name="configure">配置透明度</string>
     <string name="widget_description">AAPS 小工具</string>
@@ -97,7 +98,6 @@
     <string name="aaps_bolus_icon_label">注射</string>
     <string name="aaps_carbs_icon_label">碳水</string>
     <string name="aaps_tbr_icon_label">臨時基礎率</string>
-    <string name="aaps_activity_icon_label">運動</string>
     <string name="aaps_note_icon_label">備註</string>
     <string name="aaps_automation_icon_label">自動化</string>
     <string name="aaps_calibration_icon_label">校準</string>

@@ -258,6 +258,11 @@ enum class NotificationId(
     // the same reason as above.
     SECRETS_NOT_PROTECTED(IMPORTANT, SYSTEM),
 
+    // A real pump is selected, but AAPS has no Bluetooth (Nearby devices) permission, so no command can reach the
+    // pump and the queue fails them (#5440). It removes itself once the permission is back. IMPORTANT, not URGENT:
+    // a bolus that fails because of it raises its own alarm. Appended at the END for the same reason as above.
+    BLUETOOTH_PERMISSION_MISSING(IMPORTANT, PUMP),
+
     // A Garmin watch asked for a bolus, but "Allow bolus from Garmin device" is off. No bolus is given, and the
     // watch cannot show why. NORMAL: nothing is delivered wrongly. Appended at the END for the same reason as above.
     GARMIN_BOLUS_DISABLED(NORMAL, SYNC);

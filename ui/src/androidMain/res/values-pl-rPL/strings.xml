@@ -6,6 +6,9 @@
     <string name="start_eating_soon_tt">Rozpocznij TT WkrótcePosiłek</string>
     <string name="start_hypo_tt">Rozpocznij TT Hipo</string>
     <string name="time_offset">Przesunięcie czasu</string>
+    <string name="values_with_plus" comment="Two items with a plus between them. Example: Bolus + Carbs, or 20 g + eCarbs 10 g / 3 h (+60 min)">%1$s + %2$s</string>
+    <string name="status_age_short" comment="Age of a sensor, cannula or battery, short. d=days, h=hours. %1$d=days, %2$d=hours. Example: 2d5h">%1$dd%2$dh</string>
+    <string name="status_age_short_hours" comment="Age of a sensor, cannula or battery, short, used on the first day when there are no full days yet. h=hours. %1$d=hours. Example: 5h">%1$dh</string>
     <!--    Widget-->
     <string name="configure">Skonfiguruj przezroczystość</string>
     <string name="widget_description">Widżet AAPS</string>
@@ -95,7 +98,6 @@
     <string name="aaps_bolus_icon_label">Bolus</string>
     <string name="aaps_carbs_icon_label">Węglowodany</string>
     <string name="aaps_tbr_icon_label">Baza tymczasowa</string>
-    <string name="aaps_activity_icon_label">Ćwiczenia</string>
     <string name="aaps_note_icon_label">Notatka</string>
     <string name="aaps_automation_icon_label">Automatyzacja</string>
     <string name="aaps_calibration_icon_label">Kalibracja</string>
@@ -336,7 +338,7 @@ Pojawi się tutaj, jeśli/gdy telefon pacjenta je zastosuje.</string>
     <string name="quick_launch_all_selected">Wszystkie elementy zaznaczone</string>
     <string name="quick_launch_no_quick_wizard">Dodaj skróty kalkulatora, aby móc ich tu użyć.</string>
     <string name="quick_launch_no_automation">Utwórz własne akcje automatyzacji, aby móc ich tutaj używać.</string>
-    <string name="quick_launch_no_tt_presets">Dodaj presety celów tymczasowegych, aby móc ich tutaj użyć.</string>
+    <string name="quick_launch_no_tt_presets">Dodaj presety celów tymczasowych, aby móc ich tutaj użyć.</string>
     <string name="quick_launch_no_profiles">Utwórz profile w sekcji \"Lokalny profil\", aby móc ich tutaj użyć.</string>
     <string name="quick_launch_edit_profile_preset">Edytuj preset profilu</string>
     <string name="quick_launch_profile_permanent">Stały</string>
