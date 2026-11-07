@@ -415,6 +415,6 @@
 
     <!-- Activity Tracker-->
     <string name="pref_activity_tracker_title">Activity Tracker modifies sensitivity and basal</string>
-    <string name="pref_activity_tracker_summary">If activity is detected in the form of steps, sensitivity and basal rate are reduced by up to 30%; in case of inactivity, both are increased by up to 20%.</string>
+    <string name="pref_activity_tracker_summary">If activity is detected in the form of steps, sensitivity and basal rate are reduced by up to 30%; in case of inactivity, both are increased by up to 20%. Inactivity is not used during sleeping hours (22:00 – 08:00) and when glucose is below target. The tracker is off while a temp target is active.</string>
 
 </resources>
