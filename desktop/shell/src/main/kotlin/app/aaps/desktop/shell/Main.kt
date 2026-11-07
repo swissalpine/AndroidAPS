@@ -30,6 +30,7 @@ import app.aaps.appshell.navigation.handleNotificationAction
 import app.aaps.appshell.navigation.handleQuickLaunchAction
 import app.aaps.appshell.navigation.handleSearchResultClick
 import app.aaps.core.interfaces.configuration.ExternalOptions
+import app.aaps.core.interfaces.configuration.initializeAndAnnounceReady
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.LTag
 import app.aaps.core.interfaces.notifications.NotificationId
@@ -310,7 +311,11 @@ private fun startPlugins(graph: DesktopAppGraph) {
     // shown in and the order category defaults are picked in.
     val plugins = graph.contributedPlugins.entries.sortedBy { it.key }.map { it.value }
     graph.pluginStore.plugins = plugins
-    graph.configBuilder.initialize()
+    // Starts the plugins and says the app is ready once they have started. `IobCobCalculatorPlugin`
+    // runs the first IOB/COB calculation on that event, and subscribes to it in its own `onStart`,
+    // so it has to be announced after the start jobs finish. Only `MainApp` sent it, so desktop and
+    // iOS both showed an empty graph until the next glucose reading (nightscout/AndroidAPS#5485).
+    graph.configBuilder.initializeAndAnnounceReady(graph.appScope, graph.rxBus, graph.logger)
     // The periodic housekeeping Android gets from KeepAliveWorker. The work is shared; only the
     // trigger is not, because there is no WorkManager here.
     graph.periodicMaintenance.start(graph.appScope)
@@ -536,7 +541,6 @@ private fun AapsDesktopApp(graph: DesktopAppGraph, appIcon: Painter, appName: St
                             commandQueue = graph.commandQueue,
                             pumpCommunicationStatus = graph.pumpCommunicationStatus,
                             appName = appName,
-                            authorizationFailedMessage = "Authorization failed",
                             onNavigate = { request -> navigator.handleNavigationRequest(request) },
                             onSearchResultClick = { entry -> navigator.handleSearchResultClick(entry) },
                             onNotificationActionClick = { n -> navigator.handleNotificationAction(n.id) },
@@ -549,7 +553,6 @@ private fun AapsDesktopApp(graph: DesktopAppGraph, appIcon: Painter, appName: St
                             onLaunchBrowser = { url -> graph.authBrowser.show(url) },
                             onBringToForeground = { logger.debug(LTag.CORE, "Desktop window is already in front") },
                             onRecreateActivity = { logger.notWiredYet("window recreate") },
-                            onAuthorizationFailed = { logger.error(LTag.CORE, "Authorization failed") },
                             autoShowNotificationSheet = false,
                             onAutoShowConsumed = {}
                         )
