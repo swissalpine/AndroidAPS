@@ -418,11 +418,16 @@ class MainApp : Application(), MetroMemberInjector, MetroViewModelFactoryOwner, 
      */
     private fun applyAppLanguage() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-        val tag = appLanguageTag(preferences.get(StringKey.GeneralLanguage), preferences.get(BooleanKey.GeneralSimpleMode))
+        val stored = preferences.get(StringKey.GeneralLanguage)
+        val simpleMode = preferences.get(BooleanKey.GeneralSimpleMode)
+        val tag = appLanguageTag(stored, simpleMode)
         val wanted = tag?.let { LocaleList.forLanguageTags(it) } ?: LocaleList.getEmptyLocaleList()
         val localeManager = getSystemService(LocaleManager::class.java)
         if (localeManager.applicationLocales == wanted) return
-        aapsLogger.debug(LTag.CORE, "App language: ${tag ?: "the phone's"}")
+        aapsLogger.debug(
+            LTag.CORE,
+            "App language: setting=$stored simpleMode=$simpleMode android has=${localeManager.applicationLocales.toLanguageTags()} -> ${tag ?: "the phone's"}"
+        )
         localeManager.applicationLocales = wanted
     }
 
@@ -455,7 +460,10 @@ class MainApp : Application(), MetroMemberInjector, MetroViewModelFactoryOwner, 
         val previous = appLocales ?: return
         if (newConfig.locales == previous) return
         appLocales = newConfig.locales
-        aapsLogger.debug(LTag.CORE, "App language changed to ${newConfig.locales.toLanguageTags()}")
+        aapsLogger.debug(
+            LTag.CORE,
+            "App language changed from ${previous.toLanguageTags()} to ${newConfig.locales.toLanguageTags()}, setting=${preferences.get(StringKey.GeneralLanguage)}"
+        )
         uiRestart.request()
         widgetUpdater.update("LanguageChanged")
     }
