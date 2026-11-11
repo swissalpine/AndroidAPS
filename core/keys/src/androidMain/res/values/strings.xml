@@ -409,6 +409,14 @@
     <string name="pref_ketoacidosis_protection_basal_title">Quantity of the safety TBR [%]</string>
     <string name="ketoacidosis_protection_basal_summary">Default: 20</string>
 
+    <!-- AI advisor -->
+    <string name="pref_advisor_consent_title">Allow sending a data summary to Anthropic</string>
+    <string name="advisor_consent_summary">When you start an analysis, a summary of your last days is sent to Anthropic (Claude). It has no name, no exact times and no notes. It has glucose statistics, meals, insulin, sport and heart rate values. Nothing is sent until you start an analysis.</string>
+    <string name="pref_advisor_api_key_title">Anthropic API key</string>
+    <string name="advisor_api_key_summary">Your own key from the Anthropic Console. It is kept on this phone. Every analysis costs a small amount on your Anthropic account.</string>
+    <string name="pref_advisor_days_title">Days to analyse</string>
+    <string name="advisor_days_summary">Default: 14</string>
+
     <!-- SMB threshold -->
     <string name="pref_smb_threshold_title">SMB Threshold</string>
     <string name="smb_threshold_summary">Value from which SMBs may be delivered</string>

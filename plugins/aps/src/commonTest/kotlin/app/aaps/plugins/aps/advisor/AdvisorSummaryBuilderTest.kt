@@ -1,0 +1,613 @@
+package app.aaps.plugins.aps.advisor
+
+import app.aaps.core.data.model.BS
+import app.aaps.core.data.model.CA
+import app.aaps.core.data.model.EPS
+import app.aaps.core.data.model.GV
+import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.data.model.HR
+import app.aaps.core.data.model.ICfg
+import app.aaps.core.data.model.SC
+import app.aaps.core.data.model.SourceSensor
+import app.aaps.core.data.model.TB
+import app.aaps.core.data.model.TE
+import app.aaps.core.data.model.TT
+import app.aaps.core.data.model.TrendArrow
+import app.aaps.core.data.model.data.Block
+import app.aaps.core.data.model.data.TargetBlock
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+class AdvisorSummaryBuilderTest {
+
+    private val minute = 60_000L
+    private val hour = 60 * minute
+    private val day = 24 * hour
+
+    // Day 20 at 12:00, with the UTC offset 0, so "day 19 at 08:00" is 28 hours before now.
+    private val now = 20 * day + 12 * hour
+
+    private fun at(dayNumber: Long, hourOfDay: Int, minuteOfHour: Int = 0) = dayNumber * day + hourOfDay * hour + minuteOfHour * minute
+
+    private fun gv(time: Long, value: Double, offset: Long = 0L) = GV(
+        timestamp = time, raw = null, value = value, trendArrow = TrendArrow.FLAT, noise = null,
+        sourceSensor = SourceSensor.UNKNOWN, utcOffset = offset
+    )
+
+    /** One reading every 5 minutes. [valueAt] gets the time from [from] in minutes. */
+    private fun readings(from: Long, to: Long, valueAt: (Long) -> Double): List<GV> =
+        generateSequence(from) { it + 5 * minute }.takeWhile { it <= to }.map { gv(it, valueAt((it - from) / minute)) }.toList()
+
+    private fun bolus(time: Long, units: Double, type: BS.Type = BS.Type.NORMAL) =
+        BS(timestamp = time, amount = units, type = type, iCfg = ICfg("test", 75, 5.0, 1.0), utcOffset = 0L)
+
+    private fun carbs(time: Long, grams: Double) = CA(timestamp = time, duration = 0L, amount = grams, utcOffset = 0L)
+
+    /** Like the real data: only steps5min is filled, the other fields stay 0. */
+    private fun steps(time: Long, steps5min: Int) = SC(
+        duration = 5 * minute, timestamp = time, steps5min = steps5min, steps10min = 0, steps15min = 0,
+        steps30min = 0, steps60min = 0, steps180min = 0, device = "test", utcOffset = 0L
+    )
+
+    private fun profileSwitch(time: Long, percentage: Int, unit: GlucoseUnit = GlucoseUnit.MGDL) = EPS(
+        timestamp = time,
+        basalBlocks = listOf(Block(12 * hour, 0.8), Block(12 * hour, 1.0)),
+        isfBlocks = listOf(Block(day, 2.0)),
+        icBlocks = listOf(Block(day, 10.0)),
+        targetBlocks = listOf(TargetBlock(day, 100.0, 100.0)),
+        glucoseUnit = unit,
+        originalProfileName = "test", originalCustomizedName = "test",
+        originalTimeshift = 0L, originalPercentage = percentage, originalDuration = 0L, originalEnd = 0L,
+        iCfg = ICfg("test", 75, 5.0, 1.0), utcOffset = 0L
+    )
+
+    private fun input(
+        days: Int = 2,
+        glucose: List<GV> = emptyList(),
+        boluses: List<BS> = emptyList(),
+        carbs: List<CA> = emptyList(),
+        therapyEvents: List<TE> = emptyList(),
+        tempTargets: List<TT> = emptyList(),
+        profileSwitches: List<EPS> = emptyList(),
+        steps: List<SC> = emptyList(),
+        heartRates: List<HR> = emptyList(),
+        tempBasals: List<TB> = emptyList(),
+        ketoProtectionPercent: Int? = null,
+        loopRatios: List<LoopRatioSample> = emptyList()
+    ) = AdvisorInput(
+        now = now, nowUtcOffset = 0L, days = days,
+        glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals,
+        therapyEvents = therapyEvents, tempTargets = tempTargets,
+        effectiveProfileSwitches = profileSwitches, steps = steps, heartRates = heartRates,
+        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent
+    )
+
+    private fun heartRate(time: Long, bpm: Double) = HR(duration = 60_000L, timestamp = time, beatsPerMinute = bpm, device = "test", utcOffset = 0L)
+
+    private fun tempBasal(time: Long, rate: Double, isAbsolute: Boolean, minutes: Long) =
+        TB(timestamp = time, type = TB.Type.NORMAL, isAbsolute = isAbsolute, rate = rate, duration = minutes * minute, utcOffset = 0L)
+
+    private fun ratio(time: Long, sensitivity: Double, activity: Double?) = LoopRatioSample(time, 0L, sensitivity, activity)
+
+    private fun build(input: AdvisorInput) = AdvisorSummaryBuilder(input).build()
+
+    /** A meal at 08:00 on day 19: 100 mg/dL, up to 180 after one hour, down to 120 after four hours. */
+    private fun mealGlucose(): List<GV> = readings(at(19, 7), at(19, 13)) { m ->
+        val sinceMeal = m - 60
+        if (sinceMeal <= 60) 100.0 + 80.0 * sinceMeal / 60.0 else 180.0 - 60.0 * (sinceMeal - 60) / 180.0
+    }
+
+    // ---- Overall numbers ----
+
+    @Test
+    fun `glucose bands do not overlap and add up`() {
+        val values = listOf(40.0, 60.0, 100.0, 300.0)
+        val glucose = values.mapIndexed { index, value -> gv(now - (index + 1) * 5 * minute, value) }
+
+        val stats = assertNotNull(build(input(glucose = glucose)).glucose)
+
+        assertEquals(125.0, stats.meanMgdl)
+        assertEquals(25.0, stats.veryLowPercent)
+        assertEquals(25.0, stats.lowPercent)
+        assertEquals(25.0, stats.inRangePercent)
+        assertEquals(0.0, stats.highPercent)
+        assertEquals(25.0, stats.veryHighPercent)
+    }
+
+    @Test
+    fun `no glucose gives no stats and zero coverage`() {
+        val summary = build(input())
+
+        assertNull(summary.glucose)
+        assertEquals(0.0, summary.quality.glucoseCoveragePercent)
+        assertEquals(12, summary.blocks.size)
+    }
+
+    @Test
+    fun `a block uses the hour of the record's own time zone`() {
+        // 01:30 UTC with an offset of 2 hours is 03:30 local, so it belongs to the block 02:00 to 04:00.
+        val reading = gv(at(19, 1, 30), 150.0, offset = 2 * hour)
+
+        val blocks = build(input(glucose = listOf(reading))).blocks
+
+        assertEquals(150.0, blocks[1].meanMgdl)
+        assertNull(blocks[0].meanMgdl)
+    }
+
+    // ---- Meals ----
+
+    @Test
+    fun `a meal with a bolus is measured over four hours`() {
+        val summary = build(input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 7, 50), 6.0))))
+
+        val meal = summary.meals.single()
+        assertEquals(60.0, meal.carbsGrams)
+        assertEquals(6.0, meal.bolusUnits)
+        assertEquals(100.0, meal.startMgdl)
+        assertEquals(180.0, meal.peakMgdl)
+        assertEquals(60, meal.minutesToPeak)
+        assertEquals(120.0, meal.endMgdl)
+        assertEquals(8, meal.hour)
+        assertEquals(1, meal.daysAgo)
+        assertTrue(meal.clean)
+        assertFalse(meal.activity.exerciseEventNearby)
+    }
+
+    @Test
+    fun `carbs without a bolus are not a meal`() {
+        val summary = build(input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 15.0))))
+
+        assertTrue(summary.meals.isEmpty())
+    }
+
+    @Test
+    fun `a meal whose four hours are not over yet is left out`() {
+        val glucose = readings(now - 3 * hour, now) { 120.0 }
+        val summary = build(input(glucose = glucose, carbs = listOf(carbs(now - hour, 40.0)), boluses = listOf(bolus(now - hour, 4.0))))
+
+        assertTrue(summary.meals.isEmpty())
+    }
+
+    @Test
+    fun `carbs less than 20 minutes apart are one meal`() {
+        val summary = build(
+            input(
+                glucose = mealGlucose(),
+                carbs = listOf(carbs(at(19, 8), 30.0), carbs(at(19, 8, 10), 20.0)),
+                boluses = listOf(bolus(at(19, 8), 5.0))
+            )
+        )
+
+        assertEquals(50.0, summary.meals.single().carbsGrams)
+    }
+
+    @Test
+    fun `a second manual bolus in the window makes the meal not clean`() {
+        val summary = build(
+            input(
+                glucose = mealGlucose(),
+                carbs = listOf(carbs(at(19, 8), 60.0)),
+                boluses = listOf(bolus(at(19, 8), 6.0), bolus(at(19, 10), 1.5))
+            )
+        )
+
+        assertFalse(summary.meals.single().clean)
+    }
+
+    @Test
+    fun `SMB is counted for the meal but does not make it not clean`() {
+        val summary = build(
+            input(
+                glucose = mealGlucose(),
+                carbs = listOf(carbs(at(19, 8), 60.0)),
+                boluses = listOf(bolus(at(19, 8), 6.0), bolus(at(19, 9), 0.4, BS.Type.SMB))
+            )
+        )
+
+        val meal = summary.meals.single()
+        assertTrue(meal.clean)
+        assertEquals(0.4, meal.smbUnits)
+    }
+
+    // ---- Corrections ----
+
+    /** 200 mg/dL at 15:00 on day 19, falling in a straight line to 120 mg/dL four hours later. */
+    private fun correctionGlucose(): List<GV> = readings(at(19, 14, 50), at(19, 19, 10)) { m -> 200.0 - 80.0 * (m - 10) / 240.0 }
+
+    @Test
+    fun `a correction gives the drop per unit`() {
+        val summary = build(input(glucose = correctionGlucose(), boluses = listOf(bolus(at(19, 15), 2.0))))
+
+        val correction = summary.corrections.single()
+        assertEquals(200.0, correction.startMgdl)
+        assertEquals(120.0, correction.endMgdl)
+        assertEquals(40.0, correction.dropMgdlPerUnit)
+    }
+
+    @Test
+    fun `a bolus with food near it is not a correction`() {
+        val summary = build(input(glucose = correctionGlucose(), boluses = listOf(bolus(at(19, 15), 2.0)), carbs = listOf(carbs(at(19, 15, 20), 30.0))))
+
+        assertTrue(summary.corrections.isEmpty())
+    }
+
+    @Test
+    fun `a bolus from a normal value is not a correction`() {
+        val glucose = readings(at(19, 14, 50), at(19, 19, 10)) { 100.0 }
+        val summary = build(input(glucose = glucose, boluses = listOf(bolus(at(19, 15), 2.0))))
+
+        assertTrue(summary.corrections.isEmpty())
+    }
+
+    // ---- Nights ----
+
+    /** From 21:00 on day 18 to 08:30 on day 19, rising 0.1 mg/dL every minute, which is 6 mg/dL per hour. */
+    private fun risingNight(step: Long = 5): List<GV> =
+        generateSequence(at(18, 21)) { it + step * minute }.takeWhile { it <= at(19, 8, 30) }
+            .map { gv(it, 100.0 + 0.1 * ((it - at(18, 21)) / minute)) }.toList()
+
+    @Test
+    fun `a night without food or boluses is one stretch from 22 to 8`() {
+        val night = build(input(glucose = risingNight())).nights.single()
+
+        assertEquals(6.0, night.driftMgdlPerHour)
+        assertEquals(1, night.daysAgo)
+        assertEquals(22 * 60, night.startMinuteOfDay)
+        assertEquals(10.0, night.hours)
+        assertNull(night.lastBolusUnits)
+        assertNull(night.lastBolusHoursBefore)
+        assertNull(night.lastCarbsGrams)
+        assertEquals(0.0, night.smbUnitsBefore)
+    }
+
+    @Test
+    fun `after a late dinner the stretch starts 5 hours later and tells what may be left`() {
+        // Dinner at 23:00 with 40 g and 4 U, and an SMB of 0.6 U at 23:30. The quiet stretch starts at 04:00.
+        val summary = build(
+            input(
+                glucose = risingNight(),
+                carbs = listOf(carbs(at(18, 23), 40.0)),
+                boluses = listOf(bolus(at(18, 23), 4.0), bolus(at(18, 23, 30), 0.6, BS.Type.SMB))
+            )
+        )
+
+        val night = summary.nights.single()
+        assertEquals(4 * 60, night.startMinuteOfDay)
+        assertEquals(4.0, night.hours)
+        assertEquals(4.0, night.lastBolusUnits)
+        assertEquals(5.0, night.lastBolusHoursBefore)
+        assertEquals(40.0, night.lastCarbsGrams)
+        assertEquals(0.6, night.smbUnitsBefore)
+        assertEquals(6.0, night.driftMgdlPerHour)
+    }
+
+    @Test
+    fun `food late in the night leaves only the part before it`() {
+        // Food at 03:30 plus 5 hours is 08:30, so no quiet time is left after it.
+        val summary = build(input(glucose = risingNight(), carbs = listOf(carbs(at(19, 3, 30), 20.0))))
+
+        // The part before the food (22:00 to 03:30) is still quiet and is used.
+        assertEquals(22 * 60, summary.nights.single().startMinuteOfDay)
+        assertEquals(5.5, summary.nights.single().hours)
+    }
+
+    @Test
+    fun `entries of one meal are added up for the last meal`() {
+        val summary = build(input(glucose = risingNight(), carbs = listOf(carbs(at(18, 22), 20.0), carbs(at(18, 22, 10), 15.0))))
+
+        assertEquals(35.0, summary.nights.single().lastCarbsGrams)
+    }
+
+    @Test
+    fun `a bolus in the night splits it and the longest part is used`() {
+        // A bolus at 02:00 gives 22:00 to 02:00 (4 hours). After the bolus only 07:00 to 08:00 is left, too short.
+        val summary = build(input(glucose = risingNight(), boluses = listOf(bolus(at(19, 2), 1.0))))
+
+        val night = summary.nights.single()
+        assertEquals(22 * 60, night.startMinuteOfDay)
+        assertEquals(4.0, night.hours)
+    }
+
+    @Test
+    fun `a night full of food and boluses has no quiet stretch`() {
+        val summary = build(input(glucose = risingNight(), carbs = listOf(carbs(at(18, 22), 20.0), carbs(at(19, 1), 20.0), carbs(at(19, 4), 20.0), carbs(at(19, 7), 20.0))))
+
+        assertTrue(summary.nights.isEmpty())
+    }
+
+    @Test
+    fun `a night with too few readings is left out`() {
+        // One reading every 15 minutes covers only a third of the 5 minute slots.
+        assertTrue(build(input(glucose = risingNight(step = 15))).nights.isEmpty())
+    }
+
+    @Test
+    fun `a night whose data stops before the end is left out`() {
+        val cut = risingNight().filter { it.timestamp <= at(19, 6) }
+
+        assertTrue(build(input(glucose = cut)).nights.isEmpty())
+    }
+
+    @Test
+    fun `readings every minute work like readings every 5 minutes`() {
+        val night = build(input(glucose = risingNight(step = 1))).nights.single()
+
+        assertEquals(6.0, night.driftMgdlPerHour)
+    }
+
+    // ---- Lowest temp basal ----
+
+    @Test
+    fun `without the protection only a zero temp counts as the lowest`() {
+        val temps = listOf(tempBasal(at(18, 23), 0.0, isAbsolute = true, minutes = 60), tempBasal(at(19, 1), 0.2, isAbsolute = true, minutes = 60))
+
+        val night = build(input(glucose = risingNight(), tempBasals = temps, profileSwitches = listOf(profileSwitch(at(18, 0), 100)))).nights.single()
+
+        assertEquals(60, night.minimumTempMinutes)
+    }
+
+    @Test
+    fun `with the 20 percent protection a temp at the floor counts, absolute or percent`() {
+        // The profile basal is 1.0 U/h in the evening and 0.8 U/h after midnight (see profileSwitch).
+        val temps = listOf(
+            tempBasal(at(18, 23), 0.2, isAbsolute = true, minutes = 60), // 20 % of 1.0
+            tempBasal(at(19, 1), 0.5, isAbsolute = true, minutes = 60), // 62 % of 0.8, not the floor
+            tempBasal(at(19, 3), 20.0, isAbsolute = false, minutes = 30), // 20 %
+            tempBasal(at(19, 5), 60.0, isAbsolute = false, minutes = 30) // 60 %, not the floor
+        )
+
+        val summary = build(input(glucose = risingNight(), tempBasals = temps, ketoProtectionPercent = 20, profileSwitches = listOf(profileSwitch(at(18, 0), 100))))
+
+        assertEquals(90, summary.nights.single().minimumTempMinutes)
+        assertEquals(20, summary.ketoProtectionPercent)
+    }
+
+    @Test
+    fun `the floor follows the profile percentage`() {
+        // At 70 % the evening basal is 0.7 U/h, the floor is 0.14 U/h and 0.15 U/h still counts. 0.3 U/h does not.
+        val temps = listOf(tempBasal(at(18, 23), 0.15, isAbsolute = true, minutes = 60), tempBasal(at(19, 1), 0.3, isAbsolute = true, minutes = 60))
+
+        val night = build(input(glucose = risingNight(), tempBasals = temps, ketoProtectionPercent = 20, profileSwitches = listOf(profileSwitch(at(18, 0), 70)))).nights.single()
+
+        assertEquals(60, night.minimumTempMinutes)
+    }
+
+    // ---- Heart rate and sync outliers ----
+
+    @Test
+    fun `heart rate of the hour before an event is averaged`() {
+        // 06:30 is outside the 60 minutes before the meal at 08:00.
+        val hearts = listOf(heartRate(at(19, 6, 30), 180.0), heartRate(at(19, 7, 10), 120.0), heartRate(at(19, 7, 30), 150.0), heartRate(at(19, 7, 50), 90.0))
+
+        val activity = build(
+            input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)), heartRates = hearts)
+        ).meals.single().activity
+
+        assertEquals(120, activity.heartRate60minAvg)
+        assertEquals(150, activity.heartRate60minMax)
+    }
+
+    @Test
+    fun `without heart rate values the context has none and the stats are null`() {
+        val summary = build(input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0))))
+
+        assertNull(summary.meals.single().activity.heartRate60minAvg)
+        assertNull(summary.meals.single().activity.heartRate60minMax)
+        assertNull(summary.heart)
+        assertEquals(0, summary.quality.heartRateRecords)
+    }
+
+    @Test
+    fun `resting and high heart rate are percentiles of all values`() {
+        // The values 50 to 69, one each.
+        val hearts = (50..69).mapIndexed { index, bpm -> heartRate(now - (index + 1) * 10 * minute, bpm.toDouble()) }
+
+        val heart = assertNotNull(build(input(heartRates = hearts)).heart)
+
+        assertEquals(20, heart.records)
+        assertEquals(51, heart.restingBpm)
+        assertEquals(68, heart.highBpm)
+    }
+
+    @Test
+    fun `a step record that is more than a person can make is marked`() {
+        val common = input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)))
+
+        val normal = build(common.copy(steps = listOf(steps(at(19, 7, 40), 900)))).meals.single().activity
+        val outlier = build(common.copy(steps = listOf(steps(at(19, 7, 40), 2_500)))).meals.single().activity
+
+        assertFalse(normal.stepsMayBeSyncOutlier)
+        assertTrue(outlier.stepsMayBeSyncOutlier)
+    }
+
+    @Test
+    fun `a runner with 1000 steps every 5 minutes is not marked`() {
+        // 200 steps per minute is a normal fast run.
+        val run = (0..5).map { steps(at(19, 7, 5 * it + 20), 1_000) }
+        val common = input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)))
+
+        assertFalse(build(common.copy(steps = run)).meals.single().activity.stepsMayBeSyncOutlier)
+    }
+
+    @Test
+    fun `the time since the record before decides, so a gap makes many steps possible`() {
+        val common = input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)))
+
+        // 3000 steps 15 minutes after the record before: 200 steps per minute, possible.
+        val afterGap = listOf(steps(at(19, 7, 10), 100), steps(at(19, 7, 25), 3_000))
+        // The same 3000 steps only 5 minutes after the record before: 600 steps per minute, impossible.
+        val noGap = listOf(steps(at(19, 7, 20), 100), steps(at(19, 7, 25), 3_000))
+
+        assertFalse(build(common.copy(steps = afterGap)).meals.single().activity.stepsMayBeSyncOutlier)
+        assertTrue(build(common.copy(steps = noGap)).meals.single().activity.stepsMayBeSyncOutlier)
+    }
+
+    // ---- Data quality and steps ----
+
+    @Test
+    fun `coverage counts time slots and the interval is the usual gap`() {
+        // 61 readings one minute apart fill 13 slots of 5 minutes. The period has 2 * 288 slots.
+        val glucose = generateSequence(now - 70 * minute) { it + minute }.take(61).map { gv(it, 120.0) }.toList()
+
+        val quality = build(input(glucose = glucose)).quality
+
+        assertEquals(61, quality.glucoseReadings)
+        assertEquals(60, quality.glucoseIntervalSeconds)
+        assertEquals(2.3, quality.glucoseCoveragePercent)
+    }
+
+    @Test
+    fun `steps are summed from the 5 minute counts and null without a record in the window`() {
+        val summary = build(
+            input(
+                glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)),
+                steps = listOf(steps(at(19, 4), 900))
+            )
+        )
+
+        // The only record is 4 hours before the meal, so neither window has a record.
+        val activity = summary.meals.single().activity
+        assertNull(activity.steps60min)
+        assertNull(activity.steps180min)
+    }
+
+    @Test
+    fun `steps per hour in a block are the sum of one day divided by the hours`() {
+        // 400 steps in the block 06:00 to 08:00 on one day is 200 steps per hour.
+        val summary = build(input(steps = listOf(steps(at(19, 6, 30), 300), steps(at(19, 7, 30), 100))))
+
+        assertEquals(200, summary.blocks[3].medianStepsPerHour)
+        assertNull(summary.blocks[0].medianStepsPerHour)
+    }
+
+    @Test
+    fun `one sport day does not lift the median of the steps in a block`() {
+        // Three days with 100, 200 and 20000 steps in the block 06:00 to 08:00: 50, 100 and 10000 steps per hour.
+        val summary = build(
+            input(days = 3, steps = listOf(steps(at(18, 6, 30), 100), steps(at(19, 6, 30), 200), steps(at(20, 6, 30), 20_000)))
+        )
+
+        assertEquals(100, summary.blocks[3].medianStepsPerHour)
+    }
+
+    @Test
+    fun `with an even number of days the median is the mean of the two middle days`() {
+        val summary = build(input(steps = listOf(steps(at(19, 6, 30), 200), steps(at(20, 6, 30), 600))))
+
+        // 100 and 300 steps per hour.
+        assertEquals(200, summary.blocks[3].medianStepsPerHour)
+    }
+
+    // ---- Sport and profile ----
+
+    @Test
+    fun `sport steps profile and autosens are attached to a meal`() {
+        val exercise = TE(timestamp = at(19, 6, 30), duration = 30 * minute, type = TE.Type.EXERCISE, glucoseUnit = GlucoseUnit.MGDL, utcOffset = 0L)
+        val summary = build(
+            input(
+                glucose = mealGlucose(),
+                carbs = listOf(carbs(at(19, 8), 60.0)),
+                boluses = listOf(bolus(at(19, 8), 6.0)),
+                therapyEvents = listOf(exercise),
+                // 05:30 is outside the 60 minutes before the meal, but inside the 180 minutes.
+                steps = listOf(steps(at(19, 5, 30), 1000), steps(at(19, 7, 20), 400), steps(at(19, 7, 55), 300)),
+                profileSwitches = listOf(profileSwitch(at(19, 0), 80)),
+                loopRatios = listOf(ratio(at(19, 7, 40), sensitivity = 0.85, activity = 0.85))
+            )
+        )
+
+        val activity = summary.meals.single().activity
+        assertTrue(activity.exerciseEventNearby)
+        assertFalse(activity.activityTempTargetNearby)
+        assertEquals(700, activity.steps60min)
+        assertEquals(1700, activity.steps180min)
+        assertEquals(80, activity.profilePercentage)
+        assertEquals(0.85, activity.sensitivityRatio)
+        assertEquals(0.85, activity.activityRatio)
+    }
+
+    @Test
+    fun `the tracker factor is separate from the whole ratio, and null when the tracker did not run`() {
+        val summary = build(
+            input(
+                glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)),
+                loopRatios = listOf(ratio(at(19, 7, 50), sensitivity = 1.1, activity = null))
+            )
+        )
+
+        val activity = summary.meals.single().activity
+        assertEquals(1.1, activity.sensitivityRatio)
+        assertNull(activity.activityRatio)
+    }
+
+    @Test
+    fun `tracker factors are counted and averaged per block`() {
+        val ratios = listOf(
+            ratio(at(19, 8, 0), 0.7, 0.7), ratio(at(19, 8, 5), 0.7, 0.7), ratio(at(19, 8, 10), 0.85, 0.85),
+            ratio(at(19, 9, 0), 1.0, 1.0), ratio(at(19, 9, 5), 1.1, null)
+        )
+
+        val summary = build(input(loopRatios = ratios))
+
+        assertEquals(listOf(ActivityRatioUse(0.7, 2), ActivityRatioUse(0.85, 1), ActivityRatioUse(1.0, 1)), summary.sport.activityTrackerUse)
+        assertEquals(5, summary.quality.loopRatioSamples)
+        // Block 08:00 to 10:00: the whole ratio is the mean of 5 runs, the tracker factor of the 4 runs where it ran.
+        val block = summary.blocks[4]
+        assertEquals(0.87, block.avgSensitivityRatio)
+        assertEquals(0.81, block.avgActivityRatio)
+    }
+
+    @Test
+    fun `an activity temp target is seen but a cancel record is not`() {
+        val running = TT(timestamp = at(19, 7), reason = TT.Reason.ACTIVITY, highTarget = 140.0, lowTarget = 140.0, duration = 2 * hour, utcOffset = 0L)
+        val cancel = TT(timestamp = at(19, 7, 30), reason = TT.Reason.ACTIVITY, highTarget = 140.0, lowTarget = 140.0, duration = 0L, utcOffset = 0L)
+        val inputWithTargets = input(
+            glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 8), 6.0)),
+            tempTargets = listOf(running, cancel)
+        )
+
+        val summary = build(inputWithTargets)
+
+        assertTrue(summary.meals.single().activity.activityTempTargetNearby)
+        assertEquals(1, summary.sport.activityTempTargetCount)
+        assertEquals(120, summary.sport.activityTempTargetMinutes)
+    }
+
+    @Test
+    fun `profile percentage use counts hours until the next switch`() {
+        // The period starts on day 18 at 12:00. 100 % until day 19 at 18:00 (30 hours), then 80 % for 18 hours.
+        val summary = build(input(profileSwitches = listOf(profileSwitch(at(18, 0), 100), profileSwitch(at(19, 18), 80))))
+
+        val use = summary.sport.profilePercentageUse
+        assertEquals(listOf(100, 80), use.map { it.percentage })
+        assertEquals(listOf(30.0, 18.0), use.map { it.hours })
+    }
+
+    @Test
+    fun `the profile snapshot has base values in mg per dL`() {
+        val summary = build(input(profileSwitches = listOf(profileSwitch(at(19, 0), 90, GlucoseUnit.MMOL))))
+
+        val profile = assertNotNull(summary.profile)
+        assertEquals(90, profile.percentage)
+        assertEquals(listOf(ProfileBlockValue(0, 0.8), ProfileBlockValue(720, 1.0)), profile.basalUnitsPerHour)
+        assertEquals(listOf(ProfileBlockValue(0, 10.0)), profile.carbsGramsPerUnit)
+        // 2.0 mmol/L per unit is 36.0 mg/dL per unit.
+        assertEquals(36.0, profile.isfMgdlPerUnit.single().value)
+        assertEquals(5.0, profile.diaHours)
+        assertEquals(75, profile.peakMinutes)
+    }
+
+    @Test
+    fun `invalid records are ignored`() {
+        val invalid = gv(now - 5 * minute, 300.0).copy(isValid = false)
+        val valid = gv(now - 10 * minute, 100.0)
+
+        val stats = assertNotNull(build(input(glucose = listOf(invalid, valid))).glucose)
+
+        assertEquals(100.0, stats.meanMgdl)
+    }
+}

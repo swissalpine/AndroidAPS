@@ -114,4 +114,50 @@
     <string name="autoISF_settings_title">AutoISF settings</string>
     <string name="smb_delivery_settings_title">SMB delivery settings</string>
 
+    <!-- AI advisor -->
+    <string name="advisor_name">AI advisor</string>
+    <string name="advisor_description">Sends a summary of your last days to Claude and shows hints about patterns. It never changes your profile or your loop.</string>
+    <string name="advisor_disclaimer">These are hints from an AI. They are not medical advice and can be wrong. Do not change your settings because of this alone. Talk to your diabetes team. Nothing is changed in AAPS.</string>
+    <string name="advisor_privacy_note" comment="%1$d=number of days, for example 14">When you tap Start, a summary of the last %1$d days is sent to Anthropic. It has no name, no exact times and no notes.</string>
+    <string name="advisor_not_ready">Before you start, open the settings of this plugin. You need your Anthropic API key, and you must agree to send a data summary.</string>
+    <string name="advisor_start">Start analysis</string>
+    <string name="advisor_cancel">Cancel</string>
+    <string name="advisor_new_analysis">New analysis</string>
+    <string name="advisor_collecting">Reading your data…</string>
+    <string name="advisor_waiting">Waiting for Claude. This can take a few minutes. You can leave this screen.</string>
+    <string name="advisor_settings">Settings</string>
+    <string name="advisor_findings">Findings</string>
+    <string name="advisor_no_findings">No findings.</string>
+    <string name="advisor_evidence">Evidence</string>
+    <string name="advisor_idea">Idea</string>
+    <string name="advisor_not_enough_data_for">Not enough data for</string>
+    <string name="advisor_questions_for_team">Questions for your diabetes team</string>
+    <string name="advisor_confidence_low">Low confidence</string>
+    <string name="advisor_confidence_medium">Medium confidence</string>
+    <string name="advisor_confidence_high">High confidence</string>
+    <string name="advisor_area_basal">Basal</string>
+    <string name="advisor_area_carb_ratio">Carb ratio</string>
+    <string name="advisor_area_isf">Sensitivity (ISF)</string>
+    <string name="advisor_area_dia">Insulin duration</string>
+    <string name="advisor_area_bolus_timing">Bolus timing</string>
+    <string name="advisor_area_activity">Sport and activity</string>
+    <string name="advisor_area_loop">Loop</string>
+    <string name="advisor_area_other">Other</string>
+    <string name="advisor_change_line" comment="%1$s=setting name, for example Basal. %2$02d:%3$02d=start time, %4$02d:%5$02d=end time, %6$s=the change, see advisor_change_up and advisor_change_down">Possible small change: %1$s between %2$02d:%3$02d and %4$02d:%5$02d, %6$s</string>
+    <string name="advisor_change_up" comment="%1$d=percent, for example 5. The percent sign is in the text">%1$d%% more</string>
+    <string name="advisor_change_down" comment="%1$d=percent, for example 5. The percent sign is in the text">%1$d%% less</string>
+    <string name="advisor_change_removed">The AI proposed a number that is outside the limits of this app (more than 10 percent, a bad time range, or low confidence). It is not shown.</string>
+    <string name="advisor_usage" comment="%1$d=tokens sent, %2$d=tokens received, %3$s=name of the model">Used %1$d input and %2$d output tokens. Model: %3$s</string>
+    <string name="advisor_show_sent">Show the data that was sent</string>
+    <string name="advisor_hide_sent">Hide the data that was sent</string>
+    <string name="advisor_error_unauthorized">The API key is not accepted. Check the key in the settings.</string>
+    <string name="advisor_error_rate_limited">Too many requests, or no credit on your Anthropic account. Try again later.</string>
+    <string name="advisor_error_server">The Claude service has a problem. Try again later.</string>
+    <string name="advisor_error_network">There is no connection to the Claude service.</string>
+    <string name="advisor_error_refused">The Claude service declined this request.</string>
+    <string name="advisor_error_truncated">The answer was too long and was cut off. Try fewer days.</string>
+    <string name="advisor_error_bad_response">The answer could not be read.</string>
+    <string name="advisor_error_data">Your data could not be read.</string>
+    <string name="advisor_error_detail" comment="%1$s=short technical text from the service">Details: %1$s</string>
+
 </resources>

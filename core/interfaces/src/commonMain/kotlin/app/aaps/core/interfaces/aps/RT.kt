@@ -34,6 +34,12 @@ data class RT(
     @Serializable(with = TimestampToIsoSerializer::class)
     var deliverAt: Long? = null, // The time at which the micro bolus should be delivered
     var sensitivityRatio: Double? = null, // autosens ratio (fraction of normal basal)
+    /**
+     * Mod Activity Tracker: the factor the tracker put into [sensitivityRatio] in this run.
+     * 1.0 means the tracker ran and changed nothing. Null means it did not run: it is off, or a temp
+     * target was active, or the algorithm has no tracker.
+     */
+    var activityRatio: Double? = null,
     @Serializable(with = StringBuilderSerializer::class)
     var reason: StringBuilder = StringBuilder(),
     var duration: Int? = null,

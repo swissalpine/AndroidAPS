@@ -336,6 +336,9 @@ class DetermineBasalSMB(
             }
         }
 
+        // Stored in the result, so the factor can be read back later. Null when the tracker did not run.
+        val storedActivityRatio: Double? = if (profile.activityTracker && !profile.temptargetSet) activityRatio else null
+
         var sensitivityRatio: Double
         val high_temptarget_raises_sensitivity = profile.exercise_mode || profile.high_temptarget_raises_sensitivity
         val normalTarget = Constants.NORMAL_TARGET_MGDL // evaluate high/low temptarget against normal target, not scheduled target (which might change)
@@ -503,6 +506,7 @@ class DetermineBasalSMB(
             insulinReq = 0.0,
             deliverAt = deliverAt, // The time at which the microbolus should be delivered
             sensitivityRatio = sensitivityRatio, // autosens ratio (fraction of normal basal)
+            activityRatio = storedActivityRatio,
             consoleLog = consoleLog,
             consoleError = consoleError,
             // Null, not 0.0, when this run used no variable sensitivity, so the stored result says that

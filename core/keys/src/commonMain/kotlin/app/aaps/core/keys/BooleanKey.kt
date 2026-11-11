@@ -294,6 +294,8 @@ enum class BooleanKey(
     ApsKetoacidosisProtection(key = "ketoacidosis_protection", defaultValue = false, title = KeysStrings.pref_ketoacidosis_protection_title, summary = KeysStrings.ketoacidosis_protection_summary),
     // Activity Tracker
     ApsActivityTracker(key = "activity_tracker", defaultValue = false, title = KeysStrings.pref_activity_tracker_title, summary = KeysStrings.pref_activity_tracker_summary),
+    // AI advisor: off until the user agrees that a data summary may be sent to Anthropic
+    AdvisorConsent(key = "advisor_consent", defaultValue = false, title = KeysStrings.pref_advisor_consent_title, summary = KeysStrings.advisor_consent_summary),
 
     ;
 

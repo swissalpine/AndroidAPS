@@ -76,6 +76,9 @@ active_pump_type|StringNonKey|false
 active_scene|StringNonKey|false
 activity_tracker|BooleanKey|true
 actual_basal_profile|MedtrumStringNonKey|true
+advisor_api_key|StringKey|true
+advisor_consent|BooleanKey|true
+advisor_days|IntKey|true
 age|StringKey|true
 alarm_setting|MedtrumStringKey|true
 alert_override_dnd|BooleanKey|true

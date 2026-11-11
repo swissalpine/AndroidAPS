@@ -229,6 +229,15 @@ enum class StringKey(
         isPassword = true,
         validator = StringValidator.minLength(17)
     ),
+    // AI advisor: the user's own Anthropic API key
+    AdvisorApiKey(
+        key = "advisor_api_key",
+        defaultValue = "",
+        title = KeysStrings.pref_advisor_api_key_title,
+        summary = KeysStrings.advisor_api_key_summary,
+        isPassword = true,
+        validator = StringValidator.minLength(20)
+    ),
 
     ;
 

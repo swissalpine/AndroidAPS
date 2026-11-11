@@ -40,6 +40,9 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(project(":core:graph"))
+                // The AI advisor talks to the Claude API. Ktor and OkHttp are what the project uses elsewhere.
+                implementation(libs.io.ktor.client.core)
+                implementation(libs.io.ktor.client.okhttp)
                 implementation(libs.androidx.compose.ui.tooling.preview)
                 implementation(libs.androidx.work.runtime)
                 implementation(libs.org.slf4j.api)
@@ -70,6 +73,7 @@ kotlin {
                 implementation(libs.org.mockito.kotlin)
                 implementation(libs.com.google.truth)
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.io.ktor.client.mock)
                 // Compose UI tests (AutotuneScreenTest). Restated from compose-test-module-dependencies,
                 // which applies com.android.library and so cannot be used here.
                 implementation(project.dependencies.platform(libs.androidx.compose.bom))
