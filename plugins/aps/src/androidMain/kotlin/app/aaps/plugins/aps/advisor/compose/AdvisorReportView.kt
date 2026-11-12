@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,9 +60,12 @@ import app.aaps.plugins.aps.advisor.AdvisorArea
 import app.aaps.plugins.aps.advisor.AdvisorConfidence
 import app.aaps.plugins.aps.advisor.AdvisorFinding
 import app.aaps.plugins.aps.advisor.AdvisorOutcome
+import app.aaps.plugins.aps.advisor.AdvisorPrompt
 import app.aaps.plugins.aps.advisor.AdvisorReport
 import app.aaps.plugins.aps.advisor.AdvisorSetting
+import app.aaps.plugins.aps.advisor.ChangedSetting
 import app.aaps.plugins.aps.advisor.GlucoseStats
+import app.aaps.plugins.aps.advisor.ProfileWarning
 import app.aaps.plugins.aps.advisor.ProposedChange
 
 // Sizes of the pictures. The spacing and the colors come from the theme.
@@ -85,11 +89,19 @@ private const val CHIP_ALPHA = 0.16f
  * day, and one card for each finding with the most important first.
  *
  * @param glucose null when the ranges are not known (a report from before they were kept)
+ * @param profileWarnings large profile changes of the last days. They are shown first, whatever the AI said
  * @param onAskAbout null when the chat is not open. Else the button of a finding calls it with a question about that finding
  */
 @Composable
-internal fun ReportView(success: AdvisorOutcome.Success, glucose: GlucoseStats?, sentJson: String?, onAskAbout: ((String) -> Unit)?) {
+internal fun ReportView(
+    success: AdvisorOutcome.Success,
+    glucose: GlucoseStats?,
+    profileWarnings: List<ProfileWarning>,
+    sentJson: String?,
+    onAskAbout: ((String) -> Unit)?
+) {
     val report = success.report
+    if (profileWarnings.isNotEmpty()) ProfileWarningCard(profileWarnings)
     SummaryCard(report)
     if (glucose != null) GlucoseRangeCard(glucose)
     val changes = report.findings.mapNotNull { it.change }
@@ -112,6 +124,65 @@ internal fun ReportView(success: AdvisorOutcome.Success, glucose: GlucoseStats?,
     if (sentJson != null) SentData(sentJson)
 }
 
+// ---- Note about large profile changes ----
+
+/**
+ * A fixed note from the app, not from the AI: the profile was changed by more than the advisor proposes. The
+ * person may have meant it. The note asks to check.
+ */
+@Composable
+private fun ProfileWarningCard(warnings: List<ProfileWarning>) {
+    Surface(shape = RoundedCornerShape(AapsSpacing.chipCornerRadius), color = MaterialTheme.colorScheme.errorContainer, modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(AapsSpacing.large)) {
+            Icon(imageVector = Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(TITLE_ICON))
+            Spacer(modifier = Modifier.width(AapsSpacing.medium))
+            Column(verticalArrangement = Arrangement.spacedBy(AapsSpacing.small)) {
+                Text(
+                    text = stringResource(R.string.advisor_profile_warning_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                warnings.forEach { warning ->
+                    val amount = if (warning.changePercent > 0) {
+                        stringResource(R.string.advisor_change_up, warning.changePercent)
+                    } else {
+                        stringResource(R.string.advisor_change_down, -warning.changePercent)
+                    }
+                    Text(
+                        text = stringResource(
+                            R.string.advisor_profile_warning_line,
+                            stringResource(changedSettingLabel(warning.setting)),
+                            warning.startMinute / 60, warning.startMinute % 60,
+                            warning.endMinute / 60, warning.endMinute % 60,
+                            amount
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    Text(
+                        text = stringResource(R.string.advisor_profile_warning_age, warning.madeDaysAgo, warning.madeAtHour),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.advisor_profile_warning_hint, AdvisorPrompt.MAX_CHANGE_PERCENT),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
+    }
+}
+
+private fun changedSettingLabel(setting: ChangedSetting): Int = when (setting) {
+    ChangedSetting.BASAL      -> R.string.advisor_area_basal
+    ChangedSetting.CARB_RATIO -> R.string.advisor_area_carb_ratio
+    ChangedSetting.ISF        -> R.string.advisor_area_isf
+}
+
 // ---- Summary ----
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -119,7 +190,7 @@ internal fun ReportView(success: AdvisorOutcome.Success, glucose: GlucoseStats?,
 private fun SummaryCard(report: AdvisorReport) {
     AapsCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(AapsSpacing.large), verticalArrangement = Arrangement.spacedBy(AapsSpacing.medium)) {
-            Text(text = report.overall, style = MaterialTheme.typography.bodyLarge)
+            MarkdownText(text = report.overall, style = MaterialTheme.typography.bodyLarge)
             if (report.keyPoints.isNotEmpty()) Points(report.keyPoints)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(AapsSpacing.medium), verticalArrangement = Arrangement.spacedBy(AapsSpacing.small)) {
                 AdvisorConfidence.entries.reversed().forEach { confidence ->
@@ -133,7 +204,7 @@ private fun SummaryCard(report: AdvisorReport) {
                 Text(text = stringResource(R.string.advisor_summary_not_enough), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
             }
             if (report.dataNote.isNotBlank()) {
-                Text(text = report.dataNote, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                MarkdownText(text = report.dataNote, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -268,7 +339,7 @@ private fun FindingCard(finding: AdvisorFinding, onAskAbout: ((String) -> Unit)?
                     }
                     if (finding.suggestion.isNotBlank()) {
                         Text(text = stringResource(R.string.advisor_idea), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(text = finding.suggestion, style = MaterialTheme.typography.bodyMedium)
+                        MarkdownText(text = finding.suggestion)
                     }
                 }
                 if (onAskAbout != null) {
@@ -317,7 +388,7 @@ private fun Points(items: List<String>) {
         items.forEach { item ->
             Row {
                 Text(text = "•", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(POINT_MARK_WIDTH))
-                Text(text = item, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                MarkdownText(text = item, modifier = Modifier.weight(1f))
             }
         }
     }

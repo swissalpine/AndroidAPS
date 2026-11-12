@@ -45,6 +45,28 @@ class AdvisorHistoryJsonTest {
     }
 
     @Test
+    fun `the note about large profile changes is the same after writing and reading`() {
+        val warnings = listOf(ProfileWarning(ChangedSetting.BASAL, 780, 1020, -15, madeDaysAgo = 0, madeAtHour = 16))
+        val entries = listOf(entry(now, finding("A")).copy(profileWarnings = warnings))
+
+        val text = AdvisorHistoryJson.encode(entries)
+
+        assertEquals(warnings, AdvisorHistoryJson.decode(text).single().profileWarnings)
+        assertFalse(AdvisorHistoryJson.encode(listOf(entry(now))).contains("profileWarnings"))
+    }
+
+    @Test
+    fun `a note with an unknown setting is left out and the analysis stays`() {
+        val warnings = listOf(ProfileWarning(ChangedSetting.BASAL, 0, 60, 12, 1, 1), ProfileWarning(ChangedSetting.ISF, 0, 60, 12, 1, 1))
+        val text = AdvisorHistoryJson.encode(listOf(entry(now).copy(profileWarnings = warnings))).replaceFirst("\"BASAL\"", "\"SLEEP\"")
+
+        val read = AdvisorHistoryJson.decode(text).single()
+
+        assertEquals(listOf(ChangedSetting.ISF), read.profileWarnings.map { it.setting })
+        assertEquals("Overall", read.report.overall)
+    }
+
+    @Test
     fun `a report from before the points has the old evidence text as one point`() {
         val text = AdvisorHistoryJson.encode(listOf(entry(now, finding("Old"))))
             .replace(Regex("\"evidencePoints\":\\[[^\\]]*\\]"), "\"evidence\":\"The old text.\"")

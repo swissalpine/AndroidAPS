@@ -18,22 +18,31 @@ class AdvisorHistoryFileTest {
     )
 
     @Test
+    fun `making the store does not look up the file`() {
+        var looked = false
+
+        AdvisorHistoryFile { looked = true; file() }
+
+        assertThat(looked).isFalse()
+    }
+
+    @Test
     fun `nothing is there at the start`() {
-        assertThat(AdvisorHistoryFile(file()).load()).isEmpty()
+        assertThat(AdvisorHistoryFile { file() }.load()).isEmpty()
     }
 
     @Test
     fun `the newest analysis comes first and it is still there for a new object`() {
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
         store.add(entry(1))
         store.add(entry(2))
 
-        assertThat(AdvisorHistoryFile(file()).load().map { it.timeMillis }).containsExactly(2L, 1L).inOrder()
+        assertThat(AdvisorHistoryFile { file() }.load().map { it.timeMillis }).containsExactly(2L, 1L).inOrder()
     }
 
     @Test
     fun `only the latest analyses are kept`() {
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
         (1L..25L).forEach { store.add(entry(it)) }
 
         val times = store.load().map { it.timeMillis }
@@ -47,7 +56,7 @@ class AdvisorHistoryFileTest {
     fun `a damaged file gives an empty list and a new analysis can still be kept`() {
         file().parentFile!!.mkdirs()
         file().writeText("{ this is damaged")
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
 
         assertThat(store.load()).isEmpty()
         store.add(entry(7))
@@ -57,7 +66,7 @@ class AdvisorHistoryFileTest {
 
     @Test
     fun `only the newest analysis keeps its data`() {
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
         store.add(entry(1).copy(sentJson = "first"))
         store.add(entry(2).copy(sentJson = "second"))
 
@@ -66,7 +75,7 @@ class AdvisorHistoryFileTest {
 
     @Test
     fun `an update replaces the analysis with the same time and keeps the order`() {
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
         store.add(entry(1))
         store.add(entry(2))
 
@@ -80,7 +89,7 @@ class AdvisorHistoryFileTest {
 
     @Test
     fun `an update of an analysis that is not there does nothing`() {
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
         store.add(entry(1))
 
         store.update(entry(99))
@@ -90,7 +99,7 @@ class AdvisorHistoryFileTest {
 
     @Test
     fun `clear removes everything and no temporary file stays`() {
-        val store = AdvisorHistoryFile(file())
+        val store = AdvisorHistoryFile { file() }
         store.add(entry(1))
         assertThat(File(file().path + ".tmp").exists()).isFalse()
 

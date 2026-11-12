@@ -105,6 +105,7 @@ fun AdvisorScreen(
             is AdvisorOutcome.Success -> ReportView(
                 success = shown,
                 glucose = if (state.outcome != null) state.glucose else newest?.glucose,
+                profileWarnings = if (state.outcome != null) state.profileWarnings else newest?.profileWarnings.orEmpty(),
                 sentJson = if (state.outcome != null) state.sentJson else newest?.sentJson,
                 onAskAbout = askAbout.takeIf { chatOpen }
             )
@@ -173,7 +174,12 @@ private fun ChatBubble(role: ChatRole, text: String) {
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(text = text, style = MaterialTheme.typography.bodyMedium)
+            // The answers of the AI have Markdown. What the person wrote is shown as it was written.
+            if (role == ChatRole.AI) {
+                MarkdownText(text = text)
+            } else {
+                Text(text = text, style = MaterialTheme.typography.bodyMedium)
+            }
         }
     }
 }
@@ -205,7 +211,10 @@ private fun EarlierAnalysis(entry: AdvisorHistoryEntry) {
         Text(stringResource(R.string.advisor_history_entry, time, entry.days, entry.report.findings.size))
     }
     if (open) {
-        ReportView(AdvisorOutcome.Success(entry.report, usage = null, model = entry.model), glucose = entry.glucose, sentJson = null, onAskAbout = null)
+        ReportView(
+            AdvisorOutcome.Success(entry.report, usage = null, model = entry.model),
+            glucose = entry.glucose, profileWarnings = entry.profileWarnings, sentJson = null, onAskAbout = null
+        )
         entry.chat.forEach { ChatBubble(it.role, it.text) }
     }
 }

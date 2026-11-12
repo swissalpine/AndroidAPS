@@ -224,6 +224,14 @@ object AdvisorSummaryJson {
         change("basalUnitsPerHour", c.basalUnitsPerHour) { array(it, ::blockValue) }
         change("carbsGramsPerUnit", c.carbsGramsPerUnit) { array(it, ::blockValue) }
         change("isfMgdlPerUnit", c.isfMgdlPerUnit) { array(it, ::blockValue) }
+        if (c.changedTimes.isNotEmpty()) put("changedTimes", array(c.changedTimes, ::changedTime))
+    }
+
+    private fun changedTime(t: ChangedTime) = buildJsonObject {
+        put("setting", t.setting.name.lowercase())
+        put("startMinute", t.startMinute)
+        put("endMinute", t.endMinute)
+        put("maxChangePercent", t.maxChangePercent)
     }
 
     private fun changeEffect(e: ChangeEffect) = buildJsonObject {

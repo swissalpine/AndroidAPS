@@ -3,6 +3,7 @@ package app.aaps.plugins.aps.advisor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
@@ -59,7 +60,8 @@ class AdvisorSummaryJsonTest {
         val change = ProfileChange(
             daysAgo = 5, hour = 12, percentage = null, timeshiftHours = null,
             basalUnitsPerHour = Change(listOf(ProfileBlockValue(120, 1.0)), listOf(ProfileBlockValue(120, 1.1))),
-            carbsGramsPerUnit = null, isfMgdlPerUnit = null
+            carbsGramsPerUnit = null, isfMgdlPerUnit = null,
+            changedTimes = listOf(ChangedTime(ChangedSetting.BASAL, 120, 360, -12))
         )
         val summary = emptySummary().copy(profileHistory = ProfileHistory(changes = listOf(change), latestEffect = null))
         val json = parse(AdvisorSummaryJson.encode(summary))
@@ -72,6 +74,12 @@ class AdvisorSummaryJsonTest {
         val after = written["basalUnitsPerHour"]!!.jsonObject["after"] as JsonArray
         assertEquals("1.1", after[0].jsonObject["value"]!!.jsonPrimitive.content)
         assertFalse("latestEffect" in history)
+        // The times of the day of the change are separate from the hour when it was saved.
+        val time = written["changedTimes"]!!.jsonArray[0].jsonObject
+        assertEquals("basal", time["setting"]!!.jsonPrimitive.content)
+        assertEquals("120", time["startMinute"]!!.jsonPrimitive.content)
+        assertEquals("360", time["endMinute"]!!.jsonPrimitive.content)
+        assertEquals("-12", time["maxChangePercent"]!!.jsonPrimitive.content)
     }
 
     @Test

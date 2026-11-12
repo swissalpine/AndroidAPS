@@ -35,7 +35,12 @@ data class AdvisorSummary(
     /** The profile that is active now. Null when there is no profile switch in the database. */
     val profile: ProfileSnapshot?,
     /** Changes of the profile values in the period, and what the data says since the latest one. */
-    val profileHistory: ProfileHistory
+    val profileHistory: ProfileHistory,
+    /**
+     * Recent profile changes that are bigger than the advisor itself would propose. The screen shows them as a fixed
+     * note, so the person sees them whatever the AI says. They are not sent to the AI.
+     */
+    val profileWarnings: List<ProfileWarning>
 )
 
 /**
@@ -311,8 +316,9 @@ data class ProfileHistory(
  * One change of the profile. A field is null when that value did not change. The blocks are base values, like in
  * [ProfileSnapshot].
  *
- * @property daysAgo the day of the change
- * @property hour the hour of the change, local time
+ * @property daysAgo the day when the person saved the change
+ * @property hour the hour when the person saved the change, local time. It is NOT a time of the day of a setting
+ * @property changedTimes the times of the day where a value changed, for basal, carb ratio and ISF
  */
 data class ProfileChange(
     val daysAgo: Int,
@@ -321,7 +327,38 @@ data class ProfileChange(
     val timeshiftHours: Change<Int>?,
     val basalUnitsPerHour: Change<List<ProfileBlockValue>>?,
     val carbsGramsPerUnit: Change<List<ProfileBlockValue>>?,
-    val isfMgdlPerUnit: Change<List<ProfileBlockValue>>?
+    val isfMgdlPerUnit: Change<List<ProfileBlockValue>>?,
+    val changedTimes: List<ChangedTime>
+)
+
+/**
+ * A time of the day, from [startMinute] (included) to [endMinute] (not included), where the value of [setting] is not
+ * the same before and after a change.
+ *
+ * @property maxChangePercent the change of the value in the time, as a signed percent of the old value. Positive
+ *   means a larger value. If the change is not the same in the whole time, the one with the largest size is given
+ */
+data class ChangedTime(
+    val setting: ChangedSetting,
+    val startMinute: Int,
+    val endMinute: Int,
+    val maxChangePercent: Int
+)
+
+/**
+ * A recent profile change that is bigger than the advisor proposes (see [AdvisorPrompt.MAX_CHANGE_PERCENT]).
+ *
+ * @property changePercent the largest change in the time, signed, see [ChangedTime.maxChangePercent]
+ * @property madeDaysAgo days between the change and the analysis
+ * @property madeAtHour the hour when the person saved the change, local time
+ */
+data class ProfileWarning(
+    val setting: ChangedSetting,
+    val startMinute: Int,
+    val endMinute: Int,
+    val changePercent: Int,
+    val madeDaysAgo: Int,
+    val madeAtHour: Int
 )
 
 /**

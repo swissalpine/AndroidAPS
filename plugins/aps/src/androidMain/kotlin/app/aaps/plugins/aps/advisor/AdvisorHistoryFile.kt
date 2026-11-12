@@ -10,11 +10,15 @@ import java.nio.file.StandardCopyOption
  * middle of a write does not damage the old one.
  *
  * Put the file in a folder that the Android backup does not copy: the answers are about the health of the user.
+ *
+ * @param fileOf gives the file. It is called each time the file is used and not before, so making the store does
+ *   not touch the file system. The plugin is made when the app starts.
  */
-class AdvisorHistoryFile(private val file: File) : AdvisorHistoryStore {
+class AdvisorHistoryFile(private val fileOf: () -> File) : AdvisorHistoryStore {
 
     @Synchronized
     override fun load(): List<AdvisorHistoryEntry> = try {
+        val file = fileOf()
         if (file.exists()) AdvisorHistoryJson.decode(file.readText()) else emptyList()
     } catch (e: IOException) {
         emptyList()
@@ -31,6 +35,7 @@ class AdvisorHistoryFile(private val file: File) : AdvisorHistoryStore {
     }
 
     private fun write(entries: List<AdvisorHistoryEntry>) {
+        val file = fileOf()
         file.parentFile?.mkdirs()
         val temp = File(file.path + ".tmp")
         temp.writeText(AdvisorHistoryJson.encode(entries))
@@ -39,6 +44,6 @@ class AdvisorHistoryFile(private val file: File) : AdvisorHistoryStore {
 
     @Synchronized
     override fun clear() {
-        file.delete()
+        fileOf().delete()
     }
 }

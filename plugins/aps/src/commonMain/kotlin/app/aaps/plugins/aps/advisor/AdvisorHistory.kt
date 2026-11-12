@@ -21,6 +21,7 @@ data class ChatMessage(
  * @property chat the questions of the person and the answers of the AI, oldest first
  * @property glucose the glucose ranges of the days that were looked at, for the picture above the report. Null for
  *   an entry from before this field
+ * @property profileWarnings the note about large profile changes that the screen shows above the report
  */
 data class AdvisorHistoryEntry(
     val timeMillis: Long,
@@ -29,7 +30,8 @@ data class AdvisorHistoryEntry(
     val report: AdvisorReport,
     val sentJson: String? = null,
     val chat: List<ChatMessage> = emptyList(),
-    val glucose: GlucoseStats? = null
+    val glucose: GlucoseStats? = null,
+    val profileWarnings: List<ProfileWarning> = emptyList()
 )
 
 /** Keeps the finished analyses on the phone. The newest is first. */

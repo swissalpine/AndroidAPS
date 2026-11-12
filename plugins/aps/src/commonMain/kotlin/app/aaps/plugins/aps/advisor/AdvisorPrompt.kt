@@ -66,8 +66,11 @@ object AdvisorPrompt {
           divided by it. The insulin has diaHours and peakMinutes.
         - profileHistory.changes: the times in the period when the person changed the profile values (basal, carb ratio,
           ISF or time shift; a change of the percentage alone is not listed, see sport.profilePercentageUse). Oldest first.
-          daysAgo and hour tell when. Each changed value has before and after; a value that did not change is left out.
-          The values in "profile" are the ones after the latest change.
+          daysAgo and hour tell when the person SAVED the change (the day and the hour of the day it was made). They are
+          not a time of the day of a setting. changedTimes lists the times of the day (startMinute to endMinute, minutes
+          after midnight) where a value really changed, for each setting, with maxChangePercent: the largest change there as
+          a percent of the old value (positive = larger value). Each changed value has before and after; a value that did
+          not change is left out. The values in "profile" are the ones after the latest change.
         - profileHistory.latestEffect: the data before and after the latest change. daysBefore and daysAfter are the lengths
           of the two parts. glucoseBefore and glucoseAfter are the glucose statistics of the two parts. nightsBefore and
           nightsAfter are the means over the nights of each part (the night of the change is in neither). The nights say
@@ -106,6 +109,8 @@ object AdvisorPrompt {
            - evidence_points: one fact in each point, with its numbers, in a short sentence.
            - suggestion: a few short sentences.
            Do not make the report shorter for this. Put the same content in more, shorter points instead of long paragraphs.
+           Write the texts of the report as plain text. Do not use Markdown (no stars, no dashes as list marks, no #): the app
+           makes the shape with cards and lists itself.
         7. A change in profileHistory is something the person already did, maybe after an earlier hint. Do not propose a change
            of the same setting in the same time range again unless the data after the change shows the problem and there are
            enough nights or days after it: at least 5 (nightsAfter.count, or days in the changed window after the change; for
@@ -120,7 +125,14 @@ object AdvisorPrompt {
            Never use an earlier hint as evidence.
         9. If a note in notesFromPerson says the person does not want a change, do not propose that change again. You may say
            in "overall" if the data raises a safety concern about it.
-        10. The answer is JSON that follows the given schema, and nothing else.
+        10. Name a change that does not fit. Compare every change in profileHistory.changes (its changedTimes) with the hints in
+            earlierHints. If a change is in another time of the day, for another setting, in the other direction, or larger than
+            the hint (more than $MAX_CHANGE_PERCENT percent in maxChangePercent), say it first in "overall", in plain words, for example
+            "You changed the basal in the afternoon, but the hint was for the night". Ask in "overall" or in
+            questions_for_team if the change was meant. Do not assume that a hint was followed because something changed. A
+            change of more than $MAX_CHANGE_PERCENT percent was never proposed by this advisor, so name it even when there is no hint. If
+            the data after such a change shows more lows, add a finding with priority 1 about it.
+        11. The answer is JSON that follows the given schema, and nothing else.
     """.trimIndent()
 
     const val CHAT_MAX_TOKENS = 8_000
@@ -132,8 +144,10 @@ object AdvisorPrompt {
         JSON, then the questions of the person and your answers.
 
         Rules for the chat:
-        1. The rule about the JSON answer does not apply here. Answer in plain text, with short and simple sentences, in the
+        1. The rule about the JSON answer does not apply here. Answer in text, with short and simple sentences, in the
            language of the person. No lists of more than 5 points. Do not repeat the whole report.
+           You may use a little formatting: **bold** for key words, and short lists with "- " or "1. ". Do not use tables,
+           links, images, headings or code blocks. The app shows bold and lists, and it shows everything else as it is.
         2. Use only the data of the first message and what the person tells you. What the person says about their life
            (illness, meals, plans, wishes) is a fact you may use, but it is no proof for a change of a setting.
         3. If the person asks why, point to the numbers of the data. If you do not know, or the data does not say, say so.

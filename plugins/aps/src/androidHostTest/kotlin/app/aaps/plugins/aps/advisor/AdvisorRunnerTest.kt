@@ -14,6 +14,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -84,7 +87,8 @@ class AdvisorRunnerTest {
         engine: MockEngine,
         preferences: Preferences = preferences(),
         summarySource: suspend (Int, Long) -> AdvisorSummary = { _, _ -> emptySummary },
-        history: AdvisorHistoryStore = MemoryHistory()
+        history: AdvisorHistoryStore = MemoryHistory(),
+        scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     ) = AdvisorRunner(
         summarySource = summarySource,
         client = AdvisorClient(http = HttpClient(engine)),
@@ -92,8 +96,30 @@ class AdvisorRunnerTest {
         preferences = preferences,
         dateUtil = dateUtil,
         aapsLogger = aapsLogger,
-        language = { "German" }
+        language = { "German" },
+        scope = scope
     )
+
+    @Test
+    fun `making the runner does not read the history, loading it does`() {
+        var reads = 0
+        val store = object : AdvisorHistoryStore {
+            override fun load(): List<AdvisorHistoryEntry> = listOf(earlierEntry).also { reads++ }
+            override fun add(entry: AdvisorHistoryEntry) = Unit
+            override fun update(entry: AdvisorHistoryEntry) = Unit
+            override fun clear() = Unit
+        }
+        // Unconfined: the read runs at once, so the test does not wait for another thread.
+        val runner = runner(engine(), history = store, scope = CoroutineScope(Dispatchers.Unconfined))
+
+        assertThat(reads).isEqualTo(0)
+        assertThat(runner.historyEntries.value).isEmpty()
+
+        runner.loadHistory()
+
+        assertThat(reads).isEqualTo(1)
+        assertThat(runner.historyEntries.value).containsExactly(earlierEntry)
+    }
 
     @Test
     fun `without the consent nothing is sent`() = runBlocking {
@@ -237,6 +263,20 @@ class AdvisorRunnerTest {
 
         assertThat(history.entries.single().sentJson).isNotNull()
         assertThat(history.entries.single().sentJson).contains("\"days\":14")
+    }
+
+    @Test
+    fun `the note about large profile changes goes to the screen and is kept, but is not sent`() = runBlocking {
+        val engine = engine()
+        val history = MemoryHistory()
+        val warning = ProfileWarning(ChangedSetting.BASAL, 780, 1140, -15, madeDaysAgo = 0, madeAtHour = 16)
+        val runner = runner(engine, history = history, summarySource = { _, _ -> emptySummary.copy(profileWarnings = listOf(warning)) })
+
+        runner.run()
+
+        assertThat(runner.state.value.profileWarnings).containsExactly(warning)
+        assertThat(history.entries.single().profileWarnings).containsExactly(warning)
+        assertThat((engine.requestHistory.single().body as TextContent).text).doesNotContain("profileWarnings")
     }
 
     @Test

@@ -1,6 +1,7 @@
 package app.aaps.plugins.aps.advisor.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.aaps.core.keys.BooleanKey
@@ -23,6 +24,7 @@ class AdvisorComposeContent(
         onSettings: (() -> Unit)?
     ) {
         val state by runner.state.collectAsStateWithLifecycle()
+        LaunchedEffect(Unit) { runner.loadHistory() }
         val history by runner.historyEntries.collectAsStateWithLifecycle()
         val chatUi by runner.chatUi.collectAsStateWithLifecycle()
         // Read on every composition, so the screen is right after the user comes back from the settings.

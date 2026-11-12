@@ -75,7 +75,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         heart = heartStats(),
         ketoProtectionPercent = input.ketoProtectionPercent,
         profile = profile(),
-        profileHistory = profileHistory()
+        profileHistory = profileHistory(),
+        profileWarnings = profileWarnings()
     )
 
     // ---- Quality and overall numbers ----
@@ -518,11 +519,32 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
                     timeshiftHours = shift,
                     basalUnitsPerHour = basal,
                     carbsGramsPerUnit = carbs,
-                    isfMgdlPerUnit = isf
+                    isfMgdlPerUnit = isf,
+                    changedTimes = changedTimes(ChangedSetting.BASAL, basal) +
+                        changedTimes(ChangedSetting.CARB_RATIO, carbs) +
+                        changedTimes(ChangedSetting.ISF, isf)
                 )
             )
         }
     }
+
+    /**
+     * Changes of the last [WARNING_DAYS] days that are larger than the advisor itself proposes. A person can make a
+     * larger change on purpose, so this is only a note to check it.
+     */
+    private fun profileWarnings(): List<ProfileWarning> = switchChanges
+        .filter { it.change.daysAgo <= WARNING_DAYS }
+        .flatMap { switchChange ->
+            switchChange.change.changedTimes
+                .filter { abs(it.maxChangePercent) > AdvisorPrompt.MAX_CHANGE_PERCENT }
+                .map {
+                    ProfileWarning(
+                        setting = it.setting, startMinute = it.startMinute, endMinute = it.endMinute, changePercent = it.maxChangePercent,
+                        madeDaysAgo = switchChange.change.daysAgo, madeAtHour = switchChange.change.hour
+                    )
+                }
+        }
+        .takeLast(MAX_WARNINGS)
 
     private fun <T> changeOf(before: T, after: T): Change<T>? = if (before == after) null else Change(before, after)
 
@@ -555,13 +577,13 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
     /** One window for each time of the day where [setting] changed at [time]. Empty when it did not change. */
     private fun windowsOf(setting: ChangedSetting, change: Change<List<ProfileBlockValue>>?, time: Long): List<ChangedWindow> {
         if (change == null) return emptyList()
-        return changedRanges(change.before, change.after).map { (from, to) ->
+        return changedTimes(setting, change).map { changed ->
             ChangedWindow(
                 setting = setting,
-                startMinute = from,
-                endMinute = to,
-                before = windowStats(setting, from, to, periodStart, time),
-                after = windowStats(setting, from, to, time, input.now + 1)
+                startMinute = changed.startMinute,
+                endMinute = changed.endMinute,
+                before = windowStats(setting, changed.startMinute, changed.endMinute, periodStart, time),
+                after = windowStats(setting, changed.startMinute, changed.endMinute, time, input.now + 1)
             )
         }
     }
@@ -590,21 +612,34 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         )
     }
 
-    /** The times of the day, in steps of 30 minutes, where the value is not the same. Neighbours are joined. */
-    private fun changedRanges(before: List<ProfileBlockValue>, after: List<ProfileBlockValue>): List<Pair<Int, Int>> {
+    /**
+     * The times of the day, in steps of 30 minutes, where the value is not the same. Neighbours are joined. For each
+     * time the change is the largest one (by size) of its steps, as a percent of the old value.
+     */
+    private fun changedTimes(setting: ChangedSetting, change: Change<List<ProfileBlockValue>>?): List<ChangedTime> {
+        if (change == null) return emptyList()
         fun valueAt(blocks: List<ProfileBlockValue>, minute: Int) = blocks.lastOrNull { it.startMinute <= minute }?.value
-        val ranges = mutableListOf<Pair<Int, Int>>()
+        val times = mutableListOf<ChangedTime>()
         var start: Int? = null
+        var biggest = 0.0
         for (minute in 0 until MINUTES_PER_DAY step RANGE_STEP_MINUTES) {
-            val changed = valueAt(before, minute) != valueAt(after, minute)
-            if (changed && start == null) start = minute
-            if (!changed && start != null) {
-                ranges.add(Pair(start, minute))
+            val before = valueAt(change.before, minute)
+            val after = valueAt(change.after, minute)
+            if (before != after) {
+                val percent = if (before != null && after != null && before != 0.0) (after - before) / before * 100.0 else 0.0
+                if (start == null) {
+                    start = minute
+                    biggest = percent
+                } else if (abs(percent) > abs(biggest)) {
+                    biggest = percent
+                }
+            } else if (start != null) {
+                times.add(ChangedTime(setting, start, minute, biggest.roundToInt()))
                 start = null
             }
         }
-        if (start != null) ranges.add(Pair(start, MINUTES_PER_DAY))
-        return ranges
+        if (start != null) times.add(ChangedTime(setting, start, MINUTES_PER_DAY, biggest.roundToInt()))
+        return times
     }
 
     /**
@@ -751,6 +786,10 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
         // Profile changes: the latest ones are listed. Changed times of the day are found in steps of 30 minutes.
         const val MAX_PROFILE_CHANGES = 10
+
+        // A change that is larger than the advisor proposes is shown as a note for this many days after it was made.
+        const val WARNING_DAYS = 3
+        const val MAX_WARNINGS = 6
         const val MINUTES_PER_DAY = 24 * 60
         const val RANGE_STEP_MINUTES = 30
         const val SLOT_MINUTES = 5

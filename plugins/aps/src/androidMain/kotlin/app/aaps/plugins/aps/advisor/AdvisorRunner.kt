@@ -28,7 +28,9 @@ data class AdvisorState(
     val sentJson: String? = null,
     val days: Int = 0,
     /** The glucose ranges of the days that were looked at, for the picture above the report. */
-    val glucose: GlucoseStats? = null
+    val glucose: GlucoseStats? = null,
+    /** Large profile changes of the last days, for the note above the report. */
+    val profileWarnings: List<ProfileWarning> = emptyList()
 )
 
 /**
@@ -71,7 +73,7 @@ class AdvisorRunner(
 
     private val mutableHistory = MutableStateFlow<List<AdvisorHistoryEntry>>(emptyList())
 
-    /** The kept analyses, newest first. It is read from the phone in the background when the runner is made. */
+    /** The kept analyses, newest first. They are empty until [loadHistory] has read them. */
     val historyEntries: StateFlow<List<AdvisorHistoryEntry>> = mutableHistory.asStateFlow()
 
     private val mutableChat = MutableStateFlow(AdvisorChatUi())
@@ -82,7 +84,11 @@ class AdvisorRunner(
     private var job: Job? = null
     private var chatJob: Job? = null
 
-    init {
+    /**
+     * Reads the kept analyses from the phone, in the background. The screen calls it when it opens. It is not
+     * done when the runner is made, because the plugin is made when the app starts and that must not read files.
+     */
+    fun loadHistory() {
         scope.launch { mutableHistory.value = history.load() }
     }
 
@@ -164,11 +170,13 @@ class AdvisorRunner(
         val days = preferences.get(IntKey.AdvisorDays)
         mutableState.value = AdvisorState(AdvisorPhase.COLLECTING, days = days)
         var glucose: GlucoseStats? = null
+        var warnings: List<ProfileWarning> = emptyList()
         val json = try {
             val now = dateUtil.now()
             val earlier = history.load()
             val summary = summarySource(days, now)
             glucose = summary.glucose
+            warnings = summary.profileWarnings
             AdvisorSummaryJson.encode(
                 summary = summary,
                 earlierHints = AdvisorHistoryJson.earlierHints(earlier, now, AdvisorHistory.EARLIER_HINTS),
@@ -185,17 +193,17 @@ class AdvisorRunner(
         val outcome = client.analyze(AdvisorPrompt.requestBody(json, language()), key)
         // Only the kind of the result is logged, never the data or the answer.
         aapsLogger.info(LTag.APS, "AI advisor: " + if (outcome is AdvisorOutcome.Failure) "failed ${outcome.kind}" else "answer received")
-        mutableState.value = AdvisorState(AdvisorPhase.DONE, outcome, json, days, glucose)
-        if (outcome is AdvisorOutcome.Success) keep(outcome, days, json, glucose)
+        mutableState.value = AdvisorState(AdvisorPhase.DONE, outcome, json, days, glucose, warnings)
+        if (outcome is AdvisorOutcome.Success) keep(outcome, days, json, glucose, warnings)
     }
 
     /** A failed write is logged. The answer is still on the screen. */
-    private fun keep(success: AdvisorOutcome.Success, days: Int, sentJson: String, glucose: GlucoseStats?) {
+    private fun keep(success: AdvisorOutcome.Success, days: Int, sentJson: String, glucose: GlucoseStats?, warnings: List<ProfileWarning>) {
         try {
             history.add(
                 AdvisorHistoryEntry(
                     timeMillis = dateUtil.now(), days = days, model = success.model, report = success.report,
-                    sentJson = sentJson, glucose = glucose
+                    sentJson = sentJson, glucose = glucose, profileWarnings = warnings
                 )
             )
             mutableHistory.value = history.load()

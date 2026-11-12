@@ -867,6 +867,77 @@ class AdvisorSummaryBuilderTest {
     }
 
     @Test
+    fun `the times of the day of a change are listed with the largest change in each`() {
+        val history = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal)))
+        ).profileHistory
+
+        val times = history.changes.single().changedTimes
+        assertEquals(listOf(ChangedTime(ChangedSetting.BASAL, 120, 360, 10)), times)
+    }
+
+    @Test
+    fun `a change of the afternoon is not a change of the night`() {
+        // The case of a slip: the person meant 02:00 to 06:00 and changed 14:00 to 18:00.
+        val afternoon = listOf(Block(14 * hour, 1.0), Block(4 * hour, 0.8), Block(6 * hour, 1.0))
+        val times = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = listOf(Block(day, 1.0))), profileSwitch(at(15, 12), 100, basal = afternoon)))
+        ).profileHistory.changes.single().changedTimes
+
+        assertEquals(listOf(ChangedTime(ChangedSetting.BASAL, 14 * 60, 18 * 60, -20)), times)
+    }
+
+    @Test
+    fun `where the change differs in a time, the largest one by size is given`() {
+        val before = listOf(Block(12 * hour, 1.0), Block(12 * hour, 1.0))
+        // 00:00 to 12:00 is 5 percent up and 12:00 to 24:00 is 15 percent down. They touch, so they are one time.
+        val after = listOf(Block(12 * hour, 1.05), Block(12 * hour, 0.85))
+        val times = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = before), profileSwitch(at(15, 12), 100, basal = after)))
+        ).profileHistory.changes.single().changedTimes
+
+        assertEquals(listOf(ChangedTime(ChangedSetting.BASAL, 0, 24 * 60, -15)), times)
+    }
+
+    @Test
+    fun `a recent change of more than the limit gives a note`() {
+        val up20 = listOf(Block(2 * hour, 1.0), Block(4 * hour, 1.2), Block(18 * hour, 1.0))
+        val warnings = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(18, 14), 100, basal = up20)))
+        ).profileWarnings
+
+        assertEquals(listOf(ProfileWarning(ChangedSetting.BASAL, 120, 360, 20, madeDaysAgo = 2, madeAtHour = 14)), warnings)
+    }
+
+    @Test
+    fun `a change of exactly the limit, or an old one, gives no note`() {
+        val exactly10 = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(18, 14), 100, basal = newBasal)))
+        ).profileWarnings
+        val up20 = listOf(Block(2 * hour, 1.0), Block(4 * hour, 1.2), Block(18 * hour, 1.0))
+        // 4 days ago is older than the days a note is shown.
+        val old = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(16, 14), 100, basal = up20)))
+        ).profileWarnings
+
+        assertTrue(exactly10.isEmpty())
+        assertTrue(old.isEmpty())
+    }
+
+    @Test
+    fun `a large change of the carb ratio or the ISF gives a note too`() {
+        val icChanged = profileSwitch(at(18, 14), 100, basal = oldBasal).copy(icBlocks = listOf(Block(day, 7.0)))
+        val warnings = build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), icChanged))).profileWarnings
+
+        assertEquals(listOf(ProfileWarning(ChangedSetting.CARB_RATIO, 0, 24 * 60, -30, madeDaysAgo = 2, madeAtHour = 14)), warnings)
+    }
+
+    @Test
+    fun `without a change there is no note`() {
+        assertTrue(build(changeInput(listOf(profileSwitch(at(1, 0), 100)))).profileWarnings.isEmpty())
+    }
+
+    @Test
     fun `a carb ratio window counts the clean meals before and after the change`() {
         val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(icBlocks = listOf(Block(day, 8.0)))
         val meals = listOf(12, 17, 18).map { carbs(at(it.toLong(), 8), 40.0) }

@@ -101,7 +101,17 @@ object AdvisorHistoryJson {
         put("report", report(e.report))
         e.sentJson?.let { put("sentJson", it) }
         e.glucose?.let { put("glucose", AdvisorSummaryJson.glucose(it)) }
+        if (e.profileWarnings.isNotEmpty()) put("profileWarnings", buildJsonArray { e.profileWarnings.forEach { add(warning(it)) } })
         if (e.chat.isNotEmpty()) put("chat", buildJsonArray { e.chat.forEach { add(message(it)) } })
+    }
+
+    private fun warning(w: ProfileWarning) = buildJsonObject {
+        put("setting", w.setting.name)
+        put("startMinute", w.startMinute)
+        put("endMinute", w.endMinute)
+        put("changePercent", w.changePercent)
+        put("madeDaysAgo", w.madeDaysAgo)
+        put("madeAtHour", w.madeAtHour)
     }
 
     private fun message(m: ChatMessage) = buildJsonObject {
@@ -154,8 +164,27 @@ object AdvisorHistoryJson {
             o["glucose"]?.jsonObject?.let { glucose(it) }
         } catch (e: Exception) {
             null
+        },
+        profileWarnings = o["profileWarnings"]?.jsonArray.orEmpty().mapNotNull {
+            try {
+                warning(it.jsonObject)
+            } catch (e: Exception) {
+                null
+            }
         }
     )
+
+    private fun warning(o: JsonObject): ProfileWarning? {
+        val setting = ChangedSetting.entries.firstOrNull { it.name == o["setting"]?.jsonPrimitive?.content } ?: return null
+        return ProfileWarning(
+            setting = setting,
+            startMinute = o.getValue("startMinute").jsonPrimitive.int,
+            endMinute = o.getValue("endMinute").jsonPrimitive.int,
+            changePercent = o.getValue("changePercent").jsonPrimitive.int,
+            madeDaysAgo = o.getValue("madeDaysAgo").jsonPrimitive.int,
+            madeAtHour = o.getValue("madeAtHour").jsonPrimitive.int
+        )
+    }
 
     private fun glucose(o: JsonObject) = GlucoseStats(
         meanMgdl = o.getValue("meanMgdl").jsonPrimitive.double,
