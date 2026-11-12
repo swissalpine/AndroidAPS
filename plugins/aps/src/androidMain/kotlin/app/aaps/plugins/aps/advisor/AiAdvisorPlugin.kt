@@ -47,6 +47,7 @@ class AiAdvisorPlugin(
     pluginDescription = PluginDescription()
         .mainType(PluginType.GENERAL)
         .icon(Icons.Default.AutoAwesome)
+        .showInDrawer()
         .pluginName(TextRef.AndroidRes(R.string.advisor_name))
         .composeContent { plugin -> AdvisorComposeContent(runner = (plugin as AiAdvisorPlugin).runner, preferences = preferences) }
         .description(TextRef.AndroidRes(R.string.advisor_description)),

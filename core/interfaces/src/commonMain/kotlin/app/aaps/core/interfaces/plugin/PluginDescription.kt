@@ -28,6 +28,9 @@ open class PluginDescription {
     var icon: ImageVector? = null
     var preferencesVisibleInSimpleMode = true
 
+    /** True: while the plugin is enabled, the main menu has an entry that opens its screen. It needs compose content. */
+    var showInDrawer = false
+
     fun mainType(mainType: PluginType): PluginDescription = this.also { it.mainType = mainType }
     /**
      * Forces [state] whenever [applies] holds, overriding whatever the user stored. See [Enforcement] for
@@ -45,6 +48,7 @@ open class PluginDescription {
         enforce(EnforcedState.Enabled, reason, condition).enforce(EnforcedState.Disabled, reason) { !condition() }
     fun showInList(showInList: () -> Boolean): PluginDescription = this.also { it.showInList = showInList }
 
+    fun showInDrawer(value: Boolean = true): PluginDescription = this.also { it.showInDrawer = value }
     fun icon(icon: ImageVector): PluginDescription = this.also { it.icon = icon }
     fun pluginName(pluginName: TextRef): PluginDescription = this.also { it.pluginName = pluginName }
     fun description(description: TextRef): PluginDescription = this.also { it.description = description }

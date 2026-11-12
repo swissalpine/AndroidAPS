@@ -23,6 +23,8 @@ data class AdvisorSummary(
     /** Boluses without a meal, with a full four hour window and no other food or bolus in it. */
     val corrections: List<CorrectionResult>,
     val sport: SportSummary,
+    /** The insulin of each full day, split by how it was given. Empty when no day has a known profile. */
+    val insulin: InsulinSummary,
     /** Null when there is no heart rate in the period. */
     val heart: HeartRateStats?,
     /**
@@ -219,6 +221,46 @@ data class SportSummary(
     /** How many loop runs used each Activity Tracker factor. The smallest factor comes first. */
     val activityTrackerUse: List<ActivityRatioUse>
 )
+
+/**
+ * The insulin of the full days of the period (today is not counted, it is not over). The total is split by how
+ * the insulin was given, because a total of "basal" and "bolus" says little when the loop gives SMB instead of
+ * a high temp basal.
+ *
+ * @property days one entry for each full day that has a known profile, the oldest day first
+ * @property average the mean of [days]. Null when [days] is empty
+ * @property sportDaysAverage the mean of the days with a sport entry or an activity temp target. Null when there is none
+ * @property otherDaysAverage the mean of the days without sport. Null when there is none
+ */
+data class InsulinSummary(
+    val days: List<DailyInsulin>,
+    val average: DailyInsulin?,
+    val sportDaysAverage: DailyInsulin?,
+    val otherDaysAverage: DailyInsulin?
+)
+
+/**
+ * The insulin of one day in U. [daysAgo] is 0 and [sport] false in the averages.
+ *
+ * @property mealBolusUnits manual boluses with food near them
+ * @property correctionBolusUnits manual boluses without food near them
+ * @property smbUnits the SMB of the loop
+ * @property basalUnits the basal that the temp basals and the profile gave, without SMB. A pump suspend gives zero.
+ *   It is computed from the records, not read from the pump.
+ * @property scheduledBasalUnits the basal the profile alone would give. The difference to [basalUnits] is what the loop added or took away
+ */
+data class DailyInsulin(
+    val daysAgo: Int,
+    val sport: Boolean,
+    val mealBolusUnits: Double,
+    val correctionBolusUnits: Double,
+    val smbUnits: Double,
+    val basalUnits: Double,
+    val scheduledBasalUnits: Double
+) {
+
+    val totalUnits: Double get() = mealBolusUnits + correctionBolusUnits + smbUnits + basalUnits
+}
 
 /** [runs] loop runs used the factor [ratio]. One run is about 5 minutes. */
 data class ActivityRatioUse(

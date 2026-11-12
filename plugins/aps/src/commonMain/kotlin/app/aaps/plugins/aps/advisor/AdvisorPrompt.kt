@@ -53,6 +53,13 @@ object AdvisorPrompt {
           is the heart rate of the hour before. steps60min and steps180min are step counts; if stepsMayBeSyncOutlier is
           true they are not reliable. sensitivityRatio is below 1 when the loop gave less insulin (sport), activityRatio is
           the part of it from the Activity Tracker (0.7 and 0.85 are activity, 1.1 and 1.2 are inactivity, absent = off).
+        - insulin: the insulin of each full day (not today), in U, split by how it was given: mealBolusUnits and
+          correctionBolusUnits (manual boluses with and without food near them), smbUnits (the loop) and basalUnits (temp
+          basal and profile basal together, worked out from the records, not read from the pump). scheduledBasalUnits is
+          what the profile alone would give. The loop gives extra insulin as SMB or as a high temp basal, so the share of
+          basal in the total says little about the basal setting. Do not judge the basal rate from basalUnits or from the
+          share of basal. Use these numbers to compare days (sport days and other days) and to see how much the loop
+          changed the basal.
         - sport: how often sport and activity temp targets were used. heart: resting and high heart rate of the period.
         - ketoProtectionPercent: if present, the loop never goes below this percent of the basal.
         - profile: the base values of the active profile. Basal is multiplied by percentage/100, carbs per unit and ISF are

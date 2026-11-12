@@ -195,6 +195,7 @@ fun MainScreen(
                     }
                 },
                 isTreatmentsEnabled = uiState.isProfileLoaded,
+                drawerPlugins = mainViewModel::drawerPlugins,
                 showExit = mainViewModel.showExit
             )
         },

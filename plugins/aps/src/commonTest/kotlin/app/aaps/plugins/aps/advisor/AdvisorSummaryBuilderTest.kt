@@ -610,4 +610,123 @@ class AdvisorSummaryBuilderTest {
 
         assertEquals(100.0, stats.meanMgdl)
     }
+
+    // ---- Insulin per day ----
+    // With days = 3 and now on day 20, the full days are 18 and 19 (2 and 1 days ago). The profile gives
+    // 0.8 U/h for 12 hours and 1.0 U/h for 12 hours, so 21.6 U per day.
+
+    private fun insulinInput(
+        boluses: List<BS> = emptyList(),
+        carbs: List<CA> = emptyList(),
+        tempBasals: List<TB> = emptyList(),
+        therapyEvents: List<TE> = emptyList(),
+        profileSwitches: List<EPS> = listOf(profileSwitch(0L, 100))
+    ) = input(days = 3, boluses = boluses, carbs = carbs, tempBasals = tempBasals, therapyEvents = therapyEvents, profileSwitches = profileSwitches)
+
+    @Test
+    fun `without temp basals the basal of a day is the profile`() {
+        val insulin = build(insulinInput()).insulin
+
+        assertEquals(listOf(2, 1), insulin.days.map { it.daysAgo })
+        insulin.days.forEach {
+            assertEquals(21.6, it.basalUnits)
+            assertEquals(21.6, it.scheduledBasalUnits)
+        }
+    }
+
+    @Test
+    fun `boluses are split into meal, correction and smb`() {
+        val summary = build(
+            insulinInput(
+                carbs = listOf(carbs(at(19, 8), 50.0)),
+                boluses = listOf(
+                    bolus(at(19, 8), 5.0),
+                    bolus(at(19, 15), 1.5),
+                    bolus(at(19, 10), 0.4, BS.Type.SMB),
+                    bolus(at(19, 11), 0.6, BS.Type.SMB)
+                )
+            )
+        )
+
+        val day = summary.insulin.days.single { it.daysAgo == 1 }
+        assertEquals(5.0, day.mealBolusUnits)
+        assertEquals(1.5, day.correctionBolusUnits)
+        assertEquals(1.0, day.smbUnits)
+        assertEquals(21.6 + 7.5, day.totalUnits, 0.001)
+        // The other day has no insulin except the basal.
+        assertEquals(0.0, summary.insulin.days.single { it.daysAgo == 2 }.smbUnits)
+    }
+
+    @Test
+    fun `an absolute and a percent temp basal change the basal of the day`() {
+        // 00:00 to 02:00 zero (plan 0.8): -1.6. 14:00 to 15:00 at 2.0 (plan 1.0): +1.0. 16:00 to 18:00 at 50 percent: -1.0.
+        val day = build(
+            insulinInput(
+                tempBasals = listOf(
+                    tempBasal(at(19, 0), 0.0, true, 120),
+                    tempBasal(at(19, 14), 2.0, true, 60),
+                    tempBasal(at(19, 16), 50.0, false, 120)
+                )
+            )
+        ).insulin.days.single { it.daysAgo == 1 }
+
+        assertEquals(21.6 - 1.6 + 1.0 - 1.0, day.basalUnits, 0.001)
+        assertEquals(21.6, day.scheduledBasalUnits)
+    }
+
+    @Test
+    fun `a suspend gives zero and an emulated extended bolus is not a basal`() {
+        val suspend = TB(timestamp = at(19, 0), type = TB.Type.PUMP_SUSPEND, isAbsolute = true, rate = 0.0, duration = 60 * minute, utcOffset = 0L)
+        val extended = TB(timestamp = at(19, 14), type = TB.Type.FAKE_EXTENDED, isAbsolute = true, rate = 5.0, duration = 60 * minute, utcOffset = 0L)
+
+        val day = build(insulinInput(tempBasals = listOf(suspend, extended))).insulin.days.single { it.daysAgo == 1 }
+
+        assertEquals(21.6 - 0.8, day.basalUnits, 0.001)
+    }
+
+    @Test
+    fun `the newest temp basal that is still running counts`() {
+        // A long temp from 00:00 is replaced at 01:00 by another one: the first hour at 0.0, then 2.0 until 02:00.
+        val first = tempBasal(at(19, 0), 0.0, true, 240)
+        val second = tempBasal(at(19, 1), 2.0, true, 60)
+
+        val day = build(insulinInput(tempBasals = listOf(first, second))).insulin.days.single { it.daysAgo == 1 }
+
+        // Hours 0-1: 0.0, hour 1-2: 2.0, hours 2-4: the old temp still runs: 0.0. The plan was 0.8 per hour.
+        assertEquals(21.6 - 4 * 0.8 + 2.0, day.basalUnits, 0.001)
+    }
+
+    @Test
+    fun `sport days and other days have their own average`() {
+        val exercise = TE(timestamp = at(19, 17), duration = 60 * minute, type = TE.Type.EXERCISE, glucoseUnit = GlucoseUnit.MGDL, utcOffset = 0L)
+        val insulin = build(
+            insulinInput(
+                therapyEvents = listOf(exercise),
+                boluses = listOf(bolus(at(19, 12), 3.0), bolus(at(18, 12), 1.0))
+            )
+        ).insulin
+
+        assertTrue(insulin.days.single { it.daysAgo == 1 }.sport)
+        assertFalse(insulin.days.single { it.daysAgo == 2 }.sport)
+        assertEquals(3.0, insulin.sportDaysAverage?.correctionBolusUnits)
+        assertEquals(1.0, insulin.otherDaysAverage?.correctionBolusUnits)
+        assertEquals(2.0, insulin.average?.correctionBolusUnits)
+    }
+
+    @Test
+    fun `without a profile there is no insulin day`() {
+        val insulin = build(insulinInput(profileSwitches = emptyList())).insulin
+
+        assertTrue(insulin.days.isEmpty())
+        assertNull(insulin.average)
+        assertNull(insulin.sportDaysAverage)
+        assertNull(insulin.otherDaysAverage)
+    }
+
+    @Test
+    fun `one day of data gives no full day`() {
+        val insulin = build(input(days = 1, profileSwitches = listOf(profileSwitch(0L, 100)))).insulin
+
+        assertTrue(insulin.days.isEmpty())
+    }
 }

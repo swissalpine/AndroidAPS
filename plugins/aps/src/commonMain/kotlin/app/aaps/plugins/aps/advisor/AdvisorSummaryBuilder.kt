@@ -70,6 +70,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         meals = meals(),
         corrections = corrections(),
         sport = sport(),
+        insulin = insulin(),
         heart = heartStats(),
         ketoProtectionPercent = input.ketoProtectionPercent,
         profile = profile()
@@ -304,7 +305,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             val end = bolus.timestamp + EVENT_WINDOW
             if (end > input.now) continue
             // Food near the bolus makes it a meal bolus. This is the mirror of the meal rule above.
-            if (carbs.any { it.timestamp in (bolus.timestamp - MEAL_BOLUS_AFTER)..(bolus.timestamp + MEAL_BOLUS_BEFORE) }) continue
+            if (hasFoodNear(bolus)) continue
             // Food or another bolus in the window would hide the effect of this bolus.
             if (carbs.any { it.timestamp > bolus.timestamp && it.timestamp <= end }) continue
             if (manualBoluses.any { it.timestamp > bolus.timestamp && it.timestamp <= end }) continue
@@ -329,6 +330,87 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             )
         }
         return result
+    }
+
+    /** True when food was entered close to the bolus, so it is a meal bolus. */
+    private fun hasFoodNear(bolus: BS): Boolean =
+        carbs.any { it.timestamp in (bolus.timestamp - MEAL_BOLUS_AFTER)..(bolus.timestamp + MEAL_BOLUS_BEFORE) }
+
+    // ---- Insulin per day ----
+
+    /**
+     * The insulin of each full day. Today is not over, and the first day of the period is cut, so the days
+     * are the [AdvisorInput.days] minus one days before today. A day needs a known profile at its start.
+     * The day borders use the UTC offset of now, so a day with a summer time switch can be an hour off.
+     */
+    private fun insulin(): InsulinSummary {
+        val today = (input.now + input.nowUtcOffset).floorDiv(MS_DAY)
+        val days = ((today - input.days + 1) until today).mapNotNull { dayInsulin(it, today) }
+        return InsulinSummary(
+            days = days,
+            average = averageOf(days),
+            sportDaysAverage = averageOf(days.filter { it.sport }),
+            otherDaysAverage = averageOf(days.filter { !it.sport })
+        )
+    }
+
+    private fun dayInsulin(day: Long, today: Long): DailyInsulin? {
+        val start = day * MS_DAY - input.nowUtcOffset
+        val end = start + MS_DAY
+        if (basalAt(start, input.nowUtcOffset) == null) return null
+        fun onDay(time: Long, offset: Long) = (time + offset).floorDiv(MS_DAY) == day
+        val dayBoluses = manualBoluses.filter { onDay(it.timestamp, it.utcOffset) }
+        val basal = basalOfDay(start, end)
+        return DailyInsulin(
+            daysAgo = (today - day).toInt(),
+            sport = exercises.any { overlaps(it.timestamp, it.timestamp + it.duration, start, end) } ||
+                activityTargets.any { overlaps(it.timestamp, it.timestamp + it.duration, start, end) },
+            mealBolusUnits = dayBoluses.filter { hasFoodNear(it) }.sumOf { it.amount }.round2(),
+            correctionBolusUnits = dayBoluses.filter { !hasFoodNear(it) }.sumOf { it.amount }.round2(),
+            smbUnits = smbs.filter { onDay(it.timestamp, it.utcOffset) }.sumOf { it.amount }.round2(),
+            basalUnits = basal.first.round2(),
+            scheduledBasalUnits = basal.second.round2()
+        )
+    }
+
+    /**
+     * The basal of one day in 5 minute steps: what was given (temp basals and profile) and what the profile
+     * alone would give. A temp basal is the one that started last and is still running. An emulated extended
+     * bolus is not a basal, so it is skipped. A suspend gives zero.
+     */
+    private fun basalOfDay(start: Long, end: Long): Pair<Double, Double> {
+        val temps = tempBasals.filter { it.type != TB.Type.FAKE_EXTENDED && it.timestamp < end && it.end > start }.sortedBy { it.timestamp }
+        var given = 0.0
+        var scheduled = 0.0
+        var time = start
+        while (time < end) {
+            val plan = basalAt(time, input.nowUtcOffset) ?: 0.0
+            val temp = temps.lastOrNull { it.timestamp <= time && it.end > time }
+            val rate = when {
+                temp == null                                                                 -> plan
+                temp.type == TB.Type.PUMP_SUSPEND || temp.type == TB.Type.EMULATED_PUMP_SUSPEND -> 0.0
+                temp.isAbsolute                                                              -> temp.rate
+                else                                                                         -> plan * temp.rate / 100.0
+            }
+            given += rate * SLOT / MS_HOUR.toDouble()
+            scheduled += plan * SLOT / MS_HOUR.toDouble()
+            time += SLOT
+        }
+        return Pair(given, scheduled)
+    }
+
+    private fun averageOf(days: List<DailyInsulin>): DailyInsulin? {
+        if (days.isEmpty()) return null
+        fun mean(value: (DailyInsulin) -> Double) = days.map(value).average().round2()
+        return DailyInsulin(
+            daysAgo = 0,
+            sport = false,
+            mealBolusUnits = mean { it.mealBolusUnits },
+            correctionBolusUnits = mean { it.correctionBolusUnits },
+            smbUnits = mean { it.smbUnits },
+            basalUnits = mean { it.basalUnits },
+            scheduledBasalUnits = mean { it.scheduledBasalUnits }
+        )
     }
 
     // ---- Sport and profile ----

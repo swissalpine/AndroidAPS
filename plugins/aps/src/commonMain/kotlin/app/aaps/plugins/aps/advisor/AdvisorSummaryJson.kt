@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlin.math.round
 
 /**
  * Writes an [AdvisorSummary] as compact JSON for the advisor request.
@@ -27,6 +28,7 @@ object AdvisorSummaryJson {
         put("meals", array(summary.meals, ::meal))
         put("corrections", array(summary.corrections, ::correction))
         put("sport", sport(summary.sport))
+        put("insulin", insulin(summary.insulin))
         summary.heart?.let { put("heart", heart(it)) }
         number("ketoProtectionPercent", summary.ketoProtectionPercent)
         summary.profile?.let { put("profile", profile(it)) }
@@ -144,6 +146,27 @@ object AdvisorSummaryJson {
                 put("runs", use.runs)
             }
         })
+    }
+
+    private fun insulin(i: InsulinSummary) = buildJsonObject {
+        put("days", array(i.days) { day -> dailyInsulin(day, withDay = true) })
+        i.average?.let { put("average", dailyInsulin(it, withDay = false)) }
+        i.sportDaysAverage?.let { put("sportDaysAverage", dailyInsulin(it, withDay = false)) }
+        i.otherDaysAverage?.let { put("otherDaysAverage", dailyInsulin(it, withDay = false)) }
+    }
+
+    /** The averages have no day and no sport flag, so [withDay] is false for them. */
+    private fun dailyInsulin(d: DailyInsulin, withDay: Boolean) = buildJsonObject {
+        if (withDay) {
+            put("daysAgo", d.daysAgo)
+            put("sport", d.sport)
+        }
+        put("mealBolusUnits", d.mealBolusUnits)
+        put("correctionBolusUnits", d.correctionBolusUnits)
+        put("smbUnits", d.smbUnits)
+        put("basalUnits", d.basalUnits)
+        put("scheduledBasalUnits", d.scheduledBasalUnits)
+        put("totalUnits", round(d.totalUnits * 100.0) / 100.0)
     }
 
     private fun heart(h: HeartRateStats) = buildJsonObject {

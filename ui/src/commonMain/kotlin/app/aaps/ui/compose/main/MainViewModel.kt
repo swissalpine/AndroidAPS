@@ -222,6 +222,19 @@ class MainViewModel(
     val actionConfirmation: StateFlow<ActionConfirmation?> = _actionConfirmation.asStateFlow()
 
     val versionName: String get() = config.VERSION_NAME
+
+    /**
+     * The enabled plugins that ask for a main menu entry (see `PluginDescription.showInDrawer`). It is read
+     * when the menu is opened, because a plugin can be switched on and off while the menu is closed.
+     */
+    fun drawerPlugins(): List<DrawerPlugin> = activePlugin.getPluginsList().mapNotNull { plugin ->
+        val description = plugin.pluginDescription
+        val name = description.pluginName
+        val icon = description.icon
+        val className = plugin::class.simpleName
+        if (!description.showInDrawer || !plugin.isEnabled() || !plugin.hasComposeContent() || name == null || icon == null || className == null) null
+        else DrawerPlugin(className, name, description.description, icon)
+    }
     val calcProgressFlow: StateFlow<Int> = overviewDataCache.calcProgressFlow
 
     // Flow-derived chip state: ticker + cache flows + expiry detection. Cold.

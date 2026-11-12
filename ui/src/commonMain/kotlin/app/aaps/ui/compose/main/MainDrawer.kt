@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -28,6 +29,7 @@ import app.aaps.core.ui.compose.navigation.NavigationRequest
 import app.aaps.core.ui.compose.navigation.description
 import app.aaps.core.ui.compose.navigation.icon
 import app.aaps.core.ui.compose.navigation.label
+import app.aaps.core.ui.compose.stringResource
 import app.aaps.core.ui.compose.stringResourceOrNull
 
 @Composable
@@ -40,6 +42,8 @@ fun MainDrawer(
     versionName: String,
     onNavigate: (NavigationRequest) -> Unit,
     isTreatmentsEnabled: Boolean,
+    /** Plugins with their own entry. It is called each time the menu opens or closes, so a switched plugin shows up. */
+    drawerPlugins: () -> List<DrawerPlugin>,
     /** False on iOS, where the app may not close itself. See `MainViewModel.showExit`. */
     showExit: Boolean,
     modifier: Modifier = Modifier
@@ -76,6 +80,15 @@ fun MainDrawer(
             DrawerMenuItem(ElementType.HISTORY_BROWSER) { onNavigate(NavigationRequest.Element(ElementType.HISTORY_BROWSER)) }
             DrawerMenuItem(ElementType.STATISTICS) { onNavigate(NavigationRequest.Element(ElementType.STATISTICS)) }
             DrawerMenuItem(ElementType.PROFILE_HELPER) { onNavigate(NavigationRequest.Element(ElementType.PROFILE_HELPER)) }
+            val plugins = remember(drawerState.targetValue) { drawerPlugins() }
+            plugins.forEach { plugin ->
+                DrawerMenuItem(
+                    icon = plugin.icon,
+                    label = stringResource(plugin.name),
+                    description = stringResourceOrNull(plugin.description),
+                    onClick = { onNavigate(NavigationRequest.Plugin(plugin.className)) }
+                )
+            }
             DrawerMenuItem(ElementType.MAINTENANCE) { onNavigate(NavigationRequest.Element(ElementType.MAINTENANCE)) }
             DrawerMenuItem(ElementType.SETUP_WIZARD) { onNavigate(NavigationRequest.Element(ElementType.SETUP_WIZARD)) }
             DrawerMenuItem(ElementType.CONFIGURATION) { onNavigate(NavigationRequest.Element(ElementType.CONFIGURATION)) }
