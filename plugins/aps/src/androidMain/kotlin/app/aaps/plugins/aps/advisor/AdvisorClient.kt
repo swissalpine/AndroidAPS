@@ -6,6 +6,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
@@ -26,20 +27,34 @@ class AdvisorClient(
 ) {
 
     suspend fun analyze(requestBody: String, apiKey: String): AdvisorOutcome = try {
-        val response = http.post(endpoint) {
-            header("x-api-key", apiKey)
-            header("anthropic-version", AdvisorPrompt.API_VERSION)
-            header("anthropic-beta", AdvisorPrompt.BETA)
-            contentType(ContentType.Application.Json)
-            setBody(requestBody)
-        }
+        val response = post(requestBody, apiKey)
         AdvisorResponseParser.parse(response.status.value, response.bodyAsText())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        // Only the kind of the error. Its message could have parts of the request.
-        AdvisorOutcome.Failure(AdvisorFailure.NETWORK, e::class.simpleName.orEmpty())
+        networkFailure(e)
     }
+
+    /** Sends one question of the chat (see [AdvisorPrompt.chatRequestBody]). */
+    suspend fun chat(requestBody: String, apiKey: String): AdvisorChatOutcome = try {
+        val response = post(requestBody, apiKey)
+        AdvisorResponseParser.parseChat(response.status.value, response.bodyAsText())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        AdvisorChatOutcome.Failure(networkFailure(e))
+    }
+
+    private suspend fun post(requestBody: String, apiKey: String): HttpResponse = http.post(endpoint) {
+        header("x-api-key", apiKey)
+        header("anthropic-version", AdvisorPrompt.API_VERSION)
+        header("anthropic-beta", AdvisorPrompt.BETA)
+        contentType(ContentType.Application.Json)
+        setBody(requestBody)
+    }
+
+    /** Only the kind of the error. Its message could have parts of the request. */
+    private fun networkFailure(e: Exception) = AdvisorOutcome.Failure(AdvisorFailure.NETWORK, e::class.simpleName.orEmpty())
 
     companion object {
 

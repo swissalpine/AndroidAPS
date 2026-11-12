@@ -30,7 +30,8 @@ class AdvisorResponseParserTest {
         put("title", "Lows early in the morning")
         put("area", area)
         put("time_of_day", "04:00-06:00")
-        put("evidence", "3 of 14 nights went below 55.")
+        put("priority", 1)
+        putJsonArray("evidence_points") { add(JsonPrimitive("3 of 14 nights went below 55.")) }
         put("confidence", confidence)
         put("suggestion", "Look at the basal rate.")
         putJsonObject("change") {
@@ -45,6 +46,7 @@ class AdvisorResponseParserTest {
         put("overall", "Overall text.")
         put("enough_data", enoughData)
         put("data_note", "Note.")
+        putJsonArray("key_points") { add(JsonPrimitive("Night lows.")) }
         put("findings", buildJsonArray { findings.forEach { add(it) } })
         putJsonArray("not_enough_data_for") { add(JsonPrimitive("ISF")) }
         putJsonArray("questions_for_team") { add(JsonPrimitive("Is the night basal right?")) }
@@ -190,7 +192,36 @@ class AdvisorResponseParserTest {
         val result = success(envelope(answer(*findings)))
 
         assertEquals(6, result.report.findings.size)
-        assertEquals(longEvidence.length + 2, result.report.findings.last().evidence.length)
+        assertEquals(longEvidence.length + 2, result.report.findings.last().evidencePoints.single().length)
+    }
+
+    @Test
+    fun `the points, the key points and the priority are read`() {
+        val report = success(envelope(answer(finding()))).report
+
+        assertEquals(listOf("Night lows."), report.keyPoints)
+        assertEquals(listOf("3 of 14 nights went below 55."), report.findings.single().evidencePoints)
+        assertEquals(1, report.findings.single().priority)
+    }
+
+    @Test
+    fun `a priority outside 1 to 3 is moved into the range, a missing one is the middle`() {
+        fun withPriority(value: Int?) = Json.parseToJsonElement(
+            if (value == null) finding().toString().replace("\"priority\":1,", "") else finding().toString().replace("\"priority\":1", "\"priority\":$value")
+        ).jsonObject
+
+        assertEquals(3, success(envelope(answer(withPriority(9)))).report.findings.single().priority)
+        assertEquals(1, success(envelope(answer(withPriority(-4)))).report.findings.single().priority)
+        assertEquals(AdvisorFinding.DEFAULT_PRIORITY, success(envelope(answer(withPriority(null)))).report.findings.single().priority)
+    }
+
+    @Test
+    fun `an answer without the points gives empty lists`() {
+        val bare = Json.parseToJsonElement(
+            finding().toString().replace(Regex("\"evidence_points\":\\[[^\\]]*\\],?"), "")
+        ).jsonObject
+
+        assertTrue(success(envelope(answer(bare))).report.findings.single().evidencePoints.isEmpty())
     }
 
     @Test

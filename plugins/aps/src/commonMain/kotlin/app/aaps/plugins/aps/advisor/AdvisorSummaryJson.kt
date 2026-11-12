@@ -19,9 +19,23 @@ import kotlin.math.round
  */
 object AdvisorSummaryJson {
 
-    fun encode(summary: AdvisorSummary): String = toJson(summary).toString()
+    /**
+     * @param earlierHints the hints of earlier analyses (see [AdvisorHistoryJson.earlierHints])
+     * @param notesFromPerson what the person wrote in earlier chats (see [AdvisorHistoryJson.notesFromPerson])
+     *
+     * Both are left out when empty.
+     */
+    fun encode(
+        summary: AdvisorSummary,
+        earlierHints: JsonArray = JsonArray(emptyList()),
+        notesFromPerson: JsonArray = JsonArray(emptyList())
+    ): String = toJson(summary, earlierHints, notesFromPerson).toString()
 
-    fun toJson(summary: AdvisorSummary): JsonObject = buildJsonObject {
+    fun toJson(
+        summary: AdvisorSummary,
+        earlierHints: JsonArray = JsonArray(emptyList()),
+        notesFromPerson: JsonArray = JsonArray(emptyList())
+    ): JsonObject = buildJsonObject {
         put("days", summary.days)
         put("quality", quality(summary.quality))
         summary.glucose?.let { put("glucose", glucose(it)) }
@@ -35,6 +49,8 @@ object AdvisorSummaryJson {
         number("ketoProtectionPercent", summary.ketoProtectionPercent)
         summary.profile?.let { put("profile", profile(it)) }
         put("profileHistory", profileHistory(summary.profileHistory))
+        if (earlierHints.isNotEmpty()) put("earlierHints", earlierHints)
+        if (notesFromPerson.isNotEmpty()) put("notesFromPerson", notesFromPerson)
     }
 
     private fun quality(q: DataQuality) = buildJsonObject {
@@ -49,7 +65,8 @@ object AdvisorSummaryJson {
         put("loopRatioSamples", q.loopRatioSamples)
     }
 
-    private fun glucose(g: GlucoseStats) = buildJsonObject {
+    /** Also used to keep the glucose ranges with a kept analysis (see [AdvisorHistoryJson]). */
+    fun glucose(g: GlucoseStats) = buildJsonObject {
         put("meanMgdl", g.meanMgdl)
         put("sdMgdl", g.sdMgdl)
         put("cvPercent", g.cvPercent)

@@ -118,7 +118,7 @@
     <string name="advisor_name">AI advisor</string>
     <string name="advisor_description">Sends a summary of your last days to Claude and shows hints about patterns. It never changes your profile or your loop.</string>
     <string name="advisor_disclaimer">These are hints from an AI. They are not medical advice and can be wrong. Do not change your settings because of this alone. Talk to your diabetes team. Nothing is changed in AAPS.</string>
-    <string name="advisor_privacy_note" comment="%1$d=number of days, for example 14">When you tap Start, a summary of the last %1$d days is sent to Anthropic. It has no name, no exact times and no notes.</string>
+    <string name="advisor_privacy_note" comment="%1$d=number of days, for example 14">When you tap Start, a summary of the last %1$d days is sent to Anthropic. It has no name, no exact times and no notes. It also has the titles and time ranges of the hints of earlier analyses, and what you wrote in earlier chats, so that the AI does not repeat itself. In the chat, your text and the data are sent again.</string>
     <string name="advisor_not_ready">Before you start, open the settings of this plugin. You need your Anthropic API key, and you must agree to send a data summary.</string>
     <string name="advisor_start">Start analysis</string>
     <string name="advisor_cancel">Cancel</string>
@@ -148,6 +148,36 @@
     <string name="advisor_change_down" comment="%1$d=percent, for example 5. The percent sign is in the text">%1$d%% less</string>
     <string name="advisor_change_removed">The AI proposed a number that is outside the limits of this app (more than 10 percent, a bad time range, or low confidence). It is not shown.</string>
     <string name="advisor_usage" comment="%1$d=tokens sent, %2$d=tokens received, %3$s=name of the model">Used %1$d input and %2$d output tokens. Model: %3$s</string>
+    <string name="advisor_summary_not_enough">The AI says the data is not enough for firm findings.</string>
+    <string name="advisor_count_label" comment="%1$s=confidence level, for example High confidence. %2$d=number of findings with it">%1$s: %2$d</string>
+    <string name="advisor_priority_high">High priority</string>
+    <string name="advisor_priority_medium">Medium priority</string>
+    <string name="advisor_priority_low">Low priority</string>
+    <string name="advisor_details_show">Show details</string>
+    <string name="advisor_details_hide">Hide details</string>
+    <string name="advisor_ranges_title">Glucose ranges of the days that were looked at (mg/dL)</string>
+    <string name="advisor_range_very_low">Below 54</string>
+    <string name="advisor_range_low">54 to 69</string>
+    <string name="advisor_range_in">70 to 180</string>
+    <string name="advisor_range_high">181 to 250</string>
+    <string name="advisor_range_very_high">Above 250</string>
+    <string name="advisor_percent_value" comment="%1$.1f=percent, for example 72.5. The percent sign is in the text">%1$.1f %%</string>
+    <string name="advisor_timeline_title">Proposed changes over the day</string>
+    <string name="advisor_hour_label" comment="%1$d=hour of the day, for example 6. Shown on the time axis">%1$d:00</string>
+    <string name="advisor_chat_title">Ask or explain</string>
+    <string name="advisor_chat_hint">Ask a question or tell something. Do not write names.</string>
+    <string name="advisor_chat_send">Send</string>
+    <string name="advisor_chat_waiting">Waiting for Claude…</string>
+    <string name="advisor_chat_you">You</string>
+    <string name="advisor_chat_ai">Claude</string>
+    <string name="advisor_chat_full">The chat of this analysis is full. Start a new analysis to go on.</string>
+    <string name="advisor_chat_ask_about">Ask about this</string>
+    <string name="advisor_chat_about" comment="%1$s=title of a finding of the report">Please explain this hint: %1$s</string>
+    <string name="advisor_history_title">Earlier analyses</string>
+    <string name="advisor_history_entry" comment="%1$s=date and time, %2$d=number of days that were looked at, %3$d=number of findings">%1$s (days: %2$d, findings: %3$d)</string>
+    <string name="advisor_history_delete">Delete earlier analyses</string>
+    <string name="advisor_history_delete_question">Delete all earlier analyses from this phone? The next analysis will not know about them.</string>
+    <string name="advisor_history_delete_confirm">Delete</string>
     <string name="advisor_show_sent">Show the data that was sent</string>
     <string name="advisor_hide_sent">Hide the data that was sent</string>
     <string name="advisor_error_unauthorized">The API key is not accepted. Check the key in the settings.</string>

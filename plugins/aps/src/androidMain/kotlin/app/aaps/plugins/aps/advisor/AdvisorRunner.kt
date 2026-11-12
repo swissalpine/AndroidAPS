@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -23,24 +24,41 @@ enum class AdvisorPhase { IDLE, COLLECTING, WAITING, DONE }
 data class AdvisorState(
     val phase: AdvisorPhase = AdvisorPhase.IDLE,
     val outcome: AdvisorOutcome? = null,
-    /** The JSON that was sent. It is only kept in memory, so the user can look at it. */
+    /** The JSON that was sent. It is only kept in memory (not in the history), so the user can look at it. */
     val sentJson: String? = null,
-    val days: Int = 0
+    val days: Int = 0,
+    /** The glucose ranges of the days that were looked at, for the picture above the report. */
+    val glucose: GlucoseStats? = null
+)
+
+/**
+ * The chat about the newest analysis.
+ *
+ * @property pending the question that is sent now. Null when nothing is sent
+ * @property error why the last question failed. Null when it did not
+ */
+data class AdvisorChatUi(
+    val pending: String? = null,
+    val error: AdvisorOutcome.Failure? = null
 )
 
 /**
  * Runs one analysis: reads the data, sends the summary to Claude, keeps the answer.
  *
  * It runs in its own scope, so leaving the screen does not stop it, and the answer is still there when the user
- * comes back. The answer is only kept in memory.
+ * comes back. A good answer is also kept in [history] on the phone, with the data that was sent. The hints of the
+ * latest ones and what the person wrote in the chat go into the next request, so the AI knows what it said before.
+ * The person can ask about the newest analysis with [ask].
  *
  * Nothing is sent unless the user agreed (`AdvisorConsent`) and has an API key, and only when [start] is called.
  *
  * @param summarySource gives the summary of the last days; the plugin gives `AdvisorDataCollector::collect`
+ * @param history keeps the finished analyses
  */
 class AdvisorRunner(
     private val summarySource: suspend (days: Int, now: Long) -> AdvisorSummary,
     private val client: AdvisorClient,
+    private val history: AdvisorHistoryStore,
     private val preferences: Preferences,
     private val dateUtil: DateUtil,
     private val aapsLogger: AAPSLogger,
@@ -51,7 +69,77 @@ class AdvisorRunner(
     private val mutableState = MutableStateFlow(AdvisorState())
     val state: StateFlow<AdvisorState> = mutableState.asStateFlow()
 
+    private val mutableHistory = MutableStateFlow<List<AdvisorHistoryEntry>>(emptyList())
+
+    /** The kept analyses, newest first. It is read from the phone in the background when the runner is made. */
+    val historyEntries: StateFlow<List<AdvisorHistoryEntry>> = mutableHistory.asStateFlow()
+
+    private val mutableChat = MutableStateFlow(AdvisorChatUi())
+
+    /** What the chat is doing. The messages themselves are in the newest entry of [historyEntries]. */
+    val chatUi: StateFlow<AdvisorChatUi> = mutableChat.asStateFlow()
+
     private var job: Job? = null
+    private var chatJob: Job? = null
+
+    init {
+        scope.launch { mutableHistory.value = history.load() }
+    }
+
+    /** Deletes all kept analyses. The next analysis does not know about them. */
+    fun clearHistory() {
+        history.clear()
+        mutableHistory.value = emptyList()
+        mutableChat.value = AdvisorChatUi()
+    }
+
+    /** Sends a question or a remark about the newest analysis. Does nothing while an answer is awaited. */
+    @Synchronized
+    fun ask(question: String) {
+        if (chatJob?.isActive == true) return
+        chatJob = scope.launch { chat(question) }
+    }
+
+    /**
+     * One step of the chat. The question and the answer are kept together in the newest analysis, and only when the
+     * answer came, so a failed question can be sent again.
+     */
+    internal suspend fun chat(question: String) {
+        val text = question.trim().take(AdvisorHistory.MAX_QUESTION_LENGTH)
+        if (text.isEmpty()) return
+        val key = preferences.get(StringKey.AdvisorApiKey).trim()
+        if (!preferences.get(BooleanKey.AdvisorConsent) || key.isEmpty()) {
+            mutableChat.value = AdvisorChatUi(error = AdvisorOutcome.Failure(AdvisorFailure.NOT_READY))
+            return
+        }
+        val newest = history.load().firstOrNull() ?: return
+        val sentJson = newest.sentJson ?: return
+        if (newest.chat.size >= AdvisorHistory.MAX_CHAT_MESSAGES) return
+        mutableChat.value = AdvisorChatUi(pending = text)
+        val body = AdvisorPrompt.chatRequestBody(sentJson, AdvisorHistoryJson.reportText(newest.report), newest.chat, text, language())
+        val outcome = client.chat(body, key)
+        // Only the kind of the result is logged, never the question or the answer.
+        aapsLogger.info(LTag.APS, "AI advisor chat: " + if (outcome is AdvisorChatOutcome.Failure) "failed ${outcome.failure.kind}" else "answer received")
+        when (outcome) {
+            is AdvisorChatOutcome.Answer  -> {
+                keepChat(newest, text, outcome.text)
+                mutableChat.value = AdvisorChatUi()
+            }
+
+            is AdvisorChatOutcome.Failure -> mutableChat.value = AdvisorChatUi(error = outcome.failure)
+        }
+    }
+
+    private fun keepChat(entry: AdvisorHistoryEntry, question: String, answer: String) {
+        val now = dateUtil.now()
+        val updated = entry.copy(chat = entry.chat + ChatMessage(ChatRole.PERSON, question, now) + ChatMessage(ChatRole.AI, answer, now))
+        try {
+            history.update(updated)
+            mutableHistory.value = history.load()
+        } catch (e: IOException) {
+            aapsLogger.error(LTag.APS, "AI advisor: the chat could not be kept", e)
+        }
+    }
 
     /** Starts an analysis. Does nothing while one is running. */
     @Synchronized
@@ -75,8 +163,17 @@ class AdvisorRunner(
         }
         val days = preferences.get(IntKey.AdvisorDays)
         mutableState.value = AdvisorState(AdvisorPhase.COLLECTING, days = days)
+        var glucose: GlucoseStats? = null
         val json = try {
-            AdvisorSummaryJson.encode(summarySource(days, dateUtil.now()))
+            val now = dateUtil.now()
+            val earlier = history.load()
+            val summary = summarySource(days, now)
+            glucose = summary.glucose
+            AdvisorSummaryJson.encode(
+                summary = summary,
+                earlierHints = AdvisorHistoryJson.earlierHints(earlier, now, AdvisorHistory.EARLIER_HINTS),
+                notesFromPerson = AdvisorHistoryJson.notesFromPerson(earlier, now)
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -88,6 +185,22 @@ class AdvisorRunner(
         val outcome = client.analyze(AdvisorPrompt.requestBody(json, language()), key)
         // Only the kind of the result is logged, never the data or the answer.
         aapsLogger.info(LTag.APS, "AI advisor: " + if (outcome is AdvisorOutcome.Failure) "failed ${outcome.kind}" else "answer received")
-        mutableState.value = AdvisorState(AdvisorPhase.DONE, outcome, json, days)
+        mutableState.value = AdvisorState(AdvisorPhase.DONE, outcome, json, days, glucose)
+        if (outcome is AdvisorOutcome.Success) keep(outcome, days, json, glucose)
+    }
+
+    /** A failed write is logged. The answer is still on the screen. */
+    private fun keep(success: AdvisorOutcome.Success, days: Int, sentJson: String, glucose: GlucoseStats?) {
+        try {
+            history.add(
+                AdvisorHistoryEntry(
+                    timeMillis = dateUtil.now(), days = days, model = success.model, report = success.report,
+                    sentJson = sentJson, glucose = glucose
+                )
+            )
+            mutableHistory.value = history.load()
+        } catch (e: IOException) {
+            aapsLogger.error(LTag.APS, "AI advisor: the answer could not be kept", e)
+        }
     }
 }

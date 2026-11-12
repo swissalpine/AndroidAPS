@@ -1,5 +1,6 @@
 package app.aaps.plugins.aps.advisor
 
+import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import app.aaps.core.data.plugin.PluginType
@@ -24,6 +25,7 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import java.io.File
 import dev.zacsweers.metro.IntKey as MetroIntKey
 
 /**
@@ -42,7 +44,8 @@ class AiAdvisorPlugin(
     preferences: Preferences,
     notificationManager: NotificationManager,
     persistenceLayer: PersistenceLayer,
-    dateUtil: DateUtil
+    dateUtil: DateUtil,
+    context: Context
 ) : PluginBaseWithPreferences(
     pluginDescription = PluginDescription()
         .mainType(PluginType.GENERAL)
@@ -58,6 +61,8 @@ class AiAdvisorPlugin(
     val runner = AdvisorRunner(
         summarySource = AdvisorDataCollector(persistenceLayer, preferences)::collect,
         client = AdvisorClient(),
+        // The no-backup folder is not copied by the Android backup. The analyses are about the health of the user.
+        history = AdvisorHistoryFile(File(context.noBackupFilesDir, "advisor/history.json")),
         preferences = preferences,
         dateUtil = dateUtil,
         aapsLogger = aapsLogger

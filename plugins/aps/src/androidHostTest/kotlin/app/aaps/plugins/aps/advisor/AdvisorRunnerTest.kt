@@ -15,6 +15,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -47,13 +51,44 @@ class AdvisorRunnerTest {
         respond(content = body, status = status, headers = headersOf(HttpHeaders.ContentType, "application/json"))
     }
 
+    private class MemoryHistory : AdvisorHistoryStore {
+
+        val entries = mutableListOf<AdvisorHistoryEntry>()
+        override fun load(): List<AdvisorHistoryEntry> = entries.toList()
+        override fun add(entry: AdvisorHistoryEntry) {
+            val updated = AdvisorHistory.withNew(load(), entry)
+            entries.clear()
+            entries.addAll(updated)
+        }
+
+        override fun update(entry: AdvisorHistoryEntry) {
+            val index = entries.indexOfFirst { it.timeMillis == entry.timeMillis }
+            if (index >= 0) entries[index] = entry
+        }
+
+        override fun clear() {
+            entries.clear()
+        }
+    }
+
+    private val earlierFinding = AdvisorFinding(
+        title = "Raise the night basal", area = AdvisorArea.BASAL, timeOfDay = "02:00-06:00", evidencePoints = listOf("secret evidence text"),
+        confidence = AdvisorConfidence.MEDIUM, suggestion = "a suggestion", change = ProposedChange(AdvisorSetting.BASAL, 120, 360, 10), changeRemoved = false
+    )
+    private val earlierEntry = AdvisorHistoryEntry(
+        timeMillis = now - 9 * 86_400_000L, days = 14, model = null,
+        report = AdvisorReport("Old answer", true, "", listOf(earlierFinding), emptyList(), emptyList())
+    )
+
     private fun runner(
         engine: MockEngine,
         preferences: Preferences = preferences(),
-        summarySource: suspend (Int, Long) -> AdvisorSummary = { _, _ -> emptySummary }
+        summarySource: suspend (Int, Long) -> AdvisorSummary = { _, _ -> emptySummary },
+        history: AdvisorHistoryStore = MemoryHistory()
     ) = AdvisorRunner(
         summarySource = summarySource,
         client = AdvisorClient(http = HttpClient(engine)),
+        history = history,
         preferences = preferences,
         dateUtil = dateUtil,
         aapsLogger = aapsLogger,
@@ -121,6 +156,183 @@ class AdvisorRunnerTest {
 
         assertThat(engine.requestHistory).isEmpty()
         assertThat(runner.state.value.outcome).isEqualTo(AdvisorOutcome.Failure(AdvisorFailure.DATA_ERROR, "IllegalStateException"))
+    }
+
+    @Test
+    fun `a good answer is kept in the history`() = runBlocking {
+        val history = MemoryHistory()
+        val runner = runner(engine(), history = history)
+
+        runner.run()
+
+        val kept = history.entries.single()
+        assertThat(kept.timeMillis).isEqualTo(now)
+        assertThat(kept.days).isEqualTo(14)
+        assertThat(kept.model).isEqualTo("claude-opus-5-5")
+        assertThat(kept.report.overall).isEqualTo("Fine.")
+        assertThat(runner.historyEntries.value).containsExactly(kept)
+    }
+
+    @Test
+    fun `an error is not kept in the history`() = runBlocking {
+        val history = MemoryHistory()
+        val runner = runner(engine(HttpStatusCode.TooManyRequests, """{"error":{"message":"rate limit"}}"""), history = history)
+
+        runner.run()
+
+        assertThat(history.entries).isEmpty()
+    }
+
+    @Test
+    fun `the hints of the earlier analysis are sent without its evidence`() = runBlocking {
+        val engine = engine()
+        val history = MemoryHistory().also { it.add(earlierEntry) }
+        val runner = runner(engine, history = history)
+
+        runner.run()
+
+        val sentBody = (engine.requestHistory.single().body as TextContent).text
+        assertThat(sentBody).contains("\\\"earlierHints\\\"")
+        assertThat(sentBody).contains("Raise the night basal")
+        assertThat(sentBody).doesNotContain("secret evidence text")
+        assertThat(sentBody).doesNotContain("Old answer")
+    }
+
+    @Test
+    fun `without an earlier analysis there is no earlierHints field`() = runBlocking {
+        val engine = engine()
+
+        runner(engine).run()
+
+        // The system prompt names the field, so look for the key as it is written in the data (quotes escaped in the body).
+        assertThat((engine.requestHistory.single().body as TextContent).text).doesNotContain("\\\"earlierHints\\\"")
+    }
+
+    @Test
+    fun `clearing the history removes the kept analyses`() = runBlocking {
+        val history = MemoryHistory().also { it.add(earlierEntry) }
+        val runner = runner(engine(), history = history)
+        runner.run()
+
+        runner.clearHistory()
+
+        assertThat(history.entries).isEmpty()
+        assertThat(runner.historyEntries.value).isEmpty()
+    }
+
+    // ---- Chat ----
+
+    private val chatAnswer = """
+        {"model":"claude-opus-5-5","stop_reason":"end_turn","content":[{"type":"text","text":"Because the nights fall."}],"usage":{"input_tokens":10,"output_tokens":5}}
+    """.trimIndent()
+
+    private fun entryWithData(chat: List<ChatMessage> = emptyList(), sentJson: String? = "{\"days\":14}") =
+        earlierEntry.copy(timeMillis = now - 1_000L, sentJson = sentJson, chat = chat)
+
+    @Test
+    fun `a good answer keeps the data that was sent`() = runBlocking {
+        val history = MemoryHistory()
+
+        runner(engine(), history = history).run()
+
+        assertThat(history.entries.single().sentJson).isNotNull()
+        assertThat(history.entries.single().sentJson).contains("\"days\":14")
+    }
+
+    @Test
+    fun `a question and its answer are kept together in the newest analysis`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val history = MemoryHistory().also { it.add(entryWithData()) }
+        val runner = runner(engine, history = history)
+
+        runner.chat("  Why the night basal?  ")
+
+        val chat = history.entries.single().chat
+        assertThat(chat.map { it.role }).containsExactly(ChatRole.PERSON, ChatRole.AI).inOrder()
+        assertThat(chat.map { it.text }).containsExactly("Why the night basal?", "Because the nights fall.").inOrder()
+        assertThat(runner.chatUi.value).isEqualTo(AdvisorChatUi())
+    }
+
+    @Test
+    fun `the chat request has the data first, then the report, then the questions in turn`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val earlierChat = listOf(ChatMessage(ChatRole.PERSON, "First question", 1L), ChatMessage(ChatRole.AI, "First answer", 2L))
+        val history = MemoryHistory().also { it.add(entryWithData(chat = earlierChat)) }
+
+        runner(engine, history = history).chat("Second question")
+
+        val body = Json.parseToJsonElement((engine.requestHistory.single().body as TextContent).text).jsonObject
+        val messages = body["messages"]!!.jsonArray.map { it.jsonObject }
+        assertThat(messages.map { it["role"]!!.jsonPrimitive.content }).containsExactly("user", "assistant", "user", "assistant", "user").inOrder()
+        assertThat(messages.last()["content"]!!.jsonPrimitive.content).isEqualTo("Second question")
+        assertThat(messages.first().toString()).contains("cache_control")
+        assertThat(messages[1]["content"]!!.jsonPrimitive.content).contains("Raise the night basal")
+        assertThat(body["system"]!!.jsonPrimitive.content).contains("chat")
+    }
+
+    @Test
+    fun `a failed question is not kept and the error is shown`() = runBlocking {
+        val history = MemoryHistory().also { it.add(entryWithData()) }
+        val runner = runner(engine(HttpStatusCode.TooManyRequests, """{"error":{"message":"rate limit"}}"""), history = history)
+
+        runner.chat("Why?")
+
+        assertThat(history.entries.single().chat).isEmpty()
+        assertThat(runner.chatUi.value.error).isEqualTo(AdvisorOutcome.Failure(AdvisorFailure.RATE_LIMITED, "rate limit"))
+        assertThat(runner.chatUi.value.pending).isNull()
+    }
+
+    @Test
+    fun `without the consent no question is sent`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val history = MemoryHistory().also { it.add(entryWithData()) }
+        val runner = runner(engine, preferences(consent = false), history = history)
+
+        runner.chat("Why?")
+
+        assertThat(engine.requestHistory).isEmpty()
+        assertThat(runner.chatUi.value.error).isEqualTo(AdvisorOutcome.Failure(AdvisorFailure.NOT_READY))
+    }
+
+    @Test
+    fun `an empty question, an analysis without data and a full chat send nothing`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val full = (1..AdvisorHistory.MAX_CHAT_MESSAGES).map { ChatMessage(if (it % 2 == 1) ChatRole.PERSON else ChatRole.AI, "m$it", it.toLong()) }
+
+        runner(engine, history = MemoryHistory().also { it.add(entryWithData()) }).chat("   ")
+        runner(engine, history = MemoryHistory().also { it.add(entryWithData(sentJson = null)) }).chat("Why?")
+        runner(engine, history = MemoryHistory().also { it.add(entryWithData(chat = full)) }).chat("Why?")
+        runner(engine, history = MemoryHistory()).chat("Why?")
+
+        assertThat(engine.requestHistory).isEmpty()
+    }
+
+    @Test
+    fun `what the person wrote in the chat goes into the next analysis, the answers of the AI do not`() = runBlocking {
+        val engine = engine()
+        val chat = listOf(
+            ChatMessage(ChatRole.PERSON, "I was ill on Tuesday", now - 86_400_000L),
+            ChatMessage(ChatRole.AI, "Thank you for telling secret AI answer", now - 86_400_000L)
+        )
+        val history = MemoryHistory().also { it.add(entryWithData(chat = chat)) }
+
+        runner(engine, history = history).run()
+
+        val sentBody = (engine.requestHistory.single().body as TextContent).text
+        assertThat(sentBody).contains("\\\"notesFromPerson\\\"")
+        assertThat(sentBody).contains("I was ill on Tuesday")
+        assertThat(sentBody).doesNotContain("secret AI answer")
+    }
+
+    @Test
+    fun `a new analysis drops the data of the older ones`() = runBlocking {
+        val history = MemoryHistory().also { it.add(entryWithData()) }
+
+        runner(engine(), history = history).run()
+
+        assertThat(history.entries).hasSize(2)
+        assertThat(history.entries[0].sentJson).isNotNull()
+        assertThat(history.entries[1].sentJson).isNull()
     }
 
     @Test

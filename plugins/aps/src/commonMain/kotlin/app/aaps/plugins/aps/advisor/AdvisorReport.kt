@@ -22,26 +22,42 @@ data class ProposedChange(
     val changePercent: Int
 )
 
+/**
+ * @property evidencePoints the facts behind the finding, one short point each, with their numbers
+ * @property priority 1 is the most important, 3 the least. The screen shows the most important first
+ */
 data class AdvisorFinding(
     val title: String,
     val area: AdvisorArea,
     val timeOfDay: String,
-    val evidence: String,
+    val evidencePoints: List<String>,
     val confidence: AdvisorConfidence,
     val suggestion: String,
     /** Null when the model proposed no number, or when the number broke a limit. */
     val change: ProposedChange?,
     /** True when the model proposed a number that was removed by the checks (too large, bad time range, low confidence). */
-    val changeRemoved: Boolean
-)
+    val changeRemoved: Boolean,
+    val priority: Int = DEFAULT_PRIORITY
+) {
 
+    companion object {
+
+        const val DEFAULT_PRIORITY = 2
+    }
+}
+
+/**
+ * @property overall one or two sentences
+ * @property keyPoints the main things to know, as short points. Empty in a report from before this field
+ */
 data class AdvisorReport(
     val overall: String,
     val enoughData: Boolean,
     val dataNote: String,
     val findings: List<AdvisorFinding>,
     val notEnoughDataFor: List<String>,
-    val questionsForTeam: List<String>
+    val questionsForTeam: List<String>,
+    val keyPoints: List<String> = emptyList()
 )
 
 data class AdvisorUsage(
@@ -63,6 +79,14 @@ enum class AdvisorFailure {
     /** The answer was cut off because it was too long. */
     TRUNCATED,
     BAD_RESPONSE
+}
+
+/** The result of one question in the chat. */
+sealed interface AdvisorChatOutcome {
+
+    data class Answer(val text: String) : AdvisorChatOutcome
+
+    data class Failure(val failure: AdvisorOutcome.Failure) : AdvisorChatOutcome
 }
 
 sealed interface AdvisorOutcome {

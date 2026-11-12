@@ -23,14 +23,20 @@ class AdvisorComposeContent(
         onSettings: (() -> Unit)?
     ) {
         val state by runner.state.collectAsStateWithLifecycle()
+        val history by runner.historyEntries.collectAsStateWithLifecycle()
+        val chatUi by runner.chatUi.collectAsStateWithLifecycle()
         // Read on every composition, so the screen is right after the user comes back from the settings.
         val ready = preferences.get(BooleanKey.AdvisorConsent) && preferences.get(StringKey.AdvisorApiKey).isNotBlank()
         AdvisorScreen(
             state = state,
+            history = history,
+            chatUi = chatUi,
             days = preferences.get(IntKey.AdvisorDays),
             ready = ready,
             onStart = runner::start,
             onCancel = runner::cancel,
+            onAsk = runner::ask,
+            onClearHistory = runner::clearHistory,
             onSettings = onSettings
         )
     }
