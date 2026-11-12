@@ -64,6 +64,19 @@ object AdvisorPrompt {
         - ketoProtectionPercent: if present, the loop never goes below this percent of the basal.
         - profile: the base values of the active profile. Basal is multiplied by percentage/100, carbs per unit and ISF are
           divided by it. The insulin has diaHours and peakMinutes.
+        - profileHistory.changes: the times in the period when the person changed the profile values (basal, carb ratio,
+          ISF or time shift; a change of the percentage alone is not listed, see sport.profilePercentageUse). Oldest first.
+          daysAgo and hour tell when. Each changed value has before and after; a value that did not change is left out.
+          The values in "profile" are the ones after the latest change.
+        - profileHistory.latestEffect: the data before and after the latest change. daysBefore and daysAfter are the lengths
+          of the two parts. glucoseBefore and glucoseAfter are the glucose statistics of the two parts. nightsBefore and
+          nightsAfter are the means over the nights of each part (the night of the change is in neither). The nights say
+          something only about a change at night (22:00 to 08:00); for a change at another time use changedWindows.
+          changedWindows lists each time of the day (startMinute to endMinute) where one setting (basal, carb_ratio or isf)
+          changed, with the glucose and the SMB per day in that time before and after. days is the number of days with
+          enough readings. For carb_ratio it also has the clean meals that start in the window (count, avgRiseMgdl = peak
+          minus start, avgMinMgdl), for isf the corrections (count, avgDropMgdlPerUnit). Other meals and corrections have
+          daysAgo, so compare them with the daysAgo of the change.
 
         Rules:
         1. Use only the data. Do not invent numbers. If the data is not enough, say so (enough_data=false or fill
@@ -80,7 +93,14 @@ object AdvisorPrompt {
            trust steps alone. Do not treat the effect of sport as a wrong basal rate.
         6. Write short, simple sentences in the language the user asks for. Avoid medical orders; use words like "could" and
            "worth a look". Put questions that the diabetes team should answer in questions_for_team.
-        7. The answer is JSON that follows the given schema, and nothing else.
+        7. A change in profileHistory is something the person already did, maybe after an earlier hint. Do not propose a change
+           of the same setting in the same time range again unless the data after the change shows the problem and there are
+           enough nights or days after it: at least 5 (nightsAfter.count, or days in the changed window after the change; for
+           carb_ratio and isf at least 5 meals or corrections in the window after the change). Judge
+           a change with the data after it. The data before it describes the old setting and is no proof against the new one.
+           Say in "overall" whether the change looks like it helped, made no difference, made things worse, or whether it is too
+           early to tell. If glucose after the change shows more lows, say that first.
+        8. The answer is JSON that follows the given schema, and nothing else.
     """.trimIndent()
 
     /** The schema of the answer. All fields are required, so a missing value is an empty string or list. */

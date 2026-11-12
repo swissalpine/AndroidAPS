@@ -1,8 +1,10 @@
 package app.aaps.plugins.aps.advisor
 
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -32,6 +34,7 @@ object AdvisorSummaryJson {
         summary.heart?.let { put("heart", heart(it)) }
         number("ketoProtectionPercent", summary.ketoProtectionPercent)
         summary.profile?.let { put("profile", profile(it)) }
+        put("profileHistory", profileHistory(summary.profileHistory))
     }
 
     private fun quality(q: DataQuality) = buildJsonObject {
@@ -189,6 +192,77 @@ object AdvisorSummaryJson {
     private fun blockValue(v: ProfileBlockValue) = buildJsonObject {
         put("startMinute", v.startMinute)
         put("value", v.value)
+    }
+
+    private fun profileHistory(h: ProfileHistory) = buildJsonObject {
+        put("changes", array(h.changes, ::profileChange))
+        h.latestEffect?.let { put("latestEffect", changeEffect(it)) }
+    }
+
+    private fun profileChange(c: ProfileChange) = buildJsonObject {
+        put("daysAgo", c.daysAgo)
+        put("hour", c.hour)
+        change("percentage", c.percentage) { JsonPrimitive(it) }
+        change("timeshiftHours", c.timeshiftHours) { JsonPrimitive(it) }
+        change("basalUnitsPerHour", c.basalUnitsPerHour) { array(it, ::blockValue) }
+        change("carbsGramsPerUnit", c.carbsGramsPerUnit) { array(it, ::blockValue) }
+        change("isfMgdlPerUnit", c.isfMgdlPerUnit) { array(it, ::blockValue) }
+    }
+
+    private fun changeEffect(e: ChangeEffect) = buildJsonObject {
+        put("daysAgo", e.daysAgo)
+        put("daysBefore", e.daysBefore)
+        put("daysAfter", e.daysAfter)
+        e.glucoseBefore?.let { put("glucoseBefore", glucose(it)) }
+        e.glucoseAfter?.let { put("glucoseAfter", glucose(it)) }
+        e.nightsBefore?.let { put("nightsBefore", nightStats(it)) }
+        e.nightsAfter?.let { put("nightsAfter", nightStats(it)) }
+        put("changedWindows", array(e.changedWindows, ::changedWindow))
+    }
+
+    private fun nightStats(n: NightStats) = buildJsonObject {
+        put("count", n.count)
+        put("avgDriftMgdlPerHour", n.avgDriftMgdlPerHour)
+        put("avgSmbUnits", n.avgSmbUnits)
+        put("avgMinimumTempMinutes", n.avgMinimumTempMinutes)
+    }
+
+    private fun changedWindow(w: ChangedWindow) = buildJsonObject {
+        put("setting", w.setting.name.lowercase())
+        put("startMinute", w.startMinute)
+        put("endMinute", w.endMinute)
+        put("before", windowStats(w.before))
+        put("after", windowStats(w.after))
+    }
+
+    private fun windowStats(s: WindowStats) = buildJsonObject {
+        put("days", s.days)
+        number("meanMgdl", s.meanMgdl)
+        number("belowRangePercent", s.belowRangePercent)
+        number("aboveRangePercent", s.aboveRangePercent)
+        put("smbUnitsPerDay", s.smbUnitsPerDay)
+        s.meals?.let {
+            put("meals", buildJsonObject {
+                put("count", it.count)
+                put("avgRiseMgdl", it.avgRiseMgdl)
+                put("avgMinMgdl", it.avgMinMgdl)
+            })
+        }
+        s.corrections?.let {
+            put("corrections", buildJsonObject {
+                put("count", it.count)
+                put("avgDropMgdlPerUnit", it.avgDropMgdlPerUnit)
+            })
+        }
+    }
+
+    /** Leaves the field out when the value did not change. */
+    private fun <T> JsonObjectBuilder.change(key: String, change: Change<T>?, write: (T) -> JsonElement) {
+        if (change == null) return
+        put(key, buildJsonObject {
+            put("before", write(change.before))
+            put("after", write(change.after))
+        })
     }
 
     private fun <T> array(items: List<T>, write: (T) -> JsonObject): JsonArray = buildJsonArray { items.forEach { add(write(it)) } }

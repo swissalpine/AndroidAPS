@@ -53,9 +53,14 @@ class AdvisorSummaryBuilderTest {
         steps30min = 0, steps60min = 0, steps180min = 0, device = "test", utcOffset = 0L
     )
 
-    private fun profileSwitch(time: Long, percentage: Int, unit: GlucoseUnit = GlucoseUnit.MGDL) = EPS(
+    private fun profileSwitch(
+        time: Long,
+        percentage: Int,
+        unit: GlucoseUnit = GlucoseUnit.MGDL,
+        basal: List<Block> = listOf(Block(12 * hour, 0.8), Block(12 * hour, 1.0))
+    ) = EPS(
         timestamp = time,
-        basalBlocks = listOf(Block(12 * hour, 0.8), Block(12 * hour, 1.0)),
+        basalBlocks = basal,
         isfBlocks = listOf(Block(day, 2.0)),
         icBlocks = listOf(Block(day, 10.0)),
         targetBlocks = listOf(TargetBlock(day, 100.0, 100.0)),
@@ -728,5 +733,192 @@ class AdvisorSummaryBuilderTest {
         val insulin = build(input(days = 1, profileSwitches = listOf(profileSwitch(0L, 100)))).insulin
 
         assertTrue(insulin.days.isEmpty())
+    }
+
+    // ---- Profile changes ----
+
+    private val oldBasal = listOf(Block(2 * hour, 1.0), Block(4 * hour, 1.0), Block(18 * hour, 1.0))
+    // The basal from 02:00 to 06:00 is 10 percent higher.
+    private val newBasal = listOf(Block(2 * hour, 1.0), Block(4 * hour, 1.1), Block(18 * hour, 1.0))
+
+    /** Readings every 5 minutes from day 10 to now: 100 mg/dL before the change at day 15, 150 after it. */
+    private fun changeInput(profileSwitches: List<EPS>, days: Int = 10) = input(
+        days = days,
+        glucose = readings(at(10, 0), now) { m -> if (at(10, 0) + m * minute < at(15, 12)) 100.0 else 150.0 },
+        profileSwitches = profileSwitches
+    )
+
+    @Test
+    fun `a changed basal is listed with the old and the new values`() {
+        val history = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal)))
+        ).profileHistory
+
+        val change = history.changes.single()
+        assertEquals(5, change.daysAgo)
+        assertEquals(12, change.hour)
+        assertNull(change.percentage)
+        assertNull(change.isfMgdlPerUnit)
+        assertEquals(1.0, change.basalUnitsPerHour?.before?.single { it.startMinute == 120 }?.value)
+        assertEquals(1.1, change.basalUnitsPerHour?.after?.single { it.startMinute == 120 }?.value)
+    }
+
+    @Test
+    fun `a switch with the same values is no change`() {
+        val history = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100), profileSwitch(at(12, 0), 100), profileSwitch(at(14, 0), 70)))
+        ).profileHistory
+
+        assertTrue(history.changes.isEmpty())
+        assertNull(history.latestEffect)
+    }
+
+    @Test
+    fun `a change of the percentage together with the values shows the percentage`() {
+        val history = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 90, basal = newBasal)))
+        ).profileHistory
+
+        assertEquals(100, history.changes.single().percentage?.before)
+        assertEquals(90, history.changes.single().percentage?.after)
+    }
+
+    @Test
+    fun `only a change inside the period is listed, the switch before the period is the reference`() {
+        val history = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(5, 0), 100, basal = newBasal)))
+        ).profileHistory
+
+        assertTrue(history.changes.isEmpty())
+    }
+
+    @Test
+    fun `the effect cuts the glucose at the change`() {
+        val effect = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal)))
+        ).profileHistory.latestEffect
+
+        assertNotNull(effect)
+        assertEquals(5, effect.daysAgo)
+        assertEquals(5.0, effect.daysBefore)
+        assertEquals(5.0, effect.daysAfter)
+        assertEquals(100.0, effect.glucoseBefore?.meanMgdl)
+        assertEquals(150.0, effect.glucoseAfter?.meanMgdl)
+    }
+
+    @Test
+    fun `the changed basal window is found and measured before and after`() {
+        val effect = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal)))
+        ).profileHistory.latestEffect
+
+        val window = assertNotNull(effect).changedWindows.single()
+        assertEquals(ChangedSetting.BASAL, window.setting)
+        assertNull(window.after.meals)
+        assertNull(window.after.corrections)
+        assertEquals(120, window.startMinute)
+        assertEquals(360, window.endMinute)
+        // The windows of day 11 to 15 are before the change (5 of them), day 16 to 20 are after it (5 of them).
+        assertEquals(5, window.before.days)
+        assertEquals(100.0, window.before.meanMgdl)
+        assertEquals(0.0, window.before.belowRangePercent)
+        assertEquals(5, window.after.days)
+        assertEquals(150.0, window.after.meanMgdl)
+        assertEquals(0.0, window.after.aboveRangePercent)
+    }
+
+    @Test
+    fun `SMB in the window is counted per day`() {
+        val smbs = (16..18).map { bolus(at(it.toLong(), 3), 0.5, BS.Type.SMB) } + bolus(at(16, 10), 2.0, BS.Type.SMB)
+        val effect = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal))).copy(boluses = smbs)
+        ).profileHistory.latestEffect
+
+        val after = assertNotNull(effect).changedWindows.single().after
+        // 1.5 U in the window over 5 days. The 2 U at 10:00 is outside the window.
+        assertEquals(0.3, after.smbUnitsPerDay, 0.001)
+    }
+
+    @Test
+    fun `a day with too few readings in the window is not counted`() {
+        val glucose = readings(at(10, 0), now) { 100.0 }.filterNot { it.timestamp in at(17, 2)..at(17, 6) }
+        val effect = build(
+            input(
+                days = 10, glucose = glucose,
+                profileSwitches = listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal))
+            )
+        ).profileHistory.latestEffect
+
+        assertEquals(4, assertNotNull(effect).changedWindows.single().after.days)
+    }
+
+    @Test
+    fun `a change of the carb ratio alone has a carb ratio window and no basal window`() {
+        val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(icBlocks = listOf(Block(day, 8.0)))
+        val history = build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), changed))).profileHistory
+
+        val window = assertNotNull(history.latestEffect).changedWindows.single()
+        assertEquals(ChangedSetting.CARB_RATIO, window.setting)
+        assertEquals(0, window.startMinute)
+        assertEquals(24 * 60, window.endMinute)
+        assertNull(history.changes.single().basalUnitsPerHour)
+        assertEquals(10.0, history.changes.single().carbsGramsPerUnit?.before?.single()?.value)
+        assertEquals(8.0, history.changes.single().carbsGramsPerUnit?.after?.single()?.value)
+    }
+
+    @Test
+    fun `a carb ratio window counts the clean meals before and after the change`() {
+        val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(icBlocks = listOf(Block(day, 8.0)))
+        val meals = listOf(12, 17, 18).map { carbs(at(it.toLong(), 8), 40.0) }
+        val boluses = listOf(12, 17, 18).map { bolus(at(it.toLong(), 8), 4.0) }
+        val window = assertNotNull(
+            build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), changed)).copy(carbs = meals, boluses = boluses))
+                .profileHistory.latestEffect
+        ).changedWindows.single()
+
+        assertEquals(1, window.before.meals?.count)
+        // The readings are flat at 100 before and flat at 150 after: no rise, and the lowest value is the flat value.
+        assertEquals(0.0, window.before.meals?.avgRiseMgdl)
+        assertEquals(100.0, window.before.meals?.avgMinMgdl)
+        assertEquals(2, window.after.meals?.count)
+        assertEquals(150.0, window.after.meals?.avgMinMgdl)
+        assertNull(window.after.corrections)
+    }
+
+    @Test
+    fun `an ISF window counts the corrections before and after the change`() {
+        val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(isfBlocks = listOf(Block(day, 1.8)))
+        // A correction needs a start value of 130 or more, so only the one after the change (150) counts.
+        val boluses = listOf(bolus(at(12, 14), 1.0), bolus(at(17, 14), 1.0))
+        val window = assertNotNull(
+            build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), changed)).copy(boluses = boluses))
+                .profileHistory.latestEffect
+        ).changedWindows.single()
+
+        assertEquals(ChangedSetting.ISF, window.setting)
+        assertNull(window.before.corrections)
+        assertEquals(1, window.after.corrections?.count)
+        assertEquals(0.0, window.after.corrections?.avgDropMgdlPerUnit)
+        assertNull(window.after.meals)
+    }
+
+    @Test
+    fun `nights are split by the day of the change and the night of the change is left out`() {
+        // Without food or boluses every night is quiet. The mornings of day 11 to 20 each have a night.
+        val effect = build(
+            changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(15, 12), 100, basal = newBasal)))
+        ).profileHistory.latestEffect
+
+        // The night that ends on the morning of day 15, the day of the change, is in neither part.
+        assertEquals(4, assertNotNull(effect).nightsBefore?.count)
+        assertEquals(5, effect.nightsAfter?.count)
+    }
+
+    @Test
+    fun `at most the ten latest changes are listed`() {
+        val switches = (0..12).map { profileSwitch(at(5 + it.toLong() / 2, 0) + it * hour, 100, basal = listOf(Block(day, 0.5 + it * 0.1))) }
+        val history = build(changeInput(switches, days = 15)).profileHistory
+
+        assertEquals(10, history.changes.size)
     }
 }

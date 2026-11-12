@@ -33,7 +33,9 @@ data class AdvisorSummary(
      */
     val ketoProtectionPercent: Int?,
     /** The profile that is active now. Null when there is no profile switch in the database. */
-    val profile: ProfileSnapshot?
+    val profile: ProfileSnapshot?,
+    /** Changes of the profile values in the period, and what the data says since the latest one. */
+    val profileHistory: ProfileHistory
 )
 
 /**
@@ -286,6 +288,121 @@ data class ProfileSnapshot(
     val insulinLabel: String,
     val diaHours: Double,
     val peakMinutes: Int
+)
+
+/** A value before and after a change. */
+data class Change<T>(
+    val before: T,
+    val after: T
+)
+
+/**
+ * The changes of the profile values in the period (oldest first, at most the 10 latest) and the effect of the
+ * latest one. A change of the percentage alone is not listed (see [SportSummary.profilePercentageUse]).
+ *
+ * @property latestEffect null when there is no change in the period
+ */
+data class ProfileHistory(
+    val changes: List<ProfileChange>,
+    val latestEffect: ChangeEffect?
+)
+
+/**
+ * One change of the profile. A field is null when that value did not change. The blocks are base values, like in
+ * [ProfileSnapshot].
+ *
+ * @property daysAgo the day of the change
+ * @property hour the hour of the change, local time
+ */
+data class ProfileChange(
+    val daysAgo: Int,
+    val hour: Int,
+    val percentage: Change<Int>?,
+    val timeshiftHours: Change<Int>?,
+    val basalUnitsPerHour: Change<List<ProfileBlockValue>>?,
+    val carbsGramsPerUnit: Change<List<ProfileBlockValue>>?,
+    val isfMgdlPerUnit: Change<List<ProfileBlockValue>>?
+)
+
+/**
+ * The data before and after the latest profile change. The period is cut at the moment of the change.
+ *
+ * @property daysBefore the length of the period before the change, in days
+ * @property daysAfter the length of the period since the change, in days
+ * @property nightsBefore null when there is no night. The night of the change itself is in neither of the two
+ * @property changedWindows the times of the day where a value changed, for each changed setting. Empty when no value
+ *   changed (only the time shift did)
+ */
+data class ChangeEffect(
+    val daysAgo: Int,
+    val daysBefore: Double,
+    val daysAfter: Double,
+    val glucoseBefore: GlucoseStats?,
+    val glucoseAfter: GlucoseStats?,
+    val nightsBefore: NightStats?,
+    val nightsAfter: NightStats?,
+    val changedWindows: List<ChangedWindow>
+)
+
+/** The settings of the profile that have times of the day. */
+enum class ChangedSetting {
+
+    BASAL,
+    CARB_RATIO,
+    ISF
+}
+
+/** The mean of several [NightResult]. */
+data class NightStats(
+    val count: Int,
+    val avgDriftMgdlPerHour: Double,
+    val avgSmbUnits: Double,
+    val avgMinimumTempMinutes: Int
+)
+
+/** A time of the day where [setting] changed, from [startMinute] (included) to [endMinute] (not included), before and after the change. */
+data class ChangedWindow(
+    val setting: ChangedSetting,
+    val startMinute: Int,
+    val endMinute: Int,
+    val before: WindowStats,
+    val after: WindowStats
+)
+
+/**
+ * The readings and the SMB in a time window of the day. Only days that have readings for at least 70 % of the
+ * window are counted.
+ *
+ * @property days the number of days that are counted
+ * @property meals the clean meals that start in the window. Only for a change of the carb ratio, else null
+ * @property corrections the corrections that start in the window. Only for a change of the ISF, else null
+ */
+data class WindowStats(
+    val days: Int,
+    val meanMgdl: Double?,
+    val belowRangePercent: Double?,
+    val aboveRangePercent: Double?,
+    val smbUnitsPerDay: Double,
+    val meals: MealStats?,
+    val corrections: CorrectionStats?
+)
+
+/**
+ * The mean of several meals. A low [avgMinMgdl] points to too much insulin, a high [avgRiseMgdl] to too little.
+ *
+ * @property avgRiseMgdl the peak minus the start value
+ * @property avgMinMgdl the lowest value in the four hours
+ */
+data class MealStats(
+    val count: Int,
+    val avgRiseMgdl: Double,
+    val avgMinMgdl: Double
+)
+
+/** The mean of several corrections. [avgDropMgdlPerUnit] is the mean of [CorrectionResult.dropMgdlPerUnit]. */
+data class CorrectionStats(
+    val count: Int,
+    val avgDropMgdlPerUnit: Double
 )
 
 /** A value that starts at [startMinute] after midnight and holds until the next block. */

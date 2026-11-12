@@ -2,6 +2,7 @@ package app.aaps.plugins.aps.advisor
 
 import app.aaps.core.data.configuration.Constants
 import app.aaps.core.data.model.BS
+import app.aaps.core.data.model.EPS
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.GlucoseUnit
 import app.aaps.core.data.model.SC
@@ -66,14 +67,15 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         quality = quality(),
         glucose = glucoseStats(),
         blocks = blocks(),
-        nights = nights(),
-        meals = meals(),
-        corrections = corrections(),
+        nights = nightList,
+        meals = mealList.map { it.value },
+        corrections = correctionList.map { it.value },
         sport = sport(),
         insulin = insulin(),
         heart = heartStats(),
         ketoProtectionPercent = input.ketoProtectionPercent,
-        profile = profile()
+        profile = profile(),
+        profileHistory = profileHistory()
     )
 
     // ---- Quality and overall numbers ----
@@ -111,9 +113,11 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
     /** How many different 5 minute slots the times fall into. */
     private fun slotCount(times: List<Long>): Int = times.map { it / SLOT }.distinct().size
 
-    private fun glucoseStats(): GlucoseStats? {
-        if (glucose.isEmpty()) return null
-        val values = glucose.map { it.value }
+    private fun glucoseStats(): GlucoseStats? = glucoseStatsOf(glucose)
+
+    private fun glucoseStatsOf(readings: List<GV>): GlucoseStats? {
+        if (readings.isEmpty()) return null
+        val values = readings.map { it.value }
         val mean = values.average()
         val sd = sqrt(values.sumOf { (it - mean) * (it - mean) } / values.size)
         fun share(predicate: (Double) -> Boolean) = (values.count(predicate) * 100.0 / values.size).round1()
@@ -176,6 +180,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
      * Insulin of the last meal can still work, because the insulin lasts long. So the result has the size
      * of the last bolus and meal and the SMB of the hours before, and the advisor can weigh them.
      */
+    private val nightList by lazy { nights() }
+
     private fun nights(): List<NightResult> {
         val result = mutableListOf<NightResult>()
         val byDay = glucose.groupBy { (it.timestamp + it.utcOffset).floorDiv(MS_DAY) }
@@ -240,9 +246,15 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
     // ---- Meals and corrections ----
 
-    private fun meals(): List<MealResult> {
+    /** A result with the time of its event. The summary has no times, but the profile change needs them to cut the events. */
+    private class Timed<T>(val time: Long, val utcOffset: Long, val value: T)
+
+    private val mealList by lazy { meals() }
+    private val correctionList by lazy { corrections() }
+
+    private fun meals(): List<Timed<MealResult>> {
         val groups = carbGroupList
-        val result = mutableListOf<MealResult>()
+        val result = mutableListOf<Timed<MealResult>>()
         for (group in groups) {
             if (group.timestamp < periodStart) continue
             val end = group.timestamp + EVENT_WINDOW
@@ -259,20 +271,23 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             val otherFood = groups.any { it.timestamp > group.timestamp && it.timestamp <= end }
             val otherBolus = manualBoluses.any { it.timestamp > group.timestamp + MEAL_BOLUS_AFTER && it.timestamp <= end }
             result.add(
-                MealResult(
-                    daysAgo = daysAgo(group.timestamp, group.utcOffset),
-                    hour = localHour(group.timestamp, group.utcOffset),
-                    carbsGrams = group.amount.round1(),
-                    extendedCarbs = group.extended,
-                    bolusUnits = bolus.round2(),
-                    startMgdl = start.value.round1(),
-                    peakMgdl = peak.value.round1(),
-                    minutesToPeak = ((peak.timestamp - group.timestamp) / MS_MINUTE).toInt(),
-                    minMgdl = series.minOf { it.value }.round1(),
-                    endMgdl = glucoseNear(end, END_READING_DISTANCE)?.value?.round1(),
-                    smbUnits = smbUnitsBetween(group.timestamp, end).round2(),
-                    clean = !otherFood && !otherBolus,
-                    activity = activityAt(group.timestamp, end)
+                Timed(
+                    group.timestamp, group.utcOffset,
+                    MealResult(
+                        daysAgo = daysAgo(group.timestamp, group.utcOffset),
+                        hour = localHour(group.timestamp, group.utcOffset),
+                        carbsGrams = group.amount.round1(),
+                        extendedCarbs = group.extended,
+                        bolusUnits = bolus.round2(),
+                        startMgdl = start.value.round1(),
+                        peakMgdl = peak.value.round1(),
+                        minutesToPeak = ((peak.timestamp - group.timestamp) / MS_MINUTE).toInt(),
+                        minMgdl = series.minOf { it.value }.round1(),
+                        endMgdl = glucoseNear(end, END_READING_DISTANCE)?.value?.round1(),
+                        smbUnits = smbUnitsBetween(group.timestamp, end).round2(),
+                        clean = !otherFood && !otherBolus,
+                        activity = activityAt(group.timestamp, end)
+                    )
                 )
             )
         }
@@ -298,8 +313,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         return groups
     }
 
-    private fun corrections(): List<CorrectionResult> {
-        val result = mutableListOf<CorrectionResult>()
+    private fun corrections(): List<Timed<CorrectionResult>> {
+        val result = mutableListOf<Timed<CorrectionResult>>()
         for (bolus in manualBoluses) {
             if (bolus.timestamp < periodStart || bolus.amount < CORRECTION_MIN_UNITS) continue
             val end = bolus.timestamp + EVENT_WINDOW
@@ -316,16 +331,19 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             if (slotCount(series.map { it.timestamp }) < EVENT_MIN_SLOTS) continue
             val smb = smbUnitsBetween(bolus.timestamp, end)
             result.add(
-                CorrectionResult(
-                    daysAgo = daysAgo(bolus.timestamp, bolus.utcOffset),
-                    hour = localHour(bolus.timestamp, bolus.utcOffset),
-                    bolusUnits = bolus.amount.round2(),
-                    smbUnits = smb.round2(),
-                    startMgdl = start.value.round1(),
-                    endMgdl = finish.value.round1(),
-                    minMgdl = series.minOf { it.value }.round1(),
-                    dropMgdlPerUnit = ((start.value - finish.value) / (bolus.amount + smb)).round1(),
-                    activity = activityAt(bolus.timestamp, end)
+                Timed(
+                    bolus.timestamp, bolus.utcOffset,
+                    CorrectionResult(
+                        daysAgo = daysAgo(bolus.timestamp, bolus.utcOffset),
+                        hour = localHour(bolus.timestamp, bolus.utcOffset),
+                        bolusUnits = bolus.amount.round2(),
+                        smbUnits = smb.round2(),
+                        startMgdl = start.value.round1(),
+                        endMgdl = finish.value.round1(),
+                        minMgdl = series.minOf { it.value }.round1(),
+                        dropMgdlPerUnit = ((start.value - finish.value) / (bolus.amount + smb)).round1(),
+                        activity = activityAt(bolus.timestamp, end)
+                    )
                 )
             )
         }
@@ -453,16 +471,171 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
     private fun profile(): ProfileSnapshot? {
         val switch = profileSwitches.lastOrNull { it.timestamp <= input.now } ?: return null
-        val isfFactor = if (switch.glucoseUnit == GlucoseUnit.MMOL) Constants.MMOLL_TO_MGDL else 1.0
         return ProfileSnapshot(
             percentage = switch.originalPercentage,
-            timeshiftHours = (switch.originalTimeshift / MS_HOUR).toInt(),
-            basalUnitsPerHour = switch.basalBlocks.toBlockValues(1.0, 2),
-            carbsGramsPerUnit = switch.icBlocks.toBlockValues(1.0, 1),
-            isfMgdlPerUnit = switch.isfBlocks.toBlockValues(isfFactor, 1),
+            timeshiftHours = timeshiftHours(switch),
+            basalUnitsPerHour = basalValues(switch),
+            carbsGramsPerUnit = carbValues(switch),
+            isfMgdlPerUnit = isfValues(switch),
             insulinLabel = switch.iCfg.insulinLabel,
             diaHours = (switch.iCfg.insulinEndTime.toDouble() / MS_HOUR).round1(),
             peakMinutes = (switch.iCfg.insulinPeakTime / MS_MINUTE).toInt()
+        )
+    }
+
+    private fun timeshiftHours(switch: EPS) = (switch.originalTimeshift / MS_HOUR).toInt()
+    private fun basalValues(switch: EPS) = switch.basalBlocks.toBlockValues(1.0, 2)
+    private fun carbValues(switch: EPS) = switch.icBlocks.toBlockValues(1.0, 1)
+    private fun isfValues(switch: EPS): List<ProfileBlockValue> {
+        val factor = if (switch.glucoseUnit == GlucoseUnit.MMOL) Constants.MMOLL_TO_MGDL else 1.0
+        return switch.isfBlocks.toBlockValues(factor, 1)
+    }
+
+    // ---- Profile changes ----
+
+    /** A profile switch that changed the profile values, with the switch before it. */
+    private class SwitchChange(val switch: EPS, val change: ProfileChange)
+
+    /**
+     * Every switch in the period whose basal, carb ratio, ISF or time shift differs from the switch before it.
+     * A switch with the same values (for example a new percentage) is not a change. The values are compared
+     * as they are shown (rounded), so a rounding error does not make a change.
+     */
+    private val switchChanges: List<SwitchChange> by lazy {
+        profileSwitches.zipWithNext().mapNotNull { (old, new) ->
+            if (new.timestamp < periodStart || new.timestamp > input.now) return@mapNotNull null
+            val basal = changeOf(basalValues(old), basalValues(new))
+            val carbs = changeOf(carbValues(old), carbValues(new))
+            val isf = changeOf(isfValues(old), isfValues(new))
+            val shift = changeOf(timeshiftHours(old), timeshiftHours(new))
+            if (basal == null && carbs == null && isf == null && shift == null) return@mapNotNull null
+            SwitchChange(
+                switch = new,
+                change = ProfileChange(
+                    daysAgo = daysAgo(new.timestamp, new.utcOffset),
+                    hour = localHour(new.timestamp, new.utcOffset),
+                    percentage = changeOf(old.originalPercentage, new.originalPercentage),
+                    timeshiftHours = shift,
+                    basalUnitsPerHour = basal,
+                    carbsGramsPerUnit = carbs,
+                    isfMgdlPerUnit = isf
+                )
+            )
+        }
+    }
+
+    private fun <T> changeOf(before: T, after: T): Change<T>? = if (before == after) null else Change(before, after)
+
+    private fun profileHistory(): ProfileHistory = ProfileHistory(
+        changes = switchChanges.takeLast(MAX_PROFILE_CHANGES).map { it.change },
+        latestEffect = switchChanges.lastOrNull()?.let { effectOf(it) }
+    )
+
+    /**
+     * The period is cut at the time of the change. The night that ends on the day of the change is left out:
+     * it can be before or after the change.
+     */
+    private fun effectOf(latest: SwitchChange): ChangeEffect {
+        val time = latest.switch.timestamp
+        val changeDay = latest.change.daysAgo
+        return ChangeEffect(
+            daysAgo = changeDay,
+            daysBefore = ((time - periodStart).toDouble() / MS_DAY).round1(),
+            daysAfter = ((input.now - time).toDouble() / MS_DAY).round1(),
+            glucoseBefore = glucoseStatsOf(glucose.filter { it.timestamp < time }),
+            glucoseAfter = glucoseStatsOf(glucose.filter { it.timestamp >= time }),
+            nightsBefore = nightStatsOf(nightList.filter { it.daysAgo > changeDay }),
+            nightsAfter = nightStatsOf(nightList.filter { it.daysAgo < changeDay }),
+            changedWindows = windowsOf(ChangedSetting.BASAL, latest.change.basalUnitsPerHour, time) +
+                windowsOf(ChangedSetting.CARB_RATIO, latest.change.carbsGramsPerUnit, time) +
+                windowsOf(ChangedSetting.ISF, latest.change.isfMgdlPerUnit, time)
+        )
+    }
+
+    /** One window for each time of the day where [setting] changed at [time]. Empty when it did not change. */
+    private fun windowsOf(setting: ChangedSetting, change: Change<List<ProfileBlockValue>>?, time: Long): List<ChangedWindow> {
+        if (change == null) return emptyList()
+        return changedRanges(change.before, change.after).map { (from, to) ->
+            ChangedWindow(
+                setting = setting,
+                startMinute = from,
+                endMinute = to,
+                before = windowStats(setting, from, to, periodStart, time),
+                after = windowStats(setting, from, to, time, input.now + 1)
+            )
+        }
+    }
+
+    private fun mealStatsOf(meals: List<MealResult>): MealStats? {
+        if (meals.isEmpty()) return null
+        return MealStats(
+            count = meals.size,
+            avgRiseMgdl = meals.map { it.peakMgdl - it.startMgdl }.average().round1(),
+            avgMinMgdl = meals.map { it.minMgdl }.average().round1()
+        )
+    }
+
+    private fun correctionStatsOf(corrections: List<CorrectionResult>): CorrectionStats? {
+        if (corrections.isEmpty()) return null
+        return CorrectionStats(count = corrections.size, avgDropMgdlPerUnit = corrections.map { it.dropMgdlPerUnit }.average().round1())
+    }
+
+    private fun nightStatsOf(nights: List<NightResult>): NightStats? {
+        if (nights.isEmpty()) return null
+        return NightStats(
+            count = nights.size,
+            avgDriftMgdlPerHour = nights.map { it.driftMgdlPerHour }.average().round1(),
+            avgSmbUnits = nights.map { it.smbUnits }.average().round2(),
+            avgMinimumTempMinutes = nights.map { it.minimumTempMinutes }.average().roundToInt()
+        )
+    }
+
+    /** The times of the day, in steps of 30 minutes, where the value is not the same. Neighbours are joined. */
+    private fun changedRanges(before: List<ProfileBlockValue>, after: List<ProfileBlockValue>): List<Pair<Int, Int>> {
+        fun valueAt(blocks: List<ProfileBlockValue>, minute: Int) = blocks.lastOrNull { it.startMinute <= minute }?.value
+        val ranges = mutableListOf<Pair<Int, Int>>()
+        var start: Int? = null
+        for (minute in 0 until MINUTES_PER_DAY step RANGE_STEP_MINUTES) {
+            val changed = valueAt(before, minute) != valueAt(after, minute)
+            if (changed && start == null) start = minute
+            if (!changed && start != null) {
+                ranges.add(Pair(start, minute))
+                start = null
+            }
+        }
+        if (start != null) ranges.add(Pair(start, MINUTES_PER_DAY))
+        return ranges
+    }
+
+    /**
+     * The readings and the SMB between [from] (included) and [to] (not included) in the time of day [startMinute]
+     * until [endMinute]. For a change of the carb ratio the clean meals that start in the window are added, for a
+     * change of the ISF the corrections.
+     */
+    private fun windowStats(setting: ChangedSetting, startMinute: Int, endMinute: Int, from: Long, to: Long): WindowStats {
+        fun inWindow(time: Long, offset: Long) = ((time + offset).mod(MS_DAY) / MS_MINUTE).toInt() in startMinute until endMinute
+        fun day(time: Long, offset: Long) = (time + offset).floorDiv(MS_DAY)
+        val neededSlots = (endMinute - startMinute) / SLOT_MINUTES * NIGHT_MIN_COVERAGE
+        val goodDays = glucose
+            .filter { it.timestamp in from until to && inWindow(it.timestamp, it.utcOffset) }
+            .groupBy { day(it.timestamp, it.utcOffset) }
+            .filterValues { slotCount(it.map { reading -> reading.timestamp }) >= neededSlots }
+        val readings = goodDays.values.flatten()
+        val smb = smbs
+            .filter { it.timestamp in from until to && inWindow(it.timestamp, it.utcOffset) && day(it.timestamp, it.utcOffset) in goodDays }
+            .sumOf { it.amount }
+        return WindowStats(
+            days = goodDays.size,
+            meanMgdl = readings.takeIf { it.isNotEmpty() }?.map { it.value }?.average()?.round1(),
+            belowRangePercent = percentOf(readings) { it.value < LOW },
+            aboveRangePercent = percentOf(readings) { it.value > HIGH },
+            smbUnitsPerDay = if (goodDays.isEmpty()) 0.0 else (smb / goodDays.size).round2(),
+            meals = if (setting != ChangedSetting.CARB_RATIO) null else mealStatsOf(
+                mealList.filter { it.time in from until to && inWindow(it.time, it.utcOffset) && it.value.clean }.map { it.value }
+            ),
+            corrections = if (setting != ChangedSetting.ISF) null else correctionStatsOf(
+                correctionList.filter { it.time in from until to && inWindow(it.time, it.utcOffset) }.map { it.value }
+            )
         )
     }
 
@@ -575,6 +748,12 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
         const val BLOCK_HOURS = 2
         const val BLOCK_COUNT = 12
+
+        // Profile changes: the latest ones are listed. Changed times of the day are found in steps of 30 minutes.
+        const val MAX_PROFILE_CHANGES = 10
+        const val MINUTES_PER_DAY = 24 * 60
+        const val RANGE_STEP_MINUTES = 30
+        const val SLOT_MINUTES = 5
 
         // Night: from 22:00 to 08:00. A quiet stretch starts 5 hours after the last food or manual bolus
         // (the insulin of a meal still works after 3 hours), lasts at least 3 hours, and 70 % of its time

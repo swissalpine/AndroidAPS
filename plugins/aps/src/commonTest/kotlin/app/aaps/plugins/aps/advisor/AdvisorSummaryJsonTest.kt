@@ -55,6 +55,52 @@ class AdvisorSummaryJsonTest {
     }
 
     @Test
+    fun `a profile change writes only the values that changed`() {
+        val change = ProfileChange(
+            daysAgo = 5, hour = 12, percentage = null, timeshiftHours = null,
+            basalUnitsPerHour = Change(listOf(ProfileBlockValue(120, 1.0)), listOf(ProfileBlockValue(120, 1.1))),
+            carbsGramsPerUnit = null, isfMgdlPerUnit = null
+        )
+        val summary = emptySummary().copy(profileHistory = ProfileHistory(changes = listOf(change), latestEffect = null))
+        val json = parse(AdvisorSummaryJson.encode(summary))
+
+        val history = json["profileHistory"]!!.jsonObject
+        val written = (history["changes"] as JsonArray)[0].jsonObject
+        assertEquals("5", written["daysAgo"]!!.jsonPrimitive.content)
+        assertFalse("percentage" in written)
+        assertFalse("isfMgdlPerUnit" in written)
+        val after = written["basalUnitsPerHour"]!!.jsonObject["after"] as JsonArray
+        assertEquals("1.1", after[0].jsonObject["value"]!!.jsonPrimitive.content)
+        assertFalse("latestEffect" in history)
+    }
+
+    @Test
+    fun `a changed window writes the setting and only the stats that exist`() {
+        val none = WindowStats(days = 5, meanMgdl = 100.0, belowRangePercent = 0.0, aboveRangePercent = 0.0, smbUnitsPerDay = 0.3, meals = null, corrections = null)
+        val withMeals = none.copy(meals = MealStats(count = 3, avgRiseMgdl = 40.0, avgMinMgdl = 90.0))
+        val effect = ChangeEffect(
+            daysAgo = 5, daysBefore = 5.0, daysAfter = 5.0, glucoseBefore = null, glucoseAfter = null,
+            nightsBefore = null, nightsAfter = null,
+            changedWindows = listOf(ChangedWindow(ChangedSetting.CARB_RATIO, 420, 600, none, withMeals))
+        )
+        val summary = emptySummary().copy(profileHistory = ProfileHistory(changes = emptyList(), latestEffect = effect))
+        val window = (parse(AdvisorSummaryJson.encode(summary))["profileHistory"]!!.jsonObject["latestEffect"]!!.jsonObject["changedWindows"] as JsonArray)[0].jsonObject
+
+        assertEquals("carb_ratio", window["setting"]!!.jsonPrimitive.content)
+        assertFalse("meals" in window["before"]!!.jsonObject)
+        assertEquals("3", window["after"]!!.jsonObject["meals"]!!.jsonObject["count"]!!.jsonPrimitive.content)
+        assertFalse("corrections" in window["after"]!!.jsonObject)
+    }
+
+    @Test
+    fun `without a change the history has an empty list`() {
+        val history = parse(AdvisorSummaryJson.encode(emptySummary()))["profileHistory"]!!.jsonObject
+
+        assertEquals(0, (history["changes"] as JsonArray).size)
+        assertFalse("latestEffect" in history)
+    }
+
+    @Test
     fun `no time stamp and no note is in the text`() {
         val text = AdvisorSummaryJson.encode(emptySummary())
 
