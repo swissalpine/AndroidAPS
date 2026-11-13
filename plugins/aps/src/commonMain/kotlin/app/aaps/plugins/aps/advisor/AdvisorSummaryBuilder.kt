@@ -396,6 +396,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         val loopUnits = smb + extraBasal
         if (loopUnits < LOOP_CORRECTION_MIN_UNITS) return null
         val isf = isfAt(time, start.utcOffset)
+        val effect = insulinEffect(time, end)
+        val effectRatio = effect.expectedDrop?.takeIf { it >= LOOP_MIN_EXPECTED_DROP }?.let { (start.value - finish.value) / it }
         return Timed(
             time, start.utcOffset,
             LoopCorrectionResult(
@@ -410,9 +412,41 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
                 dropMgdlPerUnit = ((start.value - finish.value) / loopUnits).round1(),
                 profileIsfMgdlPerUnit = isf?.round1(),
                 expectedDropMgdl = isf?.let { (it * loopUnits).round1() },
-                activity = activityAt(time, end)
+                activity = activityAt(time, end),
+                iobAtStartUnits = effect.iobAtStart,
+                dynamicIsf = effect.dynamic,
+                isfUsedMgdlPerUnit = effectRatio?.let { effect.isfUsed?.round1() },
+                expectedDropFromInsulinMgdl = effectRatio?.let { effect.expectedDrop?.round1() },
+                effectRatio = effectRatio?.round2(),
+                impliedIsfMgdlPerUnit = effectRatio?.let { ratio -> effect.isfUsed?.let { (it * ratio).round1() } }
             )
         )
+    }
+
+    private class InsulinEffect(val iobAtStart: Double?, val dynamic: Boolean, val isfUsed: Double?, val expectedDrop: Double?)
+
+    private val loopRuns = input.loopRuns.sortedBy { it.timestamp }
+
+    /**
+     * What the insulin of the loop runs adds up to in the stretch from [time] to [end]. Each run gives the net insulin
+     * activity (U per minute, relative to the profile basal) and the ISF it used, so the fall that the insulin should
+     * cause is the sum of activity times ISF times minutes. A basal hole before the stretch is already in the activity,
+     * because it is negative then. Null when a stretch cannot be judged: dynamic ISF, too few runs, or an unknown ISF.
+     */
+    private fun insulinEffect(time: Long, end: Long): InsulinEffect {
+        val iobAtStart = loopRuns.lastOrNull { it.timestamp in (time - LOOP_RUN_MAX_GAP)..time }?.iob?.round2()
+        val runs = loopRuns.filter { it.timestamp in time..end }
+        if (runs.any { it.dynamicIsf }) return InsulinEffect(iobAtStart, true, null, null)
+        if (runs.size < (end - time) / LOOP_RUN_SLOT * LOOP_RUN_MIN_COVERAGE || runs.any { it.isfMgdlPerUnit == null }) {
+            return InsulinEffect(iobAtStart, false, null, null)
+        }
+        var expected = 0.0
+        runs.forEachIndexed { index, run ->
+            val next = runs.getOrNull(index + 1)?.timestamp ?: end
+            val minutes = min(next - run.timestamp, LOOP_RUN_MAX_GAP).toDouble() / MS_MINUTE
+            expected += run.activity * (run.isfMgdlPerUnit ?: 0.0) * minutes
+        }
+        return InsulinEffect(iobAtStart, false, runs.mapNotNull { it.isfMgdlPerUnit }.average(), expected)
     }
 
     /** A suspected compression low with the times of its first and its last reading. */
@@ -833,7 +867,9 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         return LoopCorrectionStats(
             count = corrections.size,
             avgDropMgdlPerUnit = corrections.map { it.dropMgdlPerUnit }.average().round1(),
-            avgProfileIsfMgdlPerUnit = corrections.mapNotNull { it.profileIsfMgdlPerUnit }.takeIf { it.isNotEmpty() }?.average()?.round1()
+            avgProfileIsfMgdlPerUnit = corrections.mapNotNull { it.profileIsfMgdlPerUnit }.takeIf { it.isNotEmpty() }?.average()?.round1(),
+            avgEffectRatio = corrections.mapNotNull { it.effectRatio }.takeIf { it.isNotEmpty() }?.average()?.round2(),
+            avgImpliedIsfMgdlPerUnit = corrections.mapNotNull { it.impliedIsfMgdlPerUnit }.takeIf { it.isNotEmpty() }?.average()?.round1()
         )
     }
 
@@ -989,6 +1025,13 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         // Corrections by the loop: SMB plus extra temp basal of at least this many units in the four hours.
         const val LOOP_CORRECTION_MIN_UNITS = 0.5
         const val LOOP_SCAN_STEP = 30 * MS_MINUTE
+
+        // The loop runs every 5 minutes. A stretch needs runs for 70 % of its time. A gap between two runs counts for at
+        // most 15 minutes. An expected fall below 20 mg/dL is too small to divide by.
+        const val LOOP_RUN_SLOT = 5 * MS_MINUTE
+        const val LOOP_RUN_MIN_COVERAGE = 0.7
+        const val LOOP_RUN_MAX_GAP = 15 * MS_MINUTE
+        const val LOOP_MIN_EXPECTED_DROP = 20.0
         const val MAX_LOOP_CORRECTIONS = 20
 
         // Suspected compression lows: a dip of at least 20 mg/dL at night that is back to within 10 mg/dL of the start

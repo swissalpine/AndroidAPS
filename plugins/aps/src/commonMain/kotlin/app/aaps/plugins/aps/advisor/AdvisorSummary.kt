@@ -254,7 +254,22 @@ data class LoopCorrectionResult(
     val profileIsfMgdlPerUnit: Double?,
     /** What the profile ISF would give for [loopUnits]. Null when the ISF is unknown. */
     val expectedDropMgdl: Double?,
-    val activity: ActivityContext
+    val activity: ActivityContext,
+    /** The net insulin on board of the loop at the start, in U. Negative means that insulin was missing (a basal hole). Null when no run is near. */
+    val iobAtStartUnits: Double? = null,
+    /** True when the loop used dynamic ISF in this stretch. Then the ISF is worked out by the loop and not judged. */
+    val dynamicIsf: Boolean = false,
+    /** The mean ISF the loop used in the stretch, in mg/dL per unit. Null when not judged. */
+    val isfUsedMgdlPerUnit: Double? = null,
+    /**
+     * The fall that the insulin activity of the loop runs and the ISF they used add up to, in mg/dL. It is net of the
+     * profile basal, so a basal hole before the stretch is taken into account. Null when not judged.
+     */
+    val expectedDropFromInsulinMgdl: Double? = null,
+    /** The real fall divided by [expectedDropFromInsulinMgdl]. Below 1 the insulin worked weaker than the loop thought. Null when not judged. */
+    val effectRatio: Double? = null,
+    /** [isfUsedMgdlPerUnit] times [effectRatio]: the ISF that the stretch shows. Compare it with [profileIsfMgdlPerUnit]. Null when not judged. */
+    val impliedIsfMgdlPerUnit: Double? = null
 )
 
 /**
@@ -498,7 +513,11 @@ data class LoopCorrectionStats(
     val count: Int,
     val avgDropMgdlPerUnit: Double,
     /** The mean ISF of the profile at the start of these stretches. Null when it was unknown for all of them. */
-    val avgProfileIsfMgdlPerUnit: Double?
+    val avgProfileIsfMgdlPerUnit: Double?,
+    /** The mean of [LoopCorrectionResult.effectRatio] over the stretches that have one. Null when none has. */
+    val avgEffectRatio: Double? = null,
+    /** The mean of [LoopCorrectionResult.impliedIsfMgdlPerUnit] over the stretches that have one. Null when none has. */
+    val avgImpliedIsfMgdlPerUnit: Double? = null
 )
 
 /**

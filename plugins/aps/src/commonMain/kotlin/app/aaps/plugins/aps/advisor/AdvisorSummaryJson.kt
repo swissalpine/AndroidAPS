@@ -160,6 +160,12 @@ object AdvisorSummaryJson {
         put("dropMgdlPerUnit", c.dropMgdlPerUnit)
         number("profileIsfMgdlPerUnit", c.profileIsfMgdlPerUnit)
         number("expectedDropMgdl", c.expectedDropMgdl)
+        number("iobAtStartUnits", c.iobAtStartUnits)
+        if (c.dynamicIsf) put("dynamicIsf", true)
+        number("isfUsedMgdlPerUnit", c.isfUsedMgdlPerUnit)
+        number("expectedDropFromInsulinMgdl", c.expectedDropFromInsulinMgdl)
+        number("effectRatio", c.effectRatio)
+        number("impliedIsfMgdlPerUnit", c.impliedIsfMgdlPerUnit)
         put("activity", activity(c.activity))
     }
 
@@ -313,6 +319,8 @@ object AdvisorSummaryJson {
                 put("count", it.count)
                 put("avgDropMgdlPerUnit", it.avgDropMgdlPerUnit)
                 number("avgProfileIsfMgdlPerUnit", it.avgProfileIsfMgdlPerUnit)
+                number("avgEffectRatio", it.avgEffectRatio)
+                number("avgImpliedIsfMgdlPerUnit", it.avgImpliedIsfMgdlPerUnit)
             })
         }
     }

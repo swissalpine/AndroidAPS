@@ -44,8 +44,46 @@ data class AdvisorInput(
      * Entries of the type Cannula Change and Sensor Change. They should start some days before the period,
      * because the last change before an event can be older than the period.
      */
-    val deviceChanges: List<TE> = emptyList()
+    val deviceChanges: List<TE> = emptyList(),
+    /** What the loop knew in each run (insulin activity, IOB, glucose change, ISF). Used to judge the ISF. */
+    val loopRuns: List<LoopRunSample> = emptyList()
 )
+
+/**
+ * The inputs of one loop run that matter for the ISF. All glucose values are in mg/dL.
+ *
+ * @property iob net insulin on board in U. 0 means the insulin level is what the profile basal gives, a negative value
+ *   means that insulin is missing (for example after a low temp basal), a positive value that there is too much
+ * @property activity net insulin activity in U per minute, also relative to the profile basal. Negative after a low temp basal
+ * @property minDeltaMgdl the smaller of the glucose change in 5 minutes and the short average, as the loop uses it
+ * @property isfMgdlPerUnit the ISF the loop used in this run. Null when it is not known or the run used dynamic ISF
+ * @property dynamicIsf the loop worked out the ISF itself (dynamic ISF). It does not come from the profile
+ */
+data class LoopRunSample(
+    val timestamp: Long,
+    val iob: Double,
+    val activity: Double,
+    val minDeltaMgdl: Double,
+    val isfMgdlPerUnit: Double?,
+    val dynamicIsf: Boolean
+)
+
+/** Which ISF the loop used in a run. */
+object LoopIsf {
+
+    /**
+     * Dynamic ISF gives null: the loop works it out and the profile ISF plays no role, so it is not judged.
+     * AutoISF changes the profile ISF, so its value is used when it is set. Else the profile ISF divided by the
+     * sensitivity ratio is what the loop used (SMB and AMA without dynamic ISF). Null when there is no usable value.
+     */
+    fun used(dynamicIsf: Boolean, autoIsf: Boolean, variableSens: Double?, profileSens: Double?, sensitivityRatio: Double?): Double? {
+        if (dynamicIsf) return null
+        if (autoIsf && variableSens != null && variableSens.isFinite() && variableSens > 0.0) return variableSens
+        if (profileSens == null || !profileSens.isFinite() || profileSens <= 0.0) return null
+        if (sensitivityRatio == null || !sensitivityRatio.isFinite() || sensitivityRatio <= 0.0) return null
+        return profileSens / sensitivityRatio
+    }
+}
 
 /** The sensitivity the loop used in one run. */
 data class LoopRatioSample(

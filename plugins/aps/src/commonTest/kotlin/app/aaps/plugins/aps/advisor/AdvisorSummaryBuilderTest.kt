@@ -83,13 +83,14 @@ class AdvisorSummaryBuilderTest {
         tempBasals: List<TB> = emptyList(),
         ketoProtectionPercent: Int? = null,
         loopRatios: List<LoopRatioSample> = emptyList(),
-        deviceChanges: List<TE> = emptyList()
+        deviceChanges: List<TE> = emptyList(),
+        loopRuns: List<LoopRunSample> = emptyList()
     ) = AdvisorInput(
         now = now, nowUtcOffset = 0L, days = days,
         glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals,
         therapyEvents = therapyEvents, tempTargets = tempTargets,
         effectiveProfileSwitches = profileSwitches, steps = steps, heartRates = heartRates,
-        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent, deviceChanges = deviceChanges
+        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent, deviceChanges = deviceChanges, loopRuns = loopRuns
     )
 
     private fun heartRate(time: Long, bpm: Double) = HR(duration = 60_000L, timestamp = time, beatsPerMinute = bpm, device = "test", utcOffset = 0L)
@@ -263,8 +264,20 @@ class AdvisorSummaryBuilderTest {
         boluses: List<BS> = fourSmbs(0.5),
         carbs: List<CA> = emptyList(),
         tempBasals: List<TB> = emptyList(),
-        profileSwitches: List<EPS> = listOf(profileSwitch(at(10, 0), 100))
-    ) = input(glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals, profileSwitches = profileSwitches)
+        profileSwitches: List<EPS> = listOf(profileSwitch(at(10, 0), 100)),
+        loopRuns: List<LoopRunSample> = emptyList()
+    ) = input(glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals, profileSwitches = profileSwitches, loopRuns = loopRuns)
+
+    /** One loop run every 5 minutes with the same values. The default span is the stretch of [loopGlucose]. */
+    private fun runs(
+        activity: Double = 0.005,
+        isf: Double? = 60.0,
+        dynamic: Boolean = false,
+        iob: Double = 0.0,
+        from: Long = at(19, 2),
+        to: Long = at(19, 6)
+    ): List<LoopRunSample> = generateSequence(from) { it + 5 * minute }.takeWhile { it <= to }
+        .map { LoopRunSample(it, iob, activity, 0.0, isf, dynamic) }.toList()
 
     @Test
     fun `a quiet four hours with a high start and SMB is a correction by the loop`() {
@@ -341,6 +354,78 @@ class AdvisorSummaryBuilderTest {
 
         assertEquals(listOf(2, 6), result.map { it.hour })
         assertEquals(listOf(2.0, 2.0), result.map { it.smbUnits })
+    }
+
+    @Test
+    fun `the loop runs give the fall that the insulin should cause and the ratio to the real fall`() {
+        val found = build(loopInput(loopRuns = runs())).loopCorrections.single()
+
+        // 0.005 U/min times 60 mg/dL per U for 240 minutes is 72 mg/dL. The real fall is 60.
+        assertEquals(72.0, found.expectedDropFromInsulinMgdl)
+        assertEquals(60.0, found.isfUsedMgdlPerUnit)
+        assertEquals(0.83, found.effectRatio)
+        assertEquals(50.0, found.impliedIsfMgdlPerUnit)
+        assertFalse(found.dynamicIsf)
+    }
+
+    @Test
+    fun `the insulin on board at the start is in the result, a basal hole is negative`() {
+        val found = build(loopInput(loopRuns = runs(iob = -0.7))).loopCorrections.single()
+
+        assertEquals(-0.7, found.iobAtStartUnits)
+    }
+
+    @Test
+    fun `a negative activity at first, from a basal hole, lowers the fall that is expected`() {
+        // 65 minutes with -0.005 U/min (insulin is missing), then 175 minutes with +0.005: 110 minutes of net insulin.
+        val hole = runs(activity = -0.005, to = at(19, 3)) + runs(activity = 0.005, from = at(19, 3, 5))
+
+        val found = build(loopInput(loopRuns = hole)).loopCorrections.single()
+
+        // 0.005 U/min times 60 mg/dL per U times 110 minutes.
+        assertEquals(33.0, found.expectedDropFromInsulinMgdl)
+    }
+
+    @Test
+    fun `a stretch with dynamic ISF is marked and not judged`() {
+        val found = build(loopInput(loopRuns = runs(isf = null, dynamic = true))).loopCorrections.single()
+
+        assertTrue(found.dynamicIsf)
+        assertNull(found.effectRatio)
+        assertNull(found.impliedIsfMgdlPerUnit)
+        assertNull(found.expectedDropFromInsulinMgdl)
+    }
+
+    @Test
+    fun `too few runs, an unknown ISF or a tiny expected fall give no ratio`() {
+        val few = build(loopInput(loopRuns = runs(to = at(19, 3)))).loopCorrections.single()
+        val unknown = build(loopInput(loopRuns = runs(isf = null))).loopCorrections.single()
+        // 0.0005 U/min times 60 for 240 minutes is 7.2 mg/dL, too small to divide by.
+        val tiny = build(loopInput(loopRuns = runs(activity = 0.0005))).loopCorrections.single()
+
+        assertNull(few.effectRatio)
+        assertNull(unknown.effectRatio)
+        assertNull(tiny.effectRatio)
+        assertFalse(unknown.dynamicIsf)
+    }
+
+    @Test
+    fun `without loop runs the old numbers stay and the new ones are empty`() {
+        val found = build(loopInput()).loopCorrections.single()
+
+        assertEquals(30.0, found.dropMgdlPerUnit)
+        assertNull(found.iobAtStartUnits)
+        assertNull(found.effectRatio)
+    }
+
+    @Test
+    fun `the ratio of the loop runs is in the text for the AI`() {
+        val text = AdvisorSummaryJson.encode(build(loopInput(loopRuns = runs())))
+
+        assertTrue(text.contains("\"effectRatio\":0.83"))
+        assertTrue(text.contains("\"impliedIsfMgdlPerUnit\":50.0"))
+        assertTrue(text.contains("\"iobAtStartUnits\":0.0"))
+        assertFalse(text.contains("dynamicIsf"))
     }
 
     @Test
@@ -1108,6 +1193,21 @@ class AdvisorSummaryBuilderTest {
         assertTrue(after.count >= 1)
         // The ISF of the new profile.
         assertEquals(1.8, after.avgProfileIsfMgdlPerUnit)
+    }
+
+    @Test
+    fun `an ISF window has the mean ratio of the loop runs`() {
+        val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(isfBlocks = listOf(Block(day, 1.8)))
+        val smbs = listOf(at(17, 14), at(17, 15), at(17, 16), at(17, 17)).map { smb(it, 1.0) }
+        val loopRuns = runs(from = at(15, 12), to = now)
+        val window = assertNotNull(
+            build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), changed)).copy(boluses = smbs, loopRuns = loopRuns))
+                .profileHistory.latestEffect
+        ).changedWindows.single()
+
+        // The glucose is flat (150) while the insulin should have lowered it, so the real fall is 0.
+        assertEquals(0.0, window.after.loopCorrections?.avgEffectRatio)
+        assertNull(window.before.loopCorrections)
     }
 
     @Test

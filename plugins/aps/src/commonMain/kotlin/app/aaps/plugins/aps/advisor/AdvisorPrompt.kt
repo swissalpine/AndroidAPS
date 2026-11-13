@@ -55,7 +55,17 @@ object AdvisorPrompt {
           where only the loop worked on the high value. loopUnits = smbUnits + extraBasalUnits (temp basal above the profile
           basal; negative when the loop ran below it). dropMgdlPerUnit is the fall per unit of loopUnits. expectedDropMgdl is
           what the profile ISF (profileIsfMgdlPerUnit) gives for these units. A person who lets the loop correct has few manual
-          corrections, so use these stretches for the ISF. If the real drop is clearly smaller than expectedDropMgdl in at
+          corrections, so use these stretches for the ISF. The better numbers are made from what the loop knew in each run:
+          iobAtStartUnits is the net insulin on board at the start (0 = the insulin level of the profile basal, negative =
+          insulin was missing, for example after a low temp basal, positive = too much). expectedDropFromInsulinMgdl is the
+          fall that the insulin activity of the runs should cause with the ISF they used (isfUsedMgdlPerUnit); it is net of the
+          profile basal, so a basal hole before the stretch is already taken into account. effectRatio is the real fall
+          divided by that; below 1 the insulin worked weaker than the loop thought, above 1 stronger. impliedIsfMgdlPerUnit =
+          isfUsedMgdlPerUnit times effectRatio is the ISF the stretch shows; compare it with profileIsfMgdlPerUnit. Prefer
+          effectRatio and impliedIsfMgdlPerUnit to dropMgdlPerUnit. When they are absent the stretch could not be judged.
+          dynamicIsf = true means the loop worked out the ISF itself (dynamic ISF): never propose a change of the profile ISF
+          from such a stretch. AutoISF changes the profile ISF, so a difference between the implied ISF and the profile ISF
+          may come from AutoISF and not from the profile; say so. If the real drop is clearly smaller than expectedDropMgdl in at
           least 5 stretches, the ISF may be too high (too weak); if it is clearly larger, the ISF may be too low. Be careful:
           the basal insulin that is needed anyway is not taken out, and the insulin works longer than 4 hours, so give such a
           finding at most medium confidence. A rising glucose or a drop with very few units says little. Do not say that the
@@ -102,7 +112,7 @@ object AdvisorPrompt {
           changed, with the glucose and the SMB per day in that time before and after. days is the number of days with
           enough readings. For carb_ratio it also has the clean meals that start in the window (count, avgRiseMgdl = peak
           minus start, avgMinMgdl), for isf the corrections (count, avgDropMgdlPerUnit) and the loopCorrections (count,
-          avgDropMgdlPerUnit, avgProfileIsfMgdlPerUnit; the same rules as the top level loopCorrections apply: the basal
+          avgDropMgdlPerUnit, avgProfileIsfMgdlPerUnit, avgEffectRatio, avgImpliedIsfMgdlPerUnit; the same rules as the top level loopCorrections apply: the basal
           insulin is not taken out, so at most medium confidence). Other meals and corrections have
           daysAgo, so compare them with the daysAgo of the change.
         - earlierHints: what you said in the latest earlier reports, newest first, with how many days ago. Each has the title,

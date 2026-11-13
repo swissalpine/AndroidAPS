@@ -2,6 +2,7 @@ package app.aaps.plugins.aps.advisor
 
 import app.aaps.core.data.model.TE
 import app.aaps.core.data.time.systemUtcOffsetAt
+import app.aaps.core.interfaces.aps.APSResult
 import app.aaps.core.interfaces.aps.RT
 import app.aaps.core.interfaces.db.PersistenceLayer
 import app.aaps.core.keys.BooleanKey
@@ -31,7 +32,25 @@ class AdvisorDataCollector(
         val deviceStart = periodStart - DEVICE_CHANGE_MARGIN
 
         // A stored result has no autosensResult. Only its raw data (RT) is stored, so read the ratios from it.
-        val loopRatios = persistenceLayer.getApsResults(periodStart, now).mapNotNull { result ->
+        val apsResults = persistenceLayer.getApsResults(periodStart, now)
+        val loopRuns = apsResults.mapNotNull { result ->
+            val rt = result.rawData() as? RT ?: return@mapNotNull null
+            val iob = result.iobData?.firstOrNull() ?: return@mapNotNull null
+            val glucoseStatus = result.glucoseStatus ?: return@mapNotNull null
+            val autoIsf = rt.algorithm == APSResult.Algorithm.AUTO_ISF
+            val profileSens = if (autoIsf) result.oapsProfileAutoIsf?.sens else result.oapsProfile?.sens
+            val minDelta = minOf(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
+            if (!iob.iob.isFinite() || !iob.activity.isFinite() || !minDelta.isFinite()) return@mapNotNull null
+            LoopRunSample(
+                timestamp = result.date,
+                iob = iob.iob,
+                activity = iob.activity,
+                minDeltaMgdl = minDelta,
+                isfMgdlPerUnit = LoopIsf.used(rt.runningDynamicIsf, autoIsf, rt.variable_sens, profileSens, rt.sensitivityRatio),
+                dynamicIsf = rt.runningDynamicIsf
+            )
+        }
+        val loopRatios = apsResults.mapNotNull { result ->
             val rt = result.rawData() as? RT ?: return@mapNotNull null
             val ratio = rt.sensitivityRatio?.takeIf { it.isFinite() && it > 0.0 } ?: return@mapNotNull null
             LoopRatioSample(
@@ -59,7 +78,8 @@ class AdvisorDataCollector(
             // The floor is only used when the protection is on. Off means the loop can go to zero.
             ketoProtectionPercent = if (preferences.get(BooleanKey.ApsKetoacidosisProtection)) preferences.get(IntKey.ApsKetoacidosisProtectionBasal) else null,
             deviceChanges = persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.CANNULA_CHANGE, true) +
-                persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.SENSOR_CHANGE, true)
+                persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.SENSOR_CHANGE, true),
+            loopRuns = loopRuns
         )
         return AdvisorSummaryBuilder(input).build()
     }
