@@ -248,6 +248,109 @@ class AdvisorSummaryBuilderTest {
         assertTrue(summary.corrections.isEmpty())
     }
 
+    // ---- Corrections by the loop ----
+
+    /** Day 19 from 02:00 to 06:00: from [start] down by 60 mg/dL. */
+    private fun loopGlucose(start: Double = 200.0): List<GV> = readings(at(19, 2), at(19, 6)) { m -> start - 60.0 * m / 240.0 }
+
+    private fun smb(time: Long, units: Double) = bolus(time, units, BS.Type.SMB)
+
+    private fun fourSmbs(each: Double) = listOf(at(19, 2, 10), at(19, 3), at(19, 4), at(19, 5)).map { smb(it, each) }
+
+    private fun loopInput(
+        glucose: List<GV> = loopGlucose(),
+        boluses: List<BS> = fourSmbs(0.5),
+        carbs: List<CA> = emptyList(),
+        tempBasals: List<TB> = emptyList(),
+        profileSwitches: List<EPS> = listOf(profileSwitch(at(10, 0), 100))
+    ) = input(glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals, profileSwitches = profileSwitches)
+
+    @Test
+    fun `a quiet four hours with a high start and SMB is a correction by the loop`() {
+        val found = build(loopInput()).loopCorrections.single()
+
+        assertEquals(1, found.daysAgo)
+        assertEquals(2, found.hour)
+        assertEquals(200.0, found.startMgdl)
+        assertEquals(140.0, found.endMgdl)
+        assertEquals(2.0, found.smbUnits)
+        assertEquals(0.0, found.extraBasalUnits)
+        assertEquals(2.0, found.loopUnits)
+        assertEquals(30.0, found.dropMgdlPerUnit)
+    }
+
+    @Test
+    fun `the profile ISF and the drop it would give are in the result`() {
+        val found = build(loopInput()).loopCorrections.single()
+
+        // The test profile has an ISF of 2.0 for the whole day.
+        assertEquals(2.0, found.profileIsfMgdlPerUnit)
+        assertEquals(4.0, found.expectedDropMgdl)
+    }
+
+    @Test
+    fun `a temp basal above the profile basal counts as insulin and one below counts negative`() {
+        // The profile basal at 02:00 is 0.8 U/h. 2.0 U/h for two hours is 2.4 U more.
+        val high = build(loopInput(boluses = fourSmbs(0.25), tempBasals = listOf(tempBasal(at(19, 2), 2.0, true, 120)))).loopCorrections.single()
+        // 0.0 U/h for two hours is 1.6 U less, and the SMB is 4.0 U.
+        val low = build(loopInput(boluses = fourSmbs(1.0), tempBasals = listOf(tempBasal(at(19, 2), 0.0, true, 120)))).loopCorrections.single()
+
+        assertEquals(2.4, high.extraBasalUnits)
+        assertEquals(3.4, high.loopUnits)
+        assertEquals(-1.6, low.extraBasalUnits)
+        assertEquals(2.4, low.loopUnits)
+    }
+
+    @Test
+    fun `food or a manual bolus in the window or in the 5 hours before gives no correction`() {
+        val before = build(loopInput(boluses = fourSmbs(0.5) + bolus(at(19, 0), 3.0)))
+        val inside = build(loopInput(boluses = fourSmbs(0.5) + bolus(at(19, 4), 1.0)))
+        val food = build(loopInput(carbs = listOf(carbs(at(19, 1), 20.0))))
+
+        assertTrue(before.loopCorrections.isEmpty())
+        assertTrue(inside.loopCorrections.isEmpty())
+        assertTrue(food.loopCorrections.isEmpty())
+    }
+
+    @Test
+    fun `a start below 130 or too little insulin gives no correction`() {
+        assertTrue(build(loopInput(glucose = loopGlucose(start = 125.0))).loopCorrections.isEmpty())
+        assertTrue(build(loopInput(boluses = listOf(smb(at(19, 3), 0.3)))).loopCorrections.isEmpty())
+    }
+
+    @Test
+    fun `without a profile there is no correction by the loop`() {
+        assertTrue(build(loopInput(profileSwitches = emptyList())).loopCorrections.isEmpty())
+    }
+
+    @Test
+    fun `a gap in the readings gives no correction`() {
+        val gap = loopGlucose().filter { it.timestamp < at(19, 3) || it.timestamp > at(19, 4, 30) }
+
+        assertTrue(build(loopInput(glucose = gap)).loopCorrections.isEmpty())
+    }
+
+    @Test
+    fun `the stretches do not overlap, so no insulin is counted twice`() {
+        // Eight hours with four SMB: the first stretch takes the first two, the next one starts after it.
+        val glucose = readings(at(19, 2), at(19, 10)) { m -> 220.0 - 40.0 * (m % 240) / 240.0 }
+        val boluses = listOf(at(19, 3), at(19, 5), at(19, 7), at(19, 9)).map { smb(it, 1.0) }
+
+        val result = build(loopInput(glucose = glucose, boluses = boluses)).loopCorrections
+
+        assertEquals(listOf(2, 6), result.map { it.hour })
+        assertEquals(listOf(2.0, 2.0), result.map { it.smbUnits })
+    }
+
+    @Test
+    fun `the corrections by the loop are in the text for the AI`() {
+        val text = AdvisorSummaryJson.encode(build(loopInput()))
+
+        assertTrue(text.contains("\"loopCorrections\":[{"))
+        assertTrue(text.contains("\"expectedDropMgdl\":4.0"))
+        assertTrue(text.contains("\"extraBasalUnits\":0.0"))
+    }
+
     // ---- Nights ----
 
     /** From 21:00 on day 18 to 08:30 on day 19, rising 0.1 mg/dL every minute, which is 6 mg/dL per hour. */

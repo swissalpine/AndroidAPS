@@ -46,9 +46,21 @@ object AdvisorPrompt {
           A night with much insulin before it is a weak hint about basal. minimumTempMinutes are the minutes the loop ran
           its lowest temp basal (zero, or the floor of the ketoacidosis protection).
         - meals: carbs with a manual bolus, looked at for 4 hours. smbUnits is extra insulin from the loop. clean=false
-          means other food or a bolus came in the same 4 hours, so be careful with such meals.
+          means other food or a bolus came in the same 4 hours, so be careful with such meals. If many clean meals of the
+          same time of day need a lot of extra smbUnits and rise high, the carb ratio may be too weak (too many grams per
+          unit); if they fall low with little smbUnits, it may be too strong. The SMB and the temp basal of the loop depend
+          on the ISF and the carb ratio, so read them as a hint for these settings, not only for the basal.
         - corrections: boluses without food. dropMgdlPerUnit is the fall in 4 hours per unit (bolus and SMB together).
-        - activity (in nights, meals, corrections): the situation before the event. exerciseEventNearby is a sport entry
+        - loopCorrections: four hours that start above 130 with no food and no manual bolus (also none in the 5 hours before),
+          where only the loop worked on the high value. loopUnits = smbUnits + extraBasalUnits (temp basal above the profile
+          basal; negative when the loop ran below it). dropMgdlPerUnit is the fall per unit of loopUnits. expectedDropMgdl is
+          what the profile ISF (profileIsfMgdlPerUnit) gives for these units. A person who lets the loop correct has few manual
+          corrections, so use these stretches for the ISF. If the real drop is clearly smaller than expectedDropMgdl in at
+          least 5 stretches, the ISF may be too high (too weak); if it is clearly larger, the ISF may be too low. Be careful:
+          the basal insulin that is needed anyway is not taken out, and the insulin works longer than 4 hours, so give such a
+          finding at most medium confidence. A rising glucose or a drop with very few units says little. Do not say that the
+          ISF cannot be checked when there are loopCorrections.
+        - activity (in nights, meals, corrections, loopCorrections): the situation before the event. exerciseEventNearby is a sport entry
           the person made; they enter sport reliably. activityTempTargetNearby is an activity temp target. heartRate60min*
           is the heart rate of the hour before. steps60min and steps180min are step counts; if stepsMayBeSyncOutlier is
           true they are not reliable. sensitivityRatio is below 1 when the loop gave less insulin (sport), activityRatio is

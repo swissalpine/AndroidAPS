@@ -76,7 +76,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         ketoProtectionPercent = input.ketoProtectionPercent,
         profile = profile(),
         profileHistory = profileHistory(),
-        profileWarnings = profileWarnings()
+        profileWarnings = profileWarnings(),
+        loopCorrections = loopCorrectionList
     )
 
     // ---- Quality and overall numbers ----
@@ -349,6 +350,75 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             )
         }
         return result
+    }
+
+    private val loopCorrectionList by lazy { loopCorrections() }
+
+    /**
+     * Looks for four hour stretches in steps of 30 minutes. A stretch that fits is taken and the next one starts
+     * after it, so no insulin is counted twice. Only the newest [MAX_LOOP_CORRECTIONS] are kept.
+     */
+    private fun loopCorrections(): List<LoopCorrectionResult> {
+        val result = mutableListOf<LoopCorrectionResult>()
+        var time = periodStart
+        while (time + EVENT_WINDOW <= input.now) {
+            val found = loopCorrectionAt(time)
+            if (found == null) {
+                time += LOOP_SCAN_STEP
+            } else {
+                result.add(found)
+                time += EVENT_WINDOW
+            }
+        }
+        return result.takeLast(MAX_LOOP_CORRECTIONS)
+    }
+
+    private fun loopCorrectionAt(time: Long): LoopCorrectionResult? {
+        val end = time + EVENT_WINDOW
+        // Food or a manual bolus in the window or in the 5 hours before would hide what the loop did.
+        if (foodAndBolusTimes.any { it in (time - QUIET_AFTER_EVENT)..end }) return null
+        // Without a known profile the extra basal cannot be worked out.
+        if (basalAt(time, input.nowUtcOffset) == null) return null
+        val start = glucoseNear(time, START_READING_DISTANCE) ?: return null
+        if (start.value < CORRECTION_MIN_START) return null
+        val finish = glucoseNear(end, END_READING_DISTANCE) ?: return null
+        val series = glucose.filter { it.timestamp in time..end }
+        if (slotCount(series.map { it.timestamp }) < EVENT_MIN_SLOTS) return null
+        val smb = smbUnitsBetween(time, end)
+        val (given, scheduled) = basalOfDay(time, end)
+        val extraBasal = given - scheduled
+        val loopUnits = smb + extraBasal
+        if (loopUnits < LOOP_CORRECTION_MIN_UNITS) return null
+        val isf = isfAt(time, start.utcOffset)
+        return LoopCorrectionResult(
+            daysAgo = daysAgo(time, start.utcOffset),
+            hour = localHour(time, start.utcOffset),
+            startMgdl = start.value.round1(),
+            endMgdl = finish.value.round1(),
+            minMgdl = series.minOf { it.value }.round1(),
+            smbUnits = smb.round2(),
+            extraBasalUnits = extraBasal.round2(),
+            loopUnits = loopUnits.round2(),
+            dropMgdlPerUnit = ((start.value - finish.value) / loopUnits).round1(),
+            profileIsfMgdlPerUnit = isf?.round1(),
+            expectedDropMgdl = isf?.let { (it * loopUnits).round1() },
+            activity = activityAt(time, end)
+        )
+    }
+
+    /** The ISF of the active profile in mg/dL per unit at [time], divided by the percentage of the profile switch. */
+    private fun isfAt(time: Long, utcOffset: Long): Double? {
+        val switch = profileSwitches.lastOrNull { it.timestamp <= time } ?: return null
+        if (switch.originalPercentage <= 0) return null
+        val unit = if (switch.glucoseUnit == GlucoseUnit.MMOL) Constants.MMOLL_TO_MGDL else 1.0
+        val factor = unit * 100.0 / switch.originalPercentage
+        val timeOfDay = (time + utcOffset).mod(MS_DAY)
+        var blockStart = 0L
+        for (block in switch.isfBlocks) {
+            if (timeOfDay < blockStart + block.duration) return block.amount * factor
+            blockStart += block.duration
+        }
+        return switch.isfBlocks.lastOrNull()?.let { it.amount * factor }
     }
 
     /** True when food was entered close to the bolus, so it is a meal bolus. */
@@ -816,6 +886,11 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val MEAL_BOLUS_AFTER = 30 * MS_MINUTE
         const val CORRECTION_MIN_UNITS = 0.3
         const val CORRECTION_MIN_START = 130.0
+
+        // Corrections by the loop: SMB plus extra temp basal of at least this many units in the four hours.
+        const val LOOP_CORRECTION_MIN_UNITS = 0.5
+        const val LOOP_SCAN_STEP = 30 * MS_MINUTE
+        const val MAX_LOOP_CORRECTIONS = 20
 
         // Context
         const val ACTIVITY_LOOK_BACK = 6 * MS_HOUR

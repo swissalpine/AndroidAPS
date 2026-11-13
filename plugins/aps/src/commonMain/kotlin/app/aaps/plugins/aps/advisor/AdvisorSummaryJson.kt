@@ -43,6 +43,7 @@ object AdvisorSummaryJson {
         put("nights", array(summary.nights, ::night))
         put("meals", array(summary.meals, ::meal))
         put("corrections", array(summary.corrections, ::correction))
+        put("loopCorrections", array(summary.loopCorrections, ::loopCorrection))
         put("sport", sport(summary.sport))
         put("insulin", insulin(summary.insulin))
         summary.heart?.let { put("heart", heart(it)) }
@@ -133,6 +134,21 @@ object AdvisorSummaryJson {
         put("endMgdl", c.endMgdl)
         put("minMgdl", c.minMgdl)
         put("dropMgdlPerUnit", c.dropMgdlPerUnit)
+        put("activity", activity(c.activity))
+    }
+
+    private fun loopCorrection(c: LoopCorrectionResult) = buildJsonObject {
+        put("daysAgo", c.daysAgo)
+        put("hour", c.hour)
+        put("startMgdl", c.startMgdl)
+        put("endMgdl", c.endMgdl)
+        put("minMgdl", c.minMgdl)
+        put("smbUnits", c.smbUnits)
+        put("extraBasalUnits", c.extraBasalUnits)
+        put("loopUnits", c.loopUnits)
+        put("dropMgdlPerUnit", c.dropMgdlPerUnit)
+        number("profileIsfMgdlPerUnit", c.profileIsfMgdlPerUnit)
+        number("expectedDropMgdl", c.expectedDropMgdl)
         put("activity", activity(c.activity))
     }
 

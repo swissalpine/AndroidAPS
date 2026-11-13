@@ -40,7 +40,12 @@ data class AdvisorSummary(
      * Recent profile changes that are bigger than the advisor itself would propose. The screen shows them as a fixed
      * note, so the person sees them whatever the AI says. They are not sent to the AI.
      */
-    val profileWarnings: List<ProfileWarning>
+    val profileWarnings: List<ProfileWarning>,
+    /**
+     * Stretches where the loop alone lowered a high value (no food, no manual bolus). A person who lets the
+     * loop correct has few manual corrections, so these are the way to look at the ISF. The newest come last.
+     */
+    val loopCorrections: List<LoopCorrectionResult> = emptyList()
 )
 
 /**
@@ -215,6 +220,31 @@ data class CorrectionResult(
     val minMgdl: Double,
     /** Drop in four hours divided by all insulin (bolus and SMB). The basal insulin is not taken out. */
     val dropMgdlPerUnit: Double,
+    val activity: ActivityContext
+)
+
+/**
+ * Four hours that start with a high value and have no food and no manual bolus (also none in the 5 hours before).
+ * Only the loop worked on the high value, with SMB and a temp basal above the profile basal.
+ * The basal insulin that was needed anyway is not taken out, so the numbers are a hint and not a measurement.
+ */
+data class LoopCorrectionResult(
+    val daysAgo: Int,
+    val hour: Int,
+    val startMgdl: Double,
+    val endMgdl: Double,
+    val minMgdl: Double,
+    val smbUnits: Double,
+    /** Temp basal above the profile basal, in U. Below the profile it counts negative. */
+    val extraBasalUnits: Double,
+    /** [smbUnits] plus [extraBasalUnits]. */
+    val loopUnits: Double,
+    /** Drop in four hours divided by [loopUnits]. Negative when the value rose. */
+    val dropMgdlPerUnit: Double,
+    /** The ISF of the active profile at the start, in mg/dL per unit. Null when unknown. */
+    val profileIsfMgdlPerUnit: Double?,
+    /** What the profile ISF would give for [loopUnits]. Null when the ISF is unknown. */
+    val expectedDropMgdl: Double?,
     val activity: ActivityContext
 )
 
