@@ -1266,6 +1266,21 @@ class AdvisorSummaryBuilderTest {
     }
 
     @Test
+    fun `the readings of a suspected compression low are left out of the minimum of the night`() {
+        val flat = readings(at(18, 22), at(19, 8)) { 150.0 }
+        val dipped = (flat.filter { it.timestamp !in at(19, 3)..at(19, 3, 30) } +
+            deepDip.mapIndexed { index, value -> gv(at(19, 3) + index * 5 * minute, value) }).sortedBy { it.timestamp }
+
+        val summary = build(input(glucose = dipped))
+        val night = summary.nights.single()
+
+        assertEquals(1, summary.compressionLows.size)
+        // The 100 inside the dip does not count. The reading at the end of the dip (140) is a border and stays.
+        assertEquals(140.0, night.minMgdl)
+        assertEquals(150.0, night.maxMgdl)
+    }
+
+    @Test
     fun `the suspected compression lows are in the text for the AI`() {
         val text = AdvisorSummaryJson.encode(build(input(glucose = dipGlucose(3, 150.0, deepDip))))
 

@@ -218,8 +218,11 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
     /** Null when the readings do not cover the stretch well, so a gap in the data gives no wrong drift. */
     private fun nightResult(start: Long, end: Long, offset: Long): NightResult? {
-        val series = glucose.filter { it.timestamp in start..end }
-        if (slotCount(series.map { it.timestamp }) < (end - start) / SLOT * NIGHT_MIN_COVERAGE) return null
+        val all = glucose.filter { it.timestamp in start..end }
+        if (slotCount(all.map { it.timestamp }) < (end - start) / SLOT * NIGHT_MIN_COVERAGE) return null
+        // A suspected compression low is not a real low. Its readings (not the two at its borders) are left out.
+        val series = all.filter { reading -> compressionDips.none { reading.timestamp > it.start && reading.timestamp < it.end } }
+        if (series.isEmpty()) return null
         val first = series.filter { it.timestamp < start + NIGHT_EDGE }
         val last = series.filter { it.timestamp > end - NIGHT_EDGE }
         if (first.isEmpty() || last.isEmpty()) return null
@@ -412,15 +415,20 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         )
     }
 
-    private val compressionLowList by lazy { compressionLows() }
+    /** A suspected compression low with the times of its first and its last reading. */
+    private class CompressionDip(val result: CompressionLowResult, val start: Long, val end: Long)
+
+    private val compressionDips by lazy { compressionDips() }
+    private val compressionLowList by lazy { compressionDips.takeLast(MAX_COMPRESSION_LOWS).map { it.result } }
 
     /**
      * Looks for fast dips at night: the glucose falls by at least [COMPRESSION_MIN_DROP] and comes back to about
      * the start value (at most [COMPRESSION_RETURN_TOLERANCE] below it) in 45 minutes, or in 30 minutes when the dip
-     * is small. A dip that is found is skipped, so it is counted once. Only the newest [MAX_COMPRESSION_LOWS] are kept.
+     * is small. A dip that is found is skipped, so it is counted once. The readings inside a dip are left out of the
+     * minimum and the maximum of a night, so they do not pass as a real low.
      */
-    private fun compressionLows(): List<CompressionLowResult> {
-        val result = mutableListOf<CompressionLowResult>()
+    private fun compressionDips(): List<CompressionDip> {
+        val result = mutableListOf<CompressionDip>()
         var index = 0
         while (index < glucose.size - 1) {
             // A dip starts where the glucose begins to fall, so the start is the last reading of a plateau.
@@ -429,11 +437,11 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             if (found == null) {
                 index++
             } else {
-                result.add(found.first)
+                result.add(CompressionDip(found.first, glucose[index].timestamp, glucose[found.second].timestamp))
                 index = found.second + 1
             }
         }
-        return result.takeLast(MAX_COMPRESSION_LOWS)
+        return result
     }
 
     private fun isNightTime(reading: GV): Boolean {

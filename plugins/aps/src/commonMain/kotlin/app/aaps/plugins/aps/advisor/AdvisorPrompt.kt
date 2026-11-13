@@ -63,8 +63,8 @@ object AdvisorPrompt {
         - suspectedCompressionLows: fast dips at night (22:00 to 08:00) that come back to about the start value within 30 to
           45 minutes, with no manual bolus before, no food and almost no SMB. Insulin does not do this, so it may be
           pressure on the sensor (for example the person lies on it). It is only a suspicion. Such a dip is not a real low:
-          do not use it for basal, ISF or carb ratio. A night with the same daysAgo has a minMgdl and a drift that may be
-          wrong because of it, so be careful with that night. If it happens often, you may name it as a possible sensor
+          do not use it for basal, ISF or carb ratio. The readings inside such a dip are already left out of minMgdl and
+          maxMgdl of the night with the same daysAgo, so a low that you see there is not this dip. If it happens often, you may name it as a possible sensor
           or sleep position topic (not a setting), at most with medium confidence.
         - activity (in nights, meals, corrections, loopCorrections): the situation before the event. exerciseEventNearby is a sport entry
           the person made; they enter sport reliably. activityTempTargetNearby is an activity temp target. heartRate60min*
