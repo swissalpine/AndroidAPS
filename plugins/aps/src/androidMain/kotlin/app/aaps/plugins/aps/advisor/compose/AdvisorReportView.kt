@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -177,8 +179,16 @@ private fun ProfileWarningCard(warnings: List<ProfileWarning>, onConfirm: () -> 
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
-                TextButton(onClick = onConfirm) {
-                    Text(text = stringResource(R.string.advisor_profile_warning_confirm), color = MaterialTheme.colorScheme.onErrorContainer)
+                // A filled button in the error colors, so it is not read as part of the text.
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier.align(Alignment.End),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(text = stringResource(R.string.advisor_profile_warning_confirm))
                 }
             }
         }

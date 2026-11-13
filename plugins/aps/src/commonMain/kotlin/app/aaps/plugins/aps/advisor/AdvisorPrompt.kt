@@ -65,11 +65,15 @@ object AdvisorPrompt {
           effectRatio and impliedIsfMgdlPerUnit to dropMgdlPerUnit. When they are absent the stretch could not be judged.
           dynamicIsf = true means the loop worked out the ISF itself (dynamic ISF): never propose a change of the profile ISF
           from such a stretch. AutoISF changes the profile ISF, so a difference between the implied ISF and the profile ISF
-          may come from AutoISF and not from the profile; say so. If the real drop is clearly smaller than expectedDropMgdl in at
-          least 5 stretches, the ISF may be too high (too weak); if it is clearly larger, the ISF may be too low. Be careful:
-          the basal insulin that is needed anyway is not taken out, and the insulin works longer than 4 hours, so give such a
-          finding at most medium confidence. A rising glucose or a drop with very few units says little. Do not say that the
-          ISF cannot be checked when there are loopCorrections.
+          may come from AutoISF and not from the profile; say so. If effectRatio is clearly below 1 in at least 5 stretches (or,
+          when it is absent, the real drop is clearly smaller than expectedDropMgdl), one unit lowered the glucose less than the
+          profile expects: the ISF number in the profile may be too high. If it is clearly above 1, one unit lowered it more:
+          the ISF number may be too low. Write such a finding in plain words and in this order: first what the data show (for
+          example "One unit lowered the glucose by about 40 mg/dL, the profile expects 60"), then what it could mean for the
+          setting. Do not call the ISF "stronger" or "weaker", that is easy to read the wrong way round. Be careful: the
+          insulin works longer than 4 hours, and the glucose may fall by itself, so give such a finding at most medium
+          confidence. A rising glucose or a drop with very few units says little. Do not say that the ISF cannot be checked
+          when there are loopCorrections.
         - suspectedCompressionLows: fast dips at night (22:00 to 08:00) that come back to about the start value within 30 to
           45 minutes, with no manual bolus before, no food and almost no SMB. Insulin does not do this, so it may be
           pressure on the sensor (for example the person lies on it). It is only a suspicion. Such a dip is not a real low:
