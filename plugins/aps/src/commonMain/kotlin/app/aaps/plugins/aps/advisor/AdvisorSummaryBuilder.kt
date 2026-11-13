@@ -79,7 +79,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         profile = profile(),
         profileHistory = profileHistory(),
         profileWarnings = profileWarnings(),
-        loopCorrections = loopCorrectionList
+        loopCorrections = loopCorrectionList,
+        compressionLows = compressionLowList
     )
 
     // ---- Quality and overall numbers ----
@@ -406,6 +407,70 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             expectedDropMgdl = isf?.let { (it * loopUnits).round1() },
             activity = activityAt(time, end)
         )
+    }
+
+    private val compressionLowList by lazy { compressionLows() }
+
+    /**
+     * Looks for fast dips at night: the glucose falls by at least [COMPRESSION_MIN_DROP] and comes back to about
+     * the start value (at most [COMPRESSION_RETURN_TOLERANCE] below it) in 45 minutes, or in 30 minutes when the dip
+     * is small. A dip that is found is skipped, so it is counted once. Only the newest [MAX_COMPRESSION_LOWS] are kept.
+     */
+    private fun compressionLows(): List<CompressionLowResult> {
+        val result = mutableListOf<CompressionLowResult>()
+        var index = 0
+        while (index < glucose.size - 1) {
+            val found = if (isNightTime(glucose[index])) compressionLowFrom(index) else null
+            if (found == null) {
+                index++
+            } else {
+                result.add(found.first)
+                index = found.second + 1
+            }
+        }
+        return result.takeLast(MAX_COMPRESSION_LOWS)
+    }
+
+    private fun isNightTime(reading: GV): Boolean {
+        val hour = (reading.timestamp + reading.utcOffset).mod(MS_DAY) / MS_HOUR
+        return hour >= NIGHT_START_HOUR || hour < NIGHT_END_HOUR
+    }
+
+    /** The dip that starts at the reading [index] and the index of the reading where it is over, or null. */
+    private fun compressionLowFrom(index: Int): Pair<CompressionLowResult, Int>? {
+        val start = glucose[index]
+        var lowest = start
+        var next = index + 1
+        while (next < glucose.size && glucose[next].timestamp - start.timestamp <= COMPRESSION_MAX_DURATION) {
+            val point = glucose[next]
+            // A gap in the readings can look like a fast dip, so it is not used.
+            if (point.timestamp - glucose[next - 1].timestamp > COMPRESSION_MAX_GAP) return null
+            if (point.value < lowest.value) lowest = point
+            val drop = start.value - lowest.value
+            val back = point.value >= start.value - COMPRESSION_RETURN_TOLERANCE
+            if (drop < COMPRESSION_MIN_DROP || !back) {
+                next++
+                continue
+            }
+            val maxDuration = if (drop <= COMPRESSION_SMALL_DROP) COMPRESSION_SHORT_DURATION else COMPRESSION_MAX_DURATION
+            if (point.timestamp - start.timestamp > maxDuration) return null
+            // Insulin or food would explain the dip and the rise.
+            if (manualBoluses.any { it.timestamp in (start.timestamp - COMPRESSION_BOLUS_LOOK_BACK)..point.timestamp }) return null
+            if (carbs.any { it.timestamp in start.timestamp..point.timestamp }) return null
+            val smb = smbUnitsBetween(start.timestamp - MS_HOUR, start.timestamp)
+            if (smb >= COMPRESSION_MAX_SMB) return null
+            val result = CompressionLowResult(
+                daysAgo = daysAgo(start.timestamp, start.utcOffset),
+                startMinuteOfDay = ((start.timestamp + start.utcOffset).mod(MS_DAY) / MS_MINUTE).toInt(),
+                startMgdl = start.value.round1(),
+                minMgdl = lowest.value.round1(),
+                endMgdl = point.value.round1(),
+                minutes = ((point.timestamp - start.timestamp) / MS_MINUTE).toInt(),
+                smbUnitsHourBefore = smb.round2()
+            )
+            return Pair(result, next)
+        }
+        return null
     }
 
     /** The ISF of the active profile in mg/dL per unit at [time], divided by the percentage of the profile switch. */
@@ -780,6 +845,10 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         )
     }
 
+    /** Hours from the last entry in [changes] (sorted) at or before [time] to [time]. Null when there is no such entry. */
+    private fun hoursSinceLast(changes: List<Long>, time: Long): Double? =
+        changes.lastOrNull { it <= time }?.let { ((time - it).toDouble() / MS_HOUR).round1() }
+
     /**
      * The sum of the 5 minute step counts in the [window] before [time]. This is what the Activity Tracker
      * adds up. The fields steps60min and steps180min of a record are not used, because the watch does not
@@ -845,10 +914,6 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val MS_DAY = 86_400_000L
 
         // A time slot is 5 minutes. Coverage counts slots that have at least one reading.
-    /** Hours from the last entry in [changes] (sorted) at or before [time] to [time]. Null when there is no such entry. */
-    private fun hoursSinceLast(changes: List<Long>, time: Long): Double? =
-        changes.lastOrNull { it <= time }?.let { ((time - it).toDouble() / MS_HOUR).round1() }
-
         const val SLOT = 5 * MS_MINUTE
         const val SLOTS_PER_DAY = 288
         const val MAX_INTERVAL = 30 * MS_MINUTE
@@ -899,6 +964,19 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val LOOP_CORRECTION_MIN_UNITS = 0.5
         const val LOOP_SCAN_STEP = 30 * MS_MINUTE
         const val MAX_LOOP_CORRECTIONS = 20
+
+        // Suspected compression lows: a dip of at least 20 mg/dL at night that is back to within 10 mg/dL of the start
+        // value in 30 minutes (dips up to 30 mg/dL) or 45 minutes. No manual bolus in the 4 hours before, no food in the
+        // dip, and less than 0.3 U SMB in the hour before. Readings must not be more than 10 minutes apart.
+        const val COMPRESSION_MIN_DROP = 20.0
+        const val COMPRESSION_SMALL_DROP = 30.0
+        const val COMPRESSION_RETURN_TOLERANCE = 10.0
+        const val COMPRESSION_SHORT_DURATION = 30 * MS_MINUTE
+        const val COMPRESSION_MAX_DURATION = 45 * MS_MINUTE
+        const val COMPRESSION_MAX_GAP = 10 * MS_MINUTE
+        const val COMPRESSION_BOLUS_LOOK_BACK = 4 * MS_HOUR
+        const val COMPRESSION_MAX_SMB = 0.3
+        const val MAX_COMPRESSION_LOWS = 20
 
         // Context
         const val ACTIVITY_LOOK_BACK = 6 * MS_HOUR

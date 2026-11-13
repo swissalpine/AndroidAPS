@@ -45,7 +45,9 @@ data class AdvisorSummary(
      * Stretches where the loop alone lowered a high value (no food, no manual bolus). A person who lets the
      * loop correct has few manual corrections, so these are the way to look at the ISF. The newest come last.
      */
-    val loopCorrections: List<LoopCorrectionResult> = emptyList()
+    val loopCorrections: List<LoopCorrectionResult> = emptyList(),
+    /** Fast dips at night that come back to the start value (see [CompressionLowResult]). The newest come last. */
+    val compressionLows: List<CompressionLowResult> = emptyList()
 )
 
 /**
@@ -253,6 +255,25 @@ data class LoopCorrectionResult(
     /** What the profile ISF would give for [loopUnits]. Null when the ISF is unknown. */
     val expectedDropMgdl: Double?,
     val activity: ActivityContext
+)
+
+/**
+ * A suspected compression low: a fast dip of glucose at night that comes back to about the start value within
+ * 45 minutes, with no manual bolus before, no food, and almost no SMB. Insulin does not do this, so it may be
+ * pressure on the sensor. It is only a suspicion. Such a dip says nothing about basal or ISF.
+ */
+data class CompressionLowResult(
+    val daysAgo: Int,
+    /** Local minute of the day at the start of the dip. */
+    val startMinuteOfDay: Int,
+    val startMgdl: Double,
+    val minMgdl: Double,
+    /** The first value that is back near the start. */
+    val endMgdl: Double,
+    /** Minutes from the start to the end value. */
+    val minutes: Int,
+    /** SMB in the hour before the start, in U. */
+    val smbUnitsHourBefore: Double
 )
 
 data class SportSummary(

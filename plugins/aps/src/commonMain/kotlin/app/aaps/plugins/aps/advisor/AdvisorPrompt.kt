@@ -60,22 +60,28 @@ object AdvisorPrompt {
           the basal insulin that is needed anyway is not taken out, and the insulin works longer than 4 hours, so give such a
           finding at most medium confidence. A rising glucose or a drop with very few units says little. Do not say that the
           ISF cannot be checked when there are loopCorrections.
+        - suspectedCompressionLows: fast dips at night (22:00 to 08:00) that come back to about the start value within 30 to
+          45 minutes, with no manual bolus before, no food and almost no SMB. Insulin does not do this, so it may be
+          pressure on the sensor (for example the person lies on it). It is only a suspicion. Such a dip is not a real low:
+          do not use it for basal, ISF or carb ratio. A night with the same daysAgo has a minMgdl and a drift that may be
+          wrong because of it, so be careful with that night. If it happens often, you may name it as a possible sensor
+          or sleep position topic (not a setting), at most with medium confidence.
         - activity (in nights, meals, corrections, loopCorrections): the situation before the event. exerciseEventNearby is a sport entry
           the person made; they enter sport reliably. activityTempTargetNearby is an activity temp target. heartRate60min*
           is the heart rate of the hour before. steps60min and steps180min are step counts; if stepsMayBeSyncOutlier is
           true they are not reliable. sensitivityRatio is below 1 when the loop gave less insulin (sport), activityRatio is
           the part of it from the Activity Tracker (0.7 and 0.85 are activity, 1.1 and 1.2 are inactivity, absent = off).
+          hoursSinceCannulaChange and hoursSinceSensorChange are the hours since the last change entry. The cannula entries
+          are made by hand, the sensor entries come by themselves; absent = no entry, which can also be a change that was
+          not entered. Right after a cannula change (about 24 hours) or very late (about 72 hours and more) the insulin may
+          work differently, and the first 12 to 24 hours of a new sensor may read less exactly. Treat an event near a change
+          as a possible other reason, and ask for more evidence before you suggest a change of a setting from such events.
         - insulin: the insulin of each full day (not today), in U, split by how it was given: mealBolusUnits and
           correctionBolusUnits (manual boluses with and without food near them), smbUnits (the loop) and basalUnits (temp
           basal and profile basal together, worked out from the records, not read from the pump). scheduledBasalUnits is
           what the profile alone would give. The loop gives extra insulin as SMB or as a high temp basal, so the share of
           basal in the total says little about the basal setting. Do not judge the basal rate from basalUnits or from the
           share of basal. Use these numbers to compare days (sport days and other days) and to see how much the loop
-          hoursSinceCannulaChange and hoursSinceSensorChange are the hours since the last change entry. The cannula entries
-          are made by hand, the sensor entries come by themselves; absent = no entry, which can also be a change that was
-          not entered. Right after a cannula change (about 24 hours) or very late (about 72 hours and more) the insulin may
-          work differently, and the first 12 to 24 hours of a new sensor may read less exactly. Treat an event near a change
-          as a possible other reason, and ask for more evidence before you suggest a change of a setting from such events.
           changed the basal.
         - sport: how often sport and activity temp targets were used. heart: resting and high heart rate of the period.
         - ketoProtectionPercent: if present, the loop never goes below this percent of the basal.

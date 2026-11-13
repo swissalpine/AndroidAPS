@@ -44,6 +44,7 @@ object AdvisorSummaryJson {
         put("meals", array(summary.meals, ::meal))
         put("corrections", array(summary.corrections, ::correction))
         put("loopCorrections", array(summary.loopCorrections, ::loopCorrection))
+        put("suspectedCompressionLows", array(summary.compressionLows, ::compressionLow))
         put("sport", sport(summary.sport))
         put("insulin", insulin(summary.insulin))
         summary.heart?.let { put("heart", heart(it)) }
@@ -137,6 +138,16 @@ object AdvisorSummaryJson {
         put("activity", activity(c.activity))
     }
 
+    private fun compressionLow(c: CompressionLowResult) = buildJsonObject {
+        put("daysAgo", c.daysAgo)
+        put("startMinuteOfDay", c.startMinuteOfDay)
+        put("startMgdl", c.startMgdl)
+        put("minMgdl", c.minMgdl)
+        put("endMgdl", c.endMgdl)
+        put("minutes", c.minutes)
+        put("smbUnitsHourBefore", c.smbUnitsHourBefore)
+    }
+
     private fun loopCorrection(c: LoopCorrectionResult) = buildJsonObject {
         put("daysAgo", c.daysAgo)
         put("hour", c.hour)
@@ -163,6 +174,8 @@ object AdvisorSummaryJson {
         number("profilePercentage", a.profilePercentage)
         number("sensitivityRatio", a.sensitivityRatio)
         number("activityRatio", a.activityRatio)
+        number("hoursSinceCannulaChange", a.hoursSinceCannulaChange)
+        number("hoursSinceSensorChange", a.hoursSinceSensorChange)
     }
 
     private fun sport(s: SportSummary) = buildJsonObject {
@@ -174,8 +187,6 @@ object AdvisorSummaryJson {
             buildJsonObject {
                 put("percentage", use.percentage)
                 put("hours", use.hours)
-        number("hoursSinceCannulaChange", a.hoursSinceCannulaChange)
-        number("hoursSinceSensorChange", a.hoursSinceSensorChange)
             }
         })
         put("activityTrackerUse", array(s.activityTrackerUse) { use ->
