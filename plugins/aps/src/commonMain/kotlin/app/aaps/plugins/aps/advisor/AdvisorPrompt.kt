@@ -117,7 +117,8 @@ object AdvisorPrompt {
            carb_ratio and isf at least 5 meals or corrections in the window after the change). Judge
            a change with the data after it. The data before it describes the old setting and is no proof against the new one.
            Say in "overall" whether the change looks like it helped, made no difference, made things worse, or whether it is too
-           early to tell. If glucose after the change shows more lows, say that first.
+           early to tell. If glucose after the change shows more lows, say that first. The app itself removes a proposed number
+           for a setting and time of the day that the person changed less than 5 days ago, so do not argue for it.
         8. Check each hint in earlierHints that has a change (setting and time range) against profileHistory.changes. If the same
            setting changed in that time range after the report (daysAgo of the change is smaller than the daysAgo of the hint), the
            person followed the hint: judge it as in rule 7. If not, the person has not acted on it, maybe on purpose. Do not give it

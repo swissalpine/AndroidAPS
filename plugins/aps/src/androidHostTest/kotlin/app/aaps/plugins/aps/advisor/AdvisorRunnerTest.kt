@@ -279,6 +279,46 @@ class AdvisorRunnerTest {
         assertThat((engine.requestHistory.single().body as TextContent).text).doesNotContain("profileWarnings")
     }
 
+    private val nightHintAnswer = """
+        {"model":"claude-opus-5-5","stop_reason":"end_turn","content":[{"type":"text","text":"{\"overall\":\"Fine.\",\"key_points\":[],\"enough_data\":true,\"data_note\":\"\",\"findings\":[{\"title\":\"Night basal\",\"area\":\"basal\",\"time_of_day\":\"02:00-06:00\",\"priority\":1,\"evidence_points\":[\"fact\"],\"confidence\":\"medium\",\"suggestion\":\"idea\",\"change\":{\"setting\":\"basal\",\"start_minute\":120,\"end_minute\":360,\"change_percent\":-8}}],\"not_enough_data_for\":[],\"questions_for_team\":[]}"}],"usage":{"input_tokens":10,"output_tokens":5}}
+    """.trimIndent()
+
+    private fun summaryWithNightChange(daysAgo: Int) = emptySummary.copy(
+        profileHistory = ProfileHistory(
+            changes = listOf(
+                ProfileChange(
+                    daysAgo = daysAgo, hour = 16, percentage = null, timeshiftHours = null, basalUnitsPerHour = null,
+                    carbsGramsPerUnit = null, isfMgdlPerUnit = null, changedTimes = listOf(ChangedTime(ChangedSetting.BASAL, 120, 360, -10))
+                )
+            ),
+            latestEffect = null
+        )
+    )
+
+    @Test
+    fun `a number for a time that was changed two days ago is held back in the screen and in the history`() = runBlocking {
+        val history = MemoryHistory()
+        val runner = runner(engine(body = nightHintAnswer), history = history, summarySource = { _, _ -> summaryWithNightChange(2) })
+
+        runner.run()
+
+        val shown = (runner.state.value.outcome as AdvisorOutcome.Success).report.findings.single()
+        assertThat(shown.change).isNull()
+        assertThat(shown.heldBackDaysAgo).isEqualTo(2)
+        assertThat(history.entries.single().report.findings.single().heldBackDaysAgo).isEqualTo(2)
+    }
+
+    @Test
+    fun `a number for a time that was changed a week ago is kept`() = runBlocking {
+        val runner = runner(engine(body = nightHintAnswer), summarySource = { _, _ -> summaryWithNightChange(7) })
+
+        runner.run()
+
+        val shown = (runner.state.value.outcome as AdvisorOutcome.Success).report.findings.single()
+        assertThat(shown.change).isEqualTo(ProposedChange(AdvisorSetting.BASAL, 120, 360, -8))
+        assertThat(shown.heldBackDaysAgo).isNull()
+    }
+
     @Test
     fun `a question and its answer are kept together in the newest analysis`() = runBlocking {
         val engine = engine(body = chatAnswer)

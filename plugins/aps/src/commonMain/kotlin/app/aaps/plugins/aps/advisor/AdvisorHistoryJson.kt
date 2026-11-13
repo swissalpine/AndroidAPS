@@ -140,6 +140,7 @@ object AdvisorHistoryJson {
         put("suggestion", f.suggestion)
         f.change?.let { put("change", change(it, lowercase = false)) }
         put("changeRemoved", f.changeRemoved)
+        f.heldBackDaysAgo?.let { put("heldBackDaysAgo", it) }
     }
 
     private fun change(c: ProposedChange, lowercase: Boolean) = buildJsonObject {
@@ -221,7 +222,8 @@ object AdvisorHistoryJson {
         confidence = AdvisorConfidence.entries.firstOrNull { it.name == o["confidence"]?.jsonPrimitive?.content } ?: AdvisorConfidence.LOW,
         suggestion = o["suggestion"]?.jsonPrimitive?.content.orEmpty(),
         change = o["change"]?.jsonObject?.let { change(it) },
-        changeRemoved = o["changeRemoved"]?.jsonPrimitive?.boolean ?: false
+        changeRemoved = o["changeRemoved"]?.jsonPrimitive?.boolean ?: false,
+        heldBackDaysAgo = o["heldBackDaysAgo"]?.jsonPrimitive?.int
     )
 
     /** A report from before the points has one text, "evidence". It becomes one point. */

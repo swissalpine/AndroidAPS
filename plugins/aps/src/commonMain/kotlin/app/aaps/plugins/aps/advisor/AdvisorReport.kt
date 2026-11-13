@@ -25,6 +25,8 @@ data class ProposedChange(
 /**
  * @property evidencePoints the facts behind the finding, one short point each, with their numbers
  * @property priority 1 is the most important, 3 the least. The screen shows the most important first
+ * @property heldBackDaysAgo set when the number of the AI was removed (see [AdvisorChangeGuard]) because the person
+ *   changed this setting at this time that many days before the analysis. Null otherwise
  */
 data class AdvisorFinding(
     val title: String,
@@ -37,7 +39,8 @@ data class AdvisorFinding(
     val change: ProposedChange?,
     /** True when the model proposed a number that was removed by the checks (too large, bad time range, low confidence). */
     val changeRemoved: Boolean,
-    val priority: Int = DEFAULT_PRIORITY
+    val priority: Int = DEFAULT_PRIORITY,
+    val heldBackDaysAgo: Int? = null
 ) {
 
     companion object {

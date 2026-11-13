@@ -45,6 +45,18 @@ class AdvisorHistoryJsonTest {
     }
 
     @Test
+    fun `a held back number is the same after writing and reading, and a missing one is null`() {
+        val held = finding("A", change = null).copy(heldBackDaysAgo = 2)
+        val entries = listOf(entry(now, held, finding("B")))
+
+        val read = AdvisorHistoryJson.decode(AdvisorHistoryJson.encode(entries)).single().report.findings
+
+        assertEquals(2, read[0].heldBackDaysAgo)
+        assertEquals(null, read[1].heldBackDaysAgo)
+        assertFalse(AdvisorHistoryJson.encode(listOf(entry(now, finding("B")))).contains("heldBackDaysAgo"))
+    }
+
+    @Test
     fun `the note about large profile changes is the same after writing and reading`() {
         val warnings = listOf(ProfileWarning(ChangedSetting.BASAL, 780, 1020, -15, madeDaysAgo = 0, madeAtHour = 16))
         val entries = listOf(entry(now, finding("A")).copy(profileWarnings = warnings))

@@ -326,6 +326,13 @@ private fun FindingCard(finding: AdvisorFinding, onAskAbout: ((String) -> Unit)?
                     }
                 }
                 finding.change?.let { ChangeBadge(it) }
+                finding.heldBackDaysAgo?.let { days ->
+                    Text(
+                        text = stringResource(R.string.advisor_change_held_back, days),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
                 if (finding.changeRemoved) {
                     Text(text = stringResource(R.string.advisor_change_removed), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }

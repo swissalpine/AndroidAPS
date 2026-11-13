@@ -147,6 +147,7 @@
     <string name="advisor_change_up" comment="%1$d=percent, for example 5. The percent sign is in the text">%1$d%% more</string>
     <string name="advisor_change_down" comment="%1$d=percent, for example 5. The percent sign is in the text">%1$d%% less</string>
     <string name="advisor_change_removed">The AI proposed a number that is outside the limits of this app (more than 10 percent, a bad time range, or low confidence). It is not shown.</string>
+    <string name="advisor_change_held_back" comment="%1$d=number of days between the change of the person and this analysis, 0 means the same day">You already changed this setting at this time (days before this analysis: %1$d). It is too early for a new number, so none is shown.</string>
     <string name="advisor_usage" comment="%1$d=tokens sent, %2$d=tokens received, %3$s=name of the model">Used %1$d input and %2$d output tokens. Model: %3$s</string>
     <string name="advisor_profile_warning_title">Check your profile</string>
     <string name="advisor_profile_warning_line" comment="%1$s=setting name, for example Basal. %2$02d:%3$02d=start time, %4$02d:%5$02d=end time, %6$s=the change, see advisor_change_up and advisor_change_down">%1$s between %2$02d:%3$02d and %4$02d:%5$02d: %6$s</string>

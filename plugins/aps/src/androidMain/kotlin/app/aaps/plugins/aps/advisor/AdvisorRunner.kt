@@ -171,12 +171,14 @@ class AdvisorRunner(
         mutableState.value = AdvisorState(AdvisorPhase.COLLECTING, days = days)
         var glucose: GlucoseStats? = null
         var warnings: List<ProfileWarning> = emptyList()
+        var profileChanges: List<ProfileChange> = emptyList()
         val json = try {
             val now = dateUtil.now()
             val earlier = history.load()
             val summary = summarySource(days, now)
             glucose = summary.glucose
             warnings = summary.profileWarnings
+            profileChanges = summary.profileHistory.changes
             AdvisorSummaryJson.encode(
                 summary = summary,
                 earlierHints = AdvisorHistoryJson.earlierHints(earlier, now, AdvisorHistory.EARLIER_HINTS),
@@ -190,7 +192,9 @@ class AdvisorRunner(
             return
         }
         mutableState.value = AdvisorState(AdvisorPhase.WAITING, sentJson = json, days = days)
-        val outcome = client.analyze(AdvisorPrompt.requestBody(json, language()), key)
+        val answer = client.analyze(AdvisorPrompt.requestBody(json, language()), key)
+        // A number for a setting and time that the person changed a few days ago is held back, whatever the AI wrote.
+        val outcome = if (answer is AdvisorOutcome.Success) answer.copy(report = AdvisorChangeGuard.apply(answer.report, profileChanges)) else answer
         // Only the kind of the result is logged, never the data or the answer.
         aapsLogger.info(LTag.APS, "AI advisor: " + if (outcome is AdvisorOutcome.Failure) "failed ${outcome.kind}" else "answer received")
         mutableState.value = AdvisorState(AdvisorPhase.DONE, outcome, json, days, glucose, warnings)
