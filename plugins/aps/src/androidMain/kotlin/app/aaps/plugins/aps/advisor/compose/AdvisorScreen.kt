@@ -149,12 +149,15 @@ private fun AnalysisAge(timeMillis: Long) {
     val date = remember(timeMillis) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(timeMillis)) }
     val ago = DateUtils.getRelativeTimeSpanString(timeMillis, now, DateUtils.MINUTE_IN_MILLIS).toString()
     val old = now - timeMillis > OLD_ANALYSIS_DAYS * DateUtils.DAY_IN_MILLIS
-    Text(
-        text = stringResource(R.string.advisor_analysis_time, date, ago),
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.Medium,
-        color = if (old) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
-    )
+    AapsCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.advisor_analysis_time, date, ago),
+            modifier = Modifier.padding(AapsSpacing.large),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = if (old) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+        )
+    }
 }
 
 private const val OLD_ANALYSIS_DAYS = 3L
