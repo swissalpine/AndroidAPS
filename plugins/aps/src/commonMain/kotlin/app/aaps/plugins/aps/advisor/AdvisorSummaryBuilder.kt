@@ -420,7 +420,9 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         val result = mutableListOf<CompressionLowResult>()
         var index = 0
         while (index < glucose.size - 1) {
-            val found = if (isNightTime(glucose[index])) compressionLowFrom(index) else null
+            // A dip starts where the glucose begins to fall, so the start is the last reading of a plateau.
+            val falling = glucose[index + 1].value < glucose[index].value
+            val found = if (falling && isNightTime(glucose[index])) compressionLowFrom(index) else null
             if (found == null) {
                 index++
             } else {

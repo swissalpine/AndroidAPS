@@ -82,13 +82,14 @@ class AdvisorSummaryBuilderTest {
         heartRates: List<HR> = emptyList(),
         tempBasals: List<TB> = emptyList(),
         ketoProtectionPercent: Int? = null,
-        loopRatios: List<LoopRatioSample> = emptyList()
+        loopRatios: List<LoopRatioSample> = emptyList(),
+        deviceChanges: List<TE> = emptyList()
     ) = AdvisorInput(
         now = now, nowUtcOffset = 0L, days = days,
         glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals,
         therapyEvents = therapyEvents, tempTargets = tempTargets,
         effectiveProfileSwitches = profileSwitches, steps = steps, heartRates = heartRates,
-        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent
+        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent, deviceChanges = deviceChanges
     )
 
     private fun heartRate(time: Long, bpm: Double) = HR(duration = 60_000L, timestamp = time, beatsPerMinute = bpm, device = "test", utcOffset = 0L)
@@ -1094,5 +1095,153 @@ class AdvisorSummaryBuilderTest {
         val history = build(changeInput(switches, days = 15)).profileHistory
 
         assertEquals(10, history.changes.size)
+    }
+
+    // ---- Cannula and sensor changes ----
+
+    private fun deviceChange(time: Long, type: TE.Type) = TE(timestamp = time, duration = 0L, type = type, glucoseUnit = GlucoseUnit.MGDL, utcOffset = 0L)
+
+    private fun mealActivity(deviceChanges: List<TE>) = build(
+        input(
+            glucose = mealGlucose(),
+            carbs = listOf(carbs(at(19, 8), 60.0)),
+            boluses = listOf(bolus(at(19, 8), 5.0)),
+            deviceChanges = deviceChanges
+        )
+    ).meals.single().activity
+
+    @Test
+    fun `the hours since the last cannula and sensor change are in the activity`() {
+        val activity = mealActivity(
+            listOf(
+                deviceChange(at(17, 8), TE.Type.CANNULA_CHANGE),
+                deviceChange(at(18, 8), TE.Type.CANNULA_CHANGE),
+                deviceChange(at(19, 2), TE.Type.SENSOR_CHANGE)
+            )
+        )
+
+        // The newest cannula change before the meal counts, not the older one.
+        assertEquals(24.0, activity.hoursSinceCannulaChange)
+        assertEquals(6.0, activity.hoursSinceSensorChange)
+    }
+
+    @Test
+    fun `a change after the event or no change at all gives no hours`() {
+        val later = mealActivity(listOf(deviceChange(at(19, 9), TE.Type.CANNULA_CHANGE), deviceChange(at(19, 10), TE.Type.SENSOR_CHANGE)))
+        val none = mealActivity(emptyList())
+
+        assertNull(later.hoursSinceCannulaChange)
+        assertNull(later.hoursSinceSensorChange)
+        assertNull(none.hoursSinceCannulaChange)
+        assertNull(none.hoursSinceSensorChange)
+    }
+
+    @Test
+    fun `the hours since a change are in the text for the AI`() {
+        val summary = build(
+            input(
+                glucose = mealGlucose(),
+                carbs = listOf(carbs(at(19, 8), 60.0)),
+                boluses = listOf(bolus(at(19, 8), 5.0)),
+                deviceChanges = listOf(deviceChange(at(18, 8), TE.Type.CANNULA_CHANGE))
+            )
+        )
+        val text = AdvisorSummaryJson.encode(summary)
+
+        assertTrue(text.contains("\"hoursSinceCannulaChange\":24.0"))
+    }
+
+    // ---- Suspected compression lows ----
+
+    /**
+     * A flat hour at [flat], then the [dip] values every 5 minutes from [hourOfDay] on day 19 (the first value is the
+     * start of the dip), then an hour that stays at the last value.
+     */
+    private fun dipGlucose(hourOfDay: Int, flat: Double, dip: List<Double>): List<GV> {
+        val start = at(19, hourOfDay)
+        val before = readings(start - 60 * minute, start - 5 * minute) { flat }
+        val inside = dip.mapIndexed { index, value -> gv(start + index * 5 * minute, value) }
+        val afterStart = start + dip.size * 5 * minute
+        return before + inside + readings(afterStart, afterStart + 60 * minute) { dip.last() }
+    }
+
+    // 150 - 100 - 140 in 30 minutes, the night of the person.
+    private val deepDip = listOf(150.0, 140.0, 120.0, 100.0, 115.0, 130.0, 140.0)
+
+    @Test
+    fun `a fast dip at night that comes back is a suspected compression low`() {
+        val found = build(input(glucose = dipGlucose(3, 150.0, deepDip))).compressionLows.single()
+
+        assertEquals(1, found.daysAgo)
+        assertEquals(3 * 60, found.startMinuteOfDay)
+        assertEquals(150.0, found.startMgdl)
+        assertEquals(100.0, found.minMgdl)
+        assertEquals(140.0, found.endMgdl)
+        assertEquals(30, found.minutes)
+        assertEquals(0.0, found.smbUnitsHourBefore)
+    }
+
+    @Test
+    fun `a dip of 40 from 110 to 70 and back is found`() {
+        val dip = listOf(110.0, 100.0, 85.0, 70.0, 90.0, 105.0, 120.0)
+
+        val found = build(input(glucose = dipGlucose(3, 110.0, dip))).compressionLows.single()
+
+        assertEquals(70.0, found.minMgdl)
+        // The first value within 10 of the start is 105, 25 minutes after the start.
+        assertEquals(105.0, found.endMgdl)
+        assertEquals(25, found.minutes)
+    }
+
+    @Test
+    fun `a small dip must be back in 30 minutes`() {
+        val quick = listOf(150.0, 140.0, 130.0, 125.0, 135.0, 145.0)
+        val slow = listOf(150.0, 140.0, 130.0, 125.0, 125.0, 130.0, 135.0, 140.0, 145.0)
+
+        assertEquals(1, build(input(glucose = dipGlucose(3, 150.0, quick))).compressionLows.size)
+        assertTrue(build(input(glucose = dipGlucose(3, 150.0, slow))).compressionLows.isEmpty())
+    }
+
+    @Test
+    fun `a dip smaller than 20 or one that does not come back is not found`() {
+        val small = listOf(150.0, 145.0, 138.0, 133.0, 140.0, 148.0)
+        val stays = listOf(150.0, 140.0, 120.0, 100.0, 102.0, 105.0, 104.0, 103.0, 105.0, 104.0)
+
+        assertTrue(build(input(glucose = dipGlucose(3, 150.0, small))).compressionLows.isEmpty())
+        assertTrue(build(input(glucose = dipGlucose(3, 150.0, stays))).compressionLows.isEmpty())
+    }
+
+    @Test
+    fun `a dip in the day is not a suspected compression low`() {
+        assertTrue(build(input(glucose = dipGlucose(14, 150.0, deepDip))).compressionLows.isEmpty())
+    }
+
+    @Test
+    fun `insulin or food that explains the dip gives no suspicion`() {
+        val glucose = dipGlucose(3, 150.0, deepDip)
+        val manualBolus = build(input(glucose = glucose, boluses = listOf(bolus(at(19, 1), 2.0))))
+        val muchSmb = build(input(glucose = glucose, boluses = listOf(smb(at(19, 2, 30), 0.5))))
+        val food = build(input(glucose = glucose, carbs = listOf(carbs(at(19, 3, 10), 15.0))))
+        val littleSmb = build(input(glucose = glucose, boluses = listOf(smb(at(19, 2, 30), 0.2))))
+
+        assertTrue(manualBolus.compressionLows.isEmpty())
+        assertTrue(muchSmb.compressionLows.isEmpty())
+        assertTrue(food.compressionLows.isEmpty())
+        assertEquals(1, littleSmb.compressionLows.size)
+    }
+
+    @Test
+    fun `a gap in the readings is not a dip`() {
+        val glucose = dipGlucose(3, 150.0, deepDip).filter { it.timestamp !in at(19, 3, 5)..at(19, 3, 20) }
+
+        assertTrue(build(input(glucose = glucose)).compressionLows.isEmpty())
+    }
+
+    @Test
+    fun `the suspected compression lows are in the text for the AI`() {
+        val text = AdvisorSummaryJson.encode(build(input(glucose = dipGlucose(3, 150.0, deepDip))))
+
+        assertTrue(text.contains("\"suspectedCompressionLows\":[{"))
+        assertTrue(text.contains("\"minMgdl\":100.0"))
     }
 }
