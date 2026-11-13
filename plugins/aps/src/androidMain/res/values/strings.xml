@@ -153,6 +153,7 @@
     <string name="advisor_profile_warning_title">Check your profile</string>
     <string name="advisor_profile_warning_line" comment="%1$s=setting name, for example Basal. %2$02d:%3$02d=start time, %4$02d:%5$02d=end time, %6$s=the change, see advisor_change_up and advisor_change_down">%1$s between %2$02d:%3$02d and %4$02d:%5$02d: %6$s</string>
     <string name="advisor_profile_warning_age" comment="%1$d=number of days between the change and the analysis, 0 means the same day. %2$02d=hour when the change was saved">Saved at %2$02d:00 (days before this analysis: %1$d)</string>
+    <string name="advisor_profile_warning_confirm">I have read this</string>
     <string name="advisor_profile_warning_hint" comment="%1$d=percent, for example 10. The percent sign is in the text">This advisor proposes changes of at most %1$d%%. A larger change can be right, but please check that it is what you wanted.</string>
     <string name="advisor_summary_not_enough">The AI says the data is not enough for firm findings.</string>
     <string name="advisor_count_label" comment="%1$s=confidence level, for example High confidence. %2$d=number of findings with it">%1$s: %2$d</string>

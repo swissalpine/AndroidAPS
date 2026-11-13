@@ -38,6 +38,7 @@ import app.aaps.plugins.aps.advisor.AdvisorPhase
 import app.aaps.plugins.aps.advisor.AdvisorState
 import app.aaps.plugins.aps.advisor.ChatMessage
 import app.aaps.plugins.aps.advisor.ChatRole
+import app.aaps.plugins.aps.advisor.ProfileWarning
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -55,6 +56,8 @@ fun AdvisorScreen(
     state: AdvisorState,
     history: List<AdvisorHistoryEntry>,
     chatUi: AdvisorChatUi,
+    confirmedWarnings: Set<String>,
+    onConfirmWarnings: (List<ProfileWarning>) -> Unit,
     days: Int,
     ready: Boolean,
     onStart: () -> Unit,
@@ -111,6 +114,8 @@ fun AdvisorScreen(
                 glucose = if (state.outcome != null) state.glucose else newest?.glucose,
                 profileWarnings = if (state.outcome != null) state.profileWarnings else newest?.profileWarnings.orEmpty(),
                 sentJson = if (state.outcome != null) state.sentJson else newest?.sentJson,
+                confirmedWarnings = confirmedWarnings,
+                onConfirmWarnings = onConfirmWarnings,
                 onAskAbout = askAbout.takeIf { chatOpen }
             )
 
@@ -129,7 +134,7 @@ fun AdvisorScreen(
         }
         // The newest kept analysis is left out when it is shown above.
         val earlier = if (newestIsShown) history.drop(1) else history
-        if (earlier.isNotEmpty()) EarlierAnalyses(earlier, onClearHistory)
+        if (earlier.isNotEmpty()) EarlierAnalyses(earlier, confirmedWarnings, onConfirmWarnings, onClearHistory)
     }
 }
 
@@ -219,10 +224,15 @@ private fun ChatBubble(role: ChatRole, text: String) {
 }
 
 @Composable
-private fun EarlierAnalyses(entries: List<AdvisorHistoryEntry>, onClear: () -> Unit) {
+private fun EarlierAnalyses(
+    entries: List<AdvisorHistoryEntry>,
+    confirmedWarnings: Set<String>,
+    onConfirmWarnings: (List<ProfileWarning>) -> Unit,
+    onClear: () -> Unit
+) {
     var confirm by remember { mutableStateOf(false) }
     Text(text = stringResource(R.string.advisor_history_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-    entries.forEach { EarlierAnalysis(it) }
+    entries.forEach { EarlierAnalysis(it, confirmedWarnings, onConfirmWarnings) }
     TextButton(onClick = { confirm = true }) { Text(stringResource(R.string.advisor_history_delete)) }
     if (confirm) {
         AlertDialog(
@@ -238,7 +248,7 @@ private fun EarlierAnalyses(entries: List<AdvisorHistoryEntry>, onClear: () -> U
 
 /** One kept analysis. The line opens and closes the answer. */
 @Composable
-private fun EarlierAnalysis(entry: AdvisorHistoryEntry) {
+private fun EarlierAnalysis(entry: AdvisorHistoryEntry, confirmedWarnings: Set<String>, onConfirmWarnings: (List<ProfileWarning>) -> Unit) {
     var open by remember { mutableStateOf(false) }
     val time = remember(entry.timeMillis) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(entry.timeMillis)) }
     TextButton(onClick = { open = !open }) {
@@ -247,7 +257,8 @@ private fun EarlierAnalysis(entry: AdvisorHistoryEntry) {
     if (open) {
         ReportView(
             AdvisorOutcome.Success(entry.report, usage = null, model = entry.model),
-            glucose = entry.glucose, profileWarnings = entry.profileWarnings, sentJson = null, onAskAbout = null
+            glucose = entry.glucose, profileWarnings = entry.profileWarnings, sentJson = null,
+            confirmedWarnings = confirmedWarnings, onConfirmWarnings = onConfirmWarnings, onAskAbout = null
         )
         entry.chat.forEach { ChatBubble(it.role, it.text) }
     }

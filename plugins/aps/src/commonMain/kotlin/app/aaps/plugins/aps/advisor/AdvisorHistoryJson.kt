@@ -112,6 +112,7 @@ object AdvisorHistoryJson {
         put("changePercent", w.changePercent)
         put("madeDaysAgo", w.madeDaysAgo)
         put("madeAtHour", w.madeAtHour)
+        put("madeAt", w.madeAt)
     }
 
     private fun message(m: ChatMessage) = buildJsonObject {
@@ -183,7 +184,9 @@ object AdvisorHistoryJson {
             endMinute = o.getValue("endMinute").jsonPrimitive.int,
             changePercent = o.getValue("changePercent").jsonPrimitive.int,
             madeDaysAgo = o.getValue("madeDaysAgo").jsonPrimitive.int,
-            madeAtHour = o.getValue("madeAtHour").jsonPrimitive.int
+            madeAtHour = o.getValue("madeAtHour").jsonPrimitive.int,
+            // A kept analysis from before the time was stored has none.
+            madeAt = o["madeAt"]?.jsonPrimitive?.long ?: 0L
         )
     }
 

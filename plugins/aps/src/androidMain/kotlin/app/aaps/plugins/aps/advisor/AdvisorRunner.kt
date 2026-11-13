@@ -14,6 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.Locale
@@ -56,11 +57,13 @@ data class AdvisorChatUi(
  *
  * @param summarySource gives the summary of the last days; the plugin gives `AdvisorDataCollector::collect`
  * @param history keeps the finished analyses
+ * @param acks keeps which profile warnings the person has read
  */
 class AdvisorRunner(
     private val summarySource: suspend (days: Int, now: Long) -> AdvisorSummary,
     private val client: AdvisorClient,
     private val history: AdvisorHistoryStore,
+    private val acks: AdvisorAckStore,
     private val preferences: Preferences,
     private val dateUtil: DateUtil,
     private val aapsLogger: AAPSLogger,
@@ -89,13 +92,31 @@ class AdvisorRunner(
      * done when the runner is made, because the plugin is made when the app starts and that must not read files.
      */
     fun loadHistory() {
-        scope.launch { mutableHistory.value = history.load() }
+        scope.launch {
+            mutableConfirmed.value = acks.load()
+            mutableHistory.value = history.load()
+        }
     }
 
-    /** Deletes all kept analyses. The next analysis does not know about them. */
+    private val mutableConfirmed = MutableStateFlow<Set<String>>(emptySet())
+
+    /** The keys ([ProfileWarning.key]) of the profile warnings that the person has read. They are not shown again. */
+    val confirmedWarnings: StateFlow<Set<String>> = mutableConfirmed.asStateFlow()
+
+    /** The person has read these warnings. They are hidden now, and also after a restart. */
+    fun confirmWarnings(warnings: List<ProfileWarning>) {
+        val keys = warnings.map { it.key }.toSet()
+        if (keys.isEmpty()) return
+        mutableConfirmed.update { it + keys }
+        scope.launch { acks.add(keys, dateUtil.now()) }
+    }
+
+    /** Deletes all kept analyses and the confirmed warnings. The next analysis does not know about them. */
     fun clearHistory() {
         history.clear()
+        acks.clear()
         mutableHistory.value = emptyList()
+        mutableConfirmed.value = emptySet()
         mutableChat.value = AdvisorChatUi()
     }
 

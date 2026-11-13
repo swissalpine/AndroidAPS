@@ -1010,7 +1010,23 @@ class AdvisorSummaryBuilderTest {
             changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(18, 14), 100, basal = up20)))
         ).profileWarnings
 
-        assertEquals(listOf(ProfileWarning(ChangedSetting.BASAL, 120, 360, 20, madeDaysAgo = 2, madeAtHour = 14)), warnings)
+        assertEquals(listOf(ProfileWarning(ChangedSetting.BASAL, 120, 360, 20, madeDaysAgo = 2, madeAtHour = 14, madeAt = at(18, 14))), warnings)
+    }
+
+    @Test
+    fun `the key of a note is the same on a later day, and a new change has a new key`() {
+        val up20 = listOf(Block(2 * hour, 1.0), Block(4 * hour, 1.2), Block(18 * hour, 1.0))
+        val up30 = listOf(Block(2 * hour, 1.0), Block(4 * hour, 1.3), Block(18 * hour, 1.0))
+        val switches = listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(18, 14), 100, basal = up20))
+
+        val first = build(changeInput(switches)).profileWarnings.single()
+        // The same change, seen one hour later: only "days ago" could change, the key does not.
+        val later = AdvisorSummaryBuilder(changeInput(switches).copy(now = now + hour)).build().profileWarnings.single()
+        val another = build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), profileSwitch(at(18, 15), 100, basal = up30))))
+            .profileWarnings.single()
+
+        assertEquals(first.key, later.key)
+        assertTrue(first.key != another.key)
     }
 
     @Test
@@ -1033,7 +1049,7 @@ class AdvisorSummaryBuilderTest {
         val icChanged = profileSwitch(at(18, 14), 100, basal = oldBasal).copy(icBlocks = listOf(Block(day, 7.0)))
         val warnings = build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), icChanged))).profileWarnings
 
-        assertEquals(listOf(ProfileWarning(ChangedSetting.CARB_RATIO, 0, 24 * 60, -30, madeDaysAgo = 2, madeAtHour = 14)), warnings)
+        assertEquals(listOf(ProfileWarning(ChangedSetting.CARB_RATIO, 0, 24 * 60, -30, madeDaysAgo = 2, madeAtHour = 14, madeAt = at(18, 14))), warnings)
     }
 
     @Test

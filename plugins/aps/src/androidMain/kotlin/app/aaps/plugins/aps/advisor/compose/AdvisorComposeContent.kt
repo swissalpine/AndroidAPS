@@ -27,12 +27,15 @@ class AdvisorComposeContent(
         LaunchedEffect(Unit) { runner.loadHistory() }
         val history by runner.historyEntries.collectAsStateWithLifecycle()
         val chatUi by runner.chatUi.collectAsStateWithLifecycle()
+        val confirmedWarnings by runner.confirmedWarnings.collectAsStateWithLifecycle()
         // Read on every composition, so the screen is right after the user comes back from the settings.
         val ready = preferences.get(BooleanKey.AdvisorConsent) && preferences.get(StringKey.AdvisorApiKey).isNotBlank()
         AdvisorScreen(
             state = state,
             history = history,
             chatUi = chatUi,
+            confirmedWarnings = confirmedWarnings,
+            onConfirmWarnings = runner::confirmWarnings,
             days = preferences.get(IntKey.AdvisorDays),
             ready = ready,
             onStart = runner::start,

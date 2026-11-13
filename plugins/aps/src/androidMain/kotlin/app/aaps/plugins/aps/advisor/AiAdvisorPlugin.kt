@@ -64,6 +64,7 @@ class AiAdvisorPlugin(
         // The no-backup folder is not copied by the Android backup. The analyses are about the health of the user.
         // The file is only looked up when it is used, not when the plugin is made.
         history = AdvisorHistoryFile { File(context.noBackupFilesDir, "advisor/history.json") },
+        acks = AdvisorAckFile { File(context.noBackupFilesDir, "advisor/confirmed-warnings.txt") },
         preferences = preferences,
         dateUtil = dateUtil,
         aapsLogger = aapsLogger

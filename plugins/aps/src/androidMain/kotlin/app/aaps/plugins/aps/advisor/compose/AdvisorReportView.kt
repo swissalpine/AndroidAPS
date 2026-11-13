@@ -90,6 +90,8 @@ private const val CHIP_ALPHA = 0.16f
  *
  * @param glucose null when the ranges are not known (a report from before they were kept)
  * @param profileWarnings large profile changes of the last days. They are shown first, whatever the AI said
+ * @param confirmedWarnings keys ([ProfileWarning.key]) of the warnings that the person has read. They are not shown
+ * @param onConfirmWarnings called with the warnings of the note when the person taps the button
  * @param onAskAbout null when the chat is not open. Else the button of a finding calls it with a question about that finding
  */
 @Composable
@@ -98,10 +100,13 @@ internal fun ReportView(
     glucose: GlucoseStats?,
     profileWarnings: List<ProfileWarning>,
     sentJson: String?,
+    confirmedWarnings: Set<String>,
+    onConfirmWarnings: (List<ProfileWarning>) -> Unit,
     onAskAbout: ((String) -> Unit)?
 ) {
     val report = success.report
-    if (profileWarnings.isNotEmpty()) ProfileWarningCard(profileWarnings)
+    val openWarnings = profileWarnings.filter { it.key !in confirmedWarnings }
+    if (openWarnings.isNotEmpty()) ProfileWarningCard(openWarnings, onConfirm = { onConfirmWarnings(openWarnings) })
     SummaryCard(report)
     if (glucose != null) GlucoseRangeCard(glucose)
     val changes = report.findings.mapNotNull { it.change }
@@ -131,7 +136,7 @@ internal fun ReportView(
  * person may have meant it. The note asks to check.
  */
 @Composable
-private fun ProfileWarningCard(warnings: List<ProfileWarning>) {
+private fun ProfileWarningCard(warnings: List<ProfileWarning>, onConfirm: () -> Unit) {
     Surface(shape = RoundedCornerShape(AapsSpacing.chipCornerRadius), color = MaterialTheme.colorScheme.errorContainer, modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(AapsSpacing.large)) {
             Icon(imageVector = Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(TITLE_ICON))
@@ -172,6 +177,9 @@ private fun ProfileWarningCard(warnings: List<ProfileWarning>) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
+                TextButton(onClick = onConfirm) {
+                    Text(text = stringResource(R.string.advisor_profile_warning_confirm), color = MaterialTheme.colorScheme.onErrorContainer)
+                }
             }
         }
     }

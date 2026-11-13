@@ -690,7 +690,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
                 .map {
                     ProfileWarning(
                         setting = it.setting, startMinute = it.startMinute, endMinute = it.endMinute, changePercent = it.maxChangePercent,
-                        madeDaysAgo = switchChange.change.daysAgo, madeAtHour = switchChange.change.hour
+                        madeDaysAgo = switchChange.change.daysAgo, madeAtHour = switchChange.change.hour,
+                        madeAt = switchChange.switch.timestamp
                     )
                 }
         }

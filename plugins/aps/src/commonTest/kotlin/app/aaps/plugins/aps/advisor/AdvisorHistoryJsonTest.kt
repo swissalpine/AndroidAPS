@@ -68,6 +68,16 @@ class AdvisorHistoryJsonTest {
     }
 
     @Test
+    fun `the time of a note is kept, and a note from before it was stored reads as 0`() {
+        val warnings = listOf(ProfileWarning(ChangedSetting.BASAL, 780, 1020, -15, madeDaysAgo = 0, madeAtHour = 16, madeAt = 1_700_000_000_000L))
+        val text = AdvisorHistoryJson.encode(listOf(entry(now).copy(profileWarnings = warnings)))
+        val withoutTime = text.replace(Regex(",\"madeAt\":\\d+"), "")
+
+        assertEquals(1_700_000_000_000L, AdvisorHistoryJson.decode(text).single().profileWarnings.single().madeAt)
+        assertEquals(0L, AdvisorHistoryJson.decode(withoutTime).single().profileWarnings.single().madeAt)
+    }
+
+    @Test
     fun `a note with an unknown setting is left out and the analysis stays`() {
         val warnings = listOf(ProfileWarning(ChangedSetting.BASAL, 0, 60, 12, 1, 1), ProfileWarning(ChangedSetting.ISF, 0, 60, 12, 1, 1))
         val text = AdvisorHistoryJson.encode(listOf(entry(now).copy(profileWarnings = warnings))).replaceFirst("\"BASAL\"", "\"SLEEP\"")

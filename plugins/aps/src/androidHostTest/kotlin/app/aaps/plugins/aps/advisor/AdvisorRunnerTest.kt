@@ -17,7 +17,9 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -54,6 +56,19 @@ class AdvisorRunnerTest {
         respond(content = body, status = status, headers = headersOf(HttpHeaders.ContentType, "application/json"))
     }
 
+    private class MemoryAcks : AdvisorAckStore {
+
+        var keys = emptySet<String>()
+        override fun load(): Set<String> = keys
+        override fun add(keys: Set<String>, now: Long) {
+            this.keys = AdvisorAcks.keep(this.keys + keys, now)
+        }
+
+        override fun clear() {
+            keys = emptySet()
+        }
+    }
+
     private class MemoryHistory : AdvisorHistoryStore {
 
         val entries = mutableListOf<AdvisorHistoryEntry>()
@@ -88,11 +103,13 @@ class AdvisorRunnerTest {
         preferences: Preferences = preferences(),
         summarySource: suspend (Int, Long) -> AdvisorSummary = { _, _ -> emptySummary },
         history: AdvisorHistoryStore = MemoryHistory(),
+        acks: AdvisorAckStore = MemoryAcks(),
         scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     ) = AdvisorRunner(
         summarySource = summarySource,
         client = AdvisorClient(http = HttpClient(engine)),
         history = history,
+        acks = acks,
         preferences = preferences,
         dateUtil = dateUtil,
         aapsLogger = aapsLogger,
@@ -277,6 +294,39 @@ class AdvisorRunnerTest {
         assertThat(runner.state.value.profileWarnings).containsExactly(warning)
         assertThat(history.entries.single().profileWarnings).containsExactly(warning)
         assertThat((engine.requestHistory.single().body as TextContent).text).doesNotContain("profileWarnings")
+    }
+
+    @Test
+    fun `confirming the warnings hides them and keeps the keys, and loading brings them back`() = runBlocking {
+        val acks = MemoryAcks()
+        val warning = ProfileWarning(ChangedSetting.BASAL, 780, 1140, -15, madeDaysAgo = 0, madeAtHour = 16, madeAt = now - 1_000L)
+        val runner = runner(engine(), acks = acks)
+
+        runner.confirmWarnings(listOf(warning))
+
+        assertThat(runner.confirmedWarnings.value).containsExactly(warning.key)
+        // The file is written in the background, so wait for it.
+        withTimeout(5_000L) { while (acks.keys.isEmpty()) delay(10L) }
+        assertThat(acks.keys).containsExactly(warning.key)
+
+        val again = runner(engine(), acks = acks)
+        again.loadHistory()
+        withTimeout(5_000L) { while (again.confirmedWarnings.value.isEmpty()) delay(10L) }
+        assertThat(again.confirmedWarnings.value).containsExactly(warning.key)
+    }
+
+    @Test
+    fun `deleting the history also forgets the confirmed warnings`() = runBlocking {
+        val acks = MemoryAcks()
+        val warning = ProfileWarning(ChangedSetting.BASAL, 780, 1140, -15, madeDaysAgo = 0, madeAtHour = 16, madeAt = now - 1_000L)
+        val runner = runner(engine(), acks = acks)
+        runner.confirmWarnings(listOf(warning))
+        withTimeout(5_000L) { while (acks.keys.isEmpty()) delay(10L) }
+
+        runner.clearHistory()
+
+        assertThat(runner.confirmedWarnings.value).isEmpty()
+        assertThat(acks.keys).isEmpty()
     }
 
     private val nightHintAnswer = """

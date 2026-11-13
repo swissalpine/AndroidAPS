@@ -409,6 +409,7 @@ data class ChangedTime(
  * @property changePercent the largest change in the time, signed, see [ChangedTime.maxChangePercent]
  * @property madeDaysAgo days between the change and the analysis
  * @property madeAtHour the hour when the person saved the change, local time
+ * @property madeAt the time when the person saved the change. 0 in a kept analysis from before it was stored
  */
 data class ProfileWarning(
     val setting: ChangedSetting,
@@ -416,8 +417,13 @@ data class ProfileWarning(
     val endMinute: Int,
     val changePercent: Int,
     val madeDaysAgo: Int,
-    val madeAtHour: Int
-)
+    val madeAtHour: Int,
+    val madeAt: Long = 0L
+) {
+
+    /** Names this change, so a warning that the person has read is not shown again. A new change has a new time. */
+    val key: String get() = "$madeAt:${setting.name}:$startMinute:$endMinute"
+}
 
 /**
  * The data before and after the latest profile change. The period is cut at the moment of the change.
