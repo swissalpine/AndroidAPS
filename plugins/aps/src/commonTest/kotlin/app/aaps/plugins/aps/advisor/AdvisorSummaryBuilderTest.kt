@@ -1078,6 +1078,34 @@ class AdvisorSummaryBuilderTest {
     }
 
     @Test
+    fun `an ISF window counts the corrections by the loop before and after the change`() {
+        val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(isfBlocks = listOf(Block(day, 1.8)))
+        // The glucose is 150 after the change, so the loop stretches there start high. Before it is 100: no stretch.
+        val smbs = listOf(at(12, 14), at(17, 14), at(17, 15), at(17, 16), at(17, 17)).map { smb(it, 1.0) }
+        val window = assertNotNull(
+            build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), changed)).copy(boluses = smbs))
+                .profileHistory.latestEffect
+        ).changedWindows.single()
+
+        assertNull(window.before.loopCorrections)
+        val after = assertNotNull(window.after.loopCorrections)
+        assertTrue(after.count >= 1)
+        // The ISF of the new profile.
+        assertEquals(1.8, after.avgProfileIsfMgdlPerUnit)
+    }
+
+    @Test
+    fun `the loop corrections of a window are in the text for the AI`() {
+        val changed = profileSwitch(at(15, 12), 100, basal = oldBasal).copy(isfBlocks = listOf(Block(day, 1.8)))
+        val smbs = listOf(at(17, 14), at(17, 15), at(17, 16), at(17, 17)).map { smb(it, 1.0) }
+        val text = AdvisorSummaryJson.encode(
+            build(changeInput(listOf(profileSwitch(at(1, 0), 100, basal = oldBasal), changed)).copy(boluses = smbs))
+        )
+
+        assertTrue(text.contains("\"avgProfileIsfMgdlPerUnit\":1.8"))
+    }
+
+    @Test
     fun `nights are split by the day of the change and the night of the change is left out`() {
         // Without food or boluses every night is quiet. The mornings of day 11 to 20 each have a night.
         val effect = build(

@@ -471,6 +471,7 @@ data class ChangedWindow(
  * @property days the number of days that are counted
  * @property meals the clean meals that start in the window. Only for a change of the carb ratio, else null
  * @property corrections the corrections that start in the window. Only for a change of the ISF, else null
+ * @property loopCorrections the corrections by the loop that start in the window. Only for a change of the ISF, else null
  */
 data class WindowStats(
     val days: Int,
@@ -479,7 +480,19 @@ data class WindowStats(
     val aboveRangePercent: Double?,
     val smbUnitsPerDay: Double,
     val meals: MealStats?,
-    val corrections: CorrectionStats?
+    val corrections: CorrectionStats?,
+    val loopCorrections: LoopCorrectionStats? = null
+)
+
+/**
+ * The mean of several corrections by the loop. Compare [avgDropMgdlPerUnit] with [avgProfileIsfMgdlPerUnit]: the
+ * insulin that was needed anyway is not taken out, so the drop is a hint and not a measurement.
+ */
+data class LoopCorrectionStats(
+    val count: Int,
+    val avgDropMgdlPerUnit: Double,
+    /** The mean ISF of the profile at the start of these stretches. Null when it was unknown for all of them. */
+    val avgProfileIsfMgdlPerUnit: Double?
 )
 
 /**

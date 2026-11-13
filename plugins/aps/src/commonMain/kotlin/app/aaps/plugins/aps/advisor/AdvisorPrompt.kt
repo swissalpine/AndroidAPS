@@ -101,7 +101,9 @@ object AdvisorPrompt {
           changedWindows lists each time of the day (startMinute to endMinute) where one setting (basal, carb_ratio or isf)
           changed, with the glucose and the SMB per day in that time before and after. days is the number of days with
           enough readings. For carb_ratio it also has the clean meals that start in the window (count, avgRiseMgdl = peak
-          minus start, avgMinMgdl), for isf the corrections (count, avgDropMgdlPerUnit). Other meals and corrections have
+          minus start, avgMinMgdl), for isf the corrections (count, avgDropMgdlPerUnit) and the loopCorrections (count,
+          avgDropMgdlPerUnit, avgProfileIsfMgdlPerUnit; the same rules as the top level loopCorrections apply: the basal
+          insulin is not taken out, so at most medium confidence). Other meals and corrections have
           daysAgo, so compare them with the daysAgo of the change.
         - earlierHints: what you said in the latest earlier reports, newest first, with how many days ago. Each has the title,
           area, timeOfDay, confidence and the proposed change of its findings. This is not data about the person.

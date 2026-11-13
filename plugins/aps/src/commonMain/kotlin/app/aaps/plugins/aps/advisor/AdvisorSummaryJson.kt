@@ -308,6 +308,13 @@ object AdvisorSummaryJson {
                 put("avgDropMgdlPerUnit", it.avgDropMgdlPerUnit)
             })
         }
+        s.loopCorrections?.let {
+            put("loopCorrections", buildJsonObject {
+                put("count", it.count)
+                put("avgDropMgdlPerUnit", it.avgDropMgdlPerUnit)
+                number("avgProfileIsfMgdlPerUnit", it.avgProfileIsfMgdlPerUnit)
+            })
+        }
     }
 
     /** Leaves the field out when the value did not change. */

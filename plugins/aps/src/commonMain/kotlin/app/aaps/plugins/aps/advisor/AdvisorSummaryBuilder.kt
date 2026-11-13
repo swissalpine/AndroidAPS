@@ -79,7 +79,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         profile = profile(),
         profileHistory = profileHistory(),
         profileWarnings = profileWarnings(),
-        loopCorrections = loopCorrectionList,
+        loopCorrections = loopCorrectionList.map { it.value },
         compressionLows = compressionLowList
     )
 
@@ -361,8 +361,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
      * Looks for four hour stretches in steps of 30 minutes. A stretch that fits is taken and the next one starts
      * after it, so no insulin is counted twice. Only the newest [MAX_LOOP_CORRECTIONS] are kept.
      */
-    private fun loopCorrections(): List<LoopCorrectionResult> {
-        val result = mutableListOf<LoopCorrectionResult>()
+    private fun loopCorrections(): List<Timed<LoopCorrectionResult>> {
+        val result = mutableListOf<Timed<LoopCorrectionResult>>()
         var time = periodStart
         while (time + EVENT_WINDOW <= input.now) {
             val found = loopCorrectionAt(time)
@@ -376,7 +376,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         return result.takeLast(MAX_LOOP_CORRECTIONS)
     }
 
-    private fun loopCorrectionAt(time: Long): LoopCorrectionResult? {
+    private fun loopCorrectionAt(time: Long): Timed<LoopCorrectionResult>? {
         val end = time + EVENT_WINDOW
         // Food or a manual bolus in the window or in the 5 hours before would hide what the loop did.
         if (foodAndBolusTimes.any { it in (time - QUIET_AFTER_EVENT)..end }) return null
@@ -393,19 +393,22 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         val loopUnits = smb + extraBasal
         if (loopUnits < LOOP_CORRECTION_MIN_UNITS) return null
         val isf = isfAt(time, start.utcOffset)
-        return LoopCorrectionResult(
-            daysAgo = daysAgo(time, start.utcOffset),
-            hour = localHour(time, start.utcOffset),
-            startMgdl = start.value.round1(),
-            endMgdl = finish.value.round1(),
-            minMgdl = series.minOf { it.value }.round1(),
-            smbUnits = smb.round2(),
-            extraBasalUnits = extraBasal.round2(),
-            loopUnits = loopUnits.round2(),
-            dropMgdlPerUnit = ((start.value - finish.value) / loopUnits).round1(),
-            profileIsfMgdlPerUnit = isf?.round1(),
-            expectedDropMgdl = isf?.let { (it * loopUnits).round1() },
-            activity = activityAt(time, end)
+        return Timed(
+            time, start.utcOffset,
+            LoopCorrectionResult(
+                daysAgo = daysAgo(time, start.utcOffset),
+                hour = localHour(time, start.utcOffset),
+                startMgdl = start.value.round1(),
+                endMgdl = finish.value.round1(),
+                minMgdl = series.minOf { it.value }.round1(),
+                smbUnits = smb.round2(),
+                extraBasalUnits = extraBasal.round2(),
+                loopUnits = loopUnits.round2(),
+                dropMgdlPerUnit = ((start.value - finish.value) / loopUnits).round1(),
+                profileIsfMgdlPerUnit = isf?.round1(),
+                expectedDropMgdl = isf?.let { (it * loopUnits).round1() },
+                activity = activityAt(time, end)
+            )
         )
     }
 
@@ -809,7 +812,19 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             ),
             corrections = if (setting != ChangedSetting.ISF) null else correctionStatsOf(
                 correctionList.filter { it.time in from until to && inWindow(it.time, it.utcOffset) }.map { it.value }
+            ),
+            loopCorrections = if (setting != ChangedSetting.ISF) null else loopCorrectionStatsOf(
+                loopCorrectionList.filter { it.time in from until to && inWindow(it.time, it.utcOffset) }.map { it.value }
             )
+        )
+    }
+
+    private fun loopCorrectionStatsOf(corrections: List<LoopCorrectionResult>): LoopCorrectionStats? {
+        if (corrections.isEmpty()) return null
+        return LoopCorrectionStats(
+            count = corrections.size,
+            avgDropMgdlPerUnit = corrections.map { it.dropMgdlPerUnit }.average().round1(),
+            avgProfileIsfMgdlPerUnit = corrections.mapNotNull { it.profileIsfMgdlPerUnit }.takeIf { it.isNotEmpty() }?.average()?.round1()
         )
     }
 
