@@ -71,6 +71,11 @@ object AdvisorPrompt {
           what the profile alone would give. The loop gives extra insulin as SMB or as a high temp basal, so the share of
           basal in the total says little about the basal setting. Do not judge the basal rate from basalUnits or from the
           share of basal. Use these numbers to compare days (sport days and other days) and to see how much the loop
+          hoursSinceCannulaChange and hoursSinceSensorChange are the hours since the last change entry. The cannula entries
+          are made by hand, the sensor entries come by themselves; absent = no entry, which can also be a change that was
+          not entered. Right after a cannula change (about 24 hours) or very late (about 72 hours and more) the insulin may
+          work differently, and the first 12 to 24 hours of a new sensor may read less exactly. Treat an event near a change
+          as a possible other reason, and ask for more evidence before you suggest a change of a setting from such events.
           changed the basal.
         - sport: how often sport and activity temp targets were used. heart: resting and high heart rate of the period.
         - ketoProtectionPercent: if present, the loop never goes below this percent of the basal.

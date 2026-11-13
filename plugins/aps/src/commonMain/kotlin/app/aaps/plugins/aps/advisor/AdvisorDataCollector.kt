@@ -27,6 +27,8 @@ class AdvisorDataCollector(
         val periodStart = now - days * MS_DAY
         // Food, boluses and sport just before the period still matter for the first night or meal.
         val contextStart = periodStart - CONTEXT_MARGIN
+        // The last cannula or sensor change before the first events can be some days old.
+        val deviceStart = periodStart - DEVICE_CHANGE_MARGIN
 
         // A stored result has no autosensResult. Only its raw data (RT) is stored, so read the ratios from it.
         val loopRatios = persistenceLayer.getApsResults(periodStart, now).mapNotNull { result ->
@@ -55,7 +57,9 @@ class AdvisorDataCollector(
             heartRates = persistenceLayer.getHeartRatesFromTime(contextStart),
             loopRatios = loopRatios,
             // The floor is only used when the protection is on. Off means the loop can go to zero.
-            ketoProtectionPercent = if (preferences.get(BooleanKey.ApsKetoacidosisProtection)) preferences.get(IntKey.ApsKetoacidosisProtectionBasal) else null
+            ketoProtectionPercent = if (preferences.get(BooleanKey.ApsKetoacidosisProtection)) preferences.get(IntKey.ApsKetoacidosisProtectionBasal) else null,
+            deviceChanges = persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.CANNULA_CHANGE, true) +
+                persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.SENSOR_CHANGE, true)
         )
         return AdvisorSummaryBuilder(input).build()
     }
@@ -64,6 +68,7 @@ class AdvisorDataCollector(
 
         const val MS_DAY = 86_400_000L
         const val CONTEXT_MARGIN = 6 * 3_600_000L
+        const val DEVICE_CHANGE_MARGIN = 7 * 24 * 3_600_000L
 
         // A profile switch can be older than the period. Without it the profile at the start is unknown.
         const val PROFILE_MARGIN = 30 * MS_DAY

@@ -146,7 +146,14 @@ data class ActivityContext(
     /** The whole sensitivity ratio the loop used just before the event. Null when unknown. */
     val sensitivityRatio: Double?,
     /** The Activity Tracker factor just before the event. Null when the tracker did not run or is unknown. */
-    val activityRatio: Double?
+    val activityRatio: Double?,
+    /**
+     * Hours from the last cannula change entry to the start of the event. Null when there is no entry in
+     * the last days. The person writes these entries by hand, so null can also mean a change that was not entered.
+     */
+    val hoursSinceCannulaChange: Double? = null,
+    /** Hours from the last sensor change entry to the start of the event. Null when there is no entry. */
+    val hoursSinceSensorChange: Double? = null
 )
 
 /**

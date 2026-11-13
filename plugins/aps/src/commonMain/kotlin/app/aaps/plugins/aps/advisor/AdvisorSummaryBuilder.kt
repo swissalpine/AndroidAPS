@@ -42,6 +42,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
     // Every time of food or a manual bolus, oldest first. A quiet night is a stretch without any of them.
     private val foodAndBolusTimes = (carbs.map { it.timestamp } + manualBoluses.map { it.timestamp }).sorted()
     private val tempBasals = input.tempBasals.filter { it.isValid }
+    private val cannulaChanges = input.deviceChanges.filter { it.isValid && it.type == TE.Type.CANNULA_CHANGE }.map { it.timestamp }.sorted()
+    private val sensorChanges = input.deviceChanges.filter { it.isValid && it.type == TE.Type.SENSOR_CHANGE }.map { it.timestamp }.sorted()
     private val exercises = input.therapyEvents.filter { it.isValid && it.type == TE.Type.EXERCISE }
     // A temp target with no duration is the "cancel" record, so it is not an activity.
     private val activityTargets = input.tempTargets.filter { it.isValid && it.reason == TT.Reason.ACTIVITY && it.duration > 0L }
@@ -772,7 +774,9 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             activityTempTargetNearby = activityTargets.any { overlaps(it.timestamp, it.timestamp + it.duration, lookBack, until) },
             profilePercentage = profileSwitches.lastOrNull { it.timestamp <= time }?.originalPercentage,
             sensitivityRatio = recentRatio?.sensitivityRatio?.round2(),
-            activityRatio = recentRatio?.activityRatio?.round2()
+            activityRatio = recentRatio?.activityRatio?.round2(),
+            hoursSinceCannulaChange = hoursSinceLast(cannulaChanges, time),
+            hoursSinceSensorChange = hoursSinceLast(sensorChanges, time)
         )
     }
 
@@ -841,6 +845,10 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val MS_DAY = 86_400_000L
 
         // A time slot is 5 minutes. Coverage counts slots that have at least one reading.
+    /** Hours from the last entry in [changes] (sorted) at or before [time] to [time]. Null when there is no such entry. */
+    private fun hoursSinceLast(changes: List<Long>, time: Long): Double? =
+        changes.lastOrNull { it <= time }?.let { ((time - it).toDouble() / MS_HOUR).round1() }
+
         const val SLOT = 5 * MS_MINUTE
         const val SLOTS_PER_DAY = 288
         const val MAX_INTERVAL = 30 * MS_MINUTE

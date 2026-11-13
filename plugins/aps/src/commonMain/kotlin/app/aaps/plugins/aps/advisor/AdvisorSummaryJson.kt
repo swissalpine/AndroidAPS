@@ -174,6 +174,8 @@ object AdvisorSummaryJson {
             buildJsonObject {
                 put("percentage", use.percentage)
                 put("hours", use.hours)
+        number("hoursSinceCannulaChange", a.hoursSinceCannulaChange)
+        number("hoursSinceSensorChange", a.hoursSinceSensorChange)
             }
         })
         put("activityTrackerUse", array(s.activityTrackerUse) { use ->

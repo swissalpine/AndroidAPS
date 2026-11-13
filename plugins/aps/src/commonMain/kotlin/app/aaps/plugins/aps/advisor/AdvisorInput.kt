@@ -39,7 +39,12 @@ data class AdvisorInput(
      * The lowest temp basal the loop may set, in percent of the profile basal, when the ketoacidosis
      * protection is on. Null when it is off. Then the loop can go down to zero.
      */
-    val ketoProtectionPercent: Int?
+    val ketoProtectionPercent: Int?,
+    /**
+     * Entries of the type Cannula Change and Sensor Change. They should start some days before the period,
+     * because the last change before an event can be older than the period.
+     */
+    val deviceChanges: List<TE> = emptyList()
 )
 
 /** The sensitivity the loop used in one run. */
