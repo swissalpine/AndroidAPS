@@ -118,6 +118,7 @@
     <string name="advisor_name">AI advisor</string>
     <string name="advisor_description">Sends a summary of your last days to Claude and shows hints about patterns. It never changes your profile or your loop.</string>
     <string name="advisor_disclaimer">These are hints from an AI. They are not medical advice and can be wrong. Do not change your settings because of this alone. Talk to your diabetes team. Nothing is changed in AAPS.</string>
+    <string name="advisor_analysis_time" comment="%1$s=date and time of the analysis, %2$s=how long ago, for example 2 hours ago. Example: Analysis from Nov 13, 2026, 6:52 AM · 2 hours ago">Analysis from %1$s · %2$s</string>
     <string name="advisor_privacy_note" comment="%1$d=number of days, for example 14">When you tap Start, a summary of the last %1$d days is sent to Anthropic. It has no name, no exact times and no notes. It also has the titles and time ranges of the hints of earlier analyses, and what you wrote in earlier chats, so that the AI does not repeat itself. In the chat, your text and the data are sent again.</string>
     <string name="advisor_not_ready">Before you start, open the settings of this plugin. You need your Anthropic API key, and you must agree to send a data summary.</string>
     <string name="advisor_start">Start analysis</string>

@@ -1,5 +1,6 @@
 package app.aaps.plugins.aps.advisor.compose
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +38,7 @@ import app.aaps.plugins.aps.advisor.AdvisorPhase
 import app.aaps.plugins.aps.advisor.AdvisorState
 import app.aaps.plugins.aps.advisor.ChatMessage
 import app.aaps.plugins.aps.advisor.ChatRole
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
@@ -101,6 +103,8 @@ fun AdvisorScreen(
                 }
             }
         }
+        // When the analysis was made, right above its report.
+        if (shown is AdvisorOutcome.Success && newestIsShown && newest != null) AnalysisAge(newest.timeMillis)
         when (shown) {
             is AdvisorOutcome.Success -> ReportView(
                 success = shown,
@@ -128,6 +132,33 @@ fun AdvisorScreen(
         if (earlier.isNotEmpty()) EarlierAnalyses(earlier, onClearHistory)
     }
 }
+
+/**
+ * The date and the age of the analysis. The age is worked out again every minute. An analysis older than
+ * [OLD_ANALYSIS_DAYS] days is shown in the error color, so nobody builds on old data without noticing.
+ */
+@Composable
+private fun AnalysisAge(timeMillis: Long) {
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(timeMillis) {
+        while (true) {
+            delay(AGE_REFRESH_MILLIS)
+            now = System.currentTimeMillis()
+        }
+    }
+    val date = remember(timeMillis) { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(timeMillis)) }
+    val ago = DateUtils.getRelativeTimeSpanString(timeMillis, now, DateUtils.MINUTE_IN_MILLIS).toString()
+    val old = now - timeMillis > OLD_ANALYSIS_DAYS * DateUtils.DAY_IN_MILLIS
+    Text(
+        text = stringResource(R.string.advisor_analysis_time, date, ago),
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Medium,
+        color = if (old) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+    )
+}
+
+private const val OLD_ANALYSIS_DAYS = 3L
+private const val AGE_REFRESH_MILLIS = 60_000L
 
 /** The questions of the person and the answers of the AI about the newest analysis, and the field for the next question. */
 @Composable
