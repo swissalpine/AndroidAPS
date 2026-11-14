@@ -39,7 +39,7 @@ object AdvisorPrompt {
         PART 1. What the fields mean
 
         - todayWeekday and weekday: todayWeekday is the weekday of today (Mon to Sun). weekday stands right after every
-          daysAgo of the data (nights, meals, corrections, loopCorrections, suspectedCompressionLows, insulin days,
+          daysAgo of the data (nights, daytimeStretches, meals, corrections, loopCorrections, suspectedCompressionLows, insulin days,
           careNotes, profileHistory) and is the weekday of that day. For a night it is the weekday of the morning after it.
           earlierHints and notesFromPerson have no weekday.
         - quality: how complete the data is. glucoseCoveragePercent is the share of 5 minute slots with a reading.
@@ -50,9 +50,16 @@ object AdvisorPrompt {
           starting at least 5 hours after the last one). driftMgdlPerHour is the change of glucose; negative is falling.
           lastBolusUnits, lastBolusHoursBefore, lastCarbsGrams and smbUnitsBefore tell how much insulin may still work.
           minimumTempMinutes are the minutes the loop ran its lowest temp basal (zero, or the floor of the ketoacidosis
-          protection).
-        - meals: carbs with a manual bolus, looked at for 4 hours. smbUnits is extra insulin from the loop. clean=false
-          means other food or a bolus came in the same 4 hours.
+          protection). iobAtStartUnits is the net insulin on board at the start (0 = the level of the profile basal,
+          positive = insulin of a meal still works, negative = insulin was missing).
+        - daytimeStretches: like nights, but in the day (08:00 to 22:00) and for the basal rate in the day. A stretch starts
+          only 4 hours after the last food or manual bolus (the night: 5 hours) and lasts at least 2 hours, so the insulin
+          and the food of the last meal can still work a little. Every stretch has the same fields as a night, with daysAgo
+          and startMinuteOfDay.
+        - meals: carbs with a manual bolus, looked at for 4 hours. smbUnits is extra insulin from the loop as SMB.
+          extraBasalUnits is extra insulin from the loop as temp basal above the profile basal (negative = below it; absent =
+          unknown). The loop insulin of the meal is smbUnits + extraBasalUnits. clean=false means other food or a bolus came
+          in the same 4 hours.
         - corrections: boluses without food. dropMgdlPerUnit is the fall in 4 hours per unit (bolus and SMB together).
         - loopCorrections: four hours that start above 130 with no food and no manual bolus (also none in the 5 hours before),
           where only the loop worked on the high value. loopUnits = smbUnits + extraBasalUnits (temp basal above the profile
@@ -111,15 +118,30 @@ object AdvisorPrompt {
 
         PART 2. How to judge
 
-        Basal. Use the nights. A night with much insulin before it is a weak hint about basal. Do not judge the basal rate
-        from basalUnits or from the share of basal in the insulin: the loop gives extra insulin as SMB or as a high temp
+        Basal. Use the nights first. A night with much insulin before it is a weak hint about basal. Do not judge the basal
+        rate from basalUnits or from the share of basal in the insulin: the loop gives extra insulin as SMB or as a high temp
         basal, so that share says little. Use the insulin numbers to compare days (sport days and other days) and to see how
-        much the loop changed the basal.
+        much the loop changed the basal. For the basal in the day use the daytimeStretches. They are weaker than the nights:
+        look at iobAtStartUnits, lastBolusUnits, lastBolusHoursBefore and smbUnitsBefore, and set a stretch aside when much
+        insulin may still work, or when a note says the last meal was rich in fat or protein. A finding about the basal in
+        the day needs stretches of the same time of day on at least 3 different days, and is at most medium.
 
-        Carb ratio. Use the clean meals; be careful with meals that are not clean. If many clean meals of the same time of
-        day need a lot of extra smbUnits and rise high, the carb ratio may be too weak (too many grams per unit); if they fall
-        low with little smbUnits, it may be too strong. The SMB and the temp basal of the loop depend on the ISF and the carb
-        ratio, so read them as a hint for these settings, not only for the basal.
+        Carb ratio and basal after meals. Use the clean meals; be careful with meals that are not clean. A meal with a lot of
+        loop insulin (smbUnits + extraBasalUnits) and a high rise has two possible causes: the carb ratio is too weak, or the
+        basal is too low in that time of day. You cannot tell from one meal, but patterns can be questioned. Look for these
+        signs: (1) Does the extra loop insulin grow with the carbs of the meals? Then it is more likely the carb ratio. Is it
+        about the same for small and large meals? Then it is more likely the basal. (2) Does the same time of day need much
+        loop insulin on days without a meal at that time (see the weekday, the daytimeStretches and the other days)? Then it is
+        more likely the basal. (3) Are the nights quiet while the loop needs much extra insulin only after meals? Then it is
+        more likely the carb ratio, or the entered carbs are not right. Do the nights also drift up? Then it is more likely the
+        basal. (4) A steep rise in the first two hours points to the carb ratio or to the timing of the bolus. A slow rise that
+        goes on after 3 to 4 hours points to a missing basal. If the carbs entered by the person are right, one of the two
+        settings is wrong; you cannot know whether they are right, so say that and ask the person in questions_for_team (for
+        example whether the carbs of this meal are counted exactly). If the signs do not decide between the two, do not
+        propose a number: use setting "none", describe both possibilities, and never change both settings at once. If many
+        clean meals of the same time of day fall low with little loop insulin, the carb ratio may be too strong. The SMB and
+        the temp basal of the loop depend on the ISF and the carb ratio too, so read them as a hint, not as proof. A finding
+        about the carb ratio from these meals is at most medium.
 
         ISF. A person who lets the loop correct has few manual corrections, so use the loopCorrections for the ISF, and never
         say that the ISF cannot be checked when there are some. Prefer effectRatio and impliedIsfMgdlPerUnit to
@@ -168,9 +190,10 @@ object AdvisorPrompt {
         1. Use only the data. Do not invent numbers. If the data is not enough, say so (enough_data=false or fill
            not_enough_data_for). Few good findings are better than many weak ones. At most 6 findings.
         2. Every finding must name the evidence with numbers from the data, and a confidence: high only if the pattern
-           repeats in at least 5 independent events, medium for 3 to 4, otherwise low. Two cases are never higher than
+           repeats in at least 5 independent events, medium for 3 to 4, otherwise low. Four cases are never higher than
            medium: a finding about the ISF from loopCorrections (the insulin works longer than 4 hours, the glucose may fall
-           by itself, and the basal insulin is not taken out), and a finding about compression lows.
+           by itself, and the basal insulin is not taken out), a finding about compression lows, a finding about the basal in
+           the day from daytimeStretches, and a finding about the carb ratio from meals with much loop insulin.
         3. Safety first. Low glucose (below 70, and below 54 even more) counts more than high glucose. Never suggest more
            insulin for a time of day that has frequent lows. Do not suggest more insulin on the basis of one event.
         4. A proposed change of a setting must be small: at most $MAX_CHANGE_PERCENT percent, only for basal, carb_ratio or isf,

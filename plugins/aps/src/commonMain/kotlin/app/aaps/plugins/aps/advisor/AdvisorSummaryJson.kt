@@ -75,6 +75,7 @@ object AdvisorSummaryJson {
         summary.glucose?.let { put("glucose", glucose(it)) }
         put("blocks", array(summary.blocks, ::block))
         put("nights", array(summary.nights, ::night))
+        put("daytimeStretches", array(summary.daytimeStretches, ::night))
         put("meals", array(summary.meals, ::meal))
         put("corrections", array(summary.corrections, ::correction))
         put("loopCorrections", array(summary.loopCorrections, ::loopCorrection))
@@ -148,6 +149,7 @@ object AdvisorSummaryJson {
         put("maxMgdl", n.maxMgdl)
         put("smbUnits", n.smbUnits)
         put("minimumTempMinutes", n.minimumTempMinutes)
+        number("iobAtStartUnits", n.iobAtStartUnits)
         put("activity", activity(n.activity))
     }
 
@@ -163,6 +165,7 @@ object AdvisorSummaryJson {
         put("minMgdl", m.minMgdl)
         number("endMgdl", m.endMgdl)
         put("smbUnits", m.smbUnits)
+        number("extraBasalUnits", m.extraBasalUnits)
         put("clean", m.clean)
         put("activity", activity(m.activity))
     }

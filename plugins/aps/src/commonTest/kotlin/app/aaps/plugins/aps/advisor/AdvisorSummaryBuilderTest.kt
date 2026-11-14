@@ -1454,6 +1454,79 @@ class AdvisorSummaryBuilderTest {
         assertEquals(200, summary.careNotes.single().text.length)
     }
 
+    // ---- Quiet stretches in the day and the extra basal of a meal ----
+
+    private fun dayMeals(vararg hours: Int) = hours.map { carbs(at(19, it), 40.0) } to hours.map { bolus(at(19, it), 4.0) }
+
+    @Test
+    fun `a quiet stretch in the day starts 4 hours after the last food and tells what may be left`() {
+        // Meals at 08:00, 12:30 and 19:00. After 12:30 the stretch starts at 16:30 and runs to 19:00 (2.5 hours).
+        // After 08:00 only half an hour is left before 12:30, which is too short.
+        val glucose = readings(at(19, 8), at(19, 22)) { 100.0 + 0.1 * it }
+        val summary = build(
+            input(
+                glucose = glucose,
+                carbs = listOf(carbs(at(19, 8), 40.0), carbs(at(19, 12, 30), 50.0), carbs(at(19, 19), 60.0)),
+                boluses = listOf(bolus(at(19, 8), 4.0), bolus(at(19, 12, 30), 5.0), bolus(at(19, 19), 6.0))
+            )
+        )
+
+        val stretch = summary.daytimeStretches.single()
+        assertEquals(16 * 60 + 30, stretch.startMinuteOfDay)
+        assertEquals(2.5, stretch.hours)
+        assertEquals(1, stretch.daysAgo)
+        assertEquals(5.0, stretch.lastBolusUnits)
+        assertEquals(4.0, stretch.lastBolusHoursBefore)
+        assertEquals(50.0, stretch.lastCarbsGrams)
+        assertEquals(6.0, stretch.driftMgdlPerHour)
+        // The night has no stretch, because there are no readings before 08:00.
+        assertTrue(summary.nights.isEmpty())
+    }
+
+    @Test
+    fun `meals every 5 hours leave no quiet stretch in the day`() {
+        val (carbs, boluses) = dayMeals(8, 13, 18)
+        val glucose = readings(at(19, 8), at(19, 22)) { 100.0 }
+
+        assertTrue(build(input(glucose = glucose, carbs = carbs, boluses = boluses)).daytimeStretches.isEmpty())
+    }
+
+    @Test
+    fun `the net insulin on board at the start of a stretch comes from the loop run before it`() {
+        val glucose = readings(at(19, 8), at(19, 22)) { 100.0 }
+        val (carbs, boluses) = dayMeals(8, 19)
+        val run = LoopRunSample(timestamp = at(19, 12) - minute, iob = 0.456, activity = 0.0, minDeltaMgdl = 0.0, isfMgdlPerUnit = 50.0, dynamicIsf = false)
+
+        val stretch = build(input(glucose = glucose, carbs = carbs, boluses = boluses, loopRuns = listOf(run))).daytimeStretches.single()
+
+        assertEquals(12 * 60, stretch.startMinuteOfDay)
+        assertEquals(0.46, stretch.iobAtStartUnits)
+    }
+
+    @Test
+    fun `the temp basal above the profile basal is added to a meal`() {
+        // Basal 0.8 U/h until 12:00, so the profile gives 3.2 U in the four hours. The temp basal of 2 U/h gives 8 U.
+        val summary = build(
+            input(
+                glucose = mealGlucose(),
+                carbs = listOf(carbs(at(19, 8), 60.0)),
+                boluses = listOf(bolus(at(19, 7, 50), 6.0)),
+                profileSwitches = listOf(profileSwitch(at(10, 0), 100)),
+                tempBasals = listOf(tempBasal(at(19, 8), 2.0, isAbsolute = true, minutes = 240))
+            )
+        )
+
+        assertEquals(4.8, summary.meals.single().extraBasalUnits)
+        assertTrue(AdvisorSummaryJson.encode(summary).contains("\"extraBasalUnits\":4.8"))
+    }
+
+    @Test
+    fun `a meal without a known profile has no extra basal`() {
+        val summary = build(input(glucose = mealGlucose(), carbs = listOf(carbs(at(19, 8), 60.0)), boluses = listOf(bolus(at(19, 7, 50), 6.0))))
+
+        assertNull(summary.meals.single().extraBasalUnits)
+    }
+
     @Test
     fun `the weekday of today and of each day is in the text for the AI`() {
         // Day 20 since 1970-01-01 is a Wednesday, so day 19 is a Tuesday and day 15 a Friday.

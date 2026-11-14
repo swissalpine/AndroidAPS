@@ -24,6 +24,11 @@ data class AdvisorSummary(
     val blocks: List<TimeBlock>,
     /** One quiet stretch for each night that has one (see [NightResult]). */
     val nights: List<NightResult>,
+    /**
+     * Quiet stretches in the day (08:00 to 22:00) with no food and no manual bolus, for the basal rate in the day. The same
+     * numbers as a night, but they start only 4 hours after the last food or bolus, so the evidence is weaker.
+     */
+    val daytimeStretches: List<NightResult>,
     /** Meals with a manual bolus and a full four hour window. */
     val meals: List<MealResult>,
     /** Boluses without a meal, with a full four hour window and no other food or bolus in it. */
@@ -218,7 +223,12 @@ data class NightResult(
      * [AdvisorSummary.ketoProtectionPercent]). It hides a basal rate that is too high.
      */
     val minimumTempMinutes: Int,
-    val activity: ActivityContext
+    val activity: ActivityContext,
+    /**
+     * The net insulin on board of the loop at the start of the stretch, in U (0 = the level of the profile basal,
+     * positive = insulin of a meal still works). Null when no loop run is near.
+     */
+    val iobAtStartUnits: Double? = null
 )
 
 /** One meal with its manual bolus. Entries less than 20 minutes apart count as one meal. */
@@ -239,6 +249,8 @@ data class MealResult(
     val endMgdl: Double?,
     /** SMB the loop gave in the four hours. */
     val smbUnits: Double,
+    /** Temp basal above the profile basal in the four hours, in U. Negative below it. Null without a known profile. */
+    val extraBasalUnits: Double? = null,
     /** True when there was no other food and no other manual bolus in the four hours. */
     val clean: Boolean,
     val activity: ActivityContext

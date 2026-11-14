@@ -72,6 +72,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         glucose = glucoseStats(),
         blocks = blocks(),
         nights = nightList,
+        daytimeStretches = daytimeStretchList,
         meals = mealList.map { it.value },
         corrections = correctionList.map { it.value },
         sport = sport(),
@@ -220,19 +221,47 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         return result
     }
 
-    private fun longestQuietStretch(nightStart: Long, nightEnd: Long, offset: Long): NightResult? {
-        val events = foodAndBolusTimes.filter { it in (nightStart - EVENT_LOOK_BACK)..nightEnd }
-        // Each stretch is a start and an end. It starts after the quiet time that follows the last food or bolus.
-        var lastEvent: Long? = events.lastOrNull { it < nightStart }
+    private fun longestQuietStretch(nightStart: Long, nightEnd: Long, offset: Long): NightResult? =
+        quietStretches(nightStart, nightEnd, QUIET_AFTER_EVENT, NIGHT_MIN_LENGTH)
+            .sortedByDescending { it.second - it.first }
+            .firstNotNullOfOrNull { (start, end) -> nightResult(start, end, offset) }
+
+    /**
+     * The stretches inside the window with no food and no manual bolus. Each is a start and an end. A stretch starts
+     * [wait] after the last food or bolus and must be at least [minLength] long.
+     */
+    private fun quietStretches(windowStart: Long, windowEnd: Long, wait: Long, minLength: Long): List<Pair<Long, Long>> {
+        val events = foodAndBolusTimes.filter { it in (windowStart - EVENT_LOOK_BACK)..windowEnd }
+        var lastEvent: Long? = events.lastOrNull { it < windowStart }
         val stretches = mutableListOf<Pair<Long, Long>>()
-        for (bound in events.filter { it >= nightStart } + nightEnd) {
-            val start = lastEvent?.let { max(nightStart, it + QUIET_AFTER_EVENT) } ?: nightStart
-            if (bound - start >= NIGHT_MIN_LENGTH) stretches.add(Pair(start, bound))
+        for (bound in events.filter { it >= windowStart } + windowEnd) {
+            val start = lastEvent?.let { max(windowStart, it + wait) } ?: windowStart
+            if (bound - start >= minLength) stretches.add(Pair(start, bound))
             lastEvent = bound
         }
         return stretches
-            .sortedByDescending { it.second - it.first }
-            .firstNotNullOfOrNull { (start, end) -> nightResult(start, end, offset) }
+    }
+
+    private val daytimeStretchList by lazy { daytimeStretches() }
+
+    /**
+     * Quiet stretches in the day (08:00 to 22:00), for the basal rate in the day. They start 4 hours after the last food
+     * or manual bolus, so there are more of them than with the 5 hours of the night, but the insulin and the food of the
+     * last meal can still work a little. Every stretch of a day counts, not only the longest.
+     */
+    private fun daytimeStretches(): List<NightResult> {
+        val result = mutableListOf<NightResult>()
+        val byDay = glucose.groupBy { (it.timestamp + it.utcOffset).floorDiv(MS_DAY) }
+        for (day in byDay.keys.sorted()) {
+            val offset = byDay.getValue(day).first().utcOffset
+            val windowStart = day * MS_DAY - offset + DAY_START_HOUR * MS_HOUR
+            val windowEnd = day * MS_DAY - offset + DAY_END_HOUR * MS_HOUR
+            if (windowStart < periodStart || windowEnd > input.now) continue
+            for ((start, end) in quietStretches(windowStart, windowEnd, DAY_QUIET_AFTER_EVENT, DAY_MIN_LENGTH)) {
+                nightResult(start, end, offset)?.let { result.add(it.copy(daysAgo = daysAgo(start, offset))) }
+            }
+        }
+        return result.takeLast(MAX_DAY_STRETCHES)
     }
 
     /** Null when the readings do not cover the stretch well, so a gap in the data gives no wrong drift. */
@@ -267,7 +296,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             maxMgdl = series.maxOf { it.value }.round1(),
             smbUnits = smbUnitsBetween(start, end).round2(),
             minimumTempMinutes = minimumTempMinutes(start, end),
-            activity = activityAt(start, end)
+            activity = activityAt(start, end),
+            iobAtStartUnits = loopRuns.lastOrNull { it.timestamp in (start - LOOP_RUN_MAX_GAP)..start }?.iob?.round2()
         )
     }
 
@@ -297,6 +327,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             val peak = series.maxBy { it.value }
             val otherFood = groups.any { it.timestamp > group.timestamp && it.timestamp <= end }
             val otherBolus = manualBoluses.any { it.timestamp > group.timestamp + MEAL_BOLUS_AFTER && it.timestamp <= end }
+            // The temp basal above the profile basal. Without a known profile it cannot be worked out.
+            val extraBasal = if (basalAt(group.timestamp, input.nowUtcOffset) == null) null else basalOfDay(group.timestamp, end).let { (given, scheduled) -> given - scheduled }
             result.add(
                 Timed(
                     group.timestamp, group.utcOffset,
@@ -312,6 +344,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
                         minMgdl = series.minOf { it.value }.round1(),
                         endMgdl = glucoseNear(end, END_READING_DISTANCE)?.value?.round1(),
                         smbUnits = smbUnitsBetween(group.timestamp, end).round2(),
+                        extraBasalUnits = extraBasal?.round2(),
                         clean = !otherFood && !otherBolus,
                         activity = activityAt(group.timestamp, end)
                     )
@@ -1033,6 +1066,14 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val NIGHT_MIN_COVERAGE = 0.7
         const val NIGHT_EDGE = 30 * MS_MINUTE
         const val EVENT_LOOK_BACK = 24 * MS_HOUR
+
+        // Day: from 08:00 to 22:00. A quiet stretch starts 4 hours after the last food or manual bolus and lasts at least
+        // 2 hours. At most this many of the newest stretches are sent.
+        const val DAY_START_HOUR = 8L
+        const val DAY_END_HOUR = 22L
+        const val DAY_QUIET_AFTER_EVENT = 4 * MS_HOUR
+        const val DAY_MIN_LENGTH = 2 * MS_HOUR
+        const val MAX_DAY_STRETCHES = 20
 
         // Meals and corrections: look at four hours. At least 36 of the 48 time slots must have a reading.
         const val EVENT_WINDOW = 4 * MS_HOUR
