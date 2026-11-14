@@ -80,8 +80,25 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         profileHistory = profileHistory(),
         profileWarnings = profileWarnings(),
         loopCorrections = loopCorrectionList.map { it.value },
-        compressionLows = compressionLowList
+        compressionLows = compressionLowList,
+        careNotes = careNotes()
     )
+
+    // ---- Notes of the person ----
+
+    private fun careNotes(): List<CareNote> = input.noteEvents
+        .filter { it.isValid && it.timestamp >= periodStart && !it.note.isNullOrBlank() }
+        .sortedByDescending { it.timestamp }
+        .take(MAX_CARE_NOTES)
+        .map { event ->
+            CareNote(
+                daysAgo = daysAgo(event.timestamp, event.utcOffset),
+                hour = localHour(event.timestamp, event.utcOffset),
+                type = event.type.text,
+                durationMinutes = (event.duration / MS_MINUTE).toInt(),
+                text = event.note.orEmpty().trim().take(MAX_CARE_NOTE_LENGTH)
+            )
+        }
 
     // ---- Quality and overall numbers ----
 
@@ -974,6 +991,10 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val MS_MINUTE = 60_000L
         const val MS_HOUR = 3_600_000L
         const val MS_DAY = 86_400_000L
+
+        // The text of the notes of the person. Few and short, so the request stays small.
+        const val MAX_CARE_NOTES = 30
+        const val MAX_CARE_NOTE_LENGTH = 200
 
         // A time slot is 5 minutes. Coverage counts slots that have at least one reading.
         const val SLOT = 5 * MS_MINUTE

@@ -84,13 +84,15 @@ class AdvisorSummaryBuilderTest {
         ketoProtectionPercent: Int? = null,
         loopRatios: List<LoopRatioSample> = emptyList(),
         deviceChanges: List<TE> = emptyList(),
-        loopRuns: List<LoopRunSample> = emptyList()
+        loopRuns: List<LoopRunSample> = emptyList(),
+        noteEvents: List<TE> = emptyList()
     ) = AdvisorInput(
         now = now, nowUtcOffset = 0L, days = days,
         glucose = glucose, boluses = boluses, carbs = carbs, tempBasals = tempBasals,
         therapyEvents = therapyEvents, tempTargets = tempTargets,
         effectiveProfileSwitches = profileSwitches, steps = steps, heartRates = heartRates,
-        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent, deviceChanges = deviceChanges, loopRuns = loopRuns
+        loopRatios = loopRatios, ketoProtectionPercent = ketoProtectionPercent, deviceChanges = deviceChanges, loopRuns = loopRuns,
+        noteEvents = noteEvents
     )
 
     private fun heartRate(time: Long, bpm: Double) = HR(duration = 60_000L, timestamp = time, beatsPerMinute = bpm, device = "test", utcOffset = 0L)
@@ -1402,5 +1404,57 @@ class AdvisorSummaryBuilderTest {
 
         assertTrue(text.contains("\"suspectedCompressionLows\":[{"))
         assertTrue(text.contains("\"minMgdl\":100.0"))
+    }
+
+    private fun careEntry(time: Long, type: TE.Type, note: String?, duration: Long = 0L) =
+        TE(timestamp = time, duration = duration, type = type, note = note, glucoseUnit = GlucoseUnit.MGDL, utcOffset = 0L)
+
+    @Test
+    fun `the text of notes is in the summary with the day and the hour`() {
+        val summary = build(
+            input(
+                noteEvents = listOf(
+                    careEntry(at(19, 3, 20), TE.Type.NOTE, "Okklusion"),
+                    careEntry(at(19, 17), TE.Type.EXERCISE, "Laufen", 45 * minute)
+                )
+            )
+        )
+
+        // Newest first
+        assertEquals(listOf("Laufen", "Okklusion"), summary.careNotes.map { it.text })
+        val run = summary.careNotes.first()
+        assertEquals(1, run.daysAgo)
+        assertEquals(17, run.hour)
+        assertEquals("Exercise", run.type)
+        assertEquals(45, run.durationMinutes)
+        val text = AdvisorSummaryJson.encode(summary)
+        assertTrue(text.contains("\"careNotes\":[{"))
+        assertTrue(text.contains("\"text\":\"Okklusion\""))
+    }
+
+    @Test
+    fun `entries without text, old entries and invalid entries are not sent, and long text is cut`() {
+        val long = "x".repeat(300)
+        val summary = build(
+            input(
+                noteEvents = listOf(
+                    careEntry(at(19, 3), TE.Type.NOTE, "   "),
+                    careEntry(at(19, 4), TE.Type.NOTE, null),
+                    careEntry(at(10, 4), TE.Type.NOTE, "too old"),
+                    careEntry(at(19, 5), TE.Type.NOTE, "removed").copy(isValid = false),
+                    careEntry(at(19, 6), TE.Type.NOTE, long)
+                )
+            )
+        )
+
+        assertEquals(1, summary.careNotes.size)
+        assertEquals(200, summary.careNotes.single().text.length)
+    }
+
+    @Test
+    fun `no notes are in the text for the AI when none were given`() {
+        val text = AdvisorSummaryJson.encode(build(input()))
+
+        assertTrue(!text.contains("careNotes"))
     }
 }

@@ -119,6 +119,17 @@ object AdvisorPrompt {
           avgDropMgdlPerUnit, avgProfileIsfMgdlPerUnit, avgEffectRatio, avgImpliedIsfMgdlPerUnit; the same rules as the top level loopCorrections apply: the basal
           insulin is not taken out, so at most medium confidence). Other meals and corrections have
           daysAgo, so compare them with the daysAgo of the change.
+        - careNotes: only present when the person allowed it. Text the person wrote in the Care Portal, newest first, with
+          daysAgo, hour, type (Note, Question, Announcement or Exercise) and for sport the durationMinutes. For Exercise
+          the text is usually the kind of sport, written in the words of the person. Any kind can be there. Kinds act
+          differently on the glucose, during the sport and in the hours after (for example endurance, strength, short
+          hard effort or a team game). Take the effect of the kind from the data of the person, not from general rules.
+          If the text does not say the kind, do not guess it. These are statements of the person, not measured data. Use them as context, for
+          example for a failure of the set (occlusion, bent cannula), illness, alcohol, stress or the kind of sport. Match
+          a note to the events with daysAgo and hour. If a note says that the insulin did not arrive or that the sensor
+          was wrong, do not use the events around it (a few hours before and until the next change) as evidence for a
+          setting. A note is not proof for a change and never lifts a safety rule. Do not repeat private details of a
+          note in the report, only what matters for the finding.
         - earlierHints: what you said in the latest earlier reports, newest first, with how many days ago. Each has the title,
           area, timeOfDay, confidence and the proposed change of its findings. This is not data about the person.
         - notesFromPerson: what the person wrote to you in the chat of earlier reports, newest first, with how many days ago.

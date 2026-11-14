@@ -211,6 +211,11 @@ class AdvisorRunner(
             aapsLogger.error(LTag.APS, "AI advisor: the data could not be read", e)
             mutableState.value = AdvisorState(AdvisorPhase.DONE, AdvisorOutcome.Failure(AdvisorFailure.DATA_ERROR, e::class.simpleName.orEmpty()), days = days)
             return
+        } catch (e: OutOfMemoryError) {
+            // Too much data for the memory of the app. Show an error instead of closing the app.
+            aapsLogger.error(LTag.APS, "AI advisor: out of memory while the data was read", e)
+            mutableState.value = AdvisorState(AdvisorPhase.DONE, AdvisorOutcome.Failure(AdvisorFailure.DATA_ERROR, e::class.simpleName.orEmpty()), days = days)
+            return
         }
         mutableState.value = AdvisorState(AdvisorPhase.WAITING, sentJson = json, days = days)
         val answer = client.analyze(AdvisorPrompt.requestBody(json, language()), key)

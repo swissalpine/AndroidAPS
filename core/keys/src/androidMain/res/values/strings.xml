@@ -411,7 +411,9 @@
 
     <!-- AI advisor -->
     <string name="pref_advisor_consent_title">Allow sending a data summary to Anthropic</string>
-    <string name="advisor_consent_summary">When you start an analysis, a summary of your last days is sent to Anthropic (Claude). It has no name, no exact times and no notes. It has glucose statistics, meals, insulin, sport and heart rate values. Nothing is sent until you start an analysis.</string>
+    <string name="advisor_consent_summary">When you start an analysis, a summary of your last days is sent to Anthropic (Claude). It has no name and no exact times. Notes are only sent if you turn on the next option. It has glucose statistics, meals, insulin, sport and heart rate values. Nothing is sent until you start an analysis.</string>
+    <string name="pref_advisor_send_notes_title">Also send the text of notes</string>
+    <string name="advisor_send_notes_summary">The text of your Care Portal entries of the type Note, Question, Announcement and Exercise (for example the kind of sport) is sent to Anthropic. Each text is cut to 200 characters. Only the last 30 entries are sent. Do not write names or other private things in these entries. Needs the option above.</string>
     <string name="pref_advisor_api_key_title">Anthropic API key</string>
     <string name="advisor_api_key_summary">Your own key from the Anthropic Console. It is kept on this phone. Every analysis costs a small amount on your Anthropic account.</string>
     <string name="pref_advisor_days_title">Days to analyse</string>

@@ -46,7 +46,12 @@ data class AdvisorInput(
      */
     val deviceChanges: List<TE> = emptyList(),
     /** What the loop knew in each run (insulin activity, IOB, glucose change, ISF). Used to judge the ISF. */
-    val loopRuns: List<LoopRunSample> = emptyList()
+    val loopRuns: List<LoopRunSample> = emptyList(),
+    /**
+     * Entries of the type Note, Question, Announcement and Exercise. Only filled when the person turned on
+     * sending the text of notes. Empty means nothing is sent.
+     */
+    val noteEvents: List<TE> = emptyList()
 )
 
 /**

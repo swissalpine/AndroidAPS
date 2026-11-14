@@ -296,6 +296,8 @@ enum class BooleanKey(
     ApsActivityTracker(key = "activity_tracker", defaultValue = false, title = KeysStrings.pref_activity_tracker_title, summary = KeysStrings.pref_activity_tracker_summary),
     // AI advisor: off until the user agrees that a data summary may be sent to Anthropic
     AdvisorConsent(key = "advisor_consent", defaultValue = false, title = KeysStrings.pref_advisor_consent_title, summary = KeysStrings.advisor_consent_summary),
+    // AI advisor: off until the user agrees that the text of care portal notes is sent as well
+    AdvisorSendNotes(key = "advisor_send_notes", defaultValue = false, title = KeysStrings.pref_advisor_send_notes_title, summary = KeysStrings.advisor_send_notes_summary),
 
     ;
 

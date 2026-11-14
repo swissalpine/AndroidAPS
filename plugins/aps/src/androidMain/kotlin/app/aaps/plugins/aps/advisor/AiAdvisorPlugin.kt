@@ -75,6 +75,7 @@ class AiAdvisorPlugin(
         titleResId = R.string.advisor_name,
         items = listOf(
             BooleanKey.AdvisorConsent,
+            BooleanKey.AdvisorSendNotes,
             StringKey.AdvisorApiKey,
             IntKey.AdvisorDays
         ),

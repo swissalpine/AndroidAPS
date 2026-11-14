@@ -31,34 +31,16 @@ class AdvisorDataCollector(
         // The last cannula or sensor change before the first events can be some days old.
         val deviceStart = periodStart - DEVICE_CHANGE_MARGIN
 
-        // A stored result has no autosensResult. Only its raw data (RT) is stored, so read the ratios from it.
-        val apsResults = persistenceLayer.getApsResults(periodStart, now)
-        val loopRuns = apsResults.mapNotNull { result ->
-            val rt = result.rawData() as? RT ?: return@mapNotNull null
-            val iob = result.iobData?.firstOrNull() ?: return@mapNotNull null
-            val glucoseStatus = result.glucoseStatus ?: return@mapNotNull null
-            val autoIsf = rt.algorithm == APSResult.Algorithm.AUTO_ISF
-            val profileSens = if (autoIsf) result.oapsProfileAutoIsf?.sens else result.oapsProfile?.sens
-            val minDelta = minOf(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
-            if (!iob.iob.isFinite() || !iob.activity.isFinite() || !minDelta.isFinite()) return@mapNotNull null
-            LoopRunSample(
-                timestamp = result.date,
-                iob = iob.iob,
-                activity = iob.activity,
-                minDeltaMgdl = minDelta,
-                isfMgdlPerUnit = LoopIsf.used(rt.runningDynamicIsf, autoIsf, rt.variable_sens, profileSens, rt.sensitivityRatio),
-                dynamicIsf = rt.runningDynamicIsf
-            )
-        }
-        val loopRatios = apsResults.mapNotNull { result ->
-            val rt = result.rawData() as? RT ?: return@mapNotNull null
-            val ratio = rt.sensitivityRatio?.takeIf { it.isFinite() && it > 0.0 } ?: return@mapNotNull null
-            LoopRatioSample(
-                timestamp = result.date,
-                utcOffset = systemUtcOffsetAt(result.date),
-                sensitivityRatio = ratio,
-                activityRatio = rt.activityRatio?.takeIf { it.isFinite() && it > 0.0 }
-            )
+        // One result holds the whole raw answer of the loop, so all results of 22 days together are too big for
+        // the memory of the app (OutOfMemoryError). Read one day at a time and keep only the few numbers we need.
+        val loopRuns = mutableListOf<LoopRunSample>()
+        val loopRatios = mutableListOf<LoopRatioSample>()
+        for (block in dayBlocks(periodStart, now)) {
+            for (result in persistenceLayer.getApsResults(block.first, block.last)) {
+                val rt = result.rawData() as? RT ?: continue
+                loopRunSample(result, rt)?.let { loopRuns.add(it) }
+                loopRatioSample(result, rt)?.let { loopRatios.add(it) }
+            }
         }
 
         val input = AdvisorInput(
@@ -79,12 +61,62 @@ class AdvisorDataCollector(
             ketoProtectionPercent = if (preferences.get(BooleanKey.ApsKetoacidosisProtection)) preferences.get(IntKey.ApsKetoacidosisProtectionBasal) else null,
             deviceChanges = persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.CANNULA_CHANGE, true) +
                 persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.SENSOR_CHANGE, true),
-            loopRuns = loopRuns
+            loopRuns = loopRuns,
+            noteEvents = if (preferences.get(BooleanKey.AdvisorSendNotes)) noteEvents(periodStart) else emptyList()
         )
         return AdvisorSummaryBuilder(input).build()
     }
 
-    private companion object {
+    // A stored result has no autosensResult. Only its raw data (RT) is stored, so read the ratios from it.
+    private fun loopRunSample(result: APSResult, rt: RT): LoopRunSample? {
+        val iob = result.iobData?.firstOrNull() ?: return null
+        val glucoseStatus = result.glucoseStatus ?: return null
+        val autoIsf = rt.algorithm == APSResult.Algorithm.AUTO_ISF
+        val profileSens = if (autoIsf) result.oapsProfileAutoIsf?.sens else result.oapsProfile?.sens
+        val minDelta = minOf(glucoseStatus.delta, glucoseStatus.shortAvgDelta)
+        if (!iob.iob.isFinite() || !iob.activity.isFinite() || !minDelta.isFinite()) return null
+        return LoopRunSample(
+            timestamp = result.date,
+            iob = iob.iob,
+            activity = iob.activity,
+            minDeltaMgdl = minDelta,
+            isfMgdlPerUnit = LoopIsf.used(rt.runningDynamicIsf, autoIsf, rt.variable_sens, profileSens, rt.sensitivityRatio),
+            dynamicIsf = rt.runningDynamicIsf
+        )
+    }
+
+    private fun loopRatioSample(result: APSResult, rt: RT): LoopRatioSample? {
+        val ratio = rt.sensitivityRatio?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+        return LoopRatioSample(
+            timestamp = result.date,
+            utcOffset = systemUtcOffsetAt(result.date),
+            sensitivityRatio = ratio,
+            activityRatio = rt.activityRatio?.takeIf { it.isFinite() && it > 0.0 }
+        )
+    }
+
+    private suspend fun noteEvents(from: Long): List<TE> = NOTE_TYPES.flatMap { persistenceLayer.getTherapyEventDataFromTime(from, it, true) }
+
+    companion object {
+
+        /**
+         * Cuts the time from [start] to [end] (both included) into blocks of one day, oldest first. The blocks do
+         * not overlap, so no record is read twice. The database includes both ends of a range.
+         */
+        fun dayBlocks(start: Long, end: Long): List<LongRange> {
+            val blocks = mutableListOf<LongRange>()
+            var from = start
+            while (from <= end) {
+                val to = minOf(from + MS_DAY - 1, end)
+                blocks.add(from..to)
+                from = to + 1
+            }
+            return blocks
+        }
+
+        // The types where the person writes free text.
+        private val NOTE_TYPES =listOf(TE.Type.NOTE, TE.Type.QUESTION, TE.Type.ANNOUNCEMENT, TE.Type.EXERCISE)
+
 
         const val MS_DAY = 86_400_000L
         const val CONTEXT_MARGIN = 6 * 3_600_000L

@@ -3,8 +3,9 @@ package app.aaps.plugins.aps.advisor
 /**
  * A short, anonymous summary of the last days of therapy data.
  *
- * It is built on the phone from the local database. Nothing here is a raw record: there are no time stamps,
- * no notes and no names. Times are only an hour of the day (local time) or "days ago".
+ * It is built on the phone from the local database. Nothing here is a raw record: there are no time stamps
+ * and no names. Times are only an hour of the day (local time) or "days ago". The only free text is
+ * [careNotes], and it is only filled when the person turned that on.
  *
  * Units: glucose in mg/dL, insulin in U, carbs in g.
  */
@@ -47,7 +48,27 @@ data class AdvisorSummary(
      */
     val loopCorrections: List<LoopCorrectionResult> = emptyList(),
     /** Fast dips at night that come back to the start value (see [CompressionLowResult]). The newest come last. */
-    val compressionLows: List<CompressionLowResult> = emptyList()
+    val compressionLows: List<CompressionLowResult> = emptyList(),
+    /**
+     * The text of the notes of the person. Only filled when the person allowed it. This is the one place where
+     * free text of the person is sent, so the settings text says it. Newest first.
+     */
+    val careNotes: List<CareNote> = emptyList()
+)
+
+/**
+ * One Care Portal entry with its text.
+ *
+ * @property type the type of the entry, for example "Note" or "Exercise"
+ * @property durationMinutes how long the entry lasts. 0 when it has no duration
+ * @property text what the person wrote, cut to a short length
+ */
+data class CareNote(
+    val daysAgo: Int,
+    val hour: Int,
+    val type: String,
+    val durationMinutes: Int,
+    val text: String
 )
 
 /**

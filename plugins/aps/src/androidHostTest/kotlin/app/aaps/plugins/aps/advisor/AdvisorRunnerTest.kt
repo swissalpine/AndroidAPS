@@ -202,6 +202,17 @@ class AdvisorRunnerTest {
     }
 
     @Test
+    fun `when the memory is full the data error is shown and nothing is sent`() = runBlocking {
+        val engine = engine()
+        val runner = runner(engine, summarySource = { _, _ -> throw OutOfMemoryError("too much data") })
+
+        runner.run()
+
+        assertThat(engine.requestHistory).isEmpty()
+        assertThat(runner.state.value.outcome).isEqualTo(AdvisorOutcome.Failure(AdvisorFailure.DATA_ERROR, "OutOfMemoryError"))
+    }
+
+    @Test
     fun `a good answer is kept in the history`() = runBlocking {
         val history = MemoryHistory()
         val runner = runner(engine(), history = history)

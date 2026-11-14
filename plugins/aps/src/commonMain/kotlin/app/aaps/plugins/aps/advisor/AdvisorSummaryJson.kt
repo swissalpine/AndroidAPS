@@ -14,8 +14,8 @@ import kotlin.math.round
  * Writes an [AdvisorSummary] as compact JSON for the advisor request.
  *
  * Values that are null are left out, so the text is shorter and the model does not read "null" as a value.
- * The field names are the names of the data classes. No time stamps and no notes are written, because the
- * summary has none.
+ * The field names are the names of the data classes. No time stamps are written, because the summary has none.
+ * The only free text is `careNotes`, and only when the person allowed it.
  */
 object AdvisorSummaryJson {
 
@@ -51,6 +51,15 @@ object AdvisorSummaryJson {
         number("ketoProtectionPercent", summary.ketoProtectionPercent)
         summary.profile?.let { put("profile", profile(it)) }
         put("profileHistory", profileHistory(summary.profileHistory))
+        if (summary.careNotes.isNotEmpty()) put("careNotes", array(summary.careNotes) { note ->
+            buildJsonObject {
+                put("daysAgo", note.daysAgo)
+                put("hour", note.hour)
+                put("type", note.type)
+                if (note.durationMinutes > 0) put("durationMinutes", note.durationMinutes)
+                put("text", note.text)
+            }
+        })
         if (earlierHints.isNotEmpty()) put("earlierHints", earlierHints)
         if (notesFromPerson.isNotEmpty()) put("notesFromPerson", notesFromPerson)
     }
