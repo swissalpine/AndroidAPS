@@ -12,6 +12,11 @@ package app.aaps.plugins.aps.advisor
 data class AdvisorSummary(
     /** Length of the period that was looked at. */
     val days: Int,
+    /**
+     * The weekday of today in the local time of the phone: 0 = Monday to 6 = Sunday. [AdvisorSummaryJson] uses it
+     * to write the weekday next to every `daysAgo`.
+     */
+    val todayWeekday: Int,
     val quality: DataQuality,
     /** Null when there is no glucose value at all. */
     val glucose: GlucoseStats?,

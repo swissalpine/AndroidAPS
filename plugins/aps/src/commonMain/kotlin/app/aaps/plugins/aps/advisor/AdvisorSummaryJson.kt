@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.put
 import kotlin.math.round
 
@@ -35,8 +36,41 @@ object AdvisorSummaryJson {
         summary: AdvisorSummary,
         earlierHints: JsonArray = JsonArray(emptyList()),
         notesFromPerson: JsonArray = JsonArray(emptyList())
-    ): JsonObject = buildJsonObject {
+    ): JsonObject {
+        val data = addWeekdays(summaryObject(summary), summary.todayWeekday) as JsonObject
+        // The hints and notes of earlier reports come after the weekdays are added. Their daysAgo counts periods of 24
+        // hours, not calendar days, so a weekday would be wrong there.
+        return JsonObject(buildMap {
+            putAll(data)
+            if (earlierHints.isNotEmpty()) put("earlierHints", earlierHints)
+            if (notesFromPerson.isNotEmpty()) put("notesFromPerson", notesFromPerson)
+        })
+    }
+
+    private val WEEKDAYS = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
+    /**
+     * Writes the weekday ("Mon" to "Sun") right after every `daysAgo` of the summary. `daysAgo` counts calendar days
+     * in local time. For a night it is the morning after it, so the weekday is the one of that morning.
+     */
+    private fun addWeekdays(element: JsonElement, today: Int): JsonElement = when (element) {
+        is JsonObject -> {
+            val daysAgo = (element["daysAgo"] as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull
+            JsonObject(buildMap {
+                for ((key, value) in element) {
+                    put(key, addWeekdays(value, today))
+                    if (key == "daysAgo" && daysAgo != null) put("weekday", JsonPrimitive(WEEKDAYS[(today - daysAgo).mod(7)]))
+                }
+            })
+        }
+
+        is JsonArray  -> JsonArray(element.map { addWeekdays(it, today) })
+        else          -> element
+    }
+
+    private fun summaryObject(summary: AdvisorSummary): JsonObject = buildJsonObject {
         put("days", summary.days)
+        put("todayWeekday", WEEKDAYS[summary.todayWeekday])
         put("quality", quality(summary.quality))
         summary.glucose?.let { put("glucose", glucose(it)) }
         put("blocks", array(summary.blocks, ::block))
@@ -60,8 +94,6 @@ object AdvisorSummaryJson {
                 put("text", note.text)
             }
         })
-        if (earlierHints.isNotEmpty()) put("earlierHints", earlierHints)
-        if (notesFromPerson.isNotEmpty()) put("notesFromPerson", notesFromPerson)
     }
 
     private fun quality(q: DataQuality) = buildJsonObject {

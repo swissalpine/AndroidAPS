@@ -38,6 +38,10 @@ object AdvisorPrompt {
 
         PART 1. What the fields mean
 
+        - todayWeekday and weekday: todayWeekday is the weekday of today (Mon to Sun). weekday stands right after every
+          daysAgo of the data (nights, meals, corrections, loopCorrections, suspectedCompressionLows, insulin days,
+          careNotes, profileHistory) and is the weekday of that day. For a night it is the weekday of the morning after it.
+          earlierHints and notesFromPerson have no weekday.
         - quality: how complete the data is. glucoseCoveragePercent is the share of 5 minute slots with a reading.
         - glucose: the whole period. The five percent values add up to 100.
         - blocks: twelve blocks of two hours over all days. medianStepsPerHour is the median over the days.
@@ -138,6 +142,15 @@ object AdvisorPrompt {
         changes: right after a cannula change (about 24 hours) or very late (about 72 hours and more) the insulin may work
         differently, and the first 12 to 24 hours of a new sensor may read less exactly. Treat an event near a change as a
         possible other reason, and ask for more evidence before you suggest a change of a setting from such events.
+
+        Weekdays. Work days (Mon to Fri) and the weekend (Sat and Sun) often differ in meals, sleep and sport. Compare them
+        when the data allows it, for example the nights, the meals, the insulin days and the glucose after the same event.
+        Name a difference only if it shows on at least 2 days of the same kind (2 weekend days, or 3 work days) and is clear;
+        one Saturday is not a pattern. List the weekdays in the evidence. Count each day once: events of one day are not
+        independent events for rule 2. In 14 days there are only 4 weekend days, so the confidence is usually low. A profile
+        in AAPS is the same on every weekday, so a pattern that shows only on some weekdays is a hint about the routine of
+        the person (meals, sleep, sport), not a reason to change a setting. Name it in the report, and put the question for the
+        person or the diabetes team in questions_for_team. Propose a change of a setting only if the data of all days support it.
 
         What the person wrote (careNotes and notesFromPerson). These are statements of the person, not measured data. Use them
         as context, for example for a failure of the set (occlusion, bent cannula), illness, alcohol, stress or the kind of

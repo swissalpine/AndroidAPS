@@ -66,6 +66,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
     fun build(): AdvisorSummary = AdvisorSummary(
         days = input.days,
+        // Day 0 of the epoch (1970-01-01) was a Thursday, which is 3 when Monday is 0.
+        todayWeekday = ((input.now + input.nowUtcOffset).floorDiv(MS_DAY) + 3).mod(7L).toInt(),
         quality = quality(),
         glucose = glucoseStats(),
         blocks = blocks(),

@@ -16,6 +16,9 @@ import app.aaps.core.data.model.TrendArrow
 import app.aaps.core.data.model.data.Block
 import app.aaps.core.data.model.data.TargetBlock
 import kotlin.test.Test
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -1449,6 +1452,36 @@ class AdvisorSummaryBuilderTest {
 
         assertEquals(1, summary.careNotes.size)
         assertEquals(200, summary.careNotes.single().text.length)
+    }
+
+    @Test
+    fun `the weekday of today and of each day is in the text for the AI`() {
+        // Day 20 since 1970-01-01 is a Wednesday, so day 19 is a Tuesday and day 15 a Friday.
+        val summary = build(
+            input(
+                days = 7,
+                noteEvents = listOf(
+                    careEntry(at(19, 3), TE.Type.NOTE, "a"),
+                    careEntry(at(15, 10), TE.Type.NOTE, "b")
+                )
+            )
+        )
+
+        assertEquals(2, summary.todayWeekday)
+        val text = AdvisorSummaryJson.encode(summary)
+        assertTrue(text.contains("\"todayWeekday\":\"Wed\""))
+        assertTrue(text.contains("\"daysAgo\":1,\"weekday\":\"Tue\""))
+        assertTrue(text.contains("\"daysAgo\":5,\"weekday\":\"Fri\""))
+    }
+
+    @Test
+    fun `the days of earlier reports and notes get no weekday`() {
+        val hint = buildJsonArray { add(buildJsonObject { put("daysAgo", 3) }) }
+
+        val text = AdvisorSummaryJson.encode(build(input()), earlierHints = hint, notesFromPerson = hint)
+
+        assertTrue(text.contains("\"earlierHints\":[{\"daysAgo\":3}]"))
+        assertTrue(text.contains("\"notesFromPerson\":[{\"daysAgo\":3}]"))
     }
 
     @Test
