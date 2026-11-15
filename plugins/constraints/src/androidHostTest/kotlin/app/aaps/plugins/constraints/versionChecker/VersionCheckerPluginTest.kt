@@ -33,9 +33,9 @@ class VersionCheckerPluginTest : TestBaseWithProfile() {
         val c2 = ConstraintObject(Double.MAX_VALUE, aapsLogger)
         assertThat(versionCheckerPlugin.applyMaxIOBConstraints(c2).value()).isEqualTo(Double.MAX_VALUE)
 
-        // Expired
+        // Expired. The version check is disabled in this fork, so an expired app is not blocked.
         whenever(preferences.get(LongComposedKey.AppExpiration, config.VERSION_NAME)).thenReturn(now - 1000)
         val c3 = ConstraintObject(Double.MAX_VALUE, aapsLogger)
-        assertThat(versionCheckerPlugin.applyMaxIOBConstraints(c3).value()).isEqualTo(0.0)
+        assertThat(versionCheckerPlugin.applyMaxIOBConstraints(c3).value()).isEqualTo(Double.MAX_VALUE)
     }
 }
