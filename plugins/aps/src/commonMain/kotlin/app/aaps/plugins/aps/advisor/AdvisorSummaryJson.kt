@@ -74,7 +74,9 @@ object AdvisorSummaryJson {
         put("quality", quality(summary.quality))
         summary.glucose?.let { put("glucose", glucose(it)) }
         put("blocks", array(summary.blocks, ::block))
+        if (summary.runningModes.isNotEmpty()) put("runningModes", array(summary.runningModes, ::runningMode))
         put("nights", array(summary.nights, ::night))
+        summary.currentNight?.let { put("currentNightSoFar", night(it)) }
         put("daytimeStretches", array(summary.daytimeStretches, ::night))
         put("meals", array(summary.meals, ::meal))
         put("corrections", array(summary.corrections, ::correction))
@@ -86,6 +88,7 @@ object AdvisorSummaryJson {
         number("ketoProtectionPercent", summary.ketoProtectionPercent)
         summary.profile?.let { put("profile", profile(it)) }
         put("profileHistory", profileHistory(summary.profileHistory))
+        if (summary.recent.isNotEmpty()) put("recentHalfHours", array(summary.recent, ::recentSlot))
         if (summary.careNotes.isNotEmpty()) put("careNotes", array(summary.careNotes) { note ->
             buildJsonObject {
                 put("daysAgo", note.daysAgo)
@@ -150,7 +153,27 @@ object AdvisorSummaryJson {
         put("smbUnits", n.smbUnits)
         put("minimumTempMinutes", n.minimumTempMinutes)
         number("iobAtStartUnits", n.iobAtStartUnits)
+        if (n.partial) put("partial", true)
         put("activity", activity(n.activity))
+    }
+
+    private fun runningMode(m: RunningModeStretch) = buildJsonObject {
+        put("mode", m.mode)
+        put("daysAgo", m.daysAgo)
+        put("hour", m.hour)
+        put("hours", m.hours)
+        if (m.autoForced) put("autoForced", true)
+    }
+
+    private fun recentSlot(s: RecentSlot) = buildJsonObject {
+        put("at", s.at)
+        number("glucoseMgdl", s.glucoseMgdl)
+        number("basalUnits", s.basalUnits)
+        number("profileBasalUnits", s.profileBasalUnits)
+        if (s.smbUnits > 0.0) put("smbUnits", s.smbUnits)
+        if (s.manualBolusUnits > 0.0) put("manualBolusUnits", s.manualBolusUnits)
+        if (s.carbsGrams > 0.0) put("carbsGrams", s.carbsGrams)
+        number("iobUnits", s.iobUnits)
     }
 
     private fun meal(m: MealResult) = buildJsonObject {

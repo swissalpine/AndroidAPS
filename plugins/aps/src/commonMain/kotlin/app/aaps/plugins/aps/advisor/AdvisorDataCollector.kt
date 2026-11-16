@@ -62,7 +62,9 @@ class AdvisorDataCollector(
             deviceChanges = persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.CANNULA_CHANGE, true) +
                 persistenceLayer.getTherapyEventDataFromTime(deviceStart, TE.Type.SENSOR_CHANGE, true),
             loopRuns = loopRuns,
-            noteEvents = if (preferences.get(BooleanKey.AdvisorSendNotes)) noteEvents(periodStart) else emptyList()
+            noteEvents = if (preferences.get(BooleanKey.AdvisorSendNotes)) noteEvents(periodStart) else emptyList(),
+            // A mode can be older than the period (for example LGS for months), so look back like for the profile.
+            runningModes = persistenceLayer.getRunningModesFromTime(periodStart - PROFILE_MARGIN, true)
         )
         return AdvisorSummaryBuilder(input).build()
     }

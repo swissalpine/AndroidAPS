@@ -5,6 +5,7 @@ import app.aaps.core.data.model.BS
 import app.aaps.core.data.model.EPS
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.GlucoseUnit
+import app.aaps.core.data.model.RM
 import app.aaps.core.data.model.SC
 import app.aaps.core.data.model.TB
 import app.aaps.core.data.model.TE
@@ -84,8 +85,87 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         profileWarnings = profileWarnings(),
         loopCorrections = loopCorrectionList.map { it.value },
         compressionLows = compressionLowList,
-        careNotes = careNotes()
+        careNotes = careNotes(),
+        runningModes = runningModeStretches(),
+        currentNight = currentNight(),
+        recent = recentSlots()
     )
+
+    // ---- Running mode ----
+
+    private val modeRecords = input.runningModes.filter { it.isValid }.sortedBy { it.timestamp }
+
+    /**
+     * The record that decides the running mode at [time]. A mode that has a duration and is over, and the cancel record
+     * (RESUME), give back the mode that was set before without a duration. Null when no record is known.
+     */
+    private fun governingMode(time: Long): RM? {
+        val last = modeRecords.lastOrNull { it.timestamp <= time } ?: return null
+        val active = last.mode != RM.Mode.RESUME && (last.duration <= 0L || time < last.timestamp + last.duration)
+        if (active) return last
+        return modeRecords.lastOrNull { it.timestamp < last.timestamp && it.mode != RM.Mode.RESUME && it.duration <= 0L }
+    }
+
+    /** The periods of one mode in the period, oldest first. The last one runs until now. */
+    private fun runningModeStretches(): List<RunningModeStretch> {
+        if (modeRecords.isEmpty()) return emptyList()
+        val points = (modeRecords.flatMap { listOf(it.timestamp, it.timestamp + max(it.duration, 0L)) } + periodStart)
+            .filter { it in periodStart..input.now }
+            .distinct()
+            .sorted()
+        val starts = mutableListOf<Pair<Long, RM>>()
+        for (point in points) {
+            val record = governingMode(point) ?: continue
+            val previous = starts.lastOrNull()?.second
+            if (previous != null && previous.mode == record.mode && previous.autoForced == record.autoForced) continue
+            starts.add(Pair(point, record))
+        }
+        val offset = input.nowUtcOffset
+        return starts.mapIndexed { index, (start, record) ->
+            val end = starts.getOrNull(index + 1)?.first ?: input.now
+            RunningModeStretch(
+                mode = record.mode.name,
+                daysAgo = daysAgo(start, offset),
+                hour = localHour(start, offset),
+                hours = ((end - start).toDouble() / MS_HOUR).round1(),
+                autoForced = record.autoForced
+            )
+        }.takeLast(MAX_MODE_STRETCHES)
+    }
+
+    // ---- The last 24 hours ----
+
+    /** Half hours from now back 24 hours, aligned to the clock. The last slot ends at now. */
+    private fun recentSlots(): List<RecentSlot> {
+        val offset = input.nowUtcOffset
+        val firstStart = (input.now - RECENT_HOURS * MS_HOUR + offset + RECENT_STEP - 1).floorDiv(RECENT_STEP) * RECENT_STEP - offset
+        val result = mutableListOf<RecentSlot>()
+        var start = firstStart
+        while (start < input.now) {
+            val end = min(start + RECENT_STEP, input.now)
+            val isLast = end == input.now
+            fun inSlot(time: Long) = time >= start && (time < end || (isLast && time <= end))
+            val readings = glucose.filter { inSlot(it.timestamp) }
+            val knownBasal = basalAt(start, offset) != null
+            val basal = if (knownBasal) basalOfDay(start, end) else null
+            val local = start + offset
+            result.add(
+                RecentSlot(
+                    at = "${WEEKDAY_NAMES[(local.floorDiv(MS_DAY) + 3).mod(7L).toInt()]} " +
+                        "${(local.mod(MS_DAY) / MS_HOUR).toString().padStart(2, '0')}:${(local.mod(MS_HOUR) / MS_MINUTE).toString().padStart(2, '0')}",
+                    glucoseMgdl = if (readings.isEmpty()) null else readings.map { it.value }.average().round1(),
+                    basalUnits = basal?.first?.round2(),
+                    profileBasalUnits = basal?.second?.round2(),
+                    smbUnits = smbs.filter { inSlot(it.timestamp) }.sumOf { it.amount }.round2(),
+                    manualBolusUnits = manualBoluses.filter { inSlot(it.timestamp) }.sumOf { it.amount }.round2(),
+                    carbsGrams = carbs.filter { inSlot(it.timestamp) }.sumOf { it.amount }.round1(),
+                    iobUnits = input.loopRuns.filter { inSlot(it.timestamp) }.maxByOrNull { it.timestamp }?.iob?.round2()
+                )
+            )
+            start = end
+        }
+        return result
+    }
 
     // ---- Notes of the person ----
 
@@ -219,6 +299,26 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
             result.add(night.copy(daysAgo = daysAgo(nightEnd, offset)))
         }
         return result
+    }
+
+    /**
+     * The night that is going on now, from 22:00 until now, with the same numbers as a finished night. It is only made
+     * while the clock is between 22:00 and 08:00. After 08:00 the night is over and is in [nightList].
+     */
+    private fun currentNight(): NightResult? {
+        val offset = input.nowUtcOffset
+        val localNow = input.now + offset
+        val timeOfDay = localNow.mod(MS_DAY)
+        val midnight = localNow - timeOfDay
+        val nightStartLocal = when {
+            timeOfDay >= NIGHT_START_HOUR * MS_HOUR -> midnight + NIGHT_START_HOUR * MS_HOUR
+            timeOfDay < NIGHT_END_HOUR * MS_HOUR    -> midnight - MS_DAY + NIGHT_START_HOUR * MS_HOUR
+            else                                    -> return null
+        }
+        val nightStart = nightStartLocal - offset
+        if (nightStart < periodStart) return null
+        val night = longestQuietStretch(nightStart, input.now, offset) ?: return null
+        return night.copy(daysAgo = daysAgo(input.now, offset), partial = true)
     }
 
     private fun longestQuietStretch(nightStart: Long, nightEnd: Long, offset: Long): NightResult? =
@@ -647,9 +747,11 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
                 temp.isAbsolute                                                              -> temp.rate
                 else                                                                         -> plan * temp.rate / 100.0
             }
-            given += rate * SLOT / MS_HOUR.toDouble()
-            scheduled += plan * SLOT / MS_HOUR.toDouble()
-            time += SLOT
+            // The last step can be shorter, when the time to look at does not end on a 5 minute step.
+            val step = min(SLOT, end - time)
+            given += rate * step / MS_HOUR.toDouble()
+            scheduled += plan * step / MS_HOUR.toDouble()
+            time += step
         }
         return Pair(given, scheduled)
     }
@@ -1026,6 +1128,12 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val MS_MINUTE = 60_000L
         const val MS_HOUR = 3_600_000L
         const val MS_DAY = 86_400_000L
+
+        // The last 24 hours in steps of 30 minutes. At most this many periods of a running mode are sent.
+        const val RECENT_HOURS = 24L
+        const val RECENT_STEP = 30 * MS_MINUTE
+        const val MAX_MODE_STRETCHES = 20
+        val WEEKDAY_NAMES = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
         // The text of the notes of the person. Few and short, so the request stays small.
         const val MAX_CARE_NOTES = 30

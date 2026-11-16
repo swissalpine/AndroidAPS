@@ -63,7 +63,55 @@ data class AdvisorSummary(
      * The text of the notes of the person. Only filled when the person allowed it. This is the one place where
      * free text of the person is sent, so the settings text says it. Newest first.
      */
-    val careNotes: List<CareNote> = emptyList()
+    val careNotes: List<CareNote> = emptyList(),
+    /**
+     * The running mode of the loop over the period, oldest first, the last one is the mode now. In LGS mode the loop may
+     * not go above 0 U of net insulin on board, so SMB only fills up insulin that a low temp basal took away.
+     */
+    val runningModes: List<RunningModeStretch> = emptyList(),
+    /**
+     * The night that is still going on (it is between 22:00 and 08:00 now), from 22:00 until now. It is not in [nights],
+     * because that list only has nights that are over. Null in the day, or when no quiet stretch is long enough yet.
+     */
+    val currentNight: NightResult? = null,
+    /** The last 24 hours up to now in steps of 30 minutes, oldest first. It shows the shape that the other numbers hide. */
+    val recent: List<RecentSlot> = emptyList()
+)
+
+/**
+ * One period of one running mode.
+ *
+ * @property mode the name of the mode, for example CLOSED_LOOP, CLOSED_LOOP_LGS, OPEN_LOOP, DISCONNECTED_PUMP
+ * @property daysAgo the calendar day when the period started (0 = today); [hour] is the hour of that day
+ * @property hours how long it lasted (or lasts, for the last one)
+ * @property autoForced the loop itself switched to this mode (for example a forced LGS), the person did not
+ */
+data class RunningModeStretch(
+    val mode: String,
+    val daysAgo: Int,
+    val hour: Int,
+    val hours: Double,
+    val autoForced: Boolean
+)
+
+/**
+ * Half an hour of the last 24 hours.
+ *
+ * @property at the weekday and the local time of the start of the slot, for example "Mon 22:30"
+ * @property glucoseMgdl the mean of the readings in the slot. Null when there is none
+ * @property basalUnits the basal that was given in the slot (temp basal and profile, without SMB). A suspend gives 0. Null when no profile is known
+ * @property profileBasalUnits the basal the profile alone would give. The difference to [basalUnits] is what the loop took away or added
+ * @property iobUnits the net insulin on board in the last loop run of the slot (0 = the level of the profile basal). Null when there is no run
+ */
+data class RecentSlot(
+    val at: String,
+    val glucoseMgdl: Double?,
+    val basalUnits: Double?,
+    val profileBasalUnits: Double?,
+    val smbUnits: Double,
+    val manualBolusUnits: Double,
+    val carbsGrams: Double,
+    val iobUnits: Double?
 )
 
 /**
@@ -228,7 +276,9 @@ data class NightResult(
      * The net insulin on board of the loop at the start of the stretch, in U (0 = the level of the profile basal,
      * positive = insulin of a meal still works). Null when no loop run is near.
      */
-    val iobAtStartUnits: Double? = null
+    val iobAtStartUnits: Double? = null,
+    /** True for [AdvisorSummary.currentNight]: the night is not over, [hours] and the end value are those of now. */
+    val partial: Boolean = false
 )
 
 /** One meal with its manual bolus. Entries less than 20 minutes apart count as one meal. */

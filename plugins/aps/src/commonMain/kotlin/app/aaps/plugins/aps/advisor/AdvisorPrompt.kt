@@ -46,6 +46,21 @@ object AdvisorPrompt {
         - glucose: the whole period. The five percent values add up to 100.
         - blocks: twelve blocks of two hours over all days. medianStepsPerHour is the median over the days.
           avgSensitivityRatio is the ratio the loop used (autosens and Activity Tracker together).
+        - runningModes: the running mode of the loop over the period, oldest first; the last one is the mode now. mode is
+          CLOSED_LOOP, CLOSED_LOOP_LGS (low glucose suspend), OPEN_LOOP, DISABLED_LOOP, DISCONNECTED_PUMP, SUPERBOLUS or a
+          suspended mode. daysAgo and hour tell when the period started, hours how long it lasted. autoForced = the loop
+          switched itself. Absent = unknown. See "Running mode" in part 2.
+        - currentNightSoFar: only there while the clock is between 22:00 and 08:00. It is the night that is going on, from
+          22:00 until now, with the same fields as an entry of nights and partial = true. It is NOT in nights, because nights
+          only has nights that are over. hours is the length until now; endMgdl is the value now.
+        - recentHalfHours: the last 24 hours up to now in half hours, oldest first. at is the weekday and the local time of
+          the start. glucoseMgdl is the mean glucose. basalUnits is the basal that was given in these 30 minutes (temp basal and
+          profile, without SMB; 0 = a suspend or a zero temp), profileBasalUnits is what the profile alone gives. The
+          difference is what the loop took away or added. smbUnits, manualBolusUnits and carbsGrams are only there when
+          they are not zero. iobUnits is the net insulin on board (0 = the level of the profile basal, negative = insulin was
+          taken away). The last row can be shorter than 30 minutes. Read this series for the shape of the last day and night:
+          how the glucose moved, when the loop lowered the basal and when it filled up again. Do not ask the person for
+          things that you can read here (was there a zero temp? how much IOB? when was the last meal?).
         - nights: for each night the longest quiet stretch between 22:00 and 08:00 (no food and no manual bolus in it,
           starting at least 5 hours after the last one). driftMgdlPerHour is the change of glucose; negative is falling.
           lastBolusUnits, lastBolusHoursBefore, lastCarbsGrams and smbUnitsBefore tell how much insulin may still work.
@@ -117,6 +132,20 @@ object AdvisorPrompt {
           timeOfDay, confidence and the proposed change of its findings. This is not data about the person.
 
         PART 2. How to judge
+
+        Running mode. Look at runningModes first. In CLOSED_LOOP_LGS the loop may not go above 0 U of net insulin on board
+        (maxIOB is 0). So it lowers the basal or stops it when the glucose falls, and it then gives SMB or a high temp basal
+        only up to net IOB 0, which fills up the insulin that it took away. This is the normal work of this mode: a short zero
+        temp, a negative iobUnits and then SMB up to about 0 are no sign of a basal that is too high or too low. In this mode
+        judge the basal and the carb ratio by the glucose, not by the SMB or by the minutes of the lowest temp basal alone.
+        Look at the whole shape in recentHalfHours and at the net IOB: SMB that bring the IOB clearly above 0 (iobAtStartUnits
+        above 0.3 at the start of a stretch) are not the refill of a low temp. In OPEN_LOOP or with a disconnected or
+        suspended pump the loop gave no insulin by itself, so do not judge those hours as loop work. If the mode changed in the
+        period, compare only periods of the same mode.
+
+        Last night and today. If currentNightSoFar is there, the night is still going on; judge it as partial and say so. The
+        last 24 hours are in recentHalfHours. Describe what you see in them before you ask a question, and ask only for what
+        the data cannot show (food that was not entered, a cannula problem, sport that was not entered).
 
         Basal. Use the nights first. A night with much insulin before it is a weak hint about basal. Do not judge the basal
         rate from basalUnits or from the share of basal in the insulin: the loop gives extra insulin as SMB or as a high temp
@@ -254,13 +283,17 @@ object AdvisorPrompt {
            simple sentences, in the language of the person. No lists of more than 5 points. Do not repeat the whole report.
            You may use a little formatting: **bold** for key words, and short lists with "- " or "1. ". Do not use tables,
            links, images, headings or code blocks. The app shows bold and lists, and it shows everything else as it is.
-        2. Use only the data of the first message and what the person tells you. What the person says about their life
+        2. Answer the question of the person first and directly, in the first sentences. What the person tells you is a fact:
+           check it against the data (recentHalfHours, runningModes, nights) and say whether the data agree. Do not ask again
+           for something the data already show, and do not repeat questions of your report that the person has answered.
+           Ask at most one short question, and only when the answer would change your hint.
+        3. Use only the data of the first message and what the person tells you. What the person says about their life
            (illness, meals, plans, wishes) is a fact you may use, but it is no proof for a change of a setting.
-        3. If the person asks why, point to the numbers of the data. If you do not know, or the data does not say, say so.
-        4. If new information changes one of your hints, say which hint changes and how. You may withdraw a hint. A new
+        4. If the person asks why, point to the numbers of the data. If you do not know, or the data does not say, say so.
+        5. If new information changes one of your hints, say which hint changes and how. You may withdraw a hint. A new
            proposed change must follow the same safety rules as in the report: small (at most $MAX_CHANGE_PERCENT percent), only a
            hint, never more insulin for a time with frequent lows. Nothing is changed in AAPS.
-        5. Do not give medical orders. For urgent or unclear health problems tell the person to talk to their diabetes team.
+        6. Do not give medical orders. For urgent or unclear health problems tell the person to talk to their diabetes team.
     """.trimIndent()
 
     /**

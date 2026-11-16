@@ -5,6 +5,7 @@ import app.aaps.core.data.model.CA
 import app.aaps.core.data.model.EPS
 import app.aaps.core.data.model.GV
 import app.aaps.core.data.model.HR
+import app.aaps.core.data.model.RM
 import app.aaps.core.data.model.SC
 import app.aaps.core.data.model.TB
 import app.aaps.core.data.model.TE
@@ -51,7 +52,12 @@ data class AdvisorInput(
      * Entries of the type Note, Question, Announcement and Exercise. Only filled when the person turned on
      * sending the text of notes. Empty means nothing is sent.
      */
-    val noteEvents: List<TE> = emptyList()
+    val noteEvents: List<TE> = emptyList(),
+    /**
+     * The records of the running mode (closed loop, LGS, open loop, suspended ...). They should start before the period,
+     * so the mode at the start of the period is known.
+     */
+    val runningModes: List<RM> = emptyList()
 )
 
 /**
