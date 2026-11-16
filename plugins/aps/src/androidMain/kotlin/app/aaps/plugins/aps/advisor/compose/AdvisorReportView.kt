@@ -1,5 +1,6 @@
 package app.aaps.plugins.aps.advisor.compose
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -431,10 +432,10 @@ private fun PointsCard(title: Int, items: List<String>) {
 
 /** The JSON that was sent, so the user can see that it has no names and no exact times. */
 @Composable
-private fun SentData(json: String) {
+internal fun SentData(json: String, @StringRes showText: Int = R.string.advisor_show_sent, @StringRes hideText: Int = R.string.advisor_hide_sent) {
     var visible by rememberSaveable { mutableStateOf(false) }
     TextButton(onClick = { visible = !visible }) {
-        Text(stringResource(if (visible) R.string.advisor_hide_sent else R.string.advisor_show_sent))
+        Text(stringResource(if (visible) hideText else showText))
     }
     if (visible) {
         AapsCard(modifier = Modifier.fillMaxWidth()) {

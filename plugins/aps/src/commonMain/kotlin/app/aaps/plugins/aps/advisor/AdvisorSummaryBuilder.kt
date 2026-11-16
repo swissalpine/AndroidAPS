@@ -65,10 +65,35 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
     private val heartRates = input.heartRates.filter { it.isValid && it.beatsPerMinute > 0.0 }.sortedBy { it.timestamp }
     private val loopRatios = input.loopRatios.sortedBy { it.timestamp }
 
+    // Day 0 of the epoch (1970-01-01) was a Thursday, which is 3 when Monday is 0.
+    private val todayWeekday = ((input.now + input.nowUtcOffset).floorDiv(MS_DAY) + 3).mod(7L).toInt()
+
+    /**
+     * What happened from [since] (the time of an analysis) until now, for the chat. The input must reach back far
+     * enough: the nights that started before [since] and the half hours from [since] ([AdvisorInput.recentHours]).
+     */
+    fun buildUpdate(since: Long): AdvisorUpdate {
+        val offset = input.nowUtcOffset
+        val today = (input.now + offset).floorDiv(MS_DAY)
+        // The end of a night is 08:00 of its morning. A night that ended after the analysis is new.
+        fun nightEnd(night: NightResult) = (today - night.daysAgo) * MS_DAY - offset + NIGHT_END_HOUR * MS_HOUR
+        val changes = switchChanges.filter { it.switch.timestamp > since }.map { it.change }
+        return AdvisorUpdate(
+            hoursSinceAnalysis = ((input.now - since).toDouble() / MS_HOUR).roundToInt(),
+            todayWeekday = todayWeekday,
+            recent = recentSlots(),
+            runningModes = runningModeStretches(since),
+            nightsFinished = nightList.filter { nightEnd(it) > since },
+            currentNight = currentNight(),
+            careNotes = careNotes(since),
+            profileChanges = changes,
+            profile = if (changes.isEmpty()) null else profile()
+        )
+    }
+
     fun build(): AdvisorSummary = AdvisorSummary(
         days = input.days,
-        // Day 0 of the epoch (1970-01-01) was a Thursday, which is 3 when Monday is 0.
-        todayWeekday = ((input.now + input.nowUtcOffset).floorDiv(MS_DAY) + 3).mod(7L).toInt(),
+        todayWeekday = todayWeekday,
         quality = quality(),
         glucose = glucoseStats(),
         blocks = blocks(),
@@ -106,11 +131,11 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         return modeRecords.lastOrNull { it.timestamp < last.timestamp && it.mode != RM.Mode.RESUME && it.duration <= 0L }
     }
 
-    /** The periods of one mode in the period, oldest first. The last one runs until now. */
-    private fun runningModeStretches(): List<RunningModeStretch> {
+    /** The periods of one mode from [from] on, oldest first. The last one runs until now. */
+    private fun runningModeStretches(from: Long = periodStart): List<RunningModeStretch> {
         if (modeRecords.isEmpty()) return emptyList()
-        val points = (modeRecords.flatMap { listOf(it.timestamp, it.timestamp + max(it.duration, 0L)) } + periodStart)
-            .filter { it in periodStart..input.now }
+        val points = (modeRecords.flatMap { listOf(it.timestamp, it.timestamp + max(it.duration, 0L)) } + from)
+            .filter { it in from..input.now }
             .distinct()
             .sorted()
         val starts = mutableListOf<Pair<Long, RM>>()
@@ -138,7 +163,7 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
     /** Half hours from now back 24 hours, aligned to the clock. The last slot ends at now. */
     private fun recentSlots(): List<RecentSlot> {
         val offset = input.nowUtcOffset
-        val firstStart = (input.now - RECENT_HOURS * MS_HOUR + offset + RECENT_STEP - 1).floorDiv(RECENT_STEP) * RECENT_STEP - offset
+        val firstStart = (input.now - input.recentHours * MS_HOUR + offset + RECENT_STEP - 1).floorDiv(RECENT_STEP) * RECENT_STEP - offset
         val result = mutableListOf<RecentSlot>()
         var start = firstStart
         while (start < input.now) {
@@ -169,8 +194,8 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
 
     // ---- Notes of the person ----
 
-    private fun careNotes(): List<CareNote> = input.noteEvents
-        .filter { it.isValid && it.timestamp >= periodStart && !it.note.isNullOrBlank() }
+    private fun careNotes(from: Long = periodStart): List<CareNote> = input.noteEvents
+        .filter { it.isValid && it.timestamp >= from && !it.note.isNullOrBlank() }
         .sortedByDescending { it.timestamp }
         .take(MAX_CARE_NOTES)
         .map { event ->
@@ -1130,7 +1155,6 @@ class AdvisorSummaryBuilder(private val input: AdvisorInput) {
         const val MS_DAY = 86_400_000L
 
         // The last 24 hours in steps of 30 minutes. At most this many periods of a running mode are sent.
-        const val RECENT_HOURS = 24L
         const val RECENT_STEP = 30 * MS_MINUTE
         const val MAX_MODE_STRETCHES = 20
         val WEEKDAY_NAMES = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

@@ -104,7 +104,8 @@ class AdvisorRunnerTest {
         summarySource: suspend (Int, Long) -> AdvisorSummary = { _, _ -> emptySummary },
         history: AdvisorHistoryStore = MemoryHistory(),
         acks: AdvisorAckStore = MemoryAcks(),
-        scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+        updateSource: suspend (Long, Long) -> AdvisorUpdate? = { _, _ -> null }
     ) = AdvisorRunner(
         summarySource = summarySource,
         client = AdvisorClient(http = HttpClient(engine)),
@@ -114,7 +115,8 @@ class AdvisorRunnerTest {
         dateUtil = dateUtil,
         aapsLogger = aapsLogger,
         language = { "German" },
-        scope = scope
+        scope = scope,
+        updateSource = updateSource
     )
 
     @Test
@@ -409,6 +411,70 @@ class AdvisorRunnerTest {
         assertThat(messages.first().toString()).contains("cache_control")
         assertThat(messages[1]["content"]!!.jsonPrimitive.content).contains("Raise the night basal")
         assertThat(body["system"]!!.jsonPrimitive.content).contains("chat")
+    }
+
+    private val hour = 3_600_000L
+
+    private fun update(hours: Int) = AdvisorUpdate(hoursSinceAnalysis = hours, todayWeekday = 2, tooLong = hours > AdvisorHistory.UPDATE_MAX_HOURS)
+
+    @Test
+    fun `an analysis that is hours old gets an update with the question, and the update is kept`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val history = MemoryHistory().also { it.add(entryWithData().copy(timeMillis = now - 5 * hour)) }
+        var askedSince = 0L
+
+        runner(engine, history = history, updateSource = { since, _ -> askedSince = since; update(5) }).chat("What now?")
+
+        assertThat(askedSince).isEqualTo(now - 5 * hour)
+        val body = Json.parseToJsonElement((engine.requestHistory.single().body as TextContent).text).jsonObject
+        val last = body["messages"]!!.jsonArray.last().jsonObject["content"]!!.jsonPrimitive.content
+        assertThat(last).startsWith("Update since the analysis:")
+        assertThat(last).contains("\"hoursSinceAnalysis\":5")
+        assertThat(last).endsWith("My question:\nWhat now?")
+        // The kept question has no update in it, and the update is kept for the screen.
+        assertThat(history.entries.single().chat.first().text).isEqualTo("What now?")
+        assertThat(history.entries.single().lastUpdateJson).contains("hoursSinceAnalysis")
+    }
+
+    @Test
+    fun `a fresh analysis gets no update`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val history = MemoryHistory().also { it.add(entryWithData().copy(timeMillis = now - 20 * 60_000L)) }
+        var asked = false
+
+        runner(engine, history = history, updateSource = { _, _ -> asked = true; update(0) }).chat("Why?")
+
+        assertThat(asked).isFalse()
+        val body = Json.parseToJsonElement((engine.requestHistory.single().body as TextContent).text).jsonObject
+        assertThat(body["messages"]!!.jsonArray.last().jsonObject["content"]!!.jsonPrimitive.content).isEqualTo("Why?")
+        assertThat(history.entries.single().lastUpdateJson).isNull()
+    }
+
+    @Test
+    fun `a gap that is too long gives only the note that the analysis is old`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val history = MemoryHistory().also { it.add(entryWithData().copy(timeMillis = now - 100 * hour)) }
+
+        runner(engine, history = history, updateSource = { _, _ -> update(100) }).chat("Why?")
+
+        val last = Json.parseToJsonElement((engine.requestHistory.single().body as TextContent).text).jsonObject["messages"]!!.jsonArray.last()
+            .jsonObject["content"]!!.jsonPrimitive.content
+        assertThat(last).contains("updateTooLong")
+        assertThat(last).doesNotContain("recentHalfHours")
+    }
+
+    @Test
+    fun `when the update cannot be read the question is still sent without it`() = runBlocking {
+        val engine = engine(body = chatAnswer)
+        val history = MemoryHistory().also { it.add(entryWithData().copy(timeMillis = now - 5 * hour)) }
+
+        runner(engine, history = history, updateSource = { _, _ -> error("database") }).chat("Why?")
+
+        val last = Json.parseToJsonElement((engine.requestHistory.single().body as TextContent).text).jsonObject["messages"]!!.jsonArray.last()
+            .jsonObject["content"]!!.jsonPrimitive.content
+        assertThat(last).isEqualTo("Why?")
+        assertThat(history.entries.single().chat).hasSize(2)
+        assertThat(history.entries.single().lastUpdateJson).isNull()
     }
 
     @Test

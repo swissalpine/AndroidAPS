@@ -187,6 +187,9 @@
     <string name="advisor_history_delete_confirm">Delete</string>
     <string name="advisor_show_sent">Show the data that was sent</string>
     <string name="advisor_hide_sent">Hide the data that was sent</string>
+    <string name="advisor_show_update">Show the update that was sent with the last question</string>
+    <string name="advisor_hide_update">Hide the update that was sent with the last question</string>
+    <string name="advisor_chat_old_analysis">This analysis is more than a day old. With each question the app also sends what happened since then. The report itself does not change. For new findings start a new analysis.</string>
     <string name="advisor_error_unauthorized">The API key is not accepted. Check the key in the settings.</string>
     <string name="advisor_error_rate_limited">Too many requests, or no credit on your Anthropic account. Try again later.</string>
     <string name="advisor_error_server">The Claude service has a problem. Try again later.</string>

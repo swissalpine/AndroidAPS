@@ -20,6 +20,8 @@ import java.io.IOException
 import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
+private const val MS_HOUR = 3_600_000L
+
 enum class AdvisorPhase { IDLE, COLLECTING, WAITING, DONE }
 
 data class AdvisorState(
@@ -56,6 +58,8 @@ data class AdvisorChatUi(
  * Nothing is sent unless the user agreed (`AdvisorConsent`) and has an API key, and only when [start] is called.
  *
  * @param summarySource gives the summary of the last days; the plugin gives `AdvisorDataCollector::collect`
+ * @param updateSource gives what happened since an analysis, for the chat; the plugin gives `AdvisorDataCollector::collectUpdate`.
+ *   Null means there is no update
  * @param history keeps the finished analyses
  * @param acks keeps which profile warnings the person has read
  */
@@ -68,7 +72,8 @@ class AdvisorRunner(
     private val dateUtil: DateUtil,
     private val aapsLogger: AAPSLogger,
     private val language: () -> String = { Locale.getDefault().getDisplayLanguage(Locale.ENGLISH) },
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+    private val updateSource: suspend (since: Long, now: Long) -> AdvisorUpdate? = { _, _ -> null }
 ) {
 
     private val mutableState = MutableStateFlow(AdvisorState())
@@ -143,13 +148,14 @@ class AdvisorRunner(
         val sentJson = newest.sentJson ?: return
         if (newest.chat.size >= AdvisorHistory.MAX_CHAT_MESSAGES) return
         mutableChat.value = AdvisorChatUi(pending = text)
-        val body = AdvisorPrompt.chatRequestBody(sentJson, AdvisorHistoryJson.reportText(newest.report), newest.chat, text, language())
+        val updateJson = readUpdate(newest.timeMillis)
+        val body = AdvisorPrompt.chatRequestBody(sentJson, AdvisorHistoryJson.reportText(newest.report), newest.chat, text, language(), updateJson)
         val outcome = client.chat(body, key)
         // Only the kind of the result is logged, never the question or the answer.
         aapsLogger.info(LTag.APS, "AI advisor chat: " + if (outcome is AdvisorChatOutcome.Failure) "failed ${outcome.failure.kind}" else "answer received")
         when (outcome) {
             is AdvisorChatOutcome.Answer  -> {
-                keepChat(newest, text, outcome.text)
+                keepChat(newest, text, outcome.text, updateJson)
                 mutableChat.value = AdvisorChatUi()
             }
 
@@ -157,9 +163,32 @@ class AdvisorRunner(
         }
     }
 
-    private fun keepChat(entry: AdvisorHistoryEntry, question: String, answer: String) {
+    /**
+     * What happened since the analysis, as JSON for the chat. Null when the analysis is less than
+     * [AdvisorHistory.UPDATE_MIN_HOURS] hours old, or when the data could not be read. The question is sent without it then.
+     */
+    private suspend fun readUpdate(analysisTime: Long): String? {
         val now = dateUtil.now()
-        val updated = entry.copy(chat = entry.chat + ChatMessage(ChatRole.PERSON, question, now) + ChatMessage(ChatRole.AI, answer, now))
+        if (now - analysisTime < AdvisorHistory.UPDATE_MIN_HOURS * MS_HOUR) return null
+        return try {
+            updateSource(analysisTime, now)?.let { AdvisorSummaryJson.encodeUpdate(it) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            aapsLogger.error(LTag.APS, "AI advisor: the update for the chat could not be read", e)
+            null
+        } catch (e: OutOfMemoryError) {
+            aapsLogger.error(LTag.APS, "AI advisor: out of memory while the update for the chat was read", e)
+            null
+        }
+    }
+
+    private fun keepChat(entry: AdvisorHistoryEntry, question: String, answer: String, updateJson: String?) {
+        val now = dateUtil.now()
+        val updated = entry.copy(
+            lastUpdateJson = updateJson,
+            chat = entry.chat + ChatMessage(ChatRole.PERSON, question, now) + ChatMessage(ChatRole.AI, answer, now)
+        )
         try {
             history.update(updated)
             mutableHistory.value = history.load()

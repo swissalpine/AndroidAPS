@@ -631,3 +631,31 @@ data class ProfileBlockValue(
     val startMinute: Int,
     val value: Double
 )
+
+/**
+ * What happened between an analysis and now. The chat sends it with a question, so the AI knows about the time after
+ * the report, not only the time that the report looked at.
+ *
+ * @property hoursSinceAnalysis how long ago the analysis was made
+ * @property todayWeekday the weekday of today, 0 = Monday to 6 = Sunday (as in [AdvisorSummary.todayWeekday])
+ * @property tooLong the gap is longer than [AdvisorHistory.UPDATE_MAX_HOURS]. Then there is nothing else in it
+ * @property recent the time from the analysis until now in steps of 30 minutes, oldest first
+ * @property runningModes the running modes from the analysis until now
+ * @property nightsFinished the nights that ended after the analysis, with the same numbers as [AdvisorSummary.nights]
+ * @property currentNight the night that is going on now (see [AdvisorSummary.currentNight])
+ * @property careNotes the notes of the person since the analysis. Only filled when the person allowed it
+ * @property profileChanges the changes of the profile since the analysis
+ * @property profile the profile now. Only there when it was changed since the analysis
+ */
+data class AdvisorUpdate(
+    val hoursSinceAnalysis: Int,
+    val todayWeekday: Int,
+    val tooLong: Boolean = false,
+    val recent: List<RecentSlot> = emptyList(),
+    val runningModes: List<RunningModeStretch> = emptyList(),
+    val nightsFinished: List<NightResult> = emptyList(),
+    val currentNight: NightResult? = null,
+    val careNotes: List<CareNote> = emptyList(),
+    val profileChanges: List<ProfileChange> = emptyList(),
+    val profile: ProfileSnapshot? = null
+)

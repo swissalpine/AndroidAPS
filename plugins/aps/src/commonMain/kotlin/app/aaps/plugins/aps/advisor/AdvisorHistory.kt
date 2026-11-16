@@ -18,6 +18,8 @@ data class ChatMessage(
  * @property model the model that answered, if the service said so
  * @property sentJson the data that was sent. The chat needs it, so only the newest analysis has it
  *   (see [AdvisorHistory.withNew]). Null for the older ones
+ * @property lastUpdateJson the data since the analysis that went with the last question of the chat (see
+ *   [AdvisorUpdate]), so the person can look at it. Only the newest analysis has it. Null when no update was sent
  * @property chat the questions of the person and the answers of the AI, oldest first
  * @property glucose the glucose ranges of the days that were looked at, for the picture above the report. Null for
  *   an entry from before this field
@@ -29,6 +31,7 @@ data class AdvisorHistoryEntry(
     val model: String?,
     val report: AdvisorReport,
     val sentJson: String? = null,
+    val lastUpdateJson: String? = null,
     val chat: List<ChatMessage> = emptyList(),
     val glucose: GlucoseStats? = null,
     val profileWarnings: List<ProfileWarning> = emptyList()
@@ -60,6 +63,12 @@ object AdvisorHistory {
     /** How many messages one chat can have (questions and answers together). */
     const val MAX_CHAT_MESSAGES = 30
 
+    /** A chat update is only sent when the analysis is at least this many hours old. */
+    const val UPDATE_MIN_HOURS = 1
+
+    /** The longest gap that a chat update covers. A longer one only says that the analysis is too old. */
+    const val UPDATE_MAX_HOURS = 72
+
     /** The longest question of the person, in characters. */
     const val MAX_QUESTION_LENGTH = 2_000
 
@@ -68,5 +77,5 @@ object AdvisorHistory {
      * newest analysis can be asked about. The oldest ones are dropped when there are more than [MAX_ENTRIES].
      */
     fun withNew(entries: List<AdvisorHistoryEntry>, entry: AdvisorHistoryEntry): List<AdvisorHistoryEntry> =
-        (listOf(entry) + entries.map { it.copy(sentJson = null) }).take(MAX_ENTRIES)
+        (listOf(entry) + entries.map { it.copy(sentJson = null, lastUpdateJson = null) }).take(MAX_ENTRIES)
 }

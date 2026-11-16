@@ -38,10 +38,10 @@ class AdvisorRunningModeAndRecentTest {
     private fun mode(time: Long, mode: RM.Mode, minutes: Long = 0L, autoForced: Boolean = false) =
         RM(timestamp = time, utcOffset = 0L, mode = mode, duration = minutes * minute, autoForced = autoForced)
 
-    /** A profile of 1.0 U/h all day. */
-    private fun profile(time: Long) = EPS(
+    /** A profile of 1.0 U/h all day, or of [basal] U/h. */
+    private fun profile(time: Long, basal: Double = 1.0) = EPS(
         timestamp = time,
-        basalBlocks = listOf(Block(day, 1.0)),
+        basalBlocks = listOf(Block(day, basal)),
         isfBlocks = listOf(Block(day, 2.0)),
         icBlocks = listOf(Block(day, 10.0)),
         targetBlocks = listOf(TargetBlock(day, 100.0, 100.0)),
@@ -65,13 +65,15 @@ class AdvisorRunningModeAndRecentTest {
         tempBasals: List<TB> = emptyList(),
         profiles: List<EPS> = emptyList(),
         runningModes: List<RM> = emptyList(),
-        loopRuns: List<LoopRunSample> = emptyList()
+        loopRuns: List<LoopRunSample> = emptyList(),
+        recentHours: Int = 24
     ) = AdvisorInput(
         now = now, nowUtcOffset = 0L, days = days,
         glucose = glucose, boluses = boluses, carbs = emptyList(), tempBasals = tempBasals,
         therapyEvents = emptyList(), tempTargets = emptyList(),
         effectiveProfileSwitches = profiles, steps = emptyList(), heartRates = emptyList(),
-        loopRatios = emptyList(), ketoProtectionPercent = null, loopRuns = loopRuns, runningModes = runningModes
+        loopRatios = emptyList(), ketoProtectionPercent = null, loopRuns = loopRuns, runningModes = runningModes,
+        recentHours = recentHours
     )
 
     private fun build(input: AdvisorInput) = AdvisorSummaryBuilder(input).build()
@@ -232,6 +234,107 @@ class AdvisorRunningModeAndRecentTest {
 
         assertNull(summary.recent.first().basalUnits)
         assertNull(summary.recent.first().profileBasalUnits)
+    }
+
+    // ---- The update for the chat ----
+
+    @Test
+    fun `an update covers the time since the analysis and not only the last 24 hours`() {
+        val now = at(20, 12)
+        val since = at(18, 12)
+        val summary = AdvisorSummaryBuilder(
+            input(now, days = 4, glucose = readings(at(16, 12), now), profiles = listOf(profile(at(10, 0))), recentHours = 49)
+        ).buildUpdate(since)
+
+        assertEquals(48, summary.hoursSinceAnalysis)
+        // From the first half hour inside 49 hours (day 18 at 11:00 is the aligned start) to now.
+        assertEquals("Mon 11:00", summary.recent.first().at)
+        assertTrue(summary.recent.size > 90)
+        // Two nights ended after the analysis: the mornings of day 19 and day 20.
+        assertEquals(listOf(1, 0), summary.nightsFinished.map { it.daysAgo })
+        assertNull(summary.currentNight)
+    }
+
+    @Test
+    fun `an update has only the modes and notes after the analysis`() {
+        val now = at(20, 12)
+        val since = at(19, 20)
+        val update = AdvisorSummaryBuilder(
+            input(
+                now, days = 3, glucose = readings(at(17, 12), now), recentHours = 17,
+                runningModes = listOf(mode(at(19, 8), RM.Mode.CLOSED_LOOP_LGS), mode(at(20, 2), RM.Mode.CLOSED_LOOP))
+            )
+        ).buildUpdate(since)
+
+        assertEquals(listOf("CLOSED_LOOP_LGS", "CLOSED_LOOP"), update.runningModes.map { it.mode })
+        // The first period is cut at the time of the analysis: 6 hours until 02:00.
+        assertEquals(6.0, update.runningModes[0].hours)
+        assertEquals(1, update.runningModes[0].daysAgo)
+        assertEquals(20, update.runningModes[0].hour)
+    }
+
+    @Test
+    fun `an update has a profile change only when the profile changed after the analysis`() {
+        val now = at(20, 12)
+        val since = at(19, 20)
+        fun update(vararg switches: EPS) = AdvisorSummaryBuilder(
+            input(now, days = 3, glucose = readings(at(17, 12), now), profiles = switches.toList(), recentHours = 17)
+        ).buildUpdate(since)
+
+        val changedBefore = update(profile(at(10, 0), 1.0), profile(at(19, 10), 1.1))
+        assertTrue(changedBefore.profileChanges.isEmpty())
+        assertNull(changedBefore.profile)
+
+        val changedAfter = update(profile(at(10, 0), 1.0), profile(at(20, 2), 1.1))
+        assertEquals(1, changedAfter.profileChanges.size)
+        assertNotNull(changedAfter.profile)
+    }
+
+    @Test
+    fun `the update json has weekdays and the too long update only has the note`() {
+        val now = at(20, 12)
+        val update = AdvisorSummaryBuilder(
+            input(now, days = 3, glucose = readings(at(17, 12), now), profiles = listOf(profile(at(10, 0))), recentHours = 17)
+        ).buildUpdate(at(19, 20))
+
+        val json = AdvisorSummaryJson.encodeUpdate(update)
+        assertTrue(json.contains("\"hoursSinceAnalysis\":16"))
+        assertTrue(json.contains("\"recentHalfHours\""))
+        assertTrue(json.contains("\"nightsFinished\""))
+        assertTrue(json.contains("\"weekday\""))
+
+        val tooLong = AdvisorSummaryJson.encodeUpdate(AdvisorUpdate(hoursSinceAnalysis = 100, todayWeekday = 2, tooLong = true))
+        assertTrue(tooLong.contains("\"updateTooLong\":true"))
+        assertFalse(tooLong.contains("recentHalfHours"))
+    }
+
+    // ---- The chat body and the history ----
+
+    @Test
+    fun `the update is only in the newest question`() {
+        val body = AdvisorPrompt.chatRequestBody("{}", "{}", listOf(ChatMessage(ChatRole.PERSON, "Old", 1L), ChatMessage(ChatRole.AI, "Old answer", 2L)), "Why?", "German", "{\"hoursSinceAnalysis\":5}")
+
+        // The rule in the system prompt names the update too, so look for the colon and the line break of the message.
+        assertTrue(body.contains("Update since the analysis:\\n{"))
+        assertTrue(body.contains("My question:"))
+        // The earlier question stays as it was.
+        assertTrue(body.contains("\"content\":\"Old\""))
+        assertFalse(AdvisorPrompt.chatRequestBody("{}", "{}", emptyList(), "Why?", "German").contains("Update since the analysis:\\n"))
+    }
+
+    @Test
+    fun `a new analysis drops the update of the older one and the update survives a save`() {
+        val entry = AdvisorHistoryEntry(
+            timeMillis = 1L, days = 14, model = null, report = AdvisorReport("o", true, "", emptyList(), emptyList(), emptyList()),
+            sentJson = "{}", lastUpdateJson = "{\"hoursSinceAnalysis\":5}"
+        )
+
+        val saved = AdvisorHistoryJson.decode(AdvisorHistoryJson.encode(listOf(entry)))
+        assertEquals("{\"hoursSinceAnalysis\":5}", saved.single().lastUpdateJson)
+
+        val list = AdvisorHistory.withNew(listOf(entry), entry.copy(timeMillis = 2L, lastUpdateJson = null))
+        assertNull(list[1].lastUpdateJson)
+        assertNull(list[1].sentJson)
     }
 
     // ---- JSON ----

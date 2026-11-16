@@ -58,8 +58,11 @@ class AiAdvisorPlugin(
     aapsLogger, rh, preferences, notificationManager
 ) {
 
+    private val collector = AdvisorDataCollector(persistenceLayer, preferences)
+
     val runner = AdvisorRunner(
-        summarySource = AdvisorDataCollector(persistenceLayer, preferences)::collect,
+        summarySource = collector::collect,
+        updateSource = collector::collectUpdate,
         client = AdvisorClient(),
         // The no-backup folder is not copied by the Android backup. The analyses are about the health of the user.
         // The file is only looked up when it is used, not when the plugin is made.

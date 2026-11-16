@@ -47,6 +47,26 @@ object AdvisorSummaryJson {
         })
     }
 
+    /** The update for the chat as compact JSON (see [AdvisorUpdate]). Empty lists are left out. */
+    fun encodeUpdate(update: AdvisorUpdate): String {
+        val data = buildJsonObject {
+            put("hoursSinceAnalysis", update.hoursSinceAnalysis)
+            put("todayWeekday", WEEKDAYS[update.todayWeekday])
+            if (update.tooLong) {
+                put("updateTooLong", true)
+                return@buildJsonObject
+            }
+            put("recentHalfHours", array(update.recent, ::recentSlot))
+            if (update.runningModes.isNotEmpty()) put("runningModes", array(update.runningModes, ::runningMode))
+            if (update.nightsFinished.isNotEmpty()) put("nightsFinished", array(update.nightsFinished, ::night))
+            update.currentNight?.let { put("currentNightSoFar", night(it)) }
+            if (update.careNotes.isNotEmpty()) put("careNotes", array(update.careNotes, ::careNote))
+            if (update.profileChanges.isNotEmpty()) put("profileChanges", array(update.profileChanges, ::profileChange))
+            update.profile?.let { put("profile", profile(it)) }
+        }
+        return addWeekdays(data, update.todayWeekday).toString()
+    }
+
     private val WEEKDAYS = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
     /**
@@ -89,15 +109,15 @@ object AdvisorSummaryJson {
         summary.profile?.let { put("profile", profile(it)) }
         put("profileHistory", profileHistory(summary.profileHistory))
         if (summary.recent.isNotEmpty()) put("recentHalfHours", array(summary.recent, ::recentSlot))
-        if (summary.careNotes.isNotEmpty()) put("careNotes", array(summary.careNotes) { note ->
-            buildJsonObject {
-                put("daysAgo", note.daysAgo)
-                put("hour", note.hour)
-                put("type", note.type)
-                if (note.durationMinutes > 0) put("durationMinutes", note.durationMinutes)
-                put("text", note.text)
-            }
-        })
+        if (summary.careNotes.isNotEmpty()) put("careNotes", array(summary.careNotes, ::careNote))
+    }
+
+    private fun careNote(note: CareNote) = buildJsonObject {
+        put("daysAgo", note.daysAgo)
+        put("hour", note.hour)
+        put("type", note.type)
+        if (note.durationMinutes > 0) put("durationMinutes", note.durationMinutes)
+        put("text", note.text)
     }
 
     private fun quality(q: DataQuality) = buildJsonObject {

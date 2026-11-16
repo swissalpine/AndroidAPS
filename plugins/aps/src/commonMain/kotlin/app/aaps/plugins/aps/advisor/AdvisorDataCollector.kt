@@ -23,7 +23,26 @@ class AdvisorDataCollector(
      * @param days how many days to look at
      * @param now the end of the period, in milliseconds since the epoch
      */
-    suspend fun collect(days: Int, now: Long): AdvisorSummary {
+    suspend fun collect(days: Int, now: Long): AdvisorSummary = AdvisorSummaryBuilder(readInput(days, now, recentHours = 24)).build()
+
+    /**
+     * What happened since an analysis, for the chat. It reads only the days of the gap, so it is cheap. A gap longer
+     * than [AdvisorHistory.UPDATE_MAX_HOURS] gives an update without data (`tooLong`), and nothing is read.
+     *
+     * @param since the time of the analysis
+     */
+    suspend fun collectUpdate(since: Long, now: Long): AdvisorUpdate {
+        val gap = now - since
+        val weekday = ((now + systemUtcOffsetAt(now)).floorDiv(MS_DAY) + 3).mod(7L).toInt()
+        val hours = ((gap + MS_HOUR - 1) / MS_HOUR).toInt()
+        if (hours > AdvisorHistory.UPDATE_MAX_HOURS) return AdvisorUpdate(hoursSinceAnalysis = hours, todayWeekday = weekday, tooLong = true)
+        // A night that started before the analysis can end after it, so go back some more days.
+        val days = hours / 24 + 3
+        // One more hour, so the half hour of the analysis itself is in the series.
+        return AdvisorSummaryBuilder(readInput(days, now, recentHours = hours + 1)).buildUpdate(since)
+    }
+
+    private suspend fun readInput(days: Int, now: Long, recentHours: Int): AdvisorInput {
         require(days > 0) { "days must be positive" }
         val periodStart = now - days * MS_DAY
         // Food, boluses and sport just before the period still matter for the first night or meal.
@@ -43,7 +62,7 @@ class AdvisorDataCollector(
             }
         }
 
-        val input = AdvisorInput(
+        return AdvisorInput(
             now = now,
             nowUtcOffset = systemUtcOffsetAt(now),
             days = days,
@@ -64,9 +83,9 @@ class AdvisorDataCollector(
             loopRuns = loopRuns,
             noteEvents = if (preferences.get(BooleanKey.AdvisorSendNotes)) noteEvents(periodStart) else emptyList(),
             // A mode can be older than the period (for example LGS for months), so look back like for the profile.
-            runningModes = persistenceLayer.getRunningModesFromTime(periodStart - PROFILE_MARGIN, true)
+            runningModes = persistenceLayer.getRunningModesFromTime(periodStart - PROFILE_MARGIN, true),
+            recentHours = recentHours
         )
-        return AdvisorSummaryBuilder(input).build()
     }
 
     // A stored result has no autosensResult. Only its raw data (RT) is stored, so read the ratios from it.
@@ -121,6 +140,7 @@ class AdvisorDataCollector(
 
 
         const val MS_DAY = 86_400_000L
+        const val MS_HOUR = 3_600_000L
         const val CONTEXT_MARGIN = 6 * 3_600_000L
         const val DEVICE_CHANGE_MARGIN = 7 * 24 * 3_600_000L
 

@@ -129,7 +129,9 @@ fun AdvisorScreen(
                 ready = ready,
                 draft = draft,
                 onDraftChange = { draft = it },
-                onAsk = onAsk
+                onAsk = onAsk,
+                analysisMillis = newest.timeMillis,
+                updateJson = newest.lastUpdateJson
             )
         }
         // The newest kept analysis is left out when it is shown above.
@@ -166,6 +168,7 @@ private fun AnalysisAge(timeMillis: Long) {
 }
 
 private const val OLD_ANALYSIS_DAYS = 3L
+private const val OLD_FOR_CHAT_HOURS = 24L
 private const val AGE_REFRESH_MILLIS = 60_000L
 
 /** The questions of the person and the answers of the AI about the newest analysis, and the field for the next question. */
@@ -176,9 +179,19 @@ private fun ChatSection(
     ready: Boolean,
     draft: String,
     onDraftChange: (String) -> Unit,
-    onAsk: (String) -> Unit
+    onAsk: (String) -> Unit,
+    analysisMillis: Long,
+    updateJson: String?
 ) {
     Text(text = stringResource(R.string.advisor_chat_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+    // The report does not change in the chat. After a day the person should know that new findings need a new analysis.
+    if (System.currentTimeMillis() - analysisMillis > OLD_FOR_CHAT_HOURS * DateUtils.HOUR_IN_MILLIS) {
+        Text(
+            text = stringResource(R.string.advisor_chat_old_analysis),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
     messages.forEach { ChatBubble(it.role, it.text) }
     chatUi.pending?.let { ChatBubble(ChatRole.PERSON, it) }
     if (chatUi.pending != null) {
@@ -202,6 +215,8 @@ private fun ChatSection(
     Button(onClick = { onAsk(draft) }, enabled = ready && chatUi.pending == null && draft.isNotBlank()) {
         Text(stringResource(R.string.advisor_chat_send))
     }
+    // What was sent with the last question about the time since the analysis, so the person can look at it.
+    if (updateJson != null) SentData(updateJson, R.string.advisor_show_update, R.string.advisor_hide_update)
 }
 
 @Composable

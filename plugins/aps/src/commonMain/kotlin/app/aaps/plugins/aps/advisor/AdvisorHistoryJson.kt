@@ -100,6 +100,7 @@ object AdvisorHistoryJson {
         e.model?.let { put("model", it) }
         put("report", report(e.report))
         e.sentJson?.let { put("sentJson", it) }
+        e.lastUpdateJson?.let { put("lastUpdateJson", it) }
         e.glucose?.let { put("glucose", AdvisorSummaryJson.glucose(it)) }
         if (e.profileWarnings.isNotEmpty()) put("profileWarnings", buildJsonArray { e.profileWarnings.forEach { add(warning(it)) } })
         if (e.chat.isNotEmpty()) put("chat", buildJsonArray { e.chat.forEach { add(message(it)) } })
@@ -161,6 +162,7 @@ object AdvisorHistoryJson {
         model = o["model"]?.jsonPrimitive?.content,
         report = report(o.getValue("report").jsonObject),
         sentJson = o["sentJson"]?.jsonPrimitive?.content,
+        lastUpdateJson = o["lastUpdateJson"]?.jsonPrimitive?.content,
         chat = o["chat"]?.jsonArray.orEmpty().mapNotNull { message(it.jsonObject) },
         glucose = try {
             o["glucose"]?.jsonObject?.let { glucose(it) }

@@ -294,6 +294,15 @@ object AdvisorPrompt {
            proposed change must follow the same safety rules as in the report: small (at most $MAX_CHANGE_PERCENT percent), only a
            hint, never more insulin for a time with frequent lows. Nothing is changed in AAPS.
         6. Do not give medical orders. For urgent or unclear health problems tell the person to talk to their diabetes team.
+        7. The last message of the person can start with "Update since the analysis" and a JSON. It has what happened from the
+           time of the analysis until now: hoursSinceAnalysis, todayWeekday, recentHalfHours (the same fields as in the first
+           message, but from the analysis until now), runningModes, nightsFinished (nights that ended after the analysis, like
+           nights), currentNightSoFar, careNotes, and profileChanges with profile (only when the profile was changed since).
+           The update is newer than the first message: when they differ, trust the update. Your report and the numbers of the
+           first message stay the state at the time of the analysis. Their daysAgo and weekday count from the day of the
+           analysis, not from today. Use the update to see what happened after the report, and say so when it changes a hint
+           or confirms it. If updateTooLong is true there is no data: say that the analysis is too old and that a new
+           analysis is better for new findings. Do not repeat the whole update; name only what matters for the question.
     """.trimIndent()
 
     /**
@@ -304,8 +313,16 @@ object AdvisorPrompt {
      * @param summaryJson the data that was sent for the report
      * @param reportJson the report as text (see [AdvisorHistoryJson.reportText])
      * @param chat the earlier questions and answers, oldest first, a question first
+     * @param updateJson what happened since the analysis (see [AdvisorSummaryJson.encodeUpdate]). Null when there is none
      */
-    fun chatRequestBody(summaryJson: String, reportJson: String, chat: List<ChatMessage>, question: String, language: String): String =
+    fun chatRequestBody(
+        summaryJson: String,
+        reportJson: String,
+        chat: List<ChatMessage>,
+        question: String,
+        language: String,
+        updateJson: String? = null
+    ): String =
         buildJsonObject {
             put("model", MODEL)
             put("max_tokens", CHAT_MAX_TOKENS)
@@ -333,7 +350,8 @@ object AdvisorPrompt {
                 }
                 add(buildJsonObject {
                     put("role", "user")
-                    put("content", question)
+                    // The update goes only into the newest question. The earlier questions of the chat stay as they were.
+                    put("content", if (updateJson == null) question else "Update since the analysis:\n$updateJson\n\nMy question:\n$question")
                 })
             }
             putJsonObject("output_config") { put("effort", CHAT_EFFORT) }

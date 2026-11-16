@@ -57,7 +57,9 @@ data class AdvisorInput(
      * The records of the running mode (closed loop, LGS, open loop, suspended ...). They should start before the period,
      * so the mode at the start of the period is known.
      */
-    val runningModes: List<RM> = emptyList()
+    val runningModes: List<RM> = emptyList(),
+    /** How many hours back the series of half hours goes. 24 for an analysis, the time since the analysis for a chat update. */
+    val recentHours: Int = 24
 )
 
 /**
