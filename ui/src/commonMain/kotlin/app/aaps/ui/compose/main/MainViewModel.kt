@@ -35,6 +35,7 @@ import app.aaps.core.interfaces.overview.graph.TbrDisplayData
 import app.aaps.core.interfaces.overview.graph.TbrState
 import app.aaps.core.interfaces.overview.graph.TempTargetDisplayData
 import app.aaps.core.interfaces.overview.graph.TempTargetState
+import app.aaps.core.interfaces.plugin.ActivePlugin
 import app.aaps.core.interfaces.profile.ProfileFunction
 import app.aaps.core.interfaces.protection.ProtectionCheck
 import app.aaps.core.interfaces.protection.ProtectionResult
@@ -111,6 +112,7 @@ import kotlin.time.TimeSource
 @Stable
 @Inject
 class MainViewModel(
+    private val activePlugin: ActivePlugin,
     val config: Config,
     private val urlOpener: UrlOpener,
     val preferences: Preferences,
@@ -211,18 +213,8 @@ class MainViewModel(
 
     val versionName: String get() = config.VERSION_NAME
 
-    /**
-     * The enabled plugins that ask for a main menu entry (see `PluginDescription.showInDrawer`). It is read
-     * when the menu is opened, because a plugin can be switched on and off while the menu is closed.
-     */
-    fun drawerPlugins(): List<DrawerPlugin> = activePlugin.getPluginsList().mapNotNull { plugin ->
-        val description = plugin.pluginDescription
-        val name = description.pluginName
-        val icon = description.icon
-        val className = plugin::class.simpleName
-        if (!description.showInDrawer || !plugin.isEnabled() || !plugin.hasComposeContent() || name == null || icon == null || className == null) null
-        else DrawerPlugin(className, name, description.description, icon)
-    }
+    /** Read when the main menu is opened. The list is built in `ActivePlugin.drawerPlugins`. */
+    fun drawerPlugins(): List<DrawerPlugin> = activePlugin.drawerPlugins()
     val calcProgressFlow: StateFlow<Int> = overviewDataCache.calcProgressFlow
 
     // Flow-derived chip state: ticker + cache flows + expiry detection. Cold.
