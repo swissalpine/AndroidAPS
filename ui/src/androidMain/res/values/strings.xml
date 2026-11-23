@@ -383,4 +383,54 @@
     <string name="cal_precheck_mark_sensor_change">Mark sensor change</string>
     <string name="graph_therapy_event_bg_with_note" comment="Shown when the user taps a BG check in the overview graph. %1$s = glucose with its unit, %2$s = the note the user wrote. Example: 6.1 mmol/L, before lunch">%1$s, %2$s</string>
 
+    <!-- Wizard: estimate a meal with AI -->
+    <string name="wizard_food_button">Food</string>
+    <string name="wizard_food_title">Estimate meal</string>
+    <string name="wizard_food_description_label">What did you eat?</string>
+    <string name="wizard_food_description_example">For example: 150 g cooked pasta, or a large plate of fries with sausage</string>
+    <string name="wizard_food_take_photo">Take photo</string>
+    <string name="wizard_food_pick_photo">Choose photo</string>
+    <string name="wizard_food_photo_added" comment="%1$d = number of the photo, 1 or 2. Example: Photo 1 added">Photo %1$d added</string>
+    <string name="wizard_food_photo_hint">You can add two photos of the same meal, for example from above and from the side. Put a fork or a knife next to the food: it shows the size.</string>
+    <string name="wizard_food_remove_photo">Remove photo</string>
+    <string name="wizard_food_estimate">Estimate</string>
+    <string name="wizard_food_loading">Estimating the meal…</string>
+    <string name="wizard_food_privacy">The text and the photo are sent to the Claude API of Anthropic. The photo is not saved.</string>
+    <string name="wizard_food_warning">This is only an estimate. Check every number before you use it.</string>
+    <string name="wizard_food_confidence" comment="%1$s = how sure the estimate is: low, medium or high. Example: Confidence: low">Confidence: %1$s</string>
+    <string name="wizard_food_confidence_low">low</string>
+    <string name="wizard_food_confidence_medium">medium</string>
+    <string name="wizard_food_confidence_high">high</string>
+    <string name="wizard_food_item_without_weight" comment="One food of the meal. %1$s = name, %2$d = carbs in grams. Example: Pasta: 45 g carbs">%1$s: %2$d g carbs</string>
+    <string name="wizard_food_fat" comment="%1$d = fat of the meal in grams. Example: Fat: 20 g">Fat: %1$d g</string>
+    <string name="wizard_food_protein" comment="%1$d = protein of the meal in grams. Example: Protein: 15 g">Protein: %1$d g</string>
+    <string name="wizard_food_ecarbs">Extra carbs for fat and protein</string>
+    <string name="wizard_food_ecarbs_delay">Start after</string>
+    <string name="wizard_food_note">Note</string>
+    <string name="wizard_food_use">Use in wizard</string>
+    <string name="wizard_food_scan">Scan barcode</string>
+    <string name="wizard_food_scan_hint">Hold the barcode of the product in front of the camera.</string>
+    <string name="wizard_food_barcode_privacy">Only the barcode is sent to Open Food Facts, a public food database.</string>
+    <string name="wizard_food_product_unnamed">Product without a name</string>
+    <string name="wizard_food_product_per_100g" comment="Values of the product for 100 g. %1$.1f = carbs in grams, %2$.1f = fat in grams, %3$.1f = protein in grams. Example: Per 100 g: 72.0 g carbs, 1.5 g fat, 12.0 g protein">Per 100 g: %1$.1f g carbs, %2$.1f g fat, %3$.1f g protein</string>
+    <string name="wizard_food_product_amount">Amount you eat</string>
+    <string name="wizard_food_product_add_scan">Add, scan next</string>
+    <string name="wizard_food_product_add_done">Add, done</string>
+    <string name="wizard_food_add_food">Add food</string>
+    <string name="wizard_food_remove_item">Remove</string>
+    <string name="wizard_food_show_meal">Show meal</string>
+    <string name="wizard_food_meal_so_far" comment="The meal that is being put together. %1$d = number of foods, %2$d = carbs in grams. Example: Foods in the meal: 2, 31 g carbs">Foods in the meal: %1$d, %2$d g carbs</string>
+    <string name="wizard_food_warning_product">The values come from a public database that people fill in. Check the amount and the numbers.</string>
+    <string name="wizard_food_error_product_not_found" comment="%1$s = the number of the barcode. Example: The barcode 4008400402222 is not in the food database.">The barcode %1$s is not in the food database.</string>
+    <string name="wizard_food_error_product_no_nutrition" comment="%1$s = the number of the barcode. Example: The food database has the barcode 4008400402222, but without a carbs value.">The food database has the barcode %1$s, but without a carbs value.</string>
+    <string name="wizard_food_barcode_number">Barcode number</string>
+    <string name="wizard_food_barcode_lookup">Look up</string>
+    <string name="wizard_food_loading_barcode" comment="%1$s = the number of the barcode. Example: Looking up 4008400402222…">Looking up %1$s…</string>
+    <string name="wizard_food_item_carbs" comment="%1$d = carbs of one food in grams. Example: 15 g carbs">%1$d g carbs</string>
+    <string name="wizard_food_error_unauthorized">The API key was not accepted. Check it in the settings of the AI advisor.</string>
+    <string name="wizard_food_error_rate_limited">Too many requests. Try again in a minute.</string>
+    <string name="wizard_food_error_network">No answer from the server. Check the internet connection and try again.</string>
+    <string name="wizard_food_error_bad_response">The answer could not be read. Try again.</string>
+    <string name="wizard_food_error_no_food">No food was found. Describe the meal in more detail or add a photo.</string>
+    <string name="wizard_food_error_not_ready">There is no API key. Enter it in the settings of the AI advisor.</string>
 </resources>

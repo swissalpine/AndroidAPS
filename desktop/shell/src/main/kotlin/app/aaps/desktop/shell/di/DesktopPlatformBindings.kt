@@ -1,6 +1,8 @@
 package app.aaps.desktop.shell.di
 
 import app.aaps.core.interfaces.configuration.Config
+import app.aaps.core.interfaces.food.FoodAnalyzer
+import app.aaps.core.interfaces.food.FoodProductLookup
 import app.aaps.core.interfaces.logging.AAPSLogger
 import app.aaps.core.interfaces.logging.L
 import app.aaps.core.interfaces.notifications.SystemNotificationPlatform
@@ -26,8 +28,9 @@ import dev.zacsweers.metro.SingleIn
  * The bindings the desktop graph needs that only a desktop can supply.
  *
  * The counterpart of what `:app` states on Android and `IosPlatformBindings` on Apple. Everything
- * here is either a real desktop implementation or a shared one being handed its platform piece -
- * nothing in this file is a stand-in.
+ * here is either a real desktop implementation or a shared one being handed its platform piece.
+ * The one exception is the food help (see `DesktopFoodAnalyzer`): it is off on the desktop and
+ * says so, so the wizard shows no button for it.
  *
  * `@ContributesTo(AppScope::class)`, so the graph does not have to include it by name.
  *
@@ -64,6 +67,15 @@ object DesktopPlatformBindings {
     @Provides
     @SingleIn(AppScope::class)
     fun config(): Config = DesktopClientConfig()
+
+    /** No food help on the desktop yet: it reports "not available", so the wizard hides the button. */
+    @Provides
+    @SingleIn(AppScope::class)
+    fun foodAnalyzer(): FoodAnalyzer = DesktopFoodAnalyzer()
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun foodProductLookup(): FoodProductLookup = DesktopFoodProductLookup()
 
     @Provides
     @SingleIn(AppScope::class)

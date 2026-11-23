@@ -1,5 +1,7 @@
 package app.aaps.plugins.aps.advisor
 
+import app.aaps.core.interfaces.food.FoodAnalysisFailure
+import app.aaps.core.interfaces.food.FoodAnalysisResult
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -43,6 +45,16 @@ class AdvisorClient(
         throw e
     } catch (e: Exception) {
         AdvisorChatOutcome.Failure(networkFailure(e))
+    }
+
+    /** Sends the request of a food estimate (see [FoodPrompt.requestBody]). */
+    suspend fun food(requestBody: String, apiKey: String): FoodAnalysisResult = try {
+        val response = post(requestBody, apiKey)
+        AdvisorResponseParser.parseFood(response.status.value, response.bodyAsText())
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        FoodAnalysisResult.Failure(FoodAnalysisFailure.NETWORK)
     }
 
     private suspend fun post(requestBody: String, apiKey: String): HttpResponse = http.post(endpoint) {

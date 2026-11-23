@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
@@ -47,6 +48,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -102,6 +104,7 @@ import app.aaps.core.ui.compose.ExpandableNumberInputRow
 import app.aaps.core.ui.compose.ExpandableRowHeader
 import app.aaps.core.ui.compose.NumberInputRow
 import app.aaps.core.ui.compose.QuickAddButtons
+import app.aaps.core.ui.compose.rememberFoodPhotoLauncher
 import app.aaps.core.ui.compose.TimeOffsetRow
 import app.aaps.core.ui.compose.bottomBarSafeArea
 import app.aaps.core.ui.compose.clearFocusOnTap
@@ -132,6 +135,8 @@ fun WizardDialogScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val foodState by viewModel.foodState.collectAsStateWithLifecycle()
+    val foodPhoto = rememberFoodPhotoLauncher(viewModel::addFoodPhoto)
 
     // Observe side effects
     LaunchedEffect(Unit) {
@@ -156,6 +161,44 @@ fun WizardDialogScreen(
                 showSettings = false
                 viewModel.refreshAfterSettings()
             }
+        )
+    }
+
+    // Food estimate. The numbers only go into the wizard when the person confirms them in the sheet.
+    if (foodState.step != FoodStep.HIDDEN) {
+        val foodActions = remember(viewModel) {
+            WizardFoodActions(
+                onDescriptionChange = viewModel::updateFoodDescription,
+                onRemovePhoto = viewModel::removeFoodPhoto,
+                onEstimate = viewModel::analyzeFood,
+                onScan = viewModel::startBarcodeScan,
+                onScanCancel = viewModel::cancelBarcodeScan,
+                onBarcode = viewModel::onBarcodeScanned,
+                onBarcodeTextChange = viewModel::updateBarcodeText,
+                onBarcodeLookup = viewModel::lookupTypedBarcode,
+                onItemGramsChange = viewModel::updateFoodItemGrams,
+                onProductGramsChange = viewModel::updateProductGrams,
+                onProductAdd = viewModel::addProduct,
+                onProductCancel = viewModel::cancelProduct,
+                onItemRemove = viewModel::removeFoodItem,
+                onAddMore = viewModel::addMoreFood,
+                onShowMeal = viewModel::showMeal,
+                onCarbsChange = viewModel::updateFoodCarbs,
+                onECarbsChange = viewModel::updateFoodECarbs,
+                onDelayChange = viewModel::updateFoodECarbsDelay,
+                onDurationChange = viewModel::updateFoodECarbsDuration,
+                onNoteChange = viewModel::updateFoodNote,
+                onUse = viewModel::applyFood,
+                onDismiss = viewModel::closeFood
+            )
+        }
+        WizardFoodSheet(
+            state = foodState,
+            maxCarbs = uiState.maxCarbs,
+            photo = foodPhoto,
+            aiAvailable = uiState.foodAiAvailable,
+            barcodeAvailable = uiState.foodBarcodeAvailable,
+            actions = foodActions
         )
     }
 
@@ -220,7 +263,8 @@ fun WizardDialogScreen(
         onCalculationExpandToggle = viewModel::toggleCalculationExpanded,
         onNavigateBack = onNavigateBack,
         onConfirmClick = { showConfirmation = true },
-        onSettingsClick = { showSettings = true }
+        onSettingsClick = { showSettings = true },
+        onFoodClick = viewModel::openFood
     )
 }
 
@@ -248,7 +292,8 @@ internal fun WizardDialogContent(
     onCalculationExpandToggle: () -> Unit,
     onNavigateBack: () -> Unit,
     onConfirmClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onFoodClick: () -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
@@ -689,6 +734,19 @@ internal fun WizardDialogContent(
                             increment3 = uiState.carbsButtonIncrement3,
                             onAddCarbs = onAddCarbs
                         )
+
+                        // Estimate the meal with AI. Only with an API key.
+                        if (uiState.foodAvailable) {
+                            OutlinedButton(
+                                onClick = onFoodClick,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp)
+                            ) {
+                                Icon(Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Text(stringResource(UiStrings.wizard_food_button), modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
 
                         // Carbs type selector
                         Row(

@@ -18,6 +18,19 @@ import app.aaps.core.interfaces.clientcontrol.isNotDeliveryError
 import app.aaps.core.interfaces.configuration.Config
 import app.aaps.core.interfaces.constraints.ConstraintsChecker
 import app.aaps.core.interfaces.db.PersistenceLayer
+import app.aaps.core.interfaces.food.FoodAnalysis
+import app.aaps.core.interfaces.food.FoodAnalysisChecks
+import app.aaps.core.interfaces.food.FoodAnalysisFailure
+import app.aaps.core.interfaces.food.FoodAnalysisResult
+import app.aaps.core.interfaces.food.FoodAnalyzer
+import app.aaps.core.interfaces.food.FoodConfidence
+import app.aaps.core.interfaces.food.FoodItem
+import app.aaps.core.interfaces.food.FoodProduct
+import app.aaps.core.interfaces.food.FoodProductLookup
+import app.aaps.core.interfaces.food.FoodRules
+import app.aaps.core.interfaces.food.MAX_BARCODE_DIGITS
+import app.aaps.core.interfaces.food.ProductLookupResult
+import app.aaps.core.interfaces.food.isProductBarcode
 import app.aaps.core.interfaces.insulin.ConcentrationHelper
 import app.aaps.core.interfaces.iob.IobCobCalculator
 import app.aaps.core.interfaces.logging.AAPSLogger
@@ -46,6 +59,7 @@ import app.aaps.core.objects.runningMode.RunningModeGuard
 import app.aaps.core.objects.wizard.BolusWizard
 import app.aaps.core.ui.CoreUiStrings
 import app.aaps.core.ui.clientcontrol.failText
+import app.aaps.core.ui.compose.barcodeScannerAvailable
 import app.aaps.core.ui.compose.icons.IcCalculator
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
@@ -56,6 +70,7 @@ import dev.zacsweers.metro.binding
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactoryKey
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +82,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.time.TimeSource
+
+/** The longest note of a meal made of several foods. */
+private const val MAX_MEAL_NOTE = 100
 
 @Stable
 @AssistedInject
@@ -94,11 +112,20 @@ class WizardDialogViewModel(
     // Unqualified: the graph binds the one application scope with and without @ApplicationScope
     // (AppCoroutineBindings), so this is the same instance.
     private val appScope: CoroutineScope,
-    private val commandQueue: CommandQueue
+    private val commandQueue: CommandQueue,
+    private val foodAnalyzer: FoodAnalyzer,
+    private val foodProductLookup: FoodProductLookup
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WizardDialogUiState())
     val uiState: StateFlow<WizardDialogUiState> = _uiState.asStateFlow()
+
+    private val _foodState = MutableStateFlow(WizardFoodState())
+    val foodState: StateFlow<WizardFoodState> = _foodState.asStateFlow()
+
+    /** The photos of the meal, at most [FoodAnalysisChecks.MAX_PHOTOS]. Only in memory, only until the answer is there or the dialog is closed. */
+    private val foodPhotos = mutableListOf<ByteArray>()
+    private var foodJob: Job? = null
 
     // A failed delivery is not reported here: the master's executor raises the BOLUS_DELIVERY_FAILED alarm itself
     sealed class SideEffect {
@@ -242,6 +269,9 @@ class WizardDialogViewModel(
                 hasTempTarget = tempTarget != null,
                 useBolusAdvisor = useBolusAdvisor,
                 simpleMode = preferences.simpleMode,
+                foodAvailable = foodAnalyzer.isAvailable() || barcodeScannerAvailable,
+                foodAiAvailable = foodAnalyzer.isAvailable(),
+                foodBarcodeAvailable = barcodeScannerAvailable,
                 carbsButtonIncrement1 = preferences.get(IntKey.OverviewCarbsButtonIncrement1),
                 carbsButtonIncrement2 = preferences.get(IntKey.OverviewCarbsButtonIncrement2),
                 carbsButtonIncrement3 = preferences.get(IntKey.OverviewCarbsButtonIncrement3),
@@ -303,8 +333,281 @@ class WizardDialogViewModel(
     }
 
     fun updateCarbsType(value: CarbsType) {
-        _uiState.update { it.copy(carbsType = value) }
+        // Choosing a type again leaves the eCarbs of a food estimate.
+        _uiState.update { it.copy(carbsType = value, foodECarbs = null) }
         recalculate()
+    }
+
+    // --- Food estimate (the AI dialog) ---
+
+    fun openFood() {
+        _foodState.value = WizardFoodState(step = FoodStep.INPUT)
+    }
+
+    fun closeFood() {
+        foodJob?.cancel()
+        foodPhotos.clear()
+        _foodState.value = WizardFoodState()
+    }
+
+    fun updateFoodDescription(value: String) {
+        _foodState.update { it.copy(description = value, failure = null) }
+    }
+
+    /** Adds a photo of the meal. A photo over the limit is dropped: the buttons are off then, but a late answer of the camera can come. */
+    fun addFoodPhoto(bytes: ByteArray) {
+        if (foodPhotos.size >= FoodAnalysisChecks.MAX_PHOTOS) return
+        foodPhotos.add(bytes)
+        _foodState.update { it.copy(photoCount = foodPhotos.size, failure = null) }
+    }
+
+    fun removeFoodPhoto(index: Int) {
+        if (index !in foodPhotos.indices) return
+        foodPhotos.removeAt(index)
+        _foodState.update { it.copy(photoCount = foodPhotos.size) }
+    }
+
+    /** Asks for the estimate. The numbers go nowhere until the person confirms them with [applyFood]. */
+    fun analyzeFood() {
+        val input = _foodState.value
+        if (!input.canAnalyze || input.step == FoodStep.LOADING) return
+        // No barcode number: the loading step shows a number only while a barcode is looked up.
+        _foodState.update { it.copy(step = FoodStep.LOADING, failure = null, barcode = "") }
+        foodJob = viewModelScope.launch {
+            val result = foodAnalyzer.analyze(input.description, foodPhotos.toList())
+            // The photos are not needed any more. They were sent, or the request failed and the person can add them again.
+            foodPhotos.clear()
+            when (result) {
+                // The estimate joins the meal. The text is cleared, so a next estimate starts empty.
+                is FoodAnalysisResult.Success -> _foodState.update {
+                    it.withAdded(result.analysis.items, result.analysis, result.analysis.note)
+                        .copy(step = FoodStep.RESULT, photoCount = 0, failure = null, description = "")
+                }
+
+                is FoodAnalysisResult.Failure -> _foodState.update { it.copy(step = FoodStep.INPUT, photoCount = 0, failure = result.reason) }
+            }
+        }
+    }
+
+    /** From the meal to the input, to add one more food. The meal so far stays. */
+    fun addMoreFood() {
+        _foodState.update { it.copy(step = FoodStep.INPUT, failure = null) }
+    }
+
+    /** From the input back to the meal, when there is something in it. */
+    fun showMeal() {
+        _foodState.update { if (it.items.isEmpty()) it else it.copy(step = FoodStep.RESULT, failure = null) }
+    }
+
+    /**
+     * Takes one food out of the meal, for example after a wrong scan. The totals go down by the numbers of that food, so a
+     * carbs number that the person typed is kept. The extended carbs are made again with the fixed rule. When it was the last
+     * food, the meal is empty and the person is back at the input. The note is not changed: the person edits it.
+     */
+    fun removeFoodItem(index: Int) = _foodState.update { state ->
+        val old = state.items.getOrNull(index) ?: return@update state
+        if (state.items.size == 1) {
+            return@update state.copy(
+                step = FoodStep.INPUT, items = emptyList(), baseItems = emptyList(), hasAi = false,
+                carbs = 0, fat = 0, protein = 0, eCarbs = 0, eCarbsDelayMinutes = 0, eCarbsDurationHours = 0, note = "", reasoning = ""
+            )
+        }
+        state.withTotals(
+            items = state.items.toMutableList().also { it.removeAt(index) },
+            baseItems = state.baseItems.toMutableList().also { it.removeAt(index) },
+            carbsChange = -old.carbs, fatChange = -old.fat, proteinChange = -old.protein
+        )
+    }
+
+    /** What stays of a meal when the numbers change: the totals move by the difference, the extended carbs follow the rule. */
+    private fun WizardFoodState.withTotals(
+        items: List<FoodItem>,
+        baseItems: List<FoodItem>,
+        carbsChange: Int,
+        fatChange: Int,
+        proteinChange: Int
+    ): WizardFoodState {
+        val newFat = (fat + fatChange).coerceIn(0, FoodAnalysisChecks.MAX_FAT_PROTEIN)
+        val newProtein = (protein + proteinChange).coerceIn(0, FoodAnalysisChecks.MAX_FAT_PROTEIN)
+        val extra = FoodRules.extendedCarbs(newFat, newProtein)
+        return copy(
+            items = items,
+            baseItems = baseItems,
+            // The limit of the person is applied when the numbers go into the wizard (see applyFood).
+            carbs = (carbs + carbsChange).coerceIn(0, FoodAnalysisChecks.MAX_CARBS),
+            fat = newFat,
+            protein = newProtein,
+            eCarbs = extra.grams,
+            eCarbsDelayMinutes = extra.delayMinutes,
+            eCarbsDurationHours = extra.durationHours
+        )
+    }
+
+    /**
+     * Puts foods into the meal. The first estimate of the model keeps its own numbers, the extended carbs of the model
+     * included. After that the totals move by the numbers of the added foods and the extended carbs follow the fixed rule.
+     *
+     * @param analysis the estimate of the model, or null for a product from the database
+     */
+    private fun WizardFoodState.withAdded(added: List<FoodItem>, analysis: FoodAnalysis?, addedNote: String): WizardFoodState {
+        val joinedNote = listOf(note, addedNote).filter { it.isNotBlank() }.joinToString(", ").take(MAX_MEAL_NOTE)
+        val newConfidence = when {
+            analysis == null -> if (hasAi) confidence else FoodConfidence.HIGH
+            hasAi            -> minOf(confidence, analysis.confidence) // the weakest of the estimates
+            else             -> analysis.confidence
+        }
+        val base = if (items.isEmpty() && analysis != null) {
+            copy(
+                items = added, baseItems = added, carbs = analysis.carbs, fat = analysis.fat, protein = analysis.protein,
+                eCarbs = analysis.eCarbs, eCarbsDelayMinutes = analysis.eCarbsDelayMinutes, eCarbsDurationHours = analysis.eCarbsDurationHours
+            )
+        } else {
+            withTotals(
+                items = items + added, baseItems = baseItems + added,
+                carbsChange = added.sumOf { it.carbs }, fatChange = added.sumOf { it.fat }, proteinChange = added.sumOf { it.protein }
+            )
+        }
+        return base.copy(
+            hasAi = hasAi || analysis != null,
+            confidence = newConfidence,
+            note = joinedNote,
+            reasoning = analysis?.reasoning ?: reasoning
+        )
+    }
+
+    // --- Barcode of a packaged product ---
+
+    fun startBarcodeScan() {
+        _foodState.update { it.copy(step = FoodStep.SCAN, failure = null) }
+    }
+
+    /** Back from the camera to the input. */
+    fun cancelBarcodeScan() {
+        _foodState.update { it.copy(step = FoodStep.INPUT) }
+    }
+
+    /**
+     * The camera read a code. It reports every frame that shows one, so only the first is taken: after it the step is not
+     * [FoodStep.SCAN] any more. Only the digits of the code are sent to the food database.
+     */
+    fun onBarcodeScanned(code: String) {
+        if (_foodState.value.step != FoodStep.SCAN) return
+        lookupProduct(code)
+    }
+
+    /** What the person types in the barcode field: only digits, as many as a barcode has at most. */
+    fun updateBarcodeText(value: String) {
+        _foodState.update { it.copy(barcode = value.filter { c -> c in '0'..'9' }.take(MAX_BARCODE_DIGITS), failure = null) }
+    }
+
+    /** The person typed the number of the barcode instead of scanning it. */
+    fun lookupTypedBarcode() {
+        val state = _foodState.value
+        if (state.step != FoodStep.INPUT) return
+        lookupProduct(state.barcode)
+    }
+
+    private fun lookupProduct(code: String) {
+        if (!isProductBarcode(code)) return
+        // The number stays in the field. When the lookup fails the person sees it, and can correct a digit.
+        _foodState.update { it.copy(step = FoodStep.LOADING, failure = null, barcode = code) }
+        foodJob = viewModelScope.launch {
+            when (val result = foodProductLookup.lookup(code)) {
+                is ProductLookupResult.Found -> _foodState.update {
+                    it.copy(step = FoodStep.PRODUCT, product = result.product, productGrams = result.product.suggestedGrams)
+                }
+
+                ProductLookupResult.NotFound -> productFailed(FoodAnalysisFailure.PRODUCT_NOT_FOUND)
+                ProductLookupResult.NoNutrition -> productFailed(FoodAnalysisFailure.PRODUCT_NO_NUTRITION)
+                ProductLookupResult.Failure -> productFailed(FoodAnalysisFailure.NETWORK)
+            }
+        }
+    }
+
+    private fun productFailed(reason: FoodAnalysisFailure) = _foodState.update { it.copy(step = FoodStep.INPUT, failure = reason) }
+
+    fun updateProductGrams(value: Int) = _foodState.update { it.copy(productGrams = value.coerceIn(1, FoodProduct.MAX_GRAMS)) }
+
+    /**
+     * The amount is given: the product with this amount joins the meal.
+     *
+     * @param scanNext true to open the camera for the next product, false to go to the meal
+     */
+    fun addProduct(scanNext: Boolean) {
+        val food = _foodState.value
+        val product = food.product ?: return
+        if (food.step != FoodStep.PRODUCT) return
+        val a = product.analysisFor(food.productGrams)
+        _foodState.update {
+            it.withAdded(a.items, null, a.note).copy(step = if (scanNext) FoodStep.SCAN else FoodStep.RESULT, product = null, failure = null, barcode = "")
+        }
+    }
+
+    /** The product is not wanted (a wrong scan): back to the meal, or to the input when there is no meal yet. */
+    fun cancelProduct() {
+        _foodState.update { it.copy(step = if (it.items.isEmpty()) FoodStep.INPUT else FoodStep.RESULT, product = null, failure = null) }
+    }
+
+    /**
+     * The person weighed one food and gives its weight. Its carbs, fat and protein follow in the same proportion, and the
+     * totals change by the difference. The extended carbs are made again from the new fat and protein with the fixed rule
+     * of [FoodRules], so a number the person typed there is replaced. A food without a known weight cannot be changed.
+     */
+    fun updateFoodItemGrams(index: Int, grams: Int) = _foodState.update { state ->
+        val base = state.baseItems.getOrNull(index) ?: return@update state
+        val old = state.items.getOrNull(index) ?: return@update state
+        if (base.grams <= 0) return@update state
+        val changed = base.withGrams(grams.coerceIn(1, FoodProduct.MAX_GRAMS))
+        state.withTotals(
+            items = state.items.toMutableList().also { it[index] = changed },
+            baseItems = state.baseItems,
+            carbsChange = changed.carbs - old.carbs, fatChange = changed.fat - old.fat, proteinChange = changed.protein - old.protein
+        )
+    }
+
+    fun updateFoodCarbs(value: Int) = _foodState.update { it.copy(carbs = value.coerceIn(0, maxOf(uiState.value.maxCarbs, 0))) }
+
+    fun updateFoodECarbs(value: Int) = _foodState.update {
+        val grams = value.coerceIn(0, FoodAnalysisChecks.MAX_CARBS)
+        // Extended carbs need a duration of at least one hour. Without them there is no delay and no duration.
+        it.copy(
+            eCarbs = grams,
+            eCarbsDelayMinutes = if (grams == 0) 0 else it.eCarbsDelayMinutes,
+            eCarbsDurationHours = if (grams == 0) 0 else it.eCarbsDurationHours.coerceAtLeast(1)
+        )
+    }
+
+    fun updateFoodECarbsDelay(value: Int) = _foodState.update { it.copy(eCarbsDelayMinutes = value.coerceIn(0, FoodAnalysisChecks.MAX_DELAY_MINUTES)) }
+
+    fun updateFoodECarbsDuration(value: Int) = _foodState.update { it.copy(eCarbsDurationHours = value.coerceIn(1, FoodAnalysisChecks.MAX_DURATION_HOURS)) }
+
+    fun updateFoodNote(value: String) = _foodState.update { it.copy(note = value) }
+
+    /**
+     * The person confirmed the numbers: they go into the wizard. The carbs are eaten now, the eCarbs replace the split
+     * of the carbs type, and the note is added to the note field. Nothing is delivered here: the wizard calculates and asks
+     * for the usual confirmation.
+     */
+    fun applyFood() {
+        val food = _foodState.value
+        if (food.step != FoodStep.RESULT) return
+        _uiState.update { state ->
+            state.copy(
+                carbs = food.carbs.coerceIn(0, state.maxCarbs),
+                carbsType = CarbsType.BREAD,
+                foodECarbs = if (food.eCarbs > 0) FoodECarbs(food.eCarbs, food.eCarbsDelayMinutes, food.eCarbsDurationHours.coerceAtLeast(1)) else null,
+                notes = mergeNotes(state.notes, food.note.trim())
+            )
+        }
+        closeFood()
+        recalculate()
+    }
+
+    /** What the person typed stays. The food is added behind it. */
+    private fun mergeNotes(old: String, added: String): String = when {
+        added.isEmpty() -> old
+        old.isBlank()   -> added
+        else            -> "$old, $added"
     }
 
     // The note and the alarm recalculate too: the confirmation and the record-only path read them from the
@@ -451,9 +754,9 @@ class WizardDialogViewModel(
         }
 
         // Carbs type split: effective carbs for wizard, eCarbs for later scheduling
-        val carbsType = state.carbsType
-        val effectiveCarbs = carbsType.carbsNow(state.carbs)
-        val eCarbs = carbsType.eCarbs(state.carbs)
+        val split = state.carbSplit()
+        val effectiveCarbs = split.carbsNow
+        val eCarbs = split.eCarbs
 
         // Carbs constraint check (on effective carbs only)
         val carbsAfterConstraint = constraintChecker.applyCarbsConstraints(ConstraintObject(effectiveCarbs, aapsLogger)).value()
@@ -529,8 +832,8 @@ class WizardDialogViewModel(
                 hasTempTarget = hasTT,
                 effectiveCarbs = effectiveCarbs,
                 eCarbs = eCarbs,
-                eCarbsDelayMinutes = carbsType.eCarbsDelayMinutes,
-                eCarbsDurationHours = carbsType.eCarbsDurationHours
+                eCarbsDelayMinutes = split.eCarbsDelayMinutes,
+                eCarbsDurationHours = split.eCarbsDurationHours
             )
         }
     }
@@ -584,7 +887,7 @@ class WizardDialogViewModel(
      */
     fun deliverManualWizard() {
         val state = uiState.value
-        val effectiveCarbs = state.carbsType.carbsNow(state.carbs)
+        val effectiveCarbs = state.carbSplit().carbsNow
         // null → recompute on the master's active profile (index 0 = "Active"); else the selected stored profile by name.
         val profileName = if (state.selectedProfileIndex == 0) null else state.profileNames.getOrNull(state.selectedProfileIndex)
         val inputs = MasterActionExecutor.WizardInputs(

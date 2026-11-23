@@ -16,6 +16,8 @@ data class WizardDialogUiState(
     val bg: Double = 0.0,
     val carbs: Int = 0,
     val carbsType: CarbsType = CarbsType.BREAD,
+    /** eCarbs that the person took from a food estimate. While set they replace the split of [carbsType]. */
+    val foodECarbs: FoodECarbs? = null,
     val percentage: Int = 100,
     val directCorrection: Double = 0.0,
     val carbTime: Int = 0,
@@ -38,6 +40,12 @@ data class WizardDialogUiState(
     val units: GlucoseUnit = GlucoseUnit.MGDL,
     val profileNames: List<String> = emptyList(),
     val showNotes: Boolean = false,
+    /** The food button is shown: the AI can estimate a meal (an API key is saved), or the camera can scan a barcode. */
+    val foodAvailable: Boolean = false,
+    /** The AI can estimate a meal: an API key is saved. */
+    val foodAiAvailable: Boolean = false,
+    /** The camera can scan the barcode of a product. */
+    val foodBarcodeAvailable: Boolean = false,
     val hasTempTarget: Boolean = false,
     val useBolusAdvisor: Boolean = false,
     val simpleMode: Boolean = false,
@@ -87,6 +95,21 @@ data class WizardDialogUiState(
     /** The user has changed the BG field. From then on it keeps their value and no longer follows new readings. */
     val bgEdited: Boolean = false
 )
+
+/** The extended carbs of a food estimate: [grams] start after [delayMinutes] and last [durationHours]. */
+@Immutable
+data class FoodECarbs(val grams: Int, val delayMinutes: Int, val durationHours: Int)
+
+/** How the carbs of the wizard are split: eaten now, and extended carbs for later. */
+data class CarbSplit(val carbsNow: Int, val eCarbs: Int, val eCarbsDelayMinutes: Int, val eCarbsDurationHours: Int)
+
+/**
+ * The split of the carbs. Extended carbs from a food estimate are extra: the carbs field is then all eaten now.
+ * Without them the split comes from the carbs type, as it always did.
+ */
+fun WizardDialogUiState.carbSplit(): CarbSplit =
+    foodECarbs?.let { CarbSplit(carbs, it.grams, it.delayMinutes, it.durationHours) }
+        ?: CarbSplit(carbsType.carbsNow(carbs), carbsType.eCarbs(carbs), carbsType.eCarbsDelayMinutes, carbsType.eCarbsDurationHours)
 
 /**
  * A new sensor reading came in. The BG field follows it until the user has edited the field: the BG is sent to the

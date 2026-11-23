@@ -1,5 +1,12 @@
 package app.aaps.plugins.aps.advisor
 
+import app.aaps.core.interfaces.food.FoodAnalysis
+import app.aaps.core.interfaces.food.FoodAnalysisChecks
+import app.aaps.core.interfaces.food.FoodAnalysisFailure
+import app.aaps.core.interfaces.food.FoodAnalysisResult
+import app.aaps.core.interfaces.food.FoodConfidence
+import app.aaps.core.interfaces.food.FoodItem
+import app.aaps.core.interfaces.food.FoodRules
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -24,6 +31,12 @@ object AdvisorResponseParser {
     private const val MAX_FINDINGS = 6
     private const val MAX_LIST = 8
     private const val MINUTES_PER_DAY = 1_440
+    private const val MAX_FOOD_ITEMS = 15
+    private const val TOTALS_ROUNDING_GRAMS = 2
+    private const val MAX_FOOD_NAME = 80
+    private const val MAX_FOOD_GRAMS = 2_000
+    private const val MAX_FOOD_NOTE = 60
+    private const val MAX_FOOD_REASONING = 500
 
     /** The text of an answer that passed the checks of the status and the stop reason, or the failure. */
     private sealed interface Read {
@@ -50,6 +63,78 @@ object AdvisorResponseParser {
         } else {
             AdvisorChatOutcome.Answer(result.text.trim().take(MAX_CHAT_TEXT))
         }
+    }
+
+    /**
+     * Reads the answer of a food estimate (see [FoodPrompt]). The numbers are limited in code, whatever the model wrote.
+     * An answer without any food is a failure, so the person is not shown a proposal of zeros.
+     */
+    fun parseFood(status: Int, body: String): FoodAnalysisResult {
+        val read = when (val result = read(status, body)) {
+            is Read.Bad  -> return FoodAnalysisResult.Failure(
+                when (result.failure.kind) {
+                    AdvisorFailure.UNAUTHORIZED -> FoodAnalysisFailure.UNAUTHORIZED
+                    AdvisorFailure.RATE_LIMITED -> FoodAnalysisFailure.RATE_LIMITED
+                    AdvisorFailure.SERVER,
+                    AdvisorFailure.NETWORK      -> FoodAnalysisFailure.NETWORK
+                    else                        -> FoodAnalysisFailure.BAD_RESPONSE
+                }
+            )
+
+            is Read.Text -> result
+        }
+        val answer = parseObject(read.text) ?: return FoodAnalysisResult.Failure(FoodAnalysisFailure.BAD_RESPONSE)
+        val items = (answer["items"] as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }.take(MAX_FOOD_ITEMS).map {
+            FoodItem(
+                name = it.string("name").take(MAX_FOOD_NAME),
+                grams = (it.int("grams") ?: 0).coerceIn(0, MAX_FOOD_GRAMS),
+                carbs = (it.int("carbs") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_CARBS),
+                fat = (it.int("fat") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_FAT_PROTEIN),
+                protein = (it.int("protein") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_FAT_PROTEIN)
+            )
+        }
+        // The totals are the sums of the items, so they always agree with the list the person sees and changes. A model can
+        // add up wrongly. Only when the items have no value for a number (for example an answer with no items) the total of
+        // the model is used.
+        val carbs = totalOf(items.sumOf { it.carbs }, answer.int("carbs"), FoodAnalysisChecks.MAX_CARBS)
+        val fat = totalOf(items.sumOf { it.fat }, answer.int("fat"), FoodAnalysisChecks.MAX_FAT_PROTEIN)
+        val protein = totalOf(items.sumOf { it.protein }, answer.int("protein"), FoodAnalysisChecks.MAX_FAT_PROTEIN)
+        if (items.isEmpty() && carbs == 0 && fat == 0 && protein == 0) return FoodAnalysisResult.Failure(FoodAnalysisFailure.NO_FOOD)
+        // The extended carbs of the model were made from its own totals. When the sums are not the same numbers, they are made
+        // again from the sums with the fixed rule, so fat, protein and extended carbs always belong together.
+        // A difference of a few grams is only rounding of the items.
+        val modelFat = (answer.int("fat") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_FAT_PROTEIN)
+        val modelProtein = (answer.int("protein") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_FAT_PROTEIN)
+        val modelTotalsAgree = abs(fat - modelFat) <= TOTALS_ROUNDING_GRAMS && abs(protein - modelProtein) <= TOTALS_ROUNDING_GRAMS
+        val rule = FoodRules.extendedCarbs(fat, protein)
+        val eCarbs = if (modelTotalsAgree) (answer.int("ecarbs") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_CARBS) else rule.grams
+        return FoodAnalysisResult.Success(
+            FoodAnalysis(
+                items = items,
+                carbs = carbs,
+                fat = fat,
+                protein = protein,
+                eCarbs = eCarbs,
+                // Extended carbs need a duration of at least one hour. Without eCarbs there is no delay and no duration.
+                eCarbsDelayMinutes = when {
+                    eCarbs == 0         -> 0
+                    !modelTotalsAgree   -> rule.delayMinutes
+                    else                -> (answer.int("ecarbs_delay_minutes") ?: 0).coerceIn(0, FoodAnalysisChecks.MAX_DELAY_MINUTES)
+                },
+                eCarbsDurationHours = when {
+                    eCarbs == 0         -> 0
+                    !modelTotalsAgree   -> rule.durationHours.coerceIn(1, FoodAnalysisChecks.MAX_DURATION_HOURS)
+                    else                -> (answer.int("ecarbs_duration_hours") ?: 1).coerceIn(1, FoodAnalysisChecks.MAX_DURATION_HOURS)
+                },
+                confidence = when (answer.string("confidence")) {
+                    "high"   -> FoodConfidence.HIGH
+                    "medium" -> FoodConfidence.MEDIUM
+                    else     -> FoodConfidence.LOW // unknown is treated as the weakest
+                },
+                note = answer.string("note").take(MAX_FOOD_NOTE),
+                reasoning = answer.string("reasoning").take(MAX_FOOD_REASONING)
+            )
+        )
     }
 
     private fun read(status: Int, body: String): Read {
@@ -153,6 +238,9 @@ object AdvisorResponseParser {
     private fun JsonObject.boolean(key: String): Boolean? = (this[key] as? JsonPrimitive)?.booleanOrNull
 
     private fun JsonObject.int(key: String): Int? = (this[key] as? JsonPrimitive)?.intOrNull
+
+    /** The sum of the items. When the items give nothing, the total of the model. Always inside the limit. */
+    private fun totalOf(itemsSum: Int, modelTotal: Int?, max: Int): Int = (if (itemsSum > 0) itemsSum else modelTotal ?: 0).coerceIn(0, max)
 
     private fun JsonObject.strings(key: String): List<String> =
         (this[key] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.map { it.take(MAX_TEXT) }.take(MAX_LIST)
