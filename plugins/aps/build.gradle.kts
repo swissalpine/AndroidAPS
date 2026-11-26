@@ -79,8 +79,7 @@ kotlin {
                 implementation(libs.io.ktor.client.mock)
                 // Compose UI tests (AutotuneScreenTest). Restated from compose-test-module-dependencies,
                 // which applies com.android.library and so cannot be used here.
-                implementation(project.dependencies.platform(libs.androidx.compose.bom))
-                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.jetbrains.compose.ui.test.junit4)
                 implementation(libs.androidx.compose.ui.test.manifest)
                 implementation(libs.org.robolectric)
                 // The real org.json: isReturnDefaultValues makes the platform stub answer null rather
