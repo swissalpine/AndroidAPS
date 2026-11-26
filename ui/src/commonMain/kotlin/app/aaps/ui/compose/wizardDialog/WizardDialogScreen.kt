@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -48,7 +49,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -737,8 +737,10 @@ internal fun WizardDialogContent(
 
                         // Estimate the meal with AI. Only with an API key.
                         if (uiState.foodAvailable) {
-                            OutlinedButton(
+                            Button(
                                 onClick = onFoodClick,
+                                // Black text: white is hard to read on the carbs orange
+                                colors = ButtonDefaults.buttonColors(containerColor = ElementType.CARBS.color(), contentColor = Color.Black),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 4.dp)

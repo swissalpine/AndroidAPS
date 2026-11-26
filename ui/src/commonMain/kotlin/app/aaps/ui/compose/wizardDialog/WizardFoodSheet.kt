@@ -14,6 +14,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,6 +46,7 @@ import app.aaps.core.ui.CoreUiStrings
 import app.aaps.core.ui.compose.BarcodeScanner
 import app.aaps.core.ui.compose.FoodPhotoLauncher
 import app.aaps.core.ui.compose.NumberInputRow
+import app.aaps.core.ui.compose.icons.IcBarcode
 import app.aaps.core.ui.compose.stringResource
 import app.aaps.ui.UiStrings
 
@@ -154,8 +157,14 @@ private fun FoodInput(
             // Up to two photos of the same meal, for example from above and from the side.
             val canAddPhoto = state.photoCount < FoodAnalysisChecks.MAX_PHOTOS
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = photo.takePhoto, enabled = canAddPhoto) { Text(stringResource(UiStrings.wizard_food_take_photo)) }
-                OutlinedButton(onClick = photo.pickPhoto, enabled = canAddPhoto) { Text(stringResource(UiStrings.wizard_food_pick_photo)) }
+                OutlinedButton(onClick = photo.takePhoto, enabled = canAddPhoto, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(UiStrings.wizard_food_take_photo), modifier = Modifier.padding(start = 8.dp))
+                }
+                OutlinedButton(onClick = photo.pickPhoto, enabled = canAddPhoto, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text(stringResource(UiStrings.wizard_food_pick_photo), modifier = Modifier.padding(start = 8.dp))
+                }
             }
             Text(
                 text = stringResource(UiStrings.wizard_food_photo_hint),
@@ -200,7 +209,8 @@ private fun FoodInput(
     }
     if (barcodeAvailable) {
         OutlinedButton(onClick = actions.onScan, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(UiStrings.wizard_food_scan))
+            Icon(IcBarcode, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(UiStrings.wizard_food_scan), modifier = Modifier.padding(start = 8.dp))
         }
         // The number under the barcode, when the camera cannot read it. A number that was looked up and not found stays here.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
